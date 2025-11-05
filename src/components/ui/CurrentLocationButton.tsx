@@ -117,13 +117,20 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
   const getIcon = () => {
     switch (localState) {
       case 'loading':
-        return <Navigation2 className="h-4 w-4 animate-spin text-primary" />;
+        return (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+          >
+            <Navigation2 className="h-5 w-5 text-primary" />
+          </motion.div>
+        );
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-5 w-5 text-green-600" />;
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-destructive" />;
+        return <AlertCircle className="h-5 w-5 text-destructive" />;
       default:
-        return <Navigation2 className="h-5 w-5 text-primary fill-primary" />;
+        return <Navigation2 className="h-5 w-5 text-primary" />;
     }
   };
 
@@ -216,28 +223,9 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.div
-            whileHover={{ 
-              scale: 1.1,
-              boxShadow: "0 0 25px hsl(var(--primary) / 0.6)",
-              rotate: 5
-            }}
-            whileTap={{ 
-              scale: 0.9,
-              rotate: -5
-            }}
-            animate={{
-              boxShadow: localState === 'loading' 
-                ? "0 0 20px hsl(var(--primary) / 0.9)" 
-                : localState === 'success'
-                ? "0 0 30px hsl(var(--success) / 0.8)"
-                : "0 0 5px hsl(var(--primary) / 0.3)",
-              rotate: localState === 'loading' ? [0, 5, -5, 0] : 0
-            }}
-            transition={{
-              rotate: localState === 'loading' 
-                ? { repeat: Infinity, duration: 1, ease: "easeInOut" }
-                : { duration: 0.2 }
-            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative"
           >
             <Button
               onClick={handleGetLocation}
@@ -245,107 +233,91 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
               variant={getButtonVariant()}
               size={getButtonSize()}
               className={cn(
-                'relative transition-all duration-300 overflow-hidden',
-                // Animation de pulsation modernisée en mode loading
-                localState === 'loading' && 'animate-pulse shadow-lg shadow-primary/25',
-                // Glow effect moderne pour success
-                localState === 'success' && 'shadow-lg shadow-green-500/30 bg-green-50 text-green-600 border-green-200 hover:bg-green-100',
-                // Style d'erreur moderne
-                localState === 'error' && 'shadow-lg shadow-destructive/20 bg-destructive/5 text-destructive border-destructive/30 hover:bg-destructive/10',
-                // État par défaut avec glow subtil
-                localState === 'idle' && 'shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:border-primary/50',
+                'relative rounded-full transition-all duration-300 overflow-visible',
+                // Bouton circulaire épuré
+                'w-12 h-12 p-0',
+                // Animation moderne en mode loading
+                localState === 'loading' && 'shadow-lg shadow-primary/40',
+                // Glow success moderne
+                localState === 'success' && 'shadow-lg shadow-green-500/40 bg-green-50 text-green-600 border-green-300',
+                // État erreur propre
+                localState === 'error' && 'shadow-lg shadow-destructive/30 bg-destructive/10 text-destructive border-destructive/30',
+                // État par défaut clean
+                localState === 'idle' && 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-primary/20 hover:border-primary/50 shadow-md hover:shadow-lg hover:shadow-primary/30',
                 className
               )}
             >
-              {/* Effet de background animé */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                initial={{ x: '-100%' }}
-                animate={{ 
-                  x: localState === 'loading' ? '100%' : '-100%'
-                }}
-                transition={{ 
-                  duration: 1,
-                  repeat: localState === 'loading' ? Infinity : 0,
-                  ease: 'linear'
-                }}
-              />
-              
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={localState}
-                  initial={{ opacity: 0, scale: 0.7, rotate: -180 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  exit={{ opacity: 0, scale: 0.7, rotate: 180 }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: 300, 
-                    damping: 20,
-                    duration: 0.3
-                  }}
-                  className="relative z-10"
-                >
-                  {getButtonContent()}
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Particules de succès améliorées */}
-              {localState === 'success' && (
-                <div className="absolute inset-0 pointer-events-none">
-                  {[...Array(8)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute w-1.5 h-1.5 bg-success/80 rounded-full"
-                      initial={{
-                        x: "50%",
-                        y: "50%",
-                        scale: 0,
-                        opacity: 1
-                      }}
-                      animate={{
-                        x: `${50 + (Math.cos((i * 45) * Math.PI / 180) * 50)}%`,
-                        y: `${50 + (Math.sin((i * 45) * Math.PI / 180) * 50)}%`,
-                        scale: [0, 1.5, 0],
-                        opacity: [1, 0.8, 0]
-                      }}
-                      transition={{
-                        duration: 1.2,
-                        delay: i * 0.08,
-                        ease: "easeOut"
-                      }}
-                    />
-                  ))}
-                  {/* Effet de pulsation centrale */}
+              {/* Anneau de pulsation amélioré pour loading */}
+              <AnimatePresence>
+                {localState === 'loading' && (
                   <motion.div
-                    className="absolute inset-1 bg-success/20 rounded-full"
-                    initial={{ scale: 0, opacity: 0 }}
+                    className="absolute inset-0 rounded-full border-2 border-primary"
+                    initial={{ scale: 1, opacity: 1 }}
                     animate={{ 
-                      scale: [0, 1.5, 0],
-                      opacity: [0, 0.6, 0]
+                      scale: [1, 1.5, 1.8],
+                      opacity: [1, 0.6, 0]
                     }}
-                    transition={{
-                      duration: 1,
+                    exit={{ scale: 2, opacity: 0 }}
+                    transition={{ 
+                      duration: 1.5,
+                      repeat: Infinity,
                       ease: "easeOut"
                     }}
                   />
-                </div>
-              )}
+                )}
+              </AnimatePresence>
+              
+              {/* Icône centrale avec rotation fluide */}
+              <motion.div
+                key={localState}
+                initial={{ scale: 0.5, opacity: 0, rotate: -90 }}
+                animate={{ 
+                  scale: 1, 
+                  opacity: 1, 
+                  rotate: 0
+                }}
+                exit={{ scale: 0.5, opacity: 0, rotate: 90 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 400, 
+                  damping: 20
+                }}
+                className="relative z-10 flex items-center justify-center"
+              >
+                {getIcon()}
+              </motion.div>
 
-              {/* Effet de vibration pour les erreurs */}
-              {localState === 'error' && (
-                <motion.div
-                  className="absolute inset-0 bg-destructive/20 rounded-full"
-                  initial={{ scale: 1 }}
-                  animate={{ 
-                    x: [-2, 2, -2, 2, 0],
-                    scale: [1, 1.1, 1]
-                  }}
-                  transition={{
-                    duration: 0.5,
-                    ease: "easeInOut"
-                  }}
-                />
-              )}
+              {/* Particules de succès ultra-minimalistes */}
+              <AnimatePresence>
+                {localState === 'success' && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    {[...Array(6)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute w-1 h-1 bg-green-500 rounded-full"
+                        initial={{
+                          x: "50%",
+                          y: "50%",
+                          scale: 0,
+                          opacity: 1
+                        }}
+                        animate={{
+                          x: `${50 + (Math.cos((i * 60) * Math.PI / 180) * 60)}%`,
+                          y: `${50 + (Math.sin((i * 60) * Math.PI / 180) * 60)}%`,
+                          scale: [0, 1.5, 0],
+                          opacity: [1, 0.8, 0]
+                        }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          duration: 0.8,
+                          delay: i * 0.06,
+                          ease: "easeOut"
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </AnimatePresence>
             </Button>
           </motion.div>
         </TooltipTrigger>
