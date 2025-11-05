@@ -1,6 +1,7 @@
 import { MapPin, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 interface PickupLocationCardProps {
   pickupAddress: string | null;
@@ -8,31 +9,116 @@ interface PickupLocationCardProps {
 }
 
 export default function PickupLocationCard({ pickupAddress, onEdit }: PickupLocationCardProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Auto-collapse after 3 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsCollapsed(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [pickupAddress]);
+
+  // Toggle collapse/expand
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isCollapsed) {
+      setIsCollapsed(false);
+    } else {
+      onEdit();
+    }
+  };
+
   return (
     <motion.div
       initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ type: 'spring', damping: 20 }}
-      className="absolute top-4 left-4 right-4 z-10"
+      animate={{ 
+        y: 0, 
+        opacity: 1,
+        top: isCollapsed ? '5rem' : '1rem',
+        left: '1rem',
+        right: isCollapsed ? 'auto' : '1rem'
+      }}
+      transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+      className="absolute z-10"
     >
       <Card 
-        onClick={onEdit}
-        className="bg-white/95 backdrop-blur-md shadow-lg border-none cursor-pointer hover:shadow-xl transition-all"
+        onClick={handleToggle}
+        className="bg-white/95 backdrop-blur-md shadow-lg border-none cursor-pointer hover:shadow-xl transition-shadow overflow-hidden"
       >
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Point de prise en charge</p>
-              <p className="font-semibold text-foreground">
-                {pickupAddress || 'Votre emplacement'}
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </div>
+        <motion.div
+          animate={{
+            width: isCollapsed ? '56px' : 'auto',
+            height: isCollapsed ? '56px' : 'auto',
+          }}
+          transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+          className="flex items-center"
+        >
+          {/* Collapsed View - Icon Only with Pulse */}
+          <AnimatePresence>
+            {isCollapsed && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-14 h-14 flex items-center justify-center"
+              >
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center relative"
+                >
+                  {/* Pulse effect */}
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.5, 1],
+                      opacity: [0.5, 0, 0.5]
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="absolute inset-0 bg-primary/20 rounded-full"
+                  />
+                  <MapPin className="w-5 h-5 text-primary relative z-10" />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Expanded View - Full Address */}
+          <AnimatePresence>
+            {!isCollapsed && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="p-4 flex items-center justify-between gap-3 min-w-[280px]"
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Point de prise en charge</p>
+                    <p className="font-semibold text-foreground truncate">
+                      {pickupAddress || 'Votre emplacement'}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </Card>
     </motion.div>
   );
