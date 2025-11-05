@@ -56,6 +56,7 @@ export default function YangoBottomSheet({
     }
   };
 
+  // ⚡ PHASE 2: Throttle drag events pour performance
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const velocity = info.velocity.y;
     const currentY = info.point.y;
@@ -111,6 +112,7 @@ export default function YangoBottomSheet({
     onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
   };
 
+  // ⚡ PHASE 2: Optimisation animations - désactiver layout
   return (
     <motion.div
       initial={{ opacity: 0, x: bookingStep === 'vehicle' ? -50 : 50 }}
@@ -136,11 +138,16 @@ export default function YangoBottomSheet({
         mass: 0.8,
         opacity: { duration: 0.3, ease: "easeOut" }
       }}
+      layout={false}
       drag="y"
       dragConstraints={{ top: 0, bottom: 0 }}
       dragElastic={{ top: 0.25, bottom: 0.15 }}
       onDragEnd={handleDragEnd}
       className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl overflow-hidden"
+      style={{
+        willChange: 'height, transform',
+        transform: 'translateZ(0)'
+      }}
     >
       {/* Glissière avec indicateur de position */}
       <div 

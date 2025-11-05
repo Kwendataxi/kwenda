@@ -13,8 +13,9 @@ interface UseVehicleTypesOptions {
 export const useVehicleTypes = ({ distance = 0, city = 'Kinshasa' }: UseVehicleTypesOptions = {}) => {
   const queryClient = useQueryClient();
   
+  // ⚡ PHASE 2: Ajout distance dans cache key pour invalidation intelligente
   const { data: vehicles, isLoading, error } = useQuery({
-    queryKey: ['vehicle-types', city],
+    queryKey: ['vehicle-types', city, Math.round(distance)],
     queryFn: async () => {
       // 1. Fetch service configurations for taxi services
       const { data: configs, error: configError } = await supabase

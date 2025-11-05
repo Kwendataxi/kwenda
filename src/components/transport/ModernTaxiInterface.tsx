@@ -12,6 +12,9 @@ import { useRideDispatch } from '@/hooks/useRideDispatch';
 import { useLiveDrivers } from '@/hooks/useLiveDrivers';
 import { LocationData } from '@/types/location';
 import { secureNavigationService } from '@/services/secureNavigationService';
+import { routeCache } from '@/services/routeCacheService';
+import { predictiveRouteCache } from '@/services/predictiveRouteCacheService';
+import { taxiMetrics } from '@/services/taxiMetricsService';
 import { toast } from 'sonner';
 
 interface ModernTaxiInterfaceProps {
@@ -71,6 +74,18 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         setPickupLocation(pos);
         setLocationReady(true);
         console.log('✅ [ModernTaxiInterface] Position initiale obtenue:', pos);
+        
+        // ⚡ PHASE 3: Précharger les routes populaires en arrière-plan
+        predictiveRouteCache.smartPreload(
+          { lat: pos.lat, lng: pos.lng },
+          currentCity?.name || 'Kinshasa'
+        );
+        
+        // ⚡ PHASE 4: Logger le début de la session
+        taxiMetrics.logBookingStarted({
+          pickup: { lat: pos.lat, lng: pos.lng },
+          city: currentCity?.name || 'Kinshasa'
+        });
       } catch (error) {
         console.error('❌ [ModernTaxiInterface] Erreur géolocalisation:', error);
         // Fallback ville par défaut
@@ -89,7 +104,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     initLocation();
   }, [getCurrentPosition, currentCity]);
 
-  // Calcul automatique de la route et distance dès sélection pickup + destination
+  // ⚡ PHASE 2: Calcul de route avec cache intelligent
   useEffect(() => {
     const calculateRouteAndPrice = async () => {
       if (!pickupLocation || !destinationLocation) {
@@ -99,23 +114,28 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       }
 
       setCalculatingRoute(true);
-      console.log('🧮 Calcul route:', {
+      console.log('🧮 Calcul route avec cache:', {
         pickup: { lat: pickupLocation.lat, lng: pickupLocation.lng },
         destination: { lat: destinationLocation.lat, lng: destinationLocation.lng }
       });
 
       try {
-        const route = await secureNavigationService.calculateRoute({
-          origin: { lat: pickupLocation.lat, lng: pickupLocation.lng },
-          destination: { lat: destinationLocation.lat, lng: destinationLocation.lng },
-          mode: 'driving'
-        });
+        // ⚡ Utiliser le cache de routes
+        const route = await routeCache.getOrCalculate(
+          { lat: pickupLocation.lat, lng: pickupLocation.lng },
+          { lat: destinationLocation.lat, lng: destinationLocation.lng },
+          () => secureNavigationService.calculateRoute({
+            origin: { lat: pickupLocation.lat, lng: pickupLocation.lng },
+            destination: { lat: destinationLocation.lat, lng: destinationLocation.lng },
+            mode: 'driving'
+          })
+        );
 
         if (route) {
           const distanceKm = route.distance / 1000;
           setDistance(distanceKm);
           setRouteData(route);
-          console.log('✅ Route calculée:', {
+          console.log('✅ Route obtenue:', {
             distance: `${distanceKm.toFixed(2)} km`,
             duration: `${Math.round(route.duration / 60)} min`
           });
@@ -134,6 +154,12 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const handleVehicleSelect = (vehicleId: string) => {
     setSelectedVehicle(vehicleId);
     setBookingStep('destination');
+    
+    // ⚡ PHASE 4: Logger la sélection de véhicule
+    taxiMetrics.logVehicleSelected({
+      vehicle_type: vehicleId,
+      estimated_price: calculatedPrice
+    });
   };
 
   const handlePlaceSelect = (place: any) => {
@@ -147,6 +173,15 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     setDestinationLocation(newDestination);
     setShowDestinationSearch(false);
     setBookingStep('confirm');
+    
+    // ⚡ PHASE 4: Logger la destination
+    if (distance > 0) {
+      taxiMetrics.logDestinationEntered({
+        destination: newDestination.address,
+        distance_km: distance,
+        duration_seconds: routeData?.duration || distance * 120
+      });
+    }
   };
 
   const handleDestinationSelect = (destination: { address: string; lat: number; lng: number; name?: string }) => {

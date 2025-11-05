@@ -79,20 +79,10 @@ export const useRideDispatch = () => {
       console.log('✅ [RideDispatch] Booking created:', booking.id);
       setActiveBookingId(booking.id);
 
-      // 2. Déclencher le dispatching automatiquement
-      console.log('📡 [RideDispatch] Calling unified-dispatcher...');
+      // 2. Déclencher le dispatching automatiquement avec smart retry
+      console.log('📡 [RideDispatch] Calling ride-dispatcher...');
       
-      const dispatchResult = await callEdgeFunction('unified-dispatcher', {
-        orderType: 'taxi',
-        orderId: booking.id,
-        pickupLat: bookingData.pickupCoordinates.lat,
-        pickupLng: bookingData.pickupCoordinates.lng,
-        deliveryLat: bookingData.destinationCoordinates.lat,
-        deliveryLng: bookingData.destinationCoordinates.lng,
-        serviceType: bookingData.vehicleType,
-        priority: 'normal',
-        city: bookingData.city || 'Kinshasa'
-      });
+      const dispatchResult = await dispatchWithRetry(booking, bookingData, 1);
 
       console.log('📡 [RideDispatch] Dispatch result:', dispatchResult);
 
@@ -194,6 +184,61 @@ export const useRideDispatch = () => {
       console.log('👋 [RideDispatch] Unsubscribing from booking updates');
       supabase.removeChannel(channel);
     };
+  };
+
+  // ⚡ PHASE 3: Smart Retry avec Backoff Exponentiel
+  const dispatchWithRetry = async (
+    booking: any,
+    bookingData: BookingData,
+    attempt: number = 1
+  ): Promise<any> => {
+    const maxAttempts = 3;
+    const radius = 5 + (attempt - 1) * 5; // 5km, 10km, 15km
+    const priority = attempt >= 2 ? 'high' : 'normal';
+    
+    console.log(`🔄 [RideDispatch] Dispatch attempt ${attempt}/${maxAttempts} (radius: ${radius}km, priority: ${priority})`);
+
+    try {
+      const result = await callEdgeFunction('ride-dispatcher', {
+        bookingId: booking.id,
+        pickupLat: bookingData.pickupCoordinates.lat,
+        pickupLng: bookingData.pickupCoordinates.lng,
+        serviceType: bookingData.vehicleType,
+        vehicleClass: bookingData.vehicleType,
+        city: bookingData.city || 'Kinshasa',
+        searchRadius: radius,
+        priority
+      });
+
+      // Succès ou dernière tentative
+      if (result.success || attempt >= maxAttempts) {
+        return result;
+      }
+
+      // Échec mais tentatives restantes - Backoff exponentiel
+      const backoffTime = 2000 * attempt; // 2s, 4s, 6s
+      console.log(`⏳ [RideDispatch] Retry in ${backoffTime}ms...`);
+      
+      setSearchProgress({
+        radius,
+        driversFound: result.driversFound || 0,
+        status: 'searching'
+      });
+
+      await new Promise(resolve => setTimeout(resolve, backoffTime));
+      
+      return await dispatchWithRetry(booking, bookingData, attempt + 1);
+    } catch (error) {
+      console.error(`❌ [RideDispatch] Attempt ${attempt} failed:`, error);
+      
+      if (attempt >= maxAttempts) {
+        throw error;
+      }
+      
+      const backoffTime = 2000 * attempt;
+      await new Promise(resolve => setTimeout(resolve, backoffTime));
+      return await dispatchWithRetry(booking, bookingData, attempt + 1);
+    }
   };
 
   const resetSearch = () => {

@@ -125,17 +125,27 @@ export const useLiveDrivers = ({
     }
   }, [userLocation, maxRadius, showOnlyAvailable]);
 
-  // Initialisation et polling
+  // ⚡ PHASE 2: Suppression du polling - uniquement realtime
   useEffect(() => {
     loadDrivers();
     
-    const interval = setInterval(loadDrivers, updateInterval);
-    
-    return () => clearInterval(interval);
-  }, [loadDrivers, updateInterval]);
+    // Pas de polling, uniquement realtime updates
+    // const interval = setInterval(loadDrivers, updateInterval);
+    // return () => clearInterval(interval);
+  }, [loadDrivers]);
 
-  // Subscription temps réel pour les mises à jour de position
+  // ⚡ PHASE 2: Subscription temps réel avec debounce
   useEffect(() => {
+    // Debounce pour éviter trop de rechargements
+    let debounceTimer: NodeJS.Timeout;
+    
+    const debouncedLoadDrivers = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadDrivers();
+      }, 2000); // 2 secondes de debounce
+    };
+
     const channel = supabase
       .channel('live-drivers-tracking')
       .on(
@@ -147,15 +157,14 @@ export const useLiveDrivers = ({
           filter: 'is_online=eq.true'
         },
         (payload) => {
-          console.log('🔄 Mise à jour position chauffeur:', payload);
-          
-          // Recharger les données pour avoir les infos complètes
-          loadDrivers();
+          console.log('🔄 Mise à jour position chauffeur (debounced):', payload);
+          debouncedLoadDrivers();
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [loadDrivers]);
