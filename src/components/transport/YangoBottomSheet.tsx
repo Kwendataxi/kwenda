@@ -1,6 +1,6 @@
 import { motion, PanInfo } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import YangoVehicleSelector from './YangoVehicleSelector';
+import YangoStyleVehicleSelection from './YangoStyleVehicleSelection';
 import BeneficiarySelector from './BeneficiarySelector';
 import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
@@ -57,12 +57,12 @@ export default function YangoBottomSheet({
   const [sheetPosition, setSheetPosition] = useState<SheetPosition>(getInitialPosition());
   const [isDraggable, setIsDraggable] = useState(true);
 
-  // Positions en pixels depuis le bas de l'écran (améliorées pour plus de visibilité)
+  // Positions en pixels depuis le bas de l'écran (optimisées pour interface compacte)
   const SHEET_POSITIONS = {
-    COLLAPSED: 120,
-    SMALL: 280,
-    MEDIUM: 480,
-    LARGE: Math.min(windowHeight * 0.85, 720)
+    COLLAPSED: 100,
+    SMALL: 240,
+    MEDIUM: 380,
+    LARGE: Math.min(windowHeight * 0.85, 680)
   };
 
   // Feedback haptique amélioré
@@ -225,20 +225,20 @@ export default function YangoBottomSheet({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="px-4 pb-3 flex items-center justify-between"
+          className="px-3 sm:px-4 pb-2 sm:pb-3 flex items-center justify-between"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-base sm:text-lg">
               🚗
             </div>
             <div>
-              <p className="text-sm font-semibold">
+              <p className="text-xs sm:text-sm font-semibold">
                 {selectedVehicle === 'moto' ? 'Moto-taxi' : 
                  selectedVehicle === 'eco' ? 'Taxi Eco' :
                  selectedVehicle === 'comfort' ? 'Taxi Confort' :
                  selectedVehicle === 'premium' ? 'Taxi Premium' : 'Taxi'}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">
                 {distance > 0 ? `${distance.toFixed(1)} km` : 'En attente...'}
               </p>
             </div>
@@ -249,7 +249,7 @@ export default function YangoBottomSheet({
               setSheetPosition('MEDIUM');
               triggerHaptic('expand');
             }}
-            className="text-primary text-sm font-medium px-3 py-1.5 hover:bg-primary/10 rounded-lg transition-colors"
+            className="text-primary text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-primary/10 rounded-lg transition-colors"
           >
             Modifier
           </button>
@@ -259,15 +259,15 @@ export default function YangoBottomSheet({
       {/* Contenu scrollable avec gestion drag/scroll séparée */}
       <div 
         className={cn(
-          "px-3 sm:px-4 pb-6 overflow-y-auto transition-spacing duration-300",
+          "px-2.5 sm:px-4 pb-4 sm:pb-6 overflow-y-auto transition-spacing duration-300",
           "scroll-smooth overscroll-contain relative",
           sheetPosition === 'COLLAPSED' && "opacity-0 pointer-events-none",
-          sheetPosition === 'SMALL' && "pb-3 space-y-2",
-          sheetPosition === 'MEDIUM' && "space-y-4 sm:space-y-5",
-          sheetPosition === 'LARGE' && "pb-8 space-y-6"
+          sheetPosition === 'SMALL' && "pb-2 space-y-2",
+          sheetPosition === 'MEDIUM' && "space-y-3 sm:space-y-4",
+          sheetPosition === 'LARGE' && "pb-6 space-y-4 sm:space-y-6"
         )}
         style={{
-          maxHeight: `${SHEET_POSITIONS[sheetPosition] - 72}px`,
+          maxHeight: `${SHEET_POSITIONS[sheetPosition] - 64}px`,
           overscrollBehavior: 'contain'
         }}
         onTouchStart={(e) => {
@@ -290,12 +290,10 @@ export default function YangoBottomSheet({
             transition={{ delay: 0.1 }}
             className="space-y-5"
           >
-            <YangoVehicleSelector
-              selectedVehicleId={selectedVehicle}
-              onVehicleSelect={(vehicle) => onVehicleSelect(vehicle.id)}
+            <YangoStyleVehicleSelection
               distance={distance}
-              city={city}
-              calculatingRoute={calculatingRoute}
+              onVehicleSelect={(vehicle) => onVehicleSelect(vehicle.id)}
+              selectedVehicleId={selectedVehicle}
               onContinue={onContinue}
             />
             

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Car, Bike, Bus, Truck, Clock } from 'lucide-react';
+import { Car, Bike, Bus, Truck, Clock, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { usePricingRules } from '@/hooks/usePricingRules';
 
 interface YangoVehicle {
@@ -18,12 +19,14 @@ interface YangoStyleVehicleSelectionProps {
   distance: number;
   onVehicleSelect: (vehicle: YangoVehicle & { price: number }) => void;
   selectedVehicleId?: string;
+  onContinue?: () => void;
 }
 
 const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
   distance,
   onVehicleSelect,
-  selectedVehicleId
+  selectedVehicleId,
+  onContinue
 }) => {
   const { rules } = usePricingRules();
   const vehicles: YangoVehicle[] = [
@@ -132,10 +135,10 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 mb-1">
-        <h3 className="text-base font-semibold text-grey-900">Choisir un véhicule</h3>
+      <div className="flex items-center justify-between px-0 mb-2">
+        <h3 className="text-sm sm:text-base font-semibold text-grey-900">Choisir un véhicule</h3>
         {distance > 0 && (
-          <span className="text-xs font-medium text-grey-600 bg-grey-100 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] sm:text-xs font-medium text-grey-600 bg-grey-100 px-1.5 sm:px-2 py-0.5 rounded-full">
             {distance.toFixed(1)} km
           </span>
         )}
@@ -158,40 +161,42 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
                   key={vehicle.id}
                   onClick={() => vehicle.available && onVehicleSelect({ ...vehicle, price })}
                   className={`
-                    relative flex-shrink-0 w-20 h-24 p-2.5 rounded-xl border-2 
+                    relative flex-shrink-0 
+                    w-16 sm:w-20 h-20 sm:h-24
+                    p-2 sm:p-2.5 rounded-xl border-2 
                     transition-all duration-200 cursor-pointer touch-friendly
                     ${cardColorClass}
                     ${!vehicle.available ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md active:scale-95'}
                     ${isSelected ? 'shadow-lg scale-105' : ''}
                   `}
                 >
-                  {/* Icon - Réduit */}
-                  <div className={`w-7 h-7 mx-auto mb-1.5 flex items-center justify-center rounded-lg
+                  {/* Icon - Plus compact sur mobile */}
+                  <div className={`w-6 sm:w-7 h-6 sm:h-7 mx-auto mb-1 flex items-center justify-center rounded-lg
                     ${isSelected ? 'bg-white/20' : 'bg-transparent'}
                   `}>
-                    <vehicle.icon className={`h-4 w-4 ${iconColorClass}`} strokeWidth={2.5} />
+                    <vehicle.icon className={`h-3.5 sm:h-4 w-3.5 sm:w-4 ${iconColorClass}`} strokeWidth={2.5} />
                   </div>
 
                   {/* Vehicle Name */}
                   <div className="text-center mb-1">
-                    <p className={`text-[11px] font-semibold ${textColorClass} leading-tight`}>
+                    <p className={`text-[10px] sm:text-[11px] font-semibold ${textColorClass} leading-tight`}>
                       {vehicle.name}
                     </p>
                   </div>
 
-                  {/* Time Badge - Plus compact */}
-                  <div className={`flex items-center justify-center mb-1 px-1 py-0.5 rounded-full
+                  {/* Time Badge - Ultra compact */}
+                  <div className={`flex items-center justify-center mb-1 px-0.5 sm:px-1 py-0.5 rounded-full
                     ${isSelected ? 'bg-white/20' : 'bg-black/5'}
                   `}>
-                    <Clock className={`h-2 w-2 mr-0.5 ${textColorClass}`} />
-                    <span className={`text-[9px] font-medium ${textColorClass}`}>
+                    <Clock className={`h-1.5 sm:h-2 w-1.5 sm:w-2 mr-0.5 ${textColorClass}`} />
+                    <span className={`text-[8px] sm:text-[9px] font-medium ${textColorClass}`}>
                       {vehicle.estimatedTime}m
                     </span>
                   </div>
 
-                  {/* Price */}
+                  {/* Price - Compact */}
                   <div className="text-center">
-                    <p className={`text-[11px] font-bold ${textColorClass} leading-tight`}>
+                    <p className={`text-[10px] sm:text-[11px] font-bold ${textColorClass} leading-tight`}>
                       {vehicle.available ? `${price.toLocaleString()} FC` : 'N/A'}
                     </p>
                   </div>
@@ -221,26 +226,26 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
         <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none"></div>
       </div>
 
-      {/* Selected Vehicle Details - Amélioré */}
+      {/* Selected Vehicle Details - Compact mobile */}
       {selectedVehicleId && (
-        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-3 border border-primary/20">
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-2.5 sm:p-3 border border-primary/20 mt-3">
           {(() => {
             const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
             if (!selectedVehicle) return null;
             
             return (
               <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <selectedVehicle.icon className="h-4 w-4 text-primary" strokeWidth={2.5} />
+                <div className="flex items-center gap-2">
+                  <div className="w-7 sm:w-8 h-7 sm:h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <selectedVehicle.icon className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-primary" strokeWidth={2.5} />
                   </div>
                   <div>
-                    <p className="font-semibold text-grey-900">{selectedVehicle.name}</p>
-                    <p className="text-xs text-grey-600">{selectedVehicle.capacity} places • ~{selectedVehicle.estimatedTime} min</p>
+                    <p className="font-semibold text-xs sm:text-sm text-grey-900">{selectedVehicle.name}</p>
+                    <p className="text-[10px] sm:text-xs text-grey-600">{selectedVehicle.capacity} places • ~{selectedVehicle.estimatedTime} min</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-base font-bold text-primary">
+                  <p className="text-sm sm:text-base font-bold text-primary">
                     {calculatePrice(selectedVehicle).toLocaleString()} FC
                   </p>
                 </div>
@@ -248,6 +253,23 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
             );
           })()}
         </div>
+      )}
+
+      {/* Bouton Continuer flottant - Style moderne */}
+      {selectedVehicleId && onContinue && (
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={onContinue}
+          className="w-full mt-4 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-primary text-white font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transition-all active:scale-98"
+        >
+          <span className="flex items-center justify-center gap-2">
+            Continuer
+            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+          </span>
+        </motion.button>
       )}
     </div>
   );
