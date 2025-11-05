@@ -21,6 +21,8 @@ export default function YangoBottomSheet({
   bookingStep,
   selectedVehicle,
   onVehicleSelect,
+  distance,
+  city,
   popularPlaces,
   onPlaceSelect,
   onSearchFocus
@@ -70,6 +72,8 @@ export default function YangoBottomSheet({
             <CompactVehicleSelector
               selected={selectedVehicle}
               onSelect={onVehicleSelect}
+              city={city}
+              distance={distance}
             />
           </motion.div>
         )}
