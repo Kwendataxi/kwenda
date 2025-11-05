@@ -1,76 +1,70 @@
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import { Bike, Car, CarFront, Crown } from 'lucide-react';
+import { useVehicleTypes } from '@/hooks/useVehicleTypes';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const vehicleTypes = [
-  {
-    id: 'taxi_eco',
-    name: 'Course',
-    icon: '🚗',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-300',
-    textColor: 'text-blue-900'
-  },
-  {
-    id: 'taxi_confort',
-    name: 'Confort',
-    icon: '🚙',
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-300',
-    textColor: 'text-gray-900'
-  },
-  {
-    id: 'taxi_premium',
-    name: 'Express',
-    icon: '⚡',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-300',
-    textColor: 'text-yellow-900',
-    isNew: true
-  },
-  {
-    id: 'taxi_moto',
-    name: 'Ville en Ville',
-    icon: '🧳',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-300',
-    textColor: 'text-green-900'
-  }
-];
+const iconMap = {
+  Bike: Bike,
+  Car: Car,
+  CarFront: CarFront,
+  Crown: Crown
+};
 
 interface VehicleTypeSelectorProps {
   selected: string;
   onSelect: (id: string) => void;
+  city?: string;
 }
 
-export default function VehicleTypeSelector({ selected, onSelect }: VehicleTypeSelectorProps) {
+export default function VehicleTypeSelector({ selected, onSelect, city = 'Kinshasa' }: VehicleTypeSelectorProps) {
+  const { vehicles, isLoading } = useVehicleTypes({ distance: 0, city });
+
+  if (isLoading) {
+    return (
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-1">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="flex-shrink-0 w-24 h-24 rounded-2xl" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-1">
-      {vehicleTypes.map((vehicle) => (
-        <motion.button
-          key={vehicle.id}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onSelect(vehicle.id)}
-          className={`
-            relative flex-shrink-0 w-24 p-3 rounded-2xl border-2 transition-all
-            ${selected === vehicle.id 
-              ? `${vehicle.bgColor} ${vehicle.borderColor} shadow-md` 
-              : 'bg-white border-border'
-            }
-          `}
-        >
-          {vehicle.isNew && (
-            <Badge className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs px-2 py-0.5 shadow-md">
-              New
-            </Badge>
-          )}
-          
-          <div className="text-3xl mb-1">{vehicle.icon}</div>
-          
-          <p className={`text-xs font-semibold ${selected === vehicle.id ? vehicle.textColor : 'text-foreground'}`}>
-            {vehicle.name}
-          </p>
-        </motion.button>
-      ))}
+      {vehicles.map((vehicle) => {
+        const IconComponent = iconMap[vehicle.icon as keyof typeof iconMap] || Car;
+        const isSelected = selected === vehicle.id;
+        
+        return (
+          <motion.button
+            key={vehicle.id}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onSelect(vehicle.id)}
+            className={`
+              relative flex-shrink-0 w-24 p-3 rounded-2xl border-2 transition-all
+              ${isSelected 
+                ? 'bg-primary/10 border-primary shadow-md' 
+                : 'bg-card border-border'
+              }
+            `}
+          >
+            {vehicle.isPopular && (
+              <Badge className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground text-xs px-2 py-0.5 shadow-md">
+                New
+              </Badge>
+            )}
+            
+            <div className="flex items-center justify-center mb-2">
+              <IconComponent className={`w-8 h-8 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+            </div>
+            
+            <p className={`text-xs font-semibold text-center ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+              {vehicle.name}
+            </p>
+          </motion.button>
+        );
+      })}
     </div>
   );
 }

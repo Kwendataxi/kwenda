@@ -1,7 +1,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Minus, Navigation, Satellite, Layers, MapPin } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Minus, Navigation } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface KwendaMapControlsProps {
   onZoomIn: () => void;
@@ -13,7 +15,7 @@ interface KwendaMapControlsProps {
   className?: string;
 }
 
-export default function KwendaMapControls({
+const KwendaMapControls = React.memo(({
   onZoomIn,
   onZoomOut,
   onLocate,
@@ -21,66 +23,73 @@ export default function KwendaMapControls({
   isLocating = false,
   mapType = 'roadmap',
   className
-}: KwendaMapControlsProps) {
+}: KwendaMapControlsProps) => {
+  const [driverCount] = React.useState(12); // Simulé pour l'instant
+
   return (
     <div className={cn("absolute top-4 right-4 flex flex-col gap-3 z-10", className)}>
-      {/* Zoom Controls - Style Glassmorphism Yango */}
+      {/* Zoom Controls - Glassmorphism optimisé */}
       <div className="flex flex-col gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onZoomIn}
-          className="h-12 w-12 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 dark:border-gray-700/50 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
-          aria-label="Zoom in"
-        >
-          <Plus className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-        </Button>
+        <motion.div whileTap={{ scale: 0.95 }}>
+          <Button
+            size="lg"
+            variant="ghost"
+            onClick={onZoomIn}
+            className="h-14 w-14 bg-card/95 backdrop-blur-md rounded-2xl shadow-lg border border-border/50 hover:bg-accent transition-all"
+            aria-label="Zoom in"
+          >
+            <Plus className="h-6 w-6 text-foreground" />
+          </Button>
+        </motion.div>
         
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onZoomOut}
-          className="h-12 w-12 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 dark:border-gray-700/50 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
-          aria-label="Zoom out"
-        >
-          <Minus className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-        </Button>
+        <motion.div whileTap={{ scale: 0.95 }}>
+          <Button
+            size="lg"
+            variant="ghost"
+            onClick={onZoomOut}
+            className="h-14 w-14 bg-card/95 backdrop-blur-md rounded-2xl shadow-lg border border-border/50 hover:bg-accent transition-all"
+            aria-label="Zoom out"
+          >
+            <Minus className="h-6 w-6 text-foreground" />
+          </Button>
+        </motion.div>
       </div>
 
-      {/* Location Button - Rouge Kwenda */}
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={onLocate}
-        disabled={isLocating}
-        className={cn(
-          "h-12 w-12 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 dark:border-gray-700/50 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all",
-          isLocating && "animate-pulse"
-        )}
-        aria-label="Locate me"
-      >
-        <Navigation className={cn(
-          "h-5 w-5",
-          isLocating ? "animate-spin text-primary" : "text-primary"
-        )} />
-      </Button>
-
-      {/* Map Type Toggle */}
-      {onToggleMapType && (
+      {/* Location Button - Rouge Kwenda avec badge */}
+      <motion.div whileTap={{ scale: 0.95 }} className="relative">
         <Button
-          size="sm"
+          size="lg"
           variant="ghost"
-          onClick={onToggleMapType}
-          className="h-12 w-12 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 dark:border-gray-700/50 hover:bg-yellow-50 dark:hover:bg-yellow-950/30 transition-all"
-          aria-label="Toggle map type"
-        >
-          {mapType === 'satellite' ? (
-            <Layers className="h-5 w-5 text-secondary" />
-          ) : (
-            <Satellite className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+          onClick={onLocate}
+          disabled={isLocating}
+          className={cn(
+            "h-14 w-14 bg-primary/95 backdrop-blur-md rounded-2xl shadow-xl border border-primary/50 hover:bg-primary transition-all",
+            isLocating && "animate-pulse"
           )}
+          aria-label="Ma position"
+        >
+          <Navigation className={cn(
+            "h-6 w-6 text-primary-foreground",
+            isLocating && "animate-spin"
+          )} />
         </Button>
-      )}
+        
+        {driverCount > 0 && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-1 -right-1"
+          >
+            <Badge className="bg-secondary text-secondary-foreground text-xs px-1.5 py-0.5 shadow-md animate-pulse">
+              {driverCount}
+            </Badge>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
-}
+});
+
+KwendaMapControls.displayName = 'KwendaMapControls';
+
+export default KwendaMapControls;

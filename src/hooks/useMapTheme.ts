@@ -1,25 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 
-// Styles de carte Yango-like épurés pour mode clair
+// Styles Yango ultra-soft et épurés pour mode clair
 const lightMapStyles: google.maps.MapTypeStyle[] = [
-  // Masquer TOUS les POI pour carte épurée
+  // Masquer TOUS les POI/transit pour clarté maximale
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-  { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit.station', stylers: [{ visibility: 'off' }] },
   
-  // Background très clair et soft
+  // Background ultra-clair (blanc cassé)
   { 
     elementType: 'geometry', 
-    stylers: [{ color: '#f8f9fa' }, { lightness: 30 }] 
+    stylers: [{ color: '#fafafa' }] 
   },
   
-  // Routes claires et bien visibles
+  // Routes blanches épurées
   { 
     featureType: 'road', 
     elementType: 'geometry', 
-    stylers: [{ color: '#ffffff' }, { lightness: 25 }] 
+    stylers: [{ color: '#ffffff' }] 
   },
   { 
     featureType: 'road', 
@@ -29,7 +27,7 @@ const lightMapStyles: google.maps.MapTypeStyle[] = [
   { 
     featureType: 'road.highway', 
     elementType: 'geometry', 
-    stylers: [{ color: '#ffffff' }, { lightness: 20 }] 
+    stylers: [{ color: '#ffffff' }, { lightness: 10 }] 
   },
   
   // Eau bleu très soft
@@ -39,7 +37,7 @@ const lightMapStyles: google.maps.MapTypeStyle[] = [
     stylers: [{ color: '#e0f2fe' }] 
   },
   
-  // Labels minimaux
+  // Labels minimalistes gris clair
   {
     elementType: 'labels.text.fill',
     stylers: [{ color: '#9ca3af' }]
