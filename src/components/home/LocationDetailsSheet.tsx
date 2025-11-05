@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Bookmark, Edit3, Share2, MapPin, Loader2, ExternalLink, Check, Navigation, X } from 'lucide-react';
+import { Bookmark, Edit3, Share2, MapPin, ExternalLink, Check, Navigation, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -68,12 +68,14 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
     }
   }, [open]);
 
-  // Load Google Maps script dynamically
+  // Load Google Maps script dynamically with timeout
   useEffect(() => {
     if (!googleApiKey || !open) return;
 
     const loadGoogleMapsScript = () => {
       return new Promise<void>((resolve, reject) => {
+        const startTime = performance.now();
+        
         if (window.google?.maps) {
           console.log('✅ Google Maps already loaded');
           resolve();
@@ -90,6 +92,14 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
               resolve();
             }
           }, 100);
+          
+          // Timeout after 10 seconds
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            if (!window.google?.maps) {
+              reject(new Error('Google Maps loading timeout'));
+            }
+          }, 10000);
           return;
         }
 
@@ -99,13 +109,22 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
         script.async = true;
         script.defer = true;
         script.onload = () => {
-          console.log('✅ Google Maps script loaded successfully');
+          const loadTime = performance.now() - startTime;
+          console.log(`✅ Google Maps script loaded successfully in ${loadTime.toFixed(0)}ms`);
           resolve();
         };
         script.onerror = () => {
           console.error('❌ Failed to load Google Maps script');
           reject(new Error('Failed to load Google Maps'));
         };
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          if (!window.google?.maps) {
+            reject(new Error('Google Maps loading timeout'));
+          }
+        }, 10000);
+        
         document.head.appendChild(script);
       });
     };
@@ -118,10 +137,12 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
       .catch((error) => {
         console.error('❌ Error loading Google Maps:', error);
         toast({
-          title: "Erreur",
-          description: "Impossible de charger Google Maps",
+          title: "Erreur de chargement",
+          description: "Impossible de charger Google Maps. Veuillez réessayer.",
           variant: "destructive"
         });
+        // Fallback: still allow sheet to function without map
+        setMapLoaded(true);
       });
   }, [googleApiKey, open]);
 
@@ -165,17 +186,32 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
           animation: google.maps.Animation.DROP,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
-            scale: 12,
-            fillColor: isEditing ? '#F59E0B' : '#E31E24',
+            scale: isEditing ? 14 : 12,
+            fillColor: isEditing ? '#3B82F6' : '#3B82F6',
             fillOpacity: 1,
             strokeColor: '#ffffff',
-            strokeWeight: 4
+            strokeWeight: isEditing ? 5 : 4
           }
         });
 
-        // Handle marker drag
+        // Handle marker drag with haptic feedback
+        marker.addListener('dragstart', () => {
+          if (navigator.vibrate) {
+            navigator.vibrate(12);
+          }
+          toast({
+            title: "📍 Repositionnement en cours",
+            description: "Relâchez pour confirmer la nouvelle position",
+            duration: 2000
+          });
+        });
+        
         marker.addListener('dragend', async (event: google.maps.MapMouseEvent) => {
           if (!event.latLng) return;
+          
+          if (navigator.vibrate) {
+            navigator.vibrate(15);
+          }
           
           const newLat = event.latLng.lat();
           const newLng = event.latLng.lng();
@@ -196,11 +232,6 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
             console.error('Geocoding error:', error);
           }
         });
-
-        setTimeout(() => {
-          marker.setAnimation(google.maps.Animation.BOUNCE);
-          setTimeout(() => marker.setAnimation(null), 1000);
-        }, 500);
 
         markerRef.current = marker;
         setMap(newMap);
@@ -261,6 +292,10 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   const handleEditLocation = () => {
     setIsEditing(!isEditing);
     
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    
     if (!isEditing) {
       toast({
         title: "📍 Mode édition activé",
@@ -271,11 +306,11 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
         markerRef.current.setDraggable(true);
         markerRef.current.setIcon({
           path: google.maps.SymbolPath.CIRCLE,
-          scale: 12,
-          fillColor: '#F59E0B',
+          scale: 14,
+          fillColor: '#3B82F6',
           fillOpacity: 1,
           strokeColor: '#ffffff',
-          strokeWeight: 4
+          strokeWeight: 5
         });
       }
     } else {
@@ -284,7 +319,7 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
         markerRef.current.setIcon({
           path: google.maps.SymbolPath.CIRCLE,
           scale: 12,
-          fillColor: '#E31E24',
+          fillColor: '#3B82F6',
           fillOpacity: 1,
           strokeColor: '#ffffff',
           strokeWeight: 4
@@ -355,10 +390,21 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <SheetHeader className="space-y-3 pb-6">
-            <SheetTitle className="text-2xl font-bold text-center bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-              {isEditing ? '✏️ MODIFIER LA POSITION' : 'VOTRE POSITION'}
-            </SheetTitle>
+          <SheetHeader className="space-y-2 pb-4 border-b border-border/40">
+            <div className="flex items-center gap-3 justify-center">
+              <motion.div 
+                animate={{ scale: [1, 1.1, 1] }} 
+                transition={{ repeat: Infinity, duration: 2 }}
+              >
+                <MapPin className="h-5 w-5 text-primary" />
+              </motion.div>
+              <SheetTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 via-violet-600 to-blue-600 bg-clip-text text-transparent">
+                {isEditing ? 'Modifier la position' : 'Votre position'}
+              </SheetTitle>
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              {isEditing ? 'Déplacez le marqueur sur la carte' : '📍 Détectée avec précision GPS'}
+            </p>
           </SheetHeader>
 
           <div className="space-y-5">
@@ -369,7 +415,7 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
               transition={{ delay: 0.2, duration: 0.3 }}
               className="relative"
             >
-              <div className="relative w-full h-60 rounded-3xl overflow-hidden bg-gradient-to-br from-muted via-muted/50 to-background border-2 border-primary/10 shadow-2xl">
+              <div className="relative w-full h-64 rounded-[32px] overflow-hidden bg-muted/20 border border-border/30 shadow-lg">
                 <AnimatePresence mode="wait">
                   {!mapLoaded ? (
                     <motion.div
@@ -377,10 +423,11 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center gap-3"
+                      className="absolute inset-0 space-y-3 p-4"
                     >
-                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground animate-pulse">Chargement de la carte...</p>
+                      <div className="h-1/3 bg-muted/40 rounded-2xl animate-pulse" />
+                      <div className="h-1/3 bg-muted/30 rounded-2xl w-2/3 animate-pulse" />
+                      <div className="h-1/3 bg-muted/20 rounded-2xl w-1/2 animate-pulse" />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -397,19 +444,18 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                 {/* Open in Google Maps Button */}
                 {mapLoaded && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="absolute bottom-3 right-3"
+                    className="absolute top-3 right-3"
                   >
                     <Button
                       size="sm"
                       onClick={openInGoogleMaps}
-                      className="h-9 gap-2 bg-background/95 backdrop-blur-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-                      variant="secondary"
+                      className="h-8 gap-1.5 bg-background/80 backdrop-blur-md border border-border/40 shadow-md hover:shadow-lg transition-all"
                     >
-                      <ExternalLink className="h-4 w-4" />
-                      <span className="text-xs font-semibold">Google Maps</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span className="text-xs font-medium">Google Maps</span>
                     </Button>
                   </motion.div>
                 )}
@@ -421,24 +467,18 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3, duration: 0.3 }}
-              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border border-primary/10 p-4 shadow-lg"
+              className="relative overflow-hidden rounded-[20px] bg-muted/30 border border-border/30 p-3 shadow-sm"
             >
               <div className="flex items-start gap-3">
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                  className="flex-shrink-0"
-                >
-                  <MapPin className="h-6 w-6 text-primary drop-shadow-sm" />
-                </motion.div>
+                <MapPin className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <div className="flex-1 space-y-1">
-                  <p className="text-xs font-semibold text-primary uppercase tracking-wide">
+                  <p className="text-[10px] font-semibold text-primary uppercase tracking-wider">
                     {isEditing ? 'Nouvelle adresse' : 'Adresse actuelle'}
                   </p>
-                  <p className="text-sm font-bold text-foreground leading-relaxed">{currentAddress}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Navigation className="h-3.5 w-3.5 text-green-600" />
-                    <span className="text-xs text-green-600 font-medium">
+                  <p className="text-xs font-medium text-foreground leading-relaxed">{currentAddress}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Navigation className="h-3 w-3 text-green-600" />
+                    <span className="text-[10px] text-green-600 font-medium">
                       {isEditing ? 'Déplacez le marqueur' : 'Position GPS précise'}
                     </span>
                   </div>
@@ -455,7 +495,7 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                   exit={{ opacity: 0, height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="bg-muted/30 rounded-2xl p-4 space-y-3 border border-primary/20">
+                  <div className="bg-muted/30 rounded-xl p-4 space-y-3 border border-primary/20">
                     <p className="text-sm font-semibold text-foreground">Nom de la position (optionnel)</p>
                     <Input
                       placeholder="Ex: Maison, Bureau, Arrêt de bus..."
@@ -463,13 +503,19 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                       onChange={(e) => setPositionName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && confirmSaveLocation()}
                       className="h-11"
+                      autoFocus
                     />
                     <div className="flex gap-2">
                       <Button
                         onClick={confirmSaveLocation}
                         className="flex-1 gap-2 h-10"
                       >
-                        <Check className="h-4 w-4" />
+                        <motion.div
+                          animate={{ scale: [1, 1.1, 1] }}
+                          transition={{ repeat: Infinity, duration: 1.5 }}
+                        >
+                          <Check className="h-4 w-4" />
+                        </motion.div>
                         Confirmer
                       </Button>
                       <Button
@@ -497,15 +543,16 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
               >
                 <Button
                   variant="outline"
-                  className="w-full justify-start gap-4 h-16 text-left group hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-                  onClick={handleSaveLocation}
+                  className="w-full justify-start gap-3 h-12 hover:bg-accent/50 active:scale-[0.98] transition-all"
+                  onClick={() => {
+                    if (navigator.vibrate) navigator.vibrate(10);
+                    handleSaveLocation();
+                  }}
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                    <Bookmark className="h-6 w-6 text-red-600" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/20 to-pink-500/10 flex items-center justify-center flex-shrink-0">
+                    <Bookmark className="h-5 w-5 text-red-600" />
                   </div>
-                  <span className="flex-1 text-sm font-semibold text-foreground">
-                    Enregistrer ma position
-                  </span>
+                  <span className="text-xs font-semibold">Enregistrer ma position</span>
                 </Button>
               </motion.div>
 
@@ -515,14 +562,17 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                 transition={{ delay: 0.5 }}
               >
                 <Button
-                  variant="outline"
-                  className="w-full justify-start gap-4 h-16 text-left group hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-                  onClick={handleEditLocation}
+                  variant={isEditing ? "default" : "outline"}
+                  className="w-full justify-start gap-3 h-12 hover:bg-accent/50 active:scale-[0.98] transition-all"
+                  onClick={() => {
+                    if (navigator.vibrate) navigator.vibrate(10);
+                    handleEditLocation();
+                  }}
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                    <Edit3 className="h-6 w-6 text-amber-600" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                    <Edit3 className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="flex-1 text-sm font-semibold text-foreground">
+                  <span className="text-xs font-semibold">
                     {isEditing ? '✅ Confirmer la position' : 'Modifier ma position'}
                   </span>
                 </Button>
@@ -535,15 +585,16 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
               >
                 <Button
                   variant="outline"
-                  className="w-full justify-start gap-4 h-16 text-left group hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-                  onClick={handleShareLocation}
+                  className="w-full justify-start gap-3 h-12 hover:bg-accent/50 active:scale-[0.98] transition-all"
+                  onClick={() => {
+                    if (navigator.vibrate) navigator.vibrate(10);
+                    handleShareLocation();
+                  }}
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                    <Share2 className="h-6 w-6 text-blue-600" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                    <Share2 className="h-5 w-5 text-green-600" />
                   </div>
-                  <span className="flex-1 text-sm font-semibold text-foreground">
-                    Partager la position
-                  </span>
+                  <span className="text-xs font-semibold">Partager la position</span>
                 </Button>
               </motion.div>
             </div>
