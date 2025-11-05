@@ -4,7 +4,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { useVehicleTypes } from '@/hooks/useVehicleTypes';
 import { VehicleType } from '@/types/vehicle';
 import { getYangoTheme } from '@/utils/yangoVehicleThemes';
-import { Clock, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface YangoVehicleSelectorProps {
@@ -165,17 +165,32 @@ export default function YangoVehicleSelector({
                       />
                     </AnimatePresence>
                     
-                    {/* ETA Badge */}
-                    {vehicle.eta && (
+                    {/* Badge Tarification - Base + Prix/km */}
+                    {distance > 0 && vehicle.basePrice && vehicle.pricePerKm && (
                       <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: isSelected ? 1 : 0.9 }}
-                        transition={{ delay: 0.2 }}
-                        className="absolute -bottom-1 px-2 py-0.5 bg-background/90 backdrop-blur-sm rounded-full shadow-lg border border-border"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: isSelected ? 1 : 0.92, opacity: 1 }}
+                        transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
+                        className="absolute -bottom-1 px-2.5 py-1 bg-background/95 backdrop-blur-sm rounded-full shadow-lg border border-border/60"
                       >
                         <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />
-                          <span className="text-[10px] font-semibold">{vehicle.eta} min</span>
+                          {/* Icône $ */}
+                          <svg 
+                            className="w-3 h-3 text-muted-foreground/70" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2.5"
+                          >
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                          </svg>
+                          
+                          {/* Tarification compacte */}
+                          <span className="text-[9px] font-bold leading-none whitespace-nowrap">
+                            {vehicle.basePrice.toLocaleString()}
+                            <span className="opacity-40 mx-0.5">+</span>
+                            {vehicle.pricePerKm.toLocaleString()}/km
+                          </span>
                         </div>
                       </motion.div>
                     )}
@@ -206,16 +221,6 @@ export default function YangoVehicleSelector({
                           </motion.p>
                         </AnimatePresence>
                         
-                        {/* Détails tarifaires - Base + Prix/km */}
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 0.65, height: 'auto' }}
-                          className="text-[10px] text-muted-foreground/60 mt-0.5 font-medium flex items-center justify-center gap-0.5"
-                        >
-                          <span>{vehicle.basePrice.toLocaleString()}</span>
-                          <span className="opacity-50">+</span>
-                          <span>{vehicle.pricePerKm.toLocaleString()}/km</span>
-                        </motion.div>
                       </>
                     )}
                   </div>
