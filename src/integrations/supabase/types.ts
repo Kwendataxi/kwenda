@@ -457,6 +457,42 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_beneficiaries: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_favorite: boolean | null
+          name: string
+          phone: string
+          relationship: string | null
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          name: string
+          phone: string
+          relationship?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          name?: string
+          phone?: string
+          relationship?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_reports: {
         Row: {
           admin_notes: string | null
@@ -10375,6 +10411,11 @@ export type Database = {
         Row: {
           actual_price: number | null
           assignment_version: number
+          beneficiary_id: string | null
+          beneficiary_instructions: string | null
+          beneficiary_name: string | null
+          beneficiary_phone: string | null
+          booked_for_other: boolean | null
           booking_time: string
           cancellation_reason: string | null
           cancellation_type: string | null
@@ -10419,6 +10460,11 @@ export type Database = {
         Insert: {
           actual_price?: number | null
           assignment_version?: number
+          beneficiary_id?: string | null
+          beneficiary_instructions?: string | null
+          beneficiary_name?: string | null
+          beneficiary_phone?: string | null
+          booked_for_other?: boolean | null
           booking_time?: string
           cancellation_reason?: string | null
           cancellation_type?: string | null
@@ -10463,6 +10509,11 @@ export type Database = {
         Update: {
           actual_price?: number | null
           assignment_version?: number
+          beneficiary_id?: string | null
+          beneficiary_instructions?: string | null
+          beneficiary_name?: string | null
+          beneficiary_phone?: string | null
+          booked_for_other?: boolean | null
           booking_time?: string
           cancellation_reason?: string | null
           cancellation_type?: string | null
@@ -10504,7 +10555,15 @@ export type Database = {
           user_id?: string
           vehicle_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transport_bookings_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "booking_beneficiaries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transport_chat_messages: {
         Row: {
@@ -14226,6 +14285,10 @@ export type Database = {
       has_user_role: { Args: { check_role: string }; Returns: boolean }
       increment_address_usage: {
         Args: { address_id: string }
+        Returns: undefined
+      }
+      increment_beneficiary_usage: {
+        Args: { beneficiary_id: string }
         Returns: undefined
       }
       insert_booking_report: {

@@ -6,6 +6,7 @@ import YangoBottomSheet from './YangoBottomSheet';
 import DestinationSearchDialog from './DestinationSearchDialog';
 import PriceConfirmationModal from './PriceConfirmationModal';
 import DriverSearchProgressModal from './DriverSearchProgressModal';
+import BeneficiarySelector from './BeneficiarySelector';
 import { NearbyDriversIndicator } from '@/components/maps/NearbyDriversIndicator';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { useRideDispatch } from '@/hooks/useRideDispatch';
@@ -34,6 +35,10 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [manualPosition, setManualPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [persistedUserLocation, setPersistedUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(450);
+  
+  // États pour réservation pour autrui
+  const [isForSomeoneElse, setIsForSomeoneElse] = useState(false);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   const popularPlaces = getPopularPlaces();
@@ -165,6 +170,12 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   };
 
   const handleContinueToDestination = () => {
+    // Validation si pour quelqu'un d'autre
+    if (isForSomeoneElse && !selectedBeneficiary) {
+      toast.error('Veuillez sélectionner un bénéficiaire');
+      return;
+    }
+    
     setBookingStep('destination');
     
     // Haptic feedback
@@ -218,7 +229,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         destinationCoordinates: { lat: destinationLocation.lat, lng: destinationLocation.lng },
         vehicleType: selectedVehicle,
         estimatedPrice: calculatedPrice,
-        city: currentCity?.name || 'Kinshasa'
+        city: currentCity?.name || 'Kinshasa',
+        
+        // Données bénéficiaire
+        bookedForOther: isForSomeoneElse,
+        beneficiaryId: selectedBeneficiary?.id,
+        beneficiaryName: selectedBeneficiary?.name,
+        beneficiaryPhone: selectedBeneficiary?.phone
       };
 
       console.log('🚗 [ModernTaxiInterface] Starting ride dispatch...', bookingData);
@@ -316,6 +333,18 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         }}
       />
       
+      {/* Sélecteur de bénéficiaire - affiché quand un véhicule est sélectionné */}
+      {bookingStep === 'vehicle' && selectedVehicle && (
+        <div className="absolute bottom-[420px] left-0 right-0 z-20 px-4">
+          <BeneficiarySelector
+            isForSomeoneElse={isForSomeoneElse}
+            onToggle={setIsForSomeoneElse}
+            selectedBeneficiary={selectedBeneficiary}
+            onSelectBeneficiary={setSelectedBeneficiary}
+          />
+        </div>
+      )}
+      
       {/* Bottom Sheet avec flux par étapes */}
       <AnimatePresence mode="wait">
         <YangoBottomSheet
@@ -348,6 +377,10 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           calculatedPrice={calculatedPrice}
           onConfirm={handleSearchDriver}
           onBack={handleBackToDestination}
+          beneficiary={isForSomeoneElse && selectedBeneficiary ? {
+            name: selectedBeneficiary.name,
+            phone: selectedBeneficiary.phone
+          } : null}
         />
       )}
       

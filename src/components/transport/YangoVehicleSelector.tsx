@@ -4,7 +4,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { useVehicleTypes } from '@/hooks/useVehicleTypes';
 import { VehicleType } from '@/types/vehicle';
 import { getYangoTheme } from '@/utils/yangoVehicleThemes';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface YangoVehicleSelectorProps {
@@ -211,23 +211,14 @@ export default function YangoVehicleSelector({
                       {vehicle.name}
                     </motion.h3>
                     
-                    {/* Price */}
-                    {distance > 0 && vehicle.calculatedPrice > 0 && (
-                      <>
-                        <AnimatePresence mode="wait">
-                          <motion.p
-                            key={vehicle.calculatedPrice}
-                            initial={{ opacity: 0, y: -8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 8 }}
-                            transition={{ duration: 0.3 }}
-                            className={`text-sm font-extrabold mt-1 ${isSelected ? 'text-foreground' : 'text-muted-foreground/70'}`}
-                          >
-                            {vehicle.calculatedPrice.toLocaleString()} CDF
-                          </motion.p>
-                        </AnimatePresence>
-                        
-                      </>
+                    {/* ETA uniquement */}
+                    {vehicle.eta > 0 && (
+                      <motion.p
+                        className={`text-xs mt-1 flex items-center gap-1 justify-center ${isSelected ? 'text-foreground/80' : 'text-muted-foreground/60'}`}
+                      >
+                        <Clock className="w-3 h-3" />
+                        {vehicle.eta} min
+                      </motion.p>
                     )}
                   </div>
                 </motion.button>

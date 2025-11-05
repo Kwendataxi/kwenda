@@ -62,15 +62,18 @@ export default function DriverRideNotifications() {
           id: notif.reference_id || notif.id,
           title: notif.title,
           message: notif.message,
-          distance: (notif as any).metadata?.distance || 0,
-          estimatedTime: Math.ceil(((notif as any).metadata?.distance || 0) * 3), // 3 min per km
-          expiresIn: 120, // 2 minutes
-          pickupAddress: (notif as any).metadata?.pickupLocation?.address,
-          destinationAddress: (notif as any).metadata?.destinationLocation?.address,
-          estimatedPrice: (notif as any).metadata?.estimatedPrice,
-          vehicleClass: (notif as any).metadata?.vehicleClass,
-          ridesRemaining: (notif as any).metadata?.rides_remaining,
-          status: 'pending'
+              distance: (notif as any).metadata?.distance || 0,
+              estimatedTime: Math.ceil(((notif as any).metadata?.distance || 0) * 3), // 3 min per km
+              expiresIn: 120, // 2 minutes
+              pickupAddress: (notif as any).metadata?.pickupLocation?.address,
+              destinationAddress: (notif as any).metadata?.destinationLocation?.address,
+              estimatedPrice: (notif as any).metadata?.estimatedPrice,
+              vehicleClass: (notif as any).metadata?.vehicleClass,
+              ridesRemaining: (notif as any).metadata?.rides_remaining,
+              status: 'pending',
+              bookedForOther: (notif as any).metadata?.bookedForOther,
+              beneficiaryName: (notif as any).metadata?.beneficiaryName,
+              beneficiaryPhone: (notif as any).metadata?.beneficiaryPhone
         }));
 
         setNotifications(mappedNotifications);
@@ -328,6 +331,19 @@ export default function DriverRideNotifications() {
                 <p className="font-medium">{notification.estimatedPrice?.toLocaleString() || '-'} CDF</p>
               </div>
             </div>
+
+            {/* Info bénéficiaire si course pour autrui */}
+            {(notification as any).bookedForOther && (
+              <div className="mt-3 mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold mb-1">
+                  ⚠️ Course réservée pour un tiers
+                </p>
+                <div className="text-xs space-y-1">
+                  <p><strong>Bénéficiaire :</strong> {(notification as any).beneficiaryName}</p>
+                  <p><strong>Téléphone :</strong> {(notification as any).beneficiaryPhone}</p>
+                </div>
+              </div>
+            )}
 
             {!isAccepted ? (
               <>

@@ -46,7 +46,13 @@ export const useTaxiBooking = () => {
           vehicle_type: booking.vehicle_class,
           estimated_price: booking.estimated_price,
           city: city,
-          status: 'pending'
+          status: 'pending',
+          
+          // Champs bénéficiaire
+          booked_for_other: (booking as any).bookedForOther || false,
+          beneficiary_id: (booking as any).beneficiaryId || null,
+          beneficiary_name: (booking as any).beneficiaryName || null,
+          beneficiary_phone: (booking as any).beneficiaryPhone || null
         } as any)
         .select()
         .single();

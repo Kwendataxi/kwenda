@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, Loader2 } from 'lucide-react';
+import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, Loader2, Users } from 'lucide-react';
 import { Car, Bike, Crown } from 'lucide-react';
 import { useState } from 'react';
 
@@ -17,6 +17,7 @@ interface PriceConfirmationModalProps {
   calculatedPrice: number;
   onConfirm: () => void;
   onBack: () => void;
+  beneficiary?: { name: string; phone: string } | null;
 }
 
 const VEHICLE_CONFIG: Record<string, { name: string; icon: any; gradient: string }> = {
@@ -36,7 +37,8 @@ export default function PriceConfirmationModal({
   duration,
   calculatedPrice,
   onConfirm,
-  onBack
+  onBack,
+  beneficiary
 }: PriceConfirmationModalProps) {
   const [isSearching, setIsSearching] = useState(false);
 
@@ -78,6 +80,22 @@ export default function PriceConfirmationModal({
           <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6 text-foreground">
             {vehicle.name}
           </h2>
+
+          {/* Bénéficiaire si applicable */}
+          {beneficiary && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl"
+            >
+              <div className="flex items-center gap-2 text-sm">
+                <Users className="w-4 h-4 text-primary" />
+                <span className="text-muted-foreground">Pour :</span>
+                <span className="font-semibold text-foreground">{beneficiary.name}</span>
+                <span className="text-muted-foreground text-xs">({beneficiary.phone})</span>
+              </div>
+            </motion.div>
+          )}
 
           {/* Itinéraire */}
           <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
