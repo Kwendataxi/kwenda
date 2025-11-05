@@ -44,7 +44,7 @@ export default function DestinationSearchDialog({
       setSearchQuery('');
       clearPredictions();
     }
-  }, [open, clearPredictions]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Recherche autocomplete
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function DestinationSearchDialog({
     } else {
       clearPredictions();
     }
-  }, [searchQuery, search, clearPredictions]);
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelectHistory = (destination: any) => {
     onSelectDestination({
