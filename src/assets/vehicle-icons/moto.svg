@@ -1,49 +1,49 @@
 <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
   <!-- Ombre portée -->
-  <ellipse cx="60" cy="70" rx="45" ry="6" fill="#000" opacity="0.1"/>
+  <ellipse cx="60" cy="65" rx="45" ry="6" fill="#000" opacity="0.1"/>
   
   <!-- Roue arrière -->
-  <circle cx="30" cy="58" r="12" fill="#1F2937"/>
-  <circle cx="30" cy="58" r="8" fill="#374151"/>
-  <circle cx="30" cy="58" r="5" fill="#4B5563"/>
-  <circle cx="30" cy="58" r="2.5" fill="#6B7280"/>
+  <circle cx="30" cy="45" r="11" fill="#1F2937"/>
+  <circle cx="30" cy="45" r="8" fill="#374151"/>
+  <circle cx="30" cy="45" r="5" fill="#4B5563"/>
+  <circle cx="30" cy="45" r="2.5" fill="#6B7280"/>
   
   <!-- Roue avant -->
-  <circle cx="87" cy="58" r="12" fill="#1F2937"/>
-  <circle cx="87" cy="58" r="8" fill="#374151"/>
-  <circle cx="87" cy="58" r="5" fill="#4B5563"/>
-  <circle cx="87" cy="58" r="2.5" fill="#6B7280"/>
+  <circle cx="87" cy="45" r="11" fill="#1F2937"/>
+  <circle cx="87" cy="45" r="8" fill="#374151"/>
+  <circle cx="87" cy="45" r="5" fill="#4B5563"/>
+  <circle cx="87" cy="45" r="2.5" fill="#6B7280"/>
   
   <!-- Cadre de la moto -->
-  <path d="M 36,54 L 51,33 L 66,30 L 81,54" 
+  <path d="M 36,41 L 51,20 L 66,17 L 81,41" 
         stroke="#FF9800" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   
   <!-- Réservoir -->
-  <ellipse cx="57" cy="32" rx="14" ry="8" fill="#FFA726" opacity="0.95"/>
-  <ellipse cx="57" cy="31" rx="11" ry="6" fill="#FFB74D" opacity="0.8"/>
+  <ellipse cx="57" cy="19" rx="14" ry="8" fill="#FFA726" opacity="0.95"/>
+  <ellipse cx="57" cy="18" rx="11" ry="6" fill="#FFB74D" opacity="0.8"/>
   
   <!-- Siège -->
-  <path d="M 63,33 Q 72,32 77,35 Q 75,40 69,39 Z" 
+  <path d="M 63,20 Q 72,19 77,22 Q 75,27 69,26 Z" 
         fill="#424242" opacity="0.9"/>
   
   <!-- Guidon -->
-  <line x1="81" y1="30" x2="87" y2="25" 
+  <line x1="81" y1="17" x2="87" y2="12" 
         stroke="#616161" stroke-width="2" stroke-linecap="round"/>
-  <line x1="81" y1="30" x2="75" y2="25" 
+  <line x1="81" y1="17" x2="75" y2="12" 
         stroke="#616161" stroke-width="2" stroke-linecap="round"/>
   
   <!-- Garde-boue avant -->
-  <path d="M 81,46 Q 87,51 87,58" 
+  <path d="M 81,33 Q 87,38 87,45" 
         stroke="#FF9800" stroke-width="2.5" fill="none" stroke-linecap="round"/>
   
   <!-- Pot d'échappement -->
-  <rect x="33" y="51" width="15" height="4" rx="2" fill="#78909C" opacity="0.85"/>
+  <rect x="33" y="38" width="15" height="4" rx="2" fill="#78909C" opacity="0.85"/>
   
   <!-- Phare avant -->
-  <circle cx="90" cy="33" r="4" fill="#FFF9C4" opacity="0.9"/>
-  <circle cx="90" cy="33" r="2.5" fill="#FFEB3B" opacity="0.95"/>
+  <circle cx="90" cy="20" r="4" fill="#FFF9C4" opacity="0.9"/>
+  <circle cx="90" cy="20" r="2.5" fill="#FFEB3B" opacity="0.95"/>
   
   <!-- Reflets lumineux -->
-  <ellipse cx="57" cy="29" rx="5" ry="2" fill="#fff" opacity="0.4"/>
-  <circle cx="89" cy="32" r="1.5" fill="#fff" opacity="0.7"/>
+  <ellipse cx="57" cy="16" rx="5" ry="2" fill="#fff" opacity="0.4"/>
+  <circle cx="89" cy="19" r="1.5" fill="#fff" opacity="0.7"/>
 </svg>

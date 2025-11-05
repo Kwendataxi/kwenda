@@ -113,7 +113,7 @@ export default function YangoVehicleSelector({
             return (
               <div
                 key={vehicle.id}
-                className="flex-[0_0_35%] min-w-0 px-2"
+                className="flex-[0_0_40%] min-w-0 px-3"
               >
                 <motion.button
                   onClick={() => {
@@ -123,8 +123,9 @@ export default function YangoVehicleSelector({
                     }
                   }}
                   animate={{
-                    scale: isSelected ? 1 : 0.88,
-                    opacity: isSelected ? 1 : 0.6
+                    scale: isSelected ? 1.05 : 0.85,
+                    opacity: isSelected ? 1 : 0.5,
+                    y: isSelected ? -4 : 0
                   }}
                   whileTap={{ scale: 0.93 }}
                   transition={{ 
@@ -142,7 +143,7 @@ export default function YangoVehicleSelector({
                     <motion.div
                       initial={{ scale: 0, rotate: -15 }}
                       animate={{ scale: 1, rotate: 0 }}
-                      className="absolute -top-1 -right-1 z-10 bg-gradient-to-r from-amber-400 to-yellow-500 text-yellow-900 text-[8px] px-1.5 py-0.5 rounded-full font-bold shadow-md"
+                      className="absolute -top-2 -right-2 z-10 bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-500 text-white text-[9px] px-2 py-1 rounded-full font-black shadow-lg ring-2 ring-white"
                     >
                       Populaire
                     </motion.div>
@@ -150,15 +151,17 @@ export default function YangoVehicleSelector({
 
                   {/* Circle with Icon */}
                   <motion.div
-                    className={`relative w-24 h-24 md:w-28 md:h-28 rounded-3xl flex items-center justify-center transition-all duration-300 ${
+                    className={`relative w-32 h-32 md:w-36 md:h-36 rounded-3xl flex items-center justify-center transition-all duration-300 ${
                       isSelected ? 'ring-4 ring-opacity-25' : ''
                     }`}
                     whileHover={{ scale: 1.05 }}
                     style={{
-                      background: theme.gradient,
+                      background: isSelected 
+                        ? `linear-gradient(135deg, ${theme.gradient})`
+                        : theme.solidColor,
                       boxShadow: isSelected 
-                        ? `0 0 35px ${theme.glowColor}, 0 15px 40px rgba(0, 0, 0, 0.1), inset 0 1px 15px rgba(255, 255, 255, 0.15)`
-                        : `0 6px 16px rgba(0, 0, 0, 0.05)`,
+                        ? `0 0 45px ${theme.glowColor}, 0 20px 50px rgba(0, 0, 0, 0.15), inset 0 2px 20px rgba(255, 255, 255, 0.2)`
+                        : `0 8px 20px rgba(0, 0, 0, 0.08)`,
                       ['--tw-ring-color' as string]: isSelected ? theme.solidColor : 'transparent'
                     }}
                   >
@@ -171,9 +174,13 @@ export default function YangoVehicleSelector({
                         initial={{ opacity: 0, scale: 0.85 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.85 }}
-                        whileHover={{ scale: 1.08, y: -2 }}
+                        whileHover={{ 
+                          scale: 1.12, 
+                          y: -3,
+                          rotate: [0, -2, 2, 0]
+                        }}
                         transition={{ duration: 0.3 }}
-                        className="w-14 h-8 md:w-16 md:h-10 object-contain"
+                        className="w-20 h-14 md:w-24 md:h-16 object-contain"
                         style={{
                           filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))'
                         }}

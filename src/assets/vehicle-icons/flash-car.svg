@@ -1,85 +1,85 @@
 <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
   <!-- Ombre portée dynamique -->
-  <ellipse cx="60" cy="70" rx="50" ry="7" fill="#000" opacity="0.12"/>
+  <ellipse cx="60" cy="65" rx="50" ry="7" fill="#000" opacity="0.12"/>
   
   <!-- Carrosserie sportive -->
-  <path d="M 18,54 L 30,40 L 46,32 L 82,32 L 98,42 L 102,54 L 102,60 L 18,60 Z" 
+  <path d="M 18,40 L 30,26 L 46,18 L 82,18 L 98,28 L 102,40 L 102,47 L 18,47 Z" 
         fill="#F43F5E" opacity="0.95"/>
   
   <!-- Toit profilé -->
-  <path d="M 44,32 L 50,24 L 72,24 L 78,32 Z" 
+  <path d="M 44,18 L 50,10 L 72,10 L 78,18 Z" 
         fill="#E11D48" opacity="0.9"/>
   
   <!-- Vitres teintées sport -->
-  <path d="M 46,30 L 52,26 L 62,26 L 62,31 L 46,31 Z" 
+  <path d="M 46,16 L 52,12 L 62,12 L 62,17 L 46,17 Z" 
         fill="#450A0A" opacity="0.6"/>
-  <path d="M 64,26 L 74,26 L 80,30 L 80,31 L 64,31 Z" 
+  <path d="M 64,12 L 74,12 L 80,16 L 80,17 L 64,17 Z" 
         fill="#450A0A" opacity="0.6"/>
   
   <!-- Pare-brise avant aérodynamique -->
-  <path d="M 82,34 L 96,42 L 96,52 L 82,52 Z" 
+  <path d="M 82,20 L 96,28 L 96,38 L 82,38 Z" 
         fill="#FED7E2" opacity="0.35"/>
   
   <!-- Logo Flash sur portière -->
-  <g transform="translate(54, 46) scale(0.7)">
+  <g transform="translate(54, 32) scale(0.7)">
     <path d="M 2,0 L 8,0 L 4,6 L 6,6 L 2,12 L 3.5,7 L 1,7 Z" 
           fill="#FFF9C4" opacity="0.95"/>
   </g>
   
   <!-- Calandre sport -->
-  <rect x="98" y="47" width="4" height="8" rx="0.5" fill="#1F2937" opacity="0.9"/>
-  <line x1="99" y1="48" x2="99" y2="54" stroke="#F43F5E" stroke-width="0.5"/>
+  <rect x="98" y="33" width="4" height="8" rx="0.5" fill="#1F2937" opacity="0.9"/>
+  <line x1="99" y1="34" x2="99" y2="40" stroke="#F43F5E" stroke-width="0.5"/>
   
   <!-- Phares LED agressifs -->
-  <ellipse cx="98" cy="44" rx="5" ry="2.5" fill="#FFF9C4" opacity="0.95"/>
-  <ellipse cx="98" cy="57" rx="5" ry="2.5" fill="#FFF9C4" opacity="0.95"/>
-  <ellipse cx="97" cy="44" rx="2.5" ry="1.5" fill="#FFEB3B"/>
+  <ellipse cx="98" cy="30" rx="5" ry="2.5" fill="#FFF9C4" opacity="0.95"/>
+  <ellipse cx="98" cy="43" rx="5" ry="2.5" fill="#FFF9C4" opacity="0.95"/>
+  <ellipse cx="97" cy="30" rx="2.5" ry="1.5" fill="#FFEB3B"/>
   
   <!-- Feux arrière LED sport -->
-  <rect x="19" y="50" width="3" height="6" rx="1.5" fill="#DC2626" opacity="0.95"/>
-  <rect x="20" y="51" width="1" height="4" fill="#FCA5A5" opacity="0.8"/>
+  <rect x="19" y="36" width="3" height="6" rx="1.5" fill="#DC2626" opacity="0.95"/>
+  <rect x="20" y="37" width="1" height="4" fill="#FCA5A5" opacity="0.8"/>
   
   <!-- Jantes sport -->
   <g>
     <!-- Roue avant -->
-    <circle cx="84" cy="60" r="11" fill="#1F2937"/>
-    <circle cx="84" cy="60" r="8" fill="#E11D48"/>
-    <circle cx="84" cy="60" r="5" fill="#1F2937"/>
-    <circle cx="84" cy="60" r="2.5" fill="#F43F5E"/>
-    <line x1="84" y1="54" x2="84" y2="66" stroke="#FCA5A5" stroke-width="0.8"/>
-    <line x1="78" y1="60" x2="90" y2="60" stroke="#FCA5A5" stroke-width="0.8"/>
+    <circle cx="84" cy="47" r="11" fill="#1F2937"/>
+    <circle cx="84" cy="47" r="8" fill="#E11D48"/>
+    <circle cx="84" cy="47" r="5" fill="#1F2937"/>
+    <circle cx="84" cy="47" r="2.5" fill="#F43F5E"/>
+    <line x1="84" y1="41" x2="84" y2="53" stroke="#FCA5A5" stroke-width="0.8"/>
+    <line x1="78" y1="47" x2="90" y2="47" stroke="#FCA5A5" stroke-width="0.8"/>
     
     <!-- Roue arrière -->
-    <circle cx="36" cy="60" r="11" fill="#1F2937"/>
-    <circle cx="36" cy="60" r="8" fill="#E11D48"/>
-    <circle cx="36" cy="60" r="5" fill="#1F2937"/>
-    <circle cx="36" cy="60" r="2.5" fill="#F43F5E"/>
-    <line x1="36" y1="54" x2="36" y2="66" stroke="#FCA5A5" stroke-width="0.8"/>
-    <line x1="30" y1="60" x2="42" y2="60" stroke="#FCA5A5" stroke-width="0.8"/>
+    <circle cx="36" cy="47" r="11" fill="#1F2937"/>
+    <circle cx="36" cy="47" r="8" fill="#E11D48"/>
+    <circle cx="36" cy="47" r="5" fill="#1F2937"/>
+    <circle cx="36" cy="47" r="2.5" fill="#F43F5E"/>
+    <line x1="36" y1="41" x2="36" y2="53" stroke="#FCA5A5" stroke-width="0.8"/>
+    <line x1="30" y1="47" x2="42" y2="47" stroke="#FCA5A5" stroke-width="0.8"/>
   </g>
   
   <!-- Lignes de design sport -->
-  <path d="M 46,42 L 88,42" stroke="#E11D48" stroke-width="2" opacity="0.7"/>
-  <path d="M 38,50 L 94,50" stroke="#DC2626" stroke-width="1.5" opacity="0.6"/>
+  <path d="M 46,28 L 88,28" stroke="#E11D48" stroke-width="2" opacity="0.7"/>
+  <path d="M 38,36 L 94,36" stroke="#DC2626" stroke-width="1.5" opacity="0.6"/>
   
   <!-- Aérations latérales -->
-  <rect x="70" y="48" width="8" height="1" fill="#1F2937" opacity="0.6"/>
-  <rect x="70" y="50" width="8" height="1" fill="#1F2937" opacity="0.6"/>
-  <rect x="70" y="52" width="8" height="1" fill="#1F2937" opacity="0.6"/>
+  <rect x="70" y="34" width="8" height="1" fill="#1F2937" opacity="0.6"/>
+  <rect x="70" y="36" width="8" height="1" fill="#1F2937" opacity="0.6"/>
+  <rect x="70" y="38" width="8" height="1" fill="#1F2937" opacity="0.6"/>
   
   <!-- Reflets lumineux sport -->
-  <ellipse cx="60" cy="34" rx="22" ry="3" fill="#fff" opacity="0.4"/>
-  <ellipse cx="72" cy="48" rx="16" ry="2.5" fill="#fff" opacity="0.35"/>
+  <ellipse cx="60" cy="20" rx="22" ry="3" fill="#fff" opacity="0.4"/>
+  <ellipse cx="72" cy="34" rx="16" ry="2.5" fill="#fff" opacity="0.35"/>
   
   <!-- Rétroviseurs sport -->
-  <rect x="82" y="36" width="2" height="4" fill="#1F2937" opacity="0.9"/>
-  <ellipse cx="83" cy="38" rx="3" ry="2.5" fill="#374151" opacity="0.85"/>
+  <rect x="82" y="22" width="2" height="4" fill="#1F2937" opacity="0.9"/>
+  <ellipse cx="83" cy="24" rx="3" ry="2.5" fill="#374151" opacity="0.85"/>
   
   <!-- Aileron arrière -->
-  <rect x="24" y="30" width="8" height="2" fill="#E11D48" opacity="0.9"/>
-  <rect x="25" y="32" width="6" height="0.5" fill="#F43F5E" opacity="0.7"/>
+  <rect x="24" y="16" width="8" height="2" fill="#E11D48" opacity="0.9"/>
+  <rect x="25" y="18" width="6" height="0.5" fill="#F43F5E" opacity="0.7"/>
   
   <!-- Bas de caisse sport -->
-  <rect x="32" y="59" width="58" height="1.5" fill="#1F2937" opacity="0.8"/>
-  <rect x="34" y="59.5" width="54" height="0.5" fill="#F43F5E" opacity="0.6"/>
+  <rect x="32" y="46" width="58" height="1.5" fill="#1F2937" opacity="0.8"/>
+  <rect x="34" y="46.5" width="54" height="0.5" fill="#F43F5E" opacity="0.6"/>
 </svg>
