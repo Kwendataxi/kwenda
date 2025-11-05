@@ -11,6 +11,7 @@ interface ModernVehicleSelectorProps {
   onVehicleSelect: (vehicle: VehicleType) => void;
   selectedVehicleId?: string;
   city?: string;
+  calculatingRoute?: boolean;
 }
 
 const getIconComponent = (iconName: string) => {
@@ -22,22 +23,34 @@ export const ModernVehicleSelector = ({
   distance,
   onVehicleSelect,
   selectedVehicleId,
-  city = 'Kinshasa'
+  city = 'Kinshasa',
+  calculatingRoute = false
 }: ModernVehicleSelectorProps) => {
   const { vehicles, isLoading } = useVehicleTypes({ distance, city });
 
-  if (isLoading) {
+  if (isLoading || calculatingRoute) {
     return (
       <div className="space-y-3">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="flex items-center gap-4 p-5 rounded-2xl bg-muted/30">
-            <Skeleton className="w-16 h-16 rounded-full flex-shrink-0" />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              delay: i * 0.1,
+              type: 'spring',
+              damping: 30,
+              stiffness: 200
+            }}
+            className="flex items-center gap-4 p-5 rounded-2xl bg-muted/30"
+          >
+            <Skeleton className="w-16 h-16 rounded-full flex-shrink-0 animate-pulse" />
             <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-5 w-32 animate-pulse" />
+              <Skeleton className="h-4 w-48 animate-pulse" />
             </div>
-            <Skeleton className="h-8 w-24" />
-          </div>
+            <Skeleton className="h-8 w-24 animate-pulse" />
+          </motion.div>
         ))}
       </div>
     );
@@ -65,14 +78,26 @@ export const ModernVehicleSelector = ({
 
       {/* Vehicle Cards - Vertical Stack */}
       <div className="space-y-3">
-        {vehicles.map((vehicle) => {
+        {vehicles.map((vehicle, index) => {
           const isSelected = selectedVehicleId === vehicle.id;
           const Icon = getIconComponent(vehicle.icon);
 
           return (
             <motion.button
               key={vehicle.id}
-              whileHover={{ scale: 1.02 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: index * 0.08,
+                type: 'spring',
+                damping: 30,
+                stiffness: 200
+              }}
+              whileHover={{ 
+                scale: 1.02,
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                transition: { type: 'spring', damping: 20, stiffness: 400 }
+              }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onVehicleSelect(vehicle)}
               className={cn(
@@ -100,9 +125,11 @@ export const ModernVehicleSelector = ({
                   <h3 className="text-lg font-bold text-foreground">
                     {vehicle.name}
                   </h3>
-                  <Badge variant="default" className="text-xs animate-pulse">
-                    Actif
-                  </Badge>
+                  {distance > 0 && (
+                    <Badge className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 animate-pulse border-green-500/30">
+                      Prix calculé
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-1">
                   {vehicle.description}

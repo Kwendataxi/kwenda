@@ -7,6 +7,8 @@ import YangoBottomSheet from './YangoBottomSheet';
 import DestinationSearchDialog from './DestinationSearchDialog';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { LocationData } from '@/types/location';
+import { secureNavigationService } from '@/services/secureNavigationService';
+import { toast } from 'sonner';
 
 interface ModernTaxiInterfaceProps {
   onSubmit?: (data: any) => void;
@@ -18,6 +20,9 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [pickupLocation, setPickupLocation] = useState<LocationData | null>(null);
   const [destinationLocation, setDestinationLocation] = useState<LocationData | null>(null);
   const [showDestinationSearch, setShowDestinationSearch] = useState(false);
+  const [distance, setDistance] = useState<number>(0);
+  const [routeData, setRouteData] = useState<any>(null);
+  const [calculatingRoute, setCalculatingRoute] = useState(false);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   const popularPlaces = getPopularPlaces();
@@ -39,6 +44,48 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     }
   }, [currentLocation, pickupLocation, getCurrentPosition]);
 
+  // Calcul automatique de la route et distance dès sélection pickup + destination
+  useEffect(() => {
+    const calculateRouteAndPrice = async () => {
+      if (!pickupLocation || !destinationLocation) {
+        setDistance(0);
+        setRouteData(null);
+        return;
+      }
+
+      setCalculatingRoute(true);
+      console.log('🧮 Calcul route:', {
+        pickup: { lat: pickupLocation.lat, lng: pickupLocation.lng },
+        destination: { lat: destinationLocation.lat, lng: destinationLocation.lng }
+      });
+
+      try {
+        const route = await secureNavigationService.calculateRoute({
+          origin: { lat: pickupLocation.lat, lng: pickupLocation.lng },
+          destination: { lat: destinationLocation.lat, lng: destinationLocation.lng },
+          mode: 'driving'
+        });
+
+        if (route) {
+          const distanceKm = route.distance / 1000;
+          setDistance(distanceKm);
+          setRouteData(route);
+          console.log('✅ Route calculée:', {
+            distance: `${distanceKm.toFixed(2)} km`,
+            duration: `${Math.round(route.duration / 60)} min`
+          });
+        }
+      } catch (error) {
+        console.error('❌ Erreur calcul route:', error);
+        toast.error('Impossible de calculer la route');
+      } finally {
+        setCalculatingRoute(false);
+      }
+    };
+
+    calculateRouteAndPrice();
+  }, [pickupLocation, destinationLocation]);
+
   const handlePlaceSelect = (place: any) => {
     const newDestination = {
       address: place.name || place.destination || place.address,
@@ -55,6 +102,29 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     setDestinationLocation({
       ...destination,
       type: 'geocoded' as const
+    });
+  };
+
+  const handleConfirmBooking = () => {
+    if (!pickupLocation || !destinationLocation || !selectedVehicle) {
+      toast.error('Veuillez compléter tous les champs');
+      return;
+    }
+
+    console.log('✅ Confirmation booking:', {
+      pickup: pickupLocation,
+      destination: destinationLocation,
+      vehicleType: selectedVehicle,
+      distance: `${distance.toFixed(2)} km`
+    });
+
+    onSubmit?.({
+      pickup: pickupLocation,
+      destination: destinationLocation,
+      vehicleType: selectedVehicle,
+      distance,
+      route: routeData,
+      bookingId: `booking-${Date.now()}`
     });
   };
 
@@ -103,9 +173,14 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       <YangoBottomSheet
         selectedVehicle={selectedVehicle}
         onVehicleSelect={setSelectedVehicle}
+        distance={distance}
+        city={currentCity?.name || 'Kinshasa'}
+        calculatingRoute={calculatingRoute}
         popularPlaces={popularPlaces || []}
         onPlaceSelect={handlePlaceSelect}
         onSearchFocus={() => setShowDestinationSearch(true)}
+        onConfirmBooking={handleConfirmBooking}
+        hasDestination={!!destinationLocation}
       />
       
       {/* Dialog de recherche de destination */}
