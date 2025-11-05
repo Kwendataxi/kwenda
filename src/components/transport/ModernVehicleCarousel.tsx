@@ -99,18 +99,18 @@ export default function ModernVehicleCarousel({
   return (
     <div className="fixed inset-0 bg-black overflow-hidden">
       {/* Titre en haut */}
-      <div className="absolute top-20 sm:top-24 left-0 right-0 text-center z-10 px-4">
+      <div className="absolute top-12 sm:top-16 left-0 right-0 text-center z-10 px-4">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xl sm:text-2xl font-bold text-white tracking-tight"
+          className="text-lg sm:text-xl font-bold text-white tracking-tight"
         >
           Choisissez votre type de véhicule
         </motion.h1>
       </div>
 
       {/* Carrousel centré */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center pt-16 sm:pt-20">
         <div ref={emblaRef} className="overflow-hidden w-full max-w-md">
           <div className="flex">
             {vehicles.map((vehicle, index) => {
@@ -143,7 +143,7 @@ export default function ModernVehicleCarousel({
                         ease: 'easeInOut'
                       }}
                       className={`
-                        relative w-[160px] h-[160px] rounded-full 
+                        relative w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] rounded-full 
                         flex items-center justify-center
                         transition-all duration-300
                       `}
@@ -154,7 +154,7 @@ export default function ModernVehicleCarousel({
                           : '0 8px 30px rgba(0,0,0,0.4)'
                       }}
                     >
-                      <IconComponent className="w-16 h-16 text-white" />
+                      <IconComponent className="w-14 h-14 sm:w-16 sm:h-16 text-white" />
                     </motion.div>
                   </motion.div>
 
@@ -166,7 +166,7 @@ export default function ModernVehicleCarousel({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ delay: 0.1 }}
-                        className="text-center mt-10 space-y-3"
+                        className="text-center mt-12 sm:mt-14 space-y-2 sm:space-y-3"
                       >
                         <p className="text-xl font-semibold text-white">
                           {vehicle.name}
@@ -209,7 +209,7 @@ export default function ModernVehicleCarousel({
 
       {/* Points indicateurs animés */}
       {vehicles.length > 1 && (
-        <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <div className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
           {vehicles.map((_, index) => (
             <motion.div
               key={index}
