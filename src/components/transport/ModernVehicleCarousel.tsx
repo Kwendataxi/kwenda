@@ -99,18 +99,18 @@ export default function ModernVehicleCarousel({
   return (
     <div className="fixed inset-0 bg-black overflow-hidden">
       {/* Titre en haut */}
-      <div className="absolute top-12 sm:top-16 left-0 right-0 text-center z-10 px-4">
+      <div className="absolute top-8 sm:top-10 left-0 right-0 text-center z-10 px-4">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-lg sm:text-xl font-bold text-white tracking-tight"
+          className="text-base sm:text-lg font-bold text-white tracking-tight"
         >
           Choisissez votre type de véhicule
         </motion.h1>
       </div>
 
       {/* Carrousel centré */}
-      <div className="absolute inset-0 flex items-center justify-center pt-16 sm:pt-20">
+      <div className="absolute inset-0 flex items-start justify-center pt-32 sm:pt-40">
         <div ref={emblaRef} className="overflow-hidden w-full max-w-md">
           <div className="flex">
             {vehicles.map((vehicle, index) => {
@@ -121,7 +121,7 @@ export default function ModernVehicleCarousel({
               return (
                 <div 
                   key={vehicle.id} 
-                  className="flex-[0_0_100%] flex flex-col items-center justify-center px-12"
+                  className="flex-[0_0_100%] flex flex-col items-center justify-start px-8 sm:px-12"
                 >
                   {/* Cercle de véhicule */}
                   <motion.div
@@ -143,7 +143,7 @@ export default function ModernVehicleCarousel({
                         ease: 'easeInOut'
                       }}
                       className={`
-                        relative w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] rounded-full 
+                        relative w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] rounded-full 
                         flex items-center justify-center
                         transition-all duration-300
                       `}
@@ -154,7 +154,7 @@ export default function ModernVehicleCarousel({
                           : '0 8px 30px rgba(0,0,0,0.4)'
                       }}
                     >
-                      <IconComponent className="w-14 h-14 sm:w-16 sm:h-16 text-white" />
+                      <IconComponent className="w-12 h-12 sm:w-14 sm:h-14 text-white" />
                     </motion.div>
                   </motion.div>
 
@@ -166,20 +166,20 @@ export default function ModernVehicleCarousel({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ delay: 0.1 }}
-                        className="text-center mt-12 sm:mt-14 space-y-2 sm:space-y-3"
+                        className="text-center mt-6 sm:mt-8 space-y-1 sm:space-y-2"
                       >
-                        <p className="text-xl font-semibold text-white">
+                        <p className="text-lg sm:text-xl font-semibold text-white">
                           {vehicle.name}
                         </p>
                         
                         {vehicle.calculatedPrice > 0 && (
-                          <p className="text-base text-gray-400 font-medium">
+                          <p className="text-sm sm:text-base text-gray-400 font-medium">
                             {formatCurrency(vehicle.calculatedPrice)}
                           </p>
                         )}
                         
                         {vehicle.description && (
-                          <p className="text-sm text-gray-500 max-w-xs mx-auto">
+                          <p className="hidden sm:block text-sm text-gray-500 max-w-xs mx-auto">
                             {vehicle.description}
                           </p>
                         )}
@@ -209,7 +209,7 @@ export default function ModernVehicleCarousel({
 
       {/* Points indicateurs animés */}
       {vehicles.length > 1 && (
-        <div className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <div className="absolute bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 flex gap-2 z-10">
           {vehicles.map((_, index) => (
             <motion.div
               key={index}
