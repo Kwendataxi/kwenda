@@ -165,33 +165,24 @@ export default function YangoVehicleSelector({
                       />
                     </AnimatePresence>
                     
-                    {/* Badge Tarification - Base + Prix/km */}
+                    {/* Badge Tarification Ultra-Compact */}
                     {vehicle.basePrice && vehicle.pricePerKm && (
                       <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: isSelected ? 1 : 0.92, opacity: 1 }}
-                        transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
-                        className="absolute -bottom-1 px-2.5 py-1 bg-background/95 backdrop-blur-sm rounded-full shadow-lg border border-border/60"
+                        initial={{ scale: 0, y: 5 }}
+                        animate={{ scale: 1, y: 0 }}
+                        transition={{ 
+                          delay: 0.1, 
+                          type: "spring", 
+                          stiffness: 300,
+                          damping: 20
+                        }}
+                        className="absolute -bottom-0.5 px-1.5 py-0.5 bg-background/80 backdrop-blur-md rounded-md shadow-sm"
                       >
-                        <div className="flex items-center gap-1">
-                          {/* Icône $ */}
-                          <svg 
-                            className="w-3 h-3 text-muted-foreground/70" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2.5"
-                          >
-                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                          </svg>
-                          
-                          {/* Tarification compacte */}
-                          <span className="text-[9px] font-bold leading-none whitespace-nowrap">
-                            {vehicle.basePrice.toLocaleString()}
-                            <span className="opacity-40 mx-0.5">+</span>
-                            {vehicle.pricePerKm.toLocaleString()}/km
-                          </span>
-                        </div>
+                        <span className="text-[8px] font-semibold text-muted-foreground/80 tracking-tight leading-none">
+                          {(vehicle.basePrice / 1000).toFixed(0)}k
+                          <span className="opacity-30 mx-[2px]">•</span>
+                          {vehicle.pricePerKm}
+                        </span>
                       </motion.div>
                     )}
                   </motion.div>
