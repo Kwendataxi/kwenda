@@ -1,20 +1,10 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
 import AdvancedTaxiTracker from '@/components/transport/AdvancedTaxiTracker';
-import { TaxiTestComponent } from '@/components/transport/TaxiTestComponent';
-import { DriverDashboard } from '@/components/driver/DriverDashboard';
 import DriverRideNotifications from '@/components/driver/DriverRideNotifications';
-import PerformanceDebugger from '@/components/transport/map/PerformanceDebugger';
-import { useDriverSimulation } from '@/hooks/useDriverSimulation';
-import { Car, ArrowLeft, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
 
 const TransportPage = () => {
-  const navigate = useNavigate();
-  const { startDriverSimulation } = useDriverSimulation();
-  const [activeView, setActiveView] = useState<'create' | 'track' | 'test' | 'driver'>('create');
+  const [activeView, setActiveView] = useState<'create' | 'track'>('create');
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
 
   const handleBookingCreated = (data: any) => {
@@ -30,14 +20,6 @@ const TransportPage = () => {
     setActiveBookingId(null);
   };
 
-  const handleShowTest = () => {
-    setActiveView('test');
-  };
-
-  const handleShowDriver = () => {
-    setActiveView('driver');
-  };
-
   if (activeView === 'track' && activeBookingId) {
     return (
       <AdvancedTaxiTracker
@@ -47,78 +29,9 @@ const TransportPage = () => {
     );
   }
 
-  // Si on est en mode test
-  if (activeView === 'test') {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Tests Système Taxi</h1>
-          <button 
-            onClick={handleBackToCreate}
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80"
-          >
-            Retour à l'interface
-          </button>
-        </div>
-        <TaxiTestComponent />
-      </div>
-    );
-  }
-
-  // Si on est en mode dashboard chauffeur
-  if (activeView === 'driver') {
-    return <DriverDashboard />;
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 glassmorphism border-b border-border/20 p-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigate('/')}
-              className="lg:hidden"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Car className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Kwenda Taxi
-              </h1>
-              <p className="text-sm text-muted-foreground">Service de taxi VTC</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button 
-              onClick={startDriverSimulation}
-              className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/80 flex items-center gap-1"
-            >
-              <Users className="h-3 w-3" />
-              Créer Chauffeurs Test
-            </button>
-            <button 
-              onClick={handleShowTest}
-              className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
-            >
-              Tests Système
-            </button>
-            <button 
-              onClick={handleShowDriver}
-              className="px-3 py-1 text-xs bg-accent text-accent-foreground rounded hover:bg-accent/80"
-            >
-              Dashboard Chauffeur
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content - Interface taxi moderne */}
+      {/* Interface taxi Yango */}
       <ModernTaxiInterface
         onSubmit={handleBookingCreated}
         onCancel={handleBackToCreate}
@@ -126,9 +39,6 @@ const TransportPage = () => {
 
       {/* Notifications pour les chauffeurs */}
       <DriverRideNotifications />
-
-      {/* Debugger de performance (développement) */}
-      {import.meta.env.DEV && <PerformanceDebugger />}
     </div>
   );
 };
