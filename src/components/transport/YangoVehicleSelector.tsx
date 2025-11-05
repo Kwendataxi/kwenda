@@ -31,7 +31,9 @@ export default function YangoVehicleSelector({
     skipSnaps: false,
     startIndex: 1,
     dragFree: false,
-    inViewThreshold: 0.7
+    inViewThreshold: 0.7,
+    duration: 25,
+    watchDrag: true
   });
   const [selectedIndex, setSelectedIndex] = useState(1);
 
@@ -113,16 +115,27 @@ export default function YangoVehicleSelector({
                 key={vehicle.id}
                 className="flex-[0_0_35%] min-w-0 px-2"
               >
-                <motion.div
+                <motion.button
+                  onClick={() => {
+                    emblaApi?.scrollTo(index);
+                    if ('vibrate' in navigator) {
+                      navigator.vibrate(12);
+                    }
+                  }}
                   animate={{
                     scale: isSelected ? 1 : 0.88,
                     opacity: isSelected ? 1 : 0.6
                   }}
+                  whileTap={{ scale: 0.93 }}
                   transition={{ 
-                    duration: 0.4, 
-                    ease: [0.4, 0, 0.2, 1]
+                    type: "spring",
+                    damping: 20,
+                    stiffness: 200
                   }}
-                  className="flex flex-col items-center gap-3 relative"
+                  className="flex flex-col items-center gap-3 relative w-full"
+                  role="button"
+                  aria-label={`Sélectionner ${vehicle.name}`}
+                  aria-selected={isSelected}
                 >
                   {/* Badge Populaire */}
                   {vehicle.isPopular && (
@@ -137,14 +150,16 @@ export default function YangoVehicleSelector({
 
                   {/* Circle with Icon */}
                   <motion.div
-                    className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center"
+                    className={`relative w-24 h-24 md:w-28 md:h-28 rounded-3xl flex items-center justify-center transition-all duration-300 ${
+                      isSelected ? 'ring-4 ring-opacity-25' : ''
+                    }`}
                     whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.96 }}
                     style={{
                       background: theme.gradient,
                       boxShadow: isSelected 
-                        ? `0 0 35px ${theme.glowColor}, 0 15px 45px rgba(0, 0, 0, 0.12), inset 0 1px 15px rgba(255, 255, 255, 0.15)`
-                        : `0 6px 18px rgba(0, 0, 0, 0.06)`
+                        ? `0 0 35px ${theme.glowColor}, 0 15px 40px rgba(0, 0, 0, 0.1), inset 0 1px 15px rgba(255, 255, 255, 0.15)`
+                        : `0 6px 16px rgba(0, 0, 0, 0.05)`,
+                      ['--tw-ring-color' as string]: isSelected ? theme.solidColor : 'transparent'
                     }}
                   >
                     {/* Illustration SVG 2.5D */}
@@ -215,7 +230,7 @@ export default function YangoVehicleSelector({
                       </>
                     )}
                   </div>
-                </motion.div>
+                </motion.button>
               </div>
             );
           })}
@@ -264,25 +279,12 @@ export default function YangoVehicleSelector({
               }
               onContinue();
             }}
-            className="w-full mt-4 py-3.5 rounded-xl text-white font-semibold text-lg shadow-2xl relative overflow-hidden"
+            className="w-full mt-4 py-3.5 rounded-2xl text-white font-semibold text-lg shadow-xl relative overflow-hidden"
             style={{
               background: getYangoTheme(selectedVehicleId).gradient,
-              boxShadow: `0 10px 40px ${getYangoTheme(selectedVehicleId).glowColor}, 0 4px 12px rgba(0,0,0,0.15)`
+              boxShadow: `0 10px 35px ${getYangoTheme(selectedVehicleId).glowColor}, 0 4px 12px rgba(0,0,0,0.12)`
             }}
           >
-            {/* Effet de brillance animé */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
-              initial={{ x: '-100%' }}
-              animate={{ x: '100%' }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                repeatDelay: 1,
-                ease: "easeInOut"
-              }}
-            />
-            
             <span className="relative z-10 flex items-center justify-center gap-2">
               Continuer
               <ArrowRight className="w-5 h-5" />
