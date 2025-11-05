@@ -64,15 +64,15 @@ export default function CompactVehicleSelector({
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <h3 className="text-lg font-bold text-foreground px-1">
+      <div className="space-y-2">
+        <h3 className="text-sm sm:text-base font-bold text-foreground px-1">
           Choisissez votre type de véhicule
         </h3>
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-4">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex-shrink-0 w-24 sm:w-28 space-y-2">
-              <Skeleton className="w-20 sm:w-24 h-20 sm:w-24 mx-auto rounded-full" />
-              <Skeleton className="w-16 h-4 mx-auto rounded" />
+            <div key={i} className="flex-shrink-0 w-20 sm:w-24 space-y-1.5">
+              <Skeleton className="w-16 sm:w-20 h-16 sm:h-20 mx-auto rounded-full" />
+              <Skeleton className="w-12 h-3 mx-auto rounded" />
             </div>
           ))}
         </div>
@@ -84,8 +84,8 @@ export default function CompactVehicleSelector({
   const currentIndex = Math.round(scrollPosition / itemWidth);
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-lg font-bold text-foreground px-1">
+    <div className="space-y-2">
+      <h3 className="text-sm sm:text-base font-bold text-foreground px-1">
         Choisissez votre type de véhicule
       </h3>
       
@@ -111,7 +111,7 @@ export default function CompactVehicleSelector({
           {/* Liste de véhicules */}
           <div 
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide px-4"
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide px-4"
           >
             {vehicles.map((vehicle, index) => {
               const IconComponent = iconMap[vehicle.icon as keyof typeof iconMap] || Car;
@@ -136,12 +136,12 @@ export default function CompactVehicleSelector({
                   whileTap={{ scale: 0.95 }}
                   onClick={() => onSelect(vehicle.id)}
                   className={`
-                    relative flex-shrink-0 w-24 sm:w-28 snap-center
+                    relative flex-shrink-0 w-20 sm:w-24 snap-center
                     ${isSelected ? 'z-10' : 'z-0'}
                   `}
                 >
                   {vehicle.isPopular && (
-                    <Badge className="absolute -top-2 -right-1 bg-secondary text-secondary-foreground text-[10px] px-1.5 py-0.5 shadow-md z-10">
+                    <Badge className="absolute -top-1.5 -right-1 bg-secondary text-secondary-foreground text-[10px] px-1.5 py-0.5 shadow-md z-10">
                       <Zap className="w-2.5 h-2.5 mr-0.5" />
                       Top
                     </Badge>
@@ -155,23 +155,23 @@ export default function CompactVehicleSelector({
                     } : {}}
                     transition={{ duration: 0.4 }}
                     className={`
-                      w-20 sm:w-24 h-20 sm:h-24 mx-auto rounded-full 
+                      w-16 sm:w-20 h-16 sm:h-20 mx-auto rounded-full 
                       bg-gradient-to-br ${vehicle.gradient}
                       flex items-center justify-center
                       shadow-lg
                       ${isSelected 
-                        ? 'ring-4 ring-primary ring-offset-2 ring-offset-background shadow-2xl' 
+                        ? 'ring-3 ring-primary ring-offset-2 ring-offset-background shadow-2xl' 
                         : 'opacity-70 hover:opacity-100'
                       }
                       transition-all duration-300
                     `}
                   >
-                    <IconComponent className="w-8 sm:w-10 h-8 sm:h-10 text-white" />
+                    <IconComponent className="w-7 sm:w-8 h-7 sm:h-8 text-white" />
                   </motion.div>
                   
                   {/* Nom */}
                   <p className={`
-                    text-xs sm:text-sm font-semibold mt-2 text-center
+                    text-[11px] sm:text-xs font-semibold mt-1.5 text-center leading-tight
                     ${isSelected ? 'text-primary' : 'text-foreground'}
                     transition-colors
                   `}>
