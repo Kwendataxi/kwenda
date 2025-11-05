@@ -14117,8 +14117,16 @@ export type Database = {
       }
       get_user_type: { Args: { p_user_id: string }; Returns: string }
       get_vehicle_types_with_pricing: {
-        Args: { p_city?: string }
-        Returns: Json
+        Args: { p_city: string; p_distance?: number }
+        Returns: {
+          base_price: number
+          calculated_price: number
+          display_name: string
+          features: Json
+          is_active: boolean
+          price_per_km: number
+          service_type: string
+        }[]
       }
       get_vendor_average_rating: {
         Args: { vendor_user_id: string }

@@ -156,12 +156,28 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
     return `${hours}h ${remainingMinutes}min`;
   };
 
+  // ⚡ PHASE 2: Fusion des 2 subscriptions en 1 + throttle location updates
   useEffect(() => {
     loadBookingData();
     
-    // Écouter les mises à jour de la réservation
-    const bookingSubscription = supabase
-      .channel('booking_updates')
+    // Throttle pour location updates (max 1/sec)
+    let locationUpdateTimer: NodeJS.Timeout;
+    const throttledLocationUpdate = (data: any) => {
+      clearTimeout(locationUpdateTimer);
+      locationUpdateTimer = setTimeout(() => {
+        setDriverLocation({
+          lat: data.latitude,
+          lng: data.longitude,
+          heading: data.heading,
+          speed: data.speed,
+          last_update: data.updated_at
+        });
+      }, 1000);
+    };
+
+    // Channel unique fusionné pour booking + driver location
+    const channel = supabase
+      .channel(`booking-tracker-${bookingId}`)
       .on(
         'postgres_changes',
         {
@@ -189,42 +205,30 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
             }
           }
         }
-      )
-      .subscribe();
+      );
 
-    // Écouter la localisation du chauffeur si assigné
-    let driverLocationSubscription: any = null;
+    // Ajouter listener location seulement si driver_id existe
     if (booking?.driver_id) {
-      driverLocationSubscription = supabase
-        .channel('driver_location')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'driver_locations',
-            filter: `driver_id=eq.${booking.driver_id}`
-          },
-          (payload) => {
-            console.log('📍 Position chauffeur mise à jour:', payload);
-            const data = payload.new;
-            setDriverLocation({
-              lat: data.latitude,
-              lng: data.longitude,
-              heading: data.heading,
-              speed: data.speed,
-              last_update: data.updated_at
-            });
-          }
-        )
-        .subscribe();
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'driver_locations',
+          filter: `driver_id=eq.${booking.driver_id}`
+        },
+        (payload) => {
+          console.log('📍 Position chauffeur mise à jour (throttled):', payload);
+          throttledLocationUpdate(payload.new);
+        }
+      );
     }
 
+    channel.subscribe();
+
     return () => {
-      bookingSubscription.unsubscribe();
-      if (driverLocationSubscription) {
-        driverLocationSubscription.unsubscribe();
-      }
+      clearTimeout(locationUpdateTimer);
+      supabase.removeChannel(channel);
     };
   }, [bookingId, booking?.driver_id, toast]);
 

@@ -98,6 +98,7 @@ const RestaurantOrders = lazy(() => import("./pages/restaurant/RestaurantOrders"
 const RestaurantSubscription = lazy(() => import("./pages/restaurant/RestaurantSubscription"));
 const RestaurantPOS = lazy(() => import("./pages/restaurant/RestaurantPOS"));
 const RestaurantProfile = lazy(() => import("./pages/restaurant/RestaurantProfile"));
+const TaxiDashboard = lazy(() => import("./pages/admin/TaxiDashboard"));
 const QRCodeManager = lazy(() => import("./pages/admin/QRCodeManager"));
 const QRAnalytics = lazy(() => import("./pages/admin/QRAnalytics"));
 const AdminFoodManagement = lazy(() => import("./pages/admin/AdminFoodManagement"));
@@ -474,6 +475,11 @@ const AppContent = () => {
                     <Route path="/app/admin" element={
                       <ProtectedRoute>
                         <AdminApp />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/taxi-dashboard" element={
+                      <ProtectedRoute requiredRole="admin">
+                        <TaxiDashboard />
                       </ProtectedRoute>
                     } />
                     <Route path="/admin" element={
