@@ -146,7 +146,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       
       setDeliveryData(prev => ({ ...prev, estimatedPrice }));
     }
-  }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDistance]);
+  }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType]);
 
   const handleLocationSelect = async (location: LocationData, type: 'pickup' | 'delivery') => {
     logger.debug(`Location sélectionnée [${type}]`, location);
