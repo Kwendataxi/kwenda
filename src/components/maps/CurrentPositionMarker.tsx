@@ -80,13 +80,33 @@ export default function CurrentPositionMarker({
   };
 
   useEffect(() => {
-    if (!map || !position || !window.google) return;
+    console.log('🎯 [CurrentPositionMarker] Effect triggered:', {
+      hasMap: !!map,
+      hasPosition: !!position,
+      position,
+      hasGoogle: !!window.google,
+      hasGoogleMaps: !!window.google?.maps,
+      hasMarkerClass: !!window.google?.maps?.Marker,
+      markerExists: !!markerRef.current
+    });
 
-    const svgContent = getModernPositionSVG();
-    const iconUrl = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
+    if (!map || !position || !window.google) {
+      console.warn('⚠️ [CurrentPositionMarker] Marqueur non créé - conditions manquantes:', {
+        map: !!map,
+        position: !!position,
+        google: !!window.google
+      });
+      return;
+    }
 
-    if (!markerRef.current) {
-      const marker = new google.maps.Marker({
+    try {
+      const svgContent = getModernPositionSVG();
+      console.log('🎨 [CurrentPositionMarker] SVG généré, longueur:', svgContent.length);
+      const iconUrl = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
+
+      if (!markerRef.current) {
+        console.log('🎨 [CurrentPositionMarker] Création du marqueur à:', position);
+        const marker = new google.maps.Marker({
         position,
         map,
         title: isDraggable ? 'Déplacez-moi ou cliquez pour me recentrer' : 'Votre position actuelle',
@@ -121,21 +141,25 @@ export default function CurrentPositionMarker({
         });
       }
 
-      markerRef.current = marker;
-    } else {
-      // Détecter si c'est un retour à la position GPS
-      const isDifferent = manualPositionRef.current && 
-        (Math.abs(manualPositionRef.current.lat - position.lat) > 0.0001 ||
-         Math.abs(manualPositionRef.current.lng - position.lng) > 0.0001);
-      
-      if (isDifferent) {
-        // Animation de retour automatique
-        console.log('🎯 Retour automatique à la position GPS');
-        animateToPosition(position);
-        manualPositionRef.current = null;
+        markerRef.current = marker;
+        console.log('✅ [CurrentPositionMarker] Marqueur créé avec succès');
       } else {
-        markerRef.current.setPosition(position);
+        // Détecter si c'est un retour à la position GPS
+        const isDifferent = manualPositionRef.current && 
+          (Math.abs(manualPositionRef.current.lat - position.lat) > 0.0001 ||
+           Math.abs(manualPositionRef.current.lng - position.lng) > 0.0001);
+        
+        if (isDifferent) {
+          // Animation de retour automatique
+          console.log('🎯 Retour automatique à la position GPS');
+          animateToPosition(position);
+          manualPositionRef.current = null;
+        } else {
+          markerRef.current.setPosition(position);
+        }
       }
+    } catch (error) {
+      console.error('❌ [CurrentPositionMarker] Erreur création marqueur:', error);
     }
   }, [map, position, onClickPosition, onDragEnd, isDraggable]);
 

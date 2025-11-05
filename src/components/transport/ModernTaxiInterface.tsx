@@ -50,22 +50,43 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     updateInterval: 30000 // Refresh toutes les 30s
   });
   
+  // État de préparation géolocalisation
+  const [locationReady, setLocationReady] = useState(false);
+
   console.log('🌍 Ville détectée:', currentCity?.name || 'Non détectée');
   console.log('📍 Position actuelle:', currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : 'Aucune');
   console.log('🔍 Source position:', source || 'Aucune');
 
-  // Détecter position actuelle au montage
+  // 🚀 FORCER GÉOLOCALISATION AU MONTAGE AVEC FALLBACK RAPIDE
   useEffect(() => {
-    if (!currentLocation && !pickupLocation) {
-      getCurrentPosition().then(pos => {
+    const initLocation = async () => {
+      try {
+        console.log('🔍 [ModernTaxiInterface] Initialisation géolocalisation...');
+        const pos = await getCurrentPosition({
+          timeout: 10000, // 10 secondes max pour GPS
+          enableHighAccuracy: false, // Désactiver haute précision pour vitesse
+          fallbackToIP: true
+        });
         setPickupLocation(pos);
-      }).catch(err => {
-        console.error('Position error:', err);
-      });
-    } else if (currentLocation && !pickupLocation) {
-      setPickupLocation(currentLocation);
-    }
-  }, [currentLocation, pickupLocation, getCurrentPosition]);
+        setLocationReady(true);
+        console.log('✅ [ModernTaxiInterface] Position initiale obtenue:', pos);
+      } catch (error) {
+        console.error('❌ [ModernTaxiInterface] Erreur géolocalisation:', error);
+        // Fallback ville par défaut
+        const defaultPos = {
+          address: currentCity?.name || 'Kinshasa',
+          lat: currentCity?.coordinates.lat || -4.3217,
+          lng: currentCity?.coordinates.lng || 15.3069,
+          type: 'default' as const
+        };
+        setPickupLocation(defaultPos);
+        setLocationReady(true);
+        console.log('⚠️ [ModernTaxiInterface] Position par défaut utilisée:', defaultPos);
+      }
+    };
+    
+    initLocation();
+  }, [getCurrentPosition, currentCity]);
 
   // Calcul automatique de la route et distance dès sélection pickup + destination
   useEffect(() => {
@@ -210,6 +231,16 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
   // Calculer le prix estimé
   const calculatedPrice = distance > 0 ? Math.round(2500 + (distance * 500)) : 0;
+
+  // Logs de débogage détaillés pour OptimizedMapView
+  console.log('📍 [ModernTaxiInterface] Rendu OptimizedMapView:', {
+    pickup: pickupLocation,
+    destination: destinationLocation,
+    userLocation: manualPosition || currentLocation,
+    manualPosition,
+    currentLocation,
+    locationReady
+  });
 
   return (
     <div className="relative h-screen overflow-hidden bg-background">

@@ -38,6 +38,12 @@ export function useGoogleMaps() {
         // Vérification finale
         if (window.google?.maps?.Map && typeof window.google.maps.Map === 'function') {
           console.log('✅ [useGoogleMaps] Google Maps chargé avec succès');
+          console.log('✅ [useGoogleMaps] Libraries disponibles:', {
+            Map: !!window.google.maps.Map,
+            Marker: !!window.google.maps.Marker,
+            Animation: !!window.google.maps.Animation,
+            places: !!window.google.maps.places
+          });
           setLoadingProgress(100);
           setIsLoaded(true);
           setIsLoading(false);

@@ -35,6 +35,16 @@ const OptimizedMapView = React.memo(({
   onDragMarker,
   className = '' 
 }: OptimizedMapViewProps) => {
+  // Logs de débogage au début du composant
+  console.log('🗺️ [OptimizedMapView] Render props:', {
+    hasPickup: !!pickup,
+    pickup: pickup ? { lat: pickup.lat, lng: pickup.lng } : null,
+    hasDestination: !!destination,
+    destination: destination ? { lat: destination.lat, lng: destination.lng } : null,
+    hasUserLocation: !!userLocation,
+    userLocation: userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null,
+  });
+
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
@@ -82,10 +92,26 @@ const OptimizedMapView = React.memo(({
     initMap();
   }, [isLoaded, userLocation, pickup, mapStyles, onMapReady]);
 
+  // Log changements userLocation
+  useEffect(() => {
+    console.log('🔍 [OptimizedMapView] UserLocation changed:', userLocation);
+  }, [userLocation]);
+
+  // Vérifier que tout est prêt pour afficher le marqueur
+  useEffect(() => {
+    if (isMapReady && mapInstanceRef.current && userLocation) {
+      console.log('✅ [OptimizedMapView] Carte prête + position disponible - Marqueur devrait apparaître');
+      console.log('   - Map instance:', !!mapInstanceRef.current);
+      console.log('   - UserLocation:', userLocation);
+      console.log('   - isMapReady:', isMapReady);
+    }
+  }, [isMapReady, userLocation]);
+
   // Auto-centrage dynamique sur la position utilisateur
   useEffect(() => {
     if (!mapInstanceRef.current || !userLocation || !isMapReady) return;
     
+    console.log('🎯 [OptimizedMapView] Centrage carte sur position:', userLocation);
     // Animer vers la nouvelle position
     mapInstanceRef.current.panTo(userLocation);
     mapInstanceRef.current.setZoom(15);
