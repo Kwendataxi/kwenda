@@ -132,10 +132,10 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between px-1">
-        <h3 className="text-lg font-semibold text-grey-900">Choisir un véhicule</h3>
+      <div className="flex items-center justify-between px-1 mb-1">
+        <h3 className="text-base font-semibold text-grey-900">Choisir un véhicule</h3>
         {distance > 0 && (
-          <span className="text-sm text-grey-600">
+          <span className="text-xs font-medium text-grey-600 bg-grey-100 px-2 py-0.5 rounded-full">
             {distance.toFixed(1)} km
           </span>
         )}
@@ -158,55 +158,55 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
                   key={vehicle.id}
                   onClick={() => vehicle.available && onVehicleSelect({ ...vehicle, price })}
                   className={`
-                    relative flex-shrink-0 w-24 h-28 p-3 rounded-2xl border-2 
+                    relative flex-shrink-0 w-20 h-24 p-2.5 rounded-xl border-2 
                     transition-all duration-200 cursor-pointer touch-friendly
                     ${cardColorClass}
                     ${!vehicle.available ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md active:scale-95'}
                     ${isSelected ? 'shadow-lg scale-105' : ''}
                   `}
                 >
-                  {/* Icon */}
-                  <div className={`w-8 h-8 mx-auto mb-1 flex items-center justify-center rounded-lg
+                  {/* Icon - Réduit */}
+                  <div className={`w-7 h-7 mx-auto mb-1.5 flex items-center justify-center rounded-lg
                     ${isSelected ? 'bg-white/20' : 'bg-transparent'}
                   `}>
-                    <vehicle.icon className={`h-5 w-5 ${iconColorClass}`} />
+                    <vehicle.icon className={`h-4 w-4 ${iconColorClass}`} strokeWidth={2.5} />
                   </div>
 
                   {/* Vehicle Name */}
                   <div className="text-center mb-1">
-                    <p className={`text-xs font-medium ${textColorClass} leading-tight`}>
+                    <p className={`text-[11px] font-semibold ${textColorClass} leading-tight`}>
                       {vehicle.name}
                     </p>
                   </div>
 
-                  {/* Time Badge */}
-                  <div className={`flex items-center justify-center mb-1 px-1.5 py-0.5 rounded-full
+                  {/* Time Badge - Plus compact */}
+                  <div className={`flex items-center justify-center mb-1 px-1 py-0.5 rounded-full
                     ${isSelected ? 'bg-white/20' : 'bg-black/5'}
                   `}>
-                    <Clock className={`h-2.5 w-2.5 mr-1 ${textColorClass}`} />
-                    <span className={`text-[10px] font-medium ${textColorClass}`}>
+                    <Clock className={`h-2 w-2 mr-0.5 ${textColorClass}`} />
+                    <span className={`text-[9px] font-medium ${textColorClass}`}>
                       {vehicle.estimatedTime}m
                     </span>
                   </div>
 
                   {/* Price */}
                   <div className="text-center">
-                    <p className={`text-xs font-bold ${textColorClass} leading-tight`}>
+                    <p className={`text-[11px] font-bold ${textColorClass} leading-tight`}>
                       {vehicle.available ? `${price.toLocaleString()} FC` : 'N/A'}
                     </p>
                   </div>
 
                   {/* Selected Indicator */}
                   {isSelected && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-white flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                    <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-primary rounded-full border-2 border-white flex items-center justify-center">
+                      <div className="w-1 h-1 bg-white rounded-full"></div>
                     </div>
                   )}
 
                   {/* Unavailable Overlay */}
                   {!vehicle.available && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-2xl">
-                      <span className="text-[10px] font-medium text-grey-600 bg-white px-1.5 py-0.5 rounded">
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-xl">
+                      <span className="text-[9px] font-medium text-grey-600 bg-white px-1.5 py-0.5 rounded">
                         Indispo
                       </span>
                     </div>
@@ -221,26 +221,27 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
         <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none"></div>
       </div>
 
-      {/* Selected Vehicle Details */}
+      {/* Selected Vehicle Details - Amélioré */}
       {selectedVehicleId && (
-        <div className="bg-grey-50 rounded-xl p-3 border border-grey-100">
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-3 border border-primary/20">
           {(() => {
             const selectedVehicle = vehicles.find(v => v.id === selectedVehicleId);
             if (!selectedVehicle) return null;
             
             return (
               <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <selectedVehicle.icon className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-grey-900">{selectedVehicle.name}</span>
-                  <span className="text-grey-600">• {selectedVehicle.capacity} places</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <selectedVehicle.icon className="h-4 w-4 text-primary" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-grey-900">{selectedVehicle.name}</p>
+                    <p className="text-xs text-grey-600">{selectedVehicle.capacity} places • ~{selectedVehicle.estimatedTime} min</p>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-primary">
+                  <p className="text-base font-bold text-primary">
                     {calculatePrice(selectedVehicle).toLocaleString()} FC
-                  </p>
-                  <p className="text-xs text-grey-500">
-                    ~{selectedVehicle.estimatedTime} min
                   </p>
                 </div>
               </div>
