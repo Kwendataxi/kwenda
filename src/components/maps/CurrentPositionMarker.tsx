@@ -11,35 +11,32 @@ export default function CurrentPositionMarker({ map, position, onClickPosition }
 
   const getCurrentPositionSVG = (): string => {
     return `
-      <svg width="68" height="90" viewBox="0 0 68 90" xmlns="http://www.w3.org/2000/svg">
+      <svg width="80" height="95" viewBox="0 0 80 95" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="shadow-position">
-            <feDropShadow dx="0" dy="2" stdDeviation="5" flood-opacity="0.35"/>
+          <filter id="shadow-pin">
+            <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.4"/>
           </filter>
         </defs>
         
-        <!-- Pulse externe ultra-visible -->
-        <circle cx="34" cy="45" r="30" fill="#4285F4" opacity="0.2">
-          <animate attributeName="r" from="30" to="34" dur="1.5s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" from="0.2" to="0" dur="1.5s" repeatCount="indefinite"/>
+        <!-- Pulse d'arrière-plan rouge -->
+        <circle cx="40" cy="40" r="35" fill="#EF4444" opacity="0.15">
+          <animate attributeName="r" from="30" to="40" dur="1.8s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" from="0.3" to="0" dur="1.8s" repeatCount="indefinite"/>
         </circle>
         
-        <!-- Cercle principal bleu -->
-        <circle cx="34" cy="45" r="26" fill="#4285F4" opacity="0.35"/>
+        <!-- Ombre du pin -->
+        <ellipse cx="40" cy="88" rx="18" ry="4" fill="#000000" opacity="0.2"/>
         
-        <!-- Cercle interne -->
-        <circle cx="34" cy="45" r="18" fill="#4285F4" filter="url(#shadow-position)"/>
+        <!-- Corps du pin (forme de goutte inversée) -->
+        <path d="M40 20 C50 20, 58 28, 58 40 C58 52, 40 70, 40 70 C40 70, 22 52, 22 40 C22 28, 30 20, 40 20 Z" 
+              fill="#EF4444" 
+              filter="url(#shadow-pin)"/>
         
-        <!-- Bordure blanche -->
-        <circle cx="34" cy="45" r="18" fill="none" stroke="white" stroke-width="3"/>
+        <!-- Cercle intérieur blanc -->
+        <circle cx="40" cy="40" r="8" fill="white"/>
         
-        <!-- Point central blanc -->
-        <circle cx="34" cy="45" r="7" fill="white"/>
-        
-        <!-- Indicateur de clic -->
-        <text x="34" y="80" font-size="9" fill="#4285F4" text-anchor="middle" font-weight="600" opacity="0.8">
-          Cliquez-moi
-        </text>
+        <!-- Point central rouge -->
+        <circle cx="40" cy="40" r="4" fill="#DC2626"/>
       </svg>
     `;
   };
@@ -57,10 +54,10 @@ export default function CurrentPositionMarker({ map, position, onClickPosition }
         title: 'Cliquez pour pointer votre position exacte',
         icon: {
           url: iconUrl,
-          scaledSize: new google.maps.Size(68, 90),
-          anchor: new google.maps.Point(34, 60)
+          scaledSize: new google.maps.Size(80, 95),
+          anchor: new google.maps.Point(40, 70)
         },
-        zIndex: 2000,
+        zIndex: 3000,
         optimized: false,
         clickable: true,
         cursor: 'pointer'
