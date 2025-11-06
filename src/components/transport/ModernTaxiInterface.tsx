@@ -327,6 +327,32 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         bottomSheetHeight={bottomSheetHeight}
       />
 
+      {/* Pin rouge animé style Yango */}
+      {pickupLocation && (
+        <div 
+          className="absolute z-10 pointer-events-none"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -100%)'
+          }}
+        >
+          <div className="relative">
+            {/* Pin principal */}
+            <div className="w-8 h-8 bg-congo-red border-4 border-white rounded-full shadow-xl pulsing-pin" />
+            {/* Pointe du pin */}
+            <div 
+              className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
+              style={{
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: '8px solid white',
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+              }}
+            />
+          </div>
+        </div>
+      )}
       
       {/* Indicateur chauffeurs à proximité - vrai compteur temps réel */}
       <NearbyDriversIndicator 
