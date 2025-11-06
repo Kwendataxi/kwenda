@@ -26,6 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { SimilarVendorsSlider } from './SimilarVendorsSlider';
 
 interface Product {
   id: string;
@@ -391,6 +392,17 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
           )}
         </div>
       </ScrollArea>
+
+      {/* Similar Vendors Section */}
+      {!loading && products.length > 0 && (
+        <SimilarVendorsSlider
+          currentVendorId={vendorId}
+          currentMainCategory={vendor?.main_category}
+          onVisitVendor={(id) => {
+            window.location.href = `/marketplace/vendor/${id}`;
+          }}
+        />
+      )}
     </div>
   );
 };

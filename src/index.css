@@ -358,4 +358,52 @@ All colors MUST be HSL.
   .animation-delay-4000 {
     animation-delay: 4s;
   }
+
+  /* Vendor Card Glassmorphism */
+  .vendor-card-glass {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 8px 32px hsl(var(--foreground) / 0.1);
+  }
+
+  .dark .vendor-card-glass {
+    background: hsl(var(--card) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.3);
+    box-shadow: 0 8px 32px hsl(var(--background) / 0.3);
+  }
+
+  /* Vendor Card Hover Effect */
+  .vendor-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .vendor-card-hover:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px hsl(var(--primary) / 0.3),
+                0 0 20px hsl(var(--primary) / 0.2);
+  }
+
+  /* Badge Glow Animation */
+  @keyframes badge-glow {
+    0%, 100% { 
+      box-shadow: 0 0 10px hsl(var(--primary) / 0.4); 
+    }
+    50% { 
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.8); 
+    }
+  }
+
+  .badge-glow {
+    animation: badge-glow 2s ease-in-out infinite;
+  }
+
+  /* Parallax Avatar */
+  .vendor-avatar-float {
+    transition: transform 0.3s ease;
+  }
+
+  .vendor-card-hover:hover .vendor-avatar-float {
+    transform: translateY(-12px) scale(1.1);
+  }
 }
