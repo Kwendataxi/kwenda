@@ -48,6 +48,7 @@ const VendorShop: React.FC = () => {
   const { toast } = useToast();
   const { addToCart } = useCart();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<VendorProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -78,11 +79,18 @@ const VendorShop: React.FC = () => {
 
       // Validation UUID avant chargement
       if (!validateVendorIdOrRedirect(vendorId, navigate)) {
+        setError('Lien de boutique invalide');
+        setLoading(false);
+        toast({
+          variant: 'destructive',
+          title: '⚠️ Lien invalide',
+          description: 'Ce lien de boutique est incorrect. Demandez un nouveau lien au vendeur.',
+        });
         return;
       }
       loadVendorData();
     }
-  }, [vendorId, navigate, user]);
+  }, [vendorId, navigate, user, toast]);
 
   const loadVendorData = async () => {
     setLoading(true);
@@ -313,6 +321,27 @@ const VendorShop: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <X className="h-8 w-8 text-destructive" />
+            </div>
+            <h2 className="text-xl font-bold">Lien invalide</h2>
+            <p className="text-muted-foreground">
+              Ce lien de boutique est incorrect ou expiré. Demandez un nouveau lien au vendeur.
+            </p>
+            <Button onClick={() => navigate('/marketplace')} className="w-full">
+              Retour au Marketplace
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

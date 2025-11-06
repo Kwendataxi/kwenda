@@ -20,6 +20,18 @@ export const VendorSimpleShareButtons: React.FC<VendorSimpleShareButtonsProps> =
   const { toast } = useToast();
   const [copied, setCopied] = React.useState(false);
 
+  // ✅ Validation UUID côté client
+  React.useEffect(() => {
+    if (!vendorId || vendorId.length !== 36) {
+      console.error('[VendorShare] Invalid vendor ID:', vendorId);
+      toast({
+        variant: 'destructive',
+        title: '⚠️ Erreur de configuration',
+        description: 'Votre ID boutique est invalide. Contactez le support Kwenda.'
+      });
+    }
+  }, [vendorId, toast]);
+
   const shopUrl = getVendorShopUrl(vendorId);
   
   // Message enrichi avec emojis

@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Store, Mail, Calendar, CheckCircle2, Edit, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -68,26 +69,28 @@ export const VendorShopInfoCard: React.FC<VendorShopInfoCardProps> = ({
             <div className="flex items-center gap-1.5 shrink-0">
               {/* Bouton partage avec Popover */}
               {vendorId && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9"
-                      title="Partager ma boutique"
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 p-4" align="end">
-                    <VendorSimpleShareButtons
-                      vendorId={vendorId}
-                      vendorName={shopName}
-                      productCount={totalSales}
-                      rating={rating}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        title="Partager ma boutique"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-4" align="end">
+                      <VendorSimpleShareButtons
+                        vendorId={vendorId}
+                        vendorName={shopName}
+                        productCount={totalSales}
+                        rating={rating}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </>
               )}
               
               {/* Bouton modifier - Always visible */}
@@ -150,6 +153,15 @@ export const VendorShopInfoCard: React.FC<VendorShopInfoCardProps> = ({
               Statut: {status === 'active' ? 'Actif' : 'Inactif'}
             </Badge>
           </div>
+          
+          {/* Info régénération lien */}
+          {vendorId && (
+            <Alert>
+              <AlertDescription className="text-xs">
+                💡 Générez un nouveau lien à chaque partage pour garantir son bon fonctionnement.
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
     </motion.div>
