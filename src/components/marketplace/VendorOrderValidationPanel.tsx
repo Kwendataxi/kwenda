@@ -140,12 +140,24 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
           
           <CardContent className="space-y-4">
             {/* Adresse de livraison */}
-            {order.delivery_address && (
+            {(order.delivery_address || order.delivery_coordinates) && (
               <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
                 <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
                 <div className="text-sm">
                   <p className="font-medium">Adresse de livraison:</p>
-                  <p className="text-muted-foreground">{order.delivery_address}</p>
+                  {order.delivery_address ? (
+                    <p className="text-muted-foreground">{order.delivery_address}</p>
+                  ) : order.delivery_coordinates ? (
+                    <p className="text-muted-foreground text-xs">
+                      📍 Coordonnées: {order.delivery_coordinates.lat?.toFixed(4)}, {order.delivery_coordinates.lng?.toFixed(4)}
+                      <br />
+                      <span className="text-primary cursor-pointer hover:underline">
+                        Voir sur la carte
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground">Non renseignée</p>
+                  )}
                 </div>
               </div>
             )}

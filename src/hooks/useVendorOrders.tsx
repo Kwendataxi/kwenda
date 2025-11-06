@@ -32,10 +32,10 @@ export const useVendorOrders = () => {
         return;
       }
 
-      // Récupérer d'abord les produits du vendeur
+      // ✅ PHASE 1: Récupérer d'abord les produits du vendeur
       const { data: vendorProducts } = await supabase
         .from('marketplace_products')
-        .select('id, title, price')
+        .select('id, title, price, images')
         .eq('seller_id', user.id);
 
       if (!vendorProducts || vendorProducts.length === 0) {
@@ -45,10 +45,17 @@ export const useVendorOrders = () => {
 
       const vendorProductIds = vendorProducts.map((p: any) => p.id);
 
-      // Récupérer les commandes pour ces produits
+      // ✅ PHASE 1: Récupérer les commandes avec JOIN sur buyer (profiles)
       const { data: orders, error } = await supabase
         .from('marketplace_orders')
-        .select('*')
+        .select(`
+          *,
+          buyer:profiles!marketplace_orders_buyer_id_fkey(
+            id,
+            display_name,
+            avatar_url
+          )
+        `)
         .in('product_id', vendorProductIds)
         .eq('vendor_confirmation_status', 'awaiting_confirmation')
         .in('status', ['pending', 'pending_payment', 'confirmed'])
@@ -56,24 +63,32 @@ export const useVendorOrders = () => {
 
       if (error) throw error;
 
-      // Enrichir avec les infos produit
-      const enrichedOrders: VendorOrder[] = orders?.map((order: any) => {
+      // ✅ PHASE 1: Enrichir avec les données produit SANS transformer la structure
+      const enrichedOrders = orders?.map((order: any) => {
         const product = vendorProducts.find((p: any) => p.id === order.product_id);
         
         return {
-          id: order.id,
-          product_id: order.product_id,
-          quantity: order.quantity,
-          total_price: order.total_amount, // ✅ Utiliser total_amount existant
-          currency: 'CDF',
-          delivery_address: order.delivery_address || 'Non renseignée',
-          buyer_contact: order.buyer_phone || '⚠️ Téléphone manquant - Contactez le support',
-          vendor_confirmation_status: order.vendor_confirmation_status,
-          status: order.status,
-          created_at: order.created_at,
-          product: product ? { name: (product as any).title, price: (product as any).price } : undefined
+          ...order, // ✅ Garder toute la structure DB (unit_price, total_amount, etc.)
+          product: product ? { 
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            images: product.images || []
+          } : null
         };
       }) || [];
+
+      console.log('📦 [useVendorOrders] Commandes chargées:', {
+        count: enrichedOrders.length,
+        firstOrder: enrichedOrders[0] ? {
+          id: enrichedOrders[0].id,
+          product_title: enrichedOrders[0].product?.title,
+          unit_price: enrichedOrders[0].unit_price,
+          buyer_name: enrichedOrders[0].buyer?.display_name,
+          has_pickup_coords: !!enrichedOrders[0].pickup_coordinates,
+          has_delivery_coords: !!enrichedOrders[0].delivery_coordinates
+        } : null
+      });
 
       setPendingOrders(enrichedOrders);
 
