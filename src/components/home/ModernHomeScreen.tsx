@@ -88,14 +88,14 @@ export const ModernHomeScreen = memo(({
               </Suspense>
             </div>
             
-            {/* ✅ PHASE 4: Lazy loading ServiceGrid avec Suspense */}
+            {/* ✅ PHASE 4: Lazy loading ServiceGrid avec Suspense optimisé */}
             <div className="px-4">
               <Suspense fallback={
                 <div className="grid grid-cols-3 gap-x-6 gap-y-8">
                   {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} className="flex flex-col items-center gap-3">
-                      <Skeleton className="w-20 h-20 rounded-[32px]" />
-                      <Skeleton className="h-4 w-16" />
+                    <div key={i} className="flex flex-col items-center gap-3 animate-fade-in">
+                      <Skeleton className="w-24 h-24 rounded-[32px]" />
+                      <Skeleton className="h-[15px] w-16 rounded" />
                     </div>
                   ))}
                 </div>

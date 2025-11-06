@@ -51,9 +51,17 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
 
   // Charger les services dynamiquement depuis la DB
   const mainServices = useMemo(() => {
-    // Si pas encore chargé, ne rien afficher (évite le fallback)
+    // Retourner toujours le même nombre d'éléments (placeholders pendant le chargement)
+    // Ceci évite l'erreur "Rendered more hooks than during the previous render"
     if (loading) {
-      return [];
+      return [
+        { id: 'transport-loading', name: 'Taxi', icon: Car, gradient: 'from-congo-red-electric via-congo-red to-congo-red-vibrant', available: false, isLoading: true },
+        { id: 'delivery-loading', name: t('home.services.delivery'), icon: Truck, gradient: 'from-congo-yellow-electric via-congo-yellow to-congo-yellow-vibrant', available: false, isLoading: true },
+        { id: 'rental-loading', name: t('home.services.rental'), icon: Car, gradient: 'from-congo-green-electric via-congo-green to-congo-green-vibrant', available: false, isLoading: true },
+        { id: 'marketplace-loading', name: t('home.services.shopping'), icon: ShoppingBag, gradient: 'from-secondary via-accent to-secondary-light', available: false, isLoading: true },
+        { id: 'food-loading', name: t('home.services.food'), icon: Utensils, gradient: 'from-orange-500 via-red-500 to-orange-600', available: false, isLoading: true },
+        { id: 'more-loading', name: t('home.services.more'), icon: MoreHorizontal, gradient: 'from-gray-500 via-gray-600 to-gray-700', available: false, isLoading: true },
+      ];
     }
     
     // Grouper par catégorie et prendre le premier service actif de chaque catégorie
@@ -92,7 +100,7 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
       gradient: 'linear-gradient(135deg, #6B7280 0%, #374151 100%)',
       available: true
     }];
-  }, [configurations, loading, t]);
+  }, [configurations, loading, t, iconMap, gradientMap, nameMap]);
 
   // Skeleton loader pendant le chargement
   if (loading) {
