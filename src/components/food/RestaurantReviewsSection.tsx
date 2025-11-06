@@ -14,10 +14,8 @@ interface Review {
   rating: number;
   comment: string | null;
   created_at: string;
-  profiles: {
-    display_name: string;
-    avatar_url: string | null;
-  } | null;
+  rater_display_name: string | null;
+  rater_avatar_url: string | null;
 }
 
 interface RestaurantReviewsSectionProps {
@@ -49,7 +47,7 @@ export const RestaurantReviewsSection: React.FC<RestaurantReviewsSectionProps> =
     try {
       setLoading(true);
 
-      // Load reviews with user info
+      // Load reviews with user info using a join
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('user_ratings')
         .select(`
@@ -57,10 +55,7 @@ export const RestaurantReviewsSection: React.FC<RestaurantReviewsSectionProps> =
           rating,
           comment,
           created_at,
-          profiles!inner (
-            display_name,
-            avatar_url
-          )
+          rater_user_id
         `)
         .eq('rated_user_id', restaurantId)
         .order('created_at', { ascending: false })
@@ -68,7 +63,28 @@ export const RestaurantReviewsSection: React.FC<RestaurantReviewsSectionProps> =
 
       if (reviewsError) throw reviewsError;
 
-      setReviews(reviewsData || []);
+      // Fetch profiles separately to avoid relation issues
+      const enrichedReviews: Review[] = [];
+      if (reviewsData) {
+        for (const review of reviewsData) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('display_name, avatar_url')
+            .eq('id', review.rater_user_id)
+            .maybeSingle();
+
+          enrichedReviews.push({
+            id: review.id,
+            rating: review.rating,
+            comment: review.comment,
+            created_at: review.created_at,
+            rater_display_name: profileData?.display_name || null,
+            rater_avatar_url: profileData?.avatar_url || null,
+          });
+        }
+      }
+
+      setReviews(enrichedReviews);
 
       // Calculate breakdown
       const { data: allRatings } = await supabase
@@ -186,16 +202,16 @@ export const RestaurantReviewsSection: React.FC<RestaurantReviewsSectionProps> =
             <Card className="p-4">
               <div className="flex items-start gap-3">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={review.profiles?.avatar_url || undefined} />
+                  <AvatarImage src={review.rater_avatar_url || undefined} />
                   <AvatarFallback>
-                    {review.profiles?.display_name?.[0]?.toUpperCase() || 'U'}
+                    {review.rater_display_name?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span className="font-semibold truncate">
-                      {review.profiles?.display_name || 'Utilisateur'}
+                      {review.rater_display_name || 'Utilisateur'}
                     </span>
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {formatDistanceToNow(new Date(review.created_at), {

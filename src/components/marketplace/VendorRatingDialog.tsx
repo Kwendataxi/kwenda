@@ -69,21 +69,22 @@ export const VendorRatingDialog: React.FC<VendorRatingDialogProps> = ({
       if (success) {
         // Trigger confetti
         confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#FFD700', '#FFA500', '#FF6347', '#9333EA']
-      });
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.6 },
+          colors: ['#FFD700', '#FFA500', '#FF6347', '#9333EA']
+        });
 
-      // Reset form
-      setRating(0);
-      setComment('');
+        // Reset form
+        setRating(0);
+        setComment('');
 
-      // Call success callback
-      if (onSuccess) onSuccess();
+        // Call success callback
+        if (onSuccess) onSuccess();
 
-      // Close dialog
-      onOpenChange(false);
+        // Close dialog
+        onOpenChange(false);
+      }
     } catch (error) {
       // Error already handled by useRating hook
     }
