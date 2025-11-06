@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { LocationData } from '@/types/location';
+import { cityDetectionService } from '@/services/cityDetectionService';
 
 // Export for backward compatibility
 export type DeliveryLocation = LocationData;
@@ -59,10 +60,18 @@ export const useEnhancedDeliveryOrders = () => {
       );
       
       const pricePromise = (async () => {
+        // ✅ PHASE 4: Détecter automatiquement la ville depuis les coordonnées pickup
+        const cityDetection = cityDetectionService.detectCityFromCoordinates({
+          lat: pickup.lat,
+          lng: pickup.lng
+        });
+        
+        console.log('🌍 Ville détectée:', cityDetection.city.name, `(confiance: ${(cityDetection.confidence * 100).toFixed(0)}%)`);
+        
         const { data: pricingResult, error: pricingError } = await supabase.rpc('calculate_delivery_price', {
           delivery_type_param: mode,
           distance_km_param: distance,
-          city_param: 'Kinshasa'
+          city_param: cityDetection.city.name
         });
         
         if (pricingError) {
