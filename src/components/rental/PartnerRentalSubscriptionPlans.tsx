@@ -44,7 +44,20 @@ export const PartnerRentalSubscriptionPlans = () => {
         .order('monthly_price', { ascending: true });
 
       if (error) throw error;
-      setPlans(data || []);
+      setPlans((data || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        description: p.description || '',
+        tier: p.tier || 'basic',
+        monthly_price: p.monthly_price,
+        currency: p.currency,
+        max_vehicles: p.max_vehicles || 5,
+        featured_in_homepage: p.featured_in_homepage || false,
+        custom_banner: p.custom_banner || false,
+        priority_support: p.priority_support || false,
+        analytics_access: p.analytics_access || false,
+        features: Array.isArray(p.features) ? p.features.map(f => String(f)) : []
+      })));
     } catch (error) {
       console.error('Error fetching plans:', error);
     } finally {
@@ -58,7 +71,7 @@ export const PartnerRentalSubscriptionPlans = () => {
         .from('partenaires')
         .select('id')
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
 
       if (partner) {
         const { data: sub } = await supabase
@@ -84,7 +97,7 @@ export const PartnerRentalSubscriptionPlans = () => {
         .from('partenaires')
         .select('id')
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
 
       if (!partner) {
         toast.error('Partenaire introuvable');
@@ -95,16 +108,25 @@ export const PartnerRentalSubscriptionPlans = () => {
       const endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + 1);
 
+      // Note: vehicle_id requis par le schéma, utiliser NULL ou premier véhicule
+      const { data: firstVehicle } = await supabase
+        .from('rental_vehicles')
+        .select('id')
+        .eq('partner_id', partner.id)
+        .limit(1)
+        .maybeSingle();
+
       const { error } = await supabase
         .from('partner_rental_subscriptions')
         .insert({
           partner_id: partner.id,
+          vehicle_id: firstVehicle?.id || null,
           plan_id: planId,
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
           status: 'active',
           auto_renew: true
-        });
+        } as any);
 
       if (error) throw error;
 
