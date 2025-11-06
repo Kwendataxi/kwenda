@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -17,7 +17,8 @@ import {
   Package,
   TrendingUp,
   Users,
-  Shield
+  Shield,
+  ShoppingCart
 } from 'lucide-react';
 import { useVendorFollowers } from '@/hooks/useVendorFollowers';
 import { CompactProductCard } from './CompactProductCard';
@@ -27,6 +28,11 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { SimilarVendorsSlider } from './SimilarVendorsSlider';
+import { FloatingCartIndicator } from './FloatingCartIndicator';
+import { VendorCheckoutBar } from './VendorCheckoutBar';
+import { CartItem } from '@/types/marketplace';
+import { triggerAddToCartEffect } from '@/lib/animations/cartEffects';
+import confetti from 'canvas-confetti';
 
 interface Product {
   id: string;
@@ -65,6 +71,7 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [activeProductsCount, setActiveProductsCount] = useState(0);
+  const [localCart, setLocalCart] = useState<CartItem[]>([]);
   const { followerCount } = useVendorFollowers(vendorId);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -149,6 +156,74 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddToCart = (product: Product, element?: HTMLElement) => {
+    // Appeler le callback parent
+    onAddToCart(product);
+    
+    // Tracker localement pour le FloatingCartIndicator
+    const existingItem = localCart.find(item => item.id === product.id);
+    
+    if (existingItem) {
+      setLocalCart(localCart.map(item =>
+        item.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
+    } else {
+      setLocalCart([...localCart, {
+        id: product.id,
+        product_id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        quantity: 1,
+        seller: product.seller,
+        seller_id: product.sellerId,
+        coordinates: product.location
+      }]);
+    }
+    
+    // Animation particules si l'élément est fourni
+    if (element) {
+      triggerAddToCartEffect(element);
+    }
+    
+    // Animation confetti
+    confetti({
+      particleCount: 20,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0.9, y: 0.9 },
+      colors: ['#FF6B35', '#F7931E', '#FDC830']
+    });
+  };
+
+  const handleCheckout = () => {
+    if (localCart.length === 0) return;
+    
+    // Confetti de célébration
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#FF6B35', '#F7931E', '#FDC830', '#9333EA']
+    });
+    
+    // Toast de confirmation
+    toast({
+      title: '🎉 Commande créée !',
+      description: `${localCart.length} produit(s) ajouté(s) à vos commandes`,
+    });
+    
+    // Vider le panier local
+    setLocalCart([]);
+    
+    // Fermer la vue vendeur après 2 secondes
+    setTimeout(() => {
+      if (onClose) onClose();
+    }, 2000);
   };
 
   const handleSubscribe = async () => {
@@ -322,6 +397,40 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
         ))}
       </div>
 
+      {/* Mini cart summary */}
+      <AnimatePresence>
+        {localCart.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-b overflow-hidden"
+          >
+            <div className="p-3 bg-primary/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">
+                    {localCart.reduce((sum, item) => sum + item.quantity, 0)} article(s) sélectionné(s)
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocalCart([])}
+                  className="text-xs h-7"
+                >
+                  Vider
+                </Button>
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Total : {localCart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()} CDF
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header with view controls */}
       <div className="flex items-center gap-4 p-4 border-b bg-background/95 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -370,25 +479,92 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
               </p>
             </div>
           ) : viewMode === 'grid' ? (
-            <ProductGrid
-              products={filteredProducts}
-              onAddToCart={onAddToCart}
-              onViewDetails={onViewDetails}
-              userLocation={userLocation}
-            />
-          ) : (
-            <div className="grid gap-3 grid-cols-1">
-              {filteredProducts.map((product) => (
-                <CompactProductCard
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.05
+                  }
+                }
+              }}
+              className="grid grid-cols-2 gap-3"
+            >
+              {filteredProducts.map((product, index) => (
+                <motion.div
                   key={product.id}
-                  product={product}
-                  onAddToCart={() => onAddToCart(product)}
-                  onViewDetails={() => onViewDetails(product)}
-                  userLocation={userLocation}
-                  className="flex-row"
-                />
+                  variants={{
+                    hidden: { opacity: 0, y: 20, scale: 0.9 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      transition: {
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 20
+                      }
+                    }
+                  }}
+                  whileHover={{
+                    scale: 1.03,
+                    transition: { duration: 0.2 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <CompactProductCard
+                    product={product}
+                    onAddToCart={() => handleAddToCart(product)}
+                    onViewDetails={() => onViewDetails(product)}
+                    userLocation={userLocation}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              className="grid gap-3 grid-cols-1"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.08
+                  }
+                }
+              }}
+            >
+              {filteredProducts.map((product) => (
+                <motion.div
+                  key={product.id}
+                  variants={{
+                    hidden: { opacity: 0, x: -20 },
+                    visible: {
+                      opacity: 1,
+                      x: 0,
+                      transition: {
+                        type: 'spring',
+                        stiffness: 300
+                      }
+                    }
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <CompactProductCard
+                    product={product}
+                    onAddToCart={() => handleAddToCart(product)}
+                    onViewDetails={() => onViewDetails(product)}
+                    userLocation={userLocation}
+                    className="flex-row"
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
           )}
         </div>
       </ScrollArea>
@@ -403,6 +579,25 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
           }}
         />
       )}
+
+      {/* Floating Cart Indicator */}
+      <FloatingCartIndicator
+        cartItems={localCart}
+        onOpenCart={() => {
+          document.getElementById('vendor-checkout-button')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end'
+          });
+        }}
+        className="bottom-24"
+      />
+
+      {/* Checkout Bar */}
+      <VendorCheckoutBar
+        cartItems={localCart}
+        onCheckout={handleCheckout}
+        vendorName={vendor?.shop_name || vendor?.display_name || 'cette boutique'}
+      />
     </div>
   );
 };

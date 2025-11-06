@@ -406,4 +406,20 @@ All colors MUST be HSL.
   .vendor-card-hover:hover .vendor-avatar-float {
     transform: translateY(-12px) scale(1.1);
   }
+
+  /* Particle burst animation for cart */
+  @keyframes particle-burst {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--tx), var(--ty)) scale(0);
+      opacity: 0;
+    }
+  }
+
+  .cart-particle {
+    animation: particle-burst 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
 }
