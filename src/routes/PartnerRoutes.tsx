@@ -11,6 +11,7 @@ const PartnerApp = lazy(() => import('@/pages/PartnerApp'));
 const PartnerVerifyEmail = lazy(() => import('@/pages/PartnerVerifyEmail'));
 const PartnerRegistrationForm = lazy(() => import('@/components/partner/registration/PartnerRegistrationForm').then(m => ({ default: m.PartnerRegistrationForm })));
 const PartnerDashboard = lazy(() => import('@/pages/partner/PartnerDashboard'));
+const PartnerRentalSubscriptionManagement = lazy(() => import('@/pages/partner/PartnerRentalSubscriptionManagement'));
 
 export const PartnerRoutes = () => {
   if (isSpecificBuild() && !isPartnerApp()) {
@@ -51,6 +52,14 @@ export const PartnerRoutes = () => {
         element={
           <ProtectedRoute>
             <PartnerDashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/partner/rental/subscription" 
+        element={
+          <ProtectedRoute>
+            <PartnerRentalSubscriptionManagement />
           </ProtectedRoute>
         } 
       />

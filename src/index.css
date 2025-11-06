@@ -422,4 +422,54 @@ All colors MUST be HSL.
   .cart-particle {
     animation: particle-burst 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
+
+  /* ===== RENTAL LUXURY STYLES ===== */
+  
+  /* Golden gradient premium for rental partners */
+  .gold-gradient-premium {
+    background: linear-gradient(
+      135deg,
+      #f4a460 0%,
+      #daa520 25%,
+      #ffd700 50%,
+      #daa520 75%,
+      #b8860b 100%
+    );
+    background-size: 200% 200%;
+    animation: shimmer-gold 3s infinite;
+  }
+
+  @keyframes shimmer-gold {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Premium rental cards with luxury shadows */
+  .rental-card-premium {
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06),
+      0 0 0 1px rgba(218, 165, 32, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .rental-card-premium:hover {
+    box-shadow: 
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04),
+      0 0 0 2px rgba(218, 165, 32, 0.3);
+    transform: translateY(-4px);
+  }
+
+  /* Glassmorphism for rental stats cards */
+  .glassmorphism {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .dark .glassmorphism {
+    background: hsl(var(--card) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.3);
+  }
 }

@@ -2,13 +2,16 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useModernRentals } from '@/hooks/useModernRentals';
+import { usePartnerRentalGroups } from '@/hooks/usePartnerRentalGroups';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { PartnerTierBadge } from '@/components/rental/PartnerTierBadge';
 import { 
   Search, Car, User, Users, Settings, MapPin, 
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon, Building2, Star, Heart
 } from 'lucide-react';
 import { AutoHideRentalPromoSlider } from '@/components/rental/AutoHideRentalPromoSlider';
 import { RentalCategoryBar } from '@/components/rental/RentalCategoryBar';
@@ -28,6 +31,9 @@ export const ClientRentalInterface = () => {
     calculateCityPrice 
   } = useModernRentals();
 
+  const { partnerGroups, premiumPartners, isLoading: partnersLoading } = usePartnerRentalGroups(userLocation);
+
+  const [viewMode, setViewMode] = useState<'partners' | 'vehicles'>('partners');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -129,9 +135,70 @@ export const ClientRentalInterface = () => {
         </div>
       </div>
 
+      {/* Premium Partners Slider */}
+      {premiumPartners.length > 0 && (
+        <div className="max-w-7xl mx-auto px-3 pt-4">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold mb-2">🌟 Partenaires Premium</h2>
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4">
+              {premiumPartners.map(partner => (
+                <Card 
+                  key={partner.partnerId}
+                  className="rental-card-premium min-w-[300px] cursor-pointer"
+                  onClick={() => navigate(`/rental/partner/${partner.partnerId}/shop`)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <img 
+                        src={partner.partnerAvatar || '/placeholder.svg'} 
+                        alt={partner.partnerName}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-bold line-clamp-1">{partner.partnerName}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <PartnerTierBadge tier={partner.tier} className="text-xs" />
+                          <div className="flex items-center gap-1 text-xs">
+                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                            {partner.avgRating > 0 ? partner.avgRating.toFixed(1) : '—'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>{partner.vehicleCount} véhicules</span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" />
+                        {partner.followersCount}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Slider publicitaire auto-hide */}
       <div className="max-w-7xl mx-auto px-3 pt-4">
         <AutoHideRentalPromoSlider />
+      </div>
+
+      {/* View Mode Toggle */}
+      <div className="max-w-7xl mx-auto px-3 pt-4">
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'partners' | 'vehicles')}>
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="partners" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              Par Agences ({partnerGroups.length})
+            </TabsTrigger>
+            <TabsTrigger value="vehicles" className="gap-2">
+              <Car className="h-4 w-4" />
+              Tous les Véhicules ({vehicles.length})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Barre de catégories moderne */}
@@ -165,8 +232,133 @@ export const ClientRentalInterface = () => {
         </div>
       </div>
 
-      {/* Liste des véhicules - Grille unifiée */}
+      {/* Content based on view mode */}
       <div className="max-w-7xl mx-auto px-3 pb-6 pt-2">
+        {viewMode === 'partners' ? (
+          /* Partners Grid */
+          partnersLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1,2,3].map(i => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="h-16 bg-muted rounded" />
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-20 bg-muted rounded" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : partnerGroups.length === 0 ? (
+            <Card className="glassmorphism">
+              <CardContent className="py-16 text-center">
+                <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-bold mb-2">Aucune agence disponible</h3>
+                <p className="text-muted-foreground">
+                  Aucune agence ne propose de véhicules à {userLocation} actuellement
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {partnerGroups.map((partner, index) => (
+                <motion.div
+                  key={partner.partnerId}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <Card 
+                    className="rental-card-premium cursor-pointer overflow-hidden"
+                    onClick={() => navigate(`/rental/partner/${partner.partnerId}/shop`)}
+                  >
+                    <CardContent className="p-0">
+                      {/* Partner Header */}
+                      <div className="p-4 bg-gradient-to-br from-primary/10 to-primary/5">
+                        <div className="flex items-center gap-3 mb-3">
+                          <img 
+                            src={partner.partnerAvatar || '/placeholder.svg'}
+                            alt={partner.partnerName}
+                            className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg line-clamp-1">{partner.partnerName}</h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <PartnerTierBadge tier={partner.tier} className="text-xs" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Stats */}
+                        <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                          <div>
+                            <div className="font-bold text-lg">{partner.vehicleCount}</div>
+                            <div className="text-xs text-muted-foreground">Véhicules</div>
+                          </div>
+                          <div>
+                            <div className="font-bold text-lg flex items-center justify-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                              {partner.avgRating > 0 ? partner.avgRating.toFixed(1) : '—'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">{partner.ratingCount} avis</div>
+                          </div>
+                          <div>
+                            <div className="font-bold text-lg flex items-center justify-center gap-1">
+                              <Heart className="h-4 w-4" />
+                              {partner.followersCount}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Abonnés</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Top 3 Vehicles Preview */}
+                      <div className="p-4 space-y-2">
+                        <div className="text-sm font-semibold mb-2">Aperçu des véhicules</div>
+                        {partner.topVehicles.map(vehicle => (
+                          <div key={vehicle.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                            <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                              {vehicle.images?.[0] ? (
+                                <img 
+                                  src={vehicle.images[0]} 
+                                  alt={vehicle.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className={`w-full h-full bg-gradient-to-br ${getVehicleGradient(vehicle)} flex items-center justify-center`}>
+                                  <Car className="h-6 w-6 text-white/50" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-sm line-clamp-1">{vehicle.name}</div>
+                              <div className="text-xs text-muted-foreground">{vehicle.brand} {vehicle.model}</div>
+                            </div>
+                            <div className="text-sm font-bold text-primary">
+                              {vehicle.daily_rate.toLocaleString()} FC/j
+                            </div>
+                          </div>
+                        ))}
+                        {partner.vehicleCount > 3 && (
+                          <div className="text-center text-sm text-muted-foreground pt-2">
+                            +{partner.vehicleCount - 3} autres véhicules
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="px-4 pb-4">
+                        <Button className="w-full" size="sm">
+                          Voir la boutique
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )
+        ) : (
+          /* Vehicles Grid - Original */
+          <div>
         {filteredVehicles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
             <div className="mb-4 p-6 bg-muted rounded-full">
@@ -334,6 +526,8 @@ export const ClientRentalInterface = () => {
             })}
           </div>
         )}
+        </div>
+      )}
       </div>
     </div>
   );
