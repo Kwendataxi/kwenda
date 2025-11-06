@@ -152,11 +152,20 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const loadProducts = async () => {
     try {
       setLoading(true);
-      // ✅ FILTRE : Uniquement les produits approuvés visibles sur la marketplace
+      // ✅ FILTRE : Uniquement les produits approuvés avec info vendeurs
       // Tri par popularité (view_count + sales_count)
       const { data, error } = await supabase
         .from('marketplace_products')
-        .select('*')
+        .select(`
+          *,
+          vendor_profiles!inner(
+            shop_name,
+            shop_logo_url,
+            average_rating,
+            total_sales,
+            follower_count
+          )
+        `)
         .eq('status', 'active')
         .eq('moderation_status', 'approved')  // ✅ Produits approuvés uniquement
         .order('popularity_score', { ascending: false, nullsFirst: false })
@@ -206,8 +215,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           description: product.description || '',
           seller_id: product.seller_id,
           seller: { 
-            display_name: t('marketplace.unknown_seller') // Will fetch from seller_profiles later
+            display_name: (product.vendor_profiles as any)?.shop_name || t('marketplace.unknown_seller')
           },
+          sellerLogo: (product.vendor_profiles as any)?.shop_logo_url,
+          sellerRating: (product.vendor_profiles as any)?.average_rating || 0,
+          sellerTotalSales: (product.vendor_profiles as any)?.total_sales || 0,
+          sellerFollowers: (product.vendor_profiles as any)?.follower_count || 0,
           location: product.location || 'Kinshasa',
           coordinates: product.coordinates && typeof product.coordinates === 'object' 
             ? product.coordinates as { lat: number; lng: number }

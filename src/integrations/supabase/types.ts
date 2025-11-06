@@ -5005,6 +5005,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_marketplace_products_seller"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "marketplace_products_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -13115,7 +13122,15 @@ export type Database = {
           total_sales: number | null
           vendor_id: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_marketplace_products_seller"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       vendor_stats_mv: {
         Row: {
@@ -13128,7 +13143,15 @@ export type Database = {
           seller_id: string | null
           total_orders: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_marketplace_products_seller"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Functions: {

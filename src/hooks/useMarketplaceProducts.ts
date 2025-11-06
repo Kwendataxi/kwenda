@@ -13,22 +13,38 @@ export const useMarketplaceProducts = () => {
   return useCachedQuery(
     ['marketplace-products', user?.id],
     async () => {
-      // Récupérer les produits publics
+      // Récupérer les produits publics avec info vendeurs
       const { data: publicProducts, error: publicError } = await supabase
         .from('marketplace_products')
-        .select('*')
+        .select(`
+          *,
+          vendor_profiles!inner(
+            shop_name,
+            shop_logo_url,
+            average_rating,
+            total_sales
+          )
+        `)
         .eq('status', 'active')
         .eq('moderation_status', 'approved')
         .order('created_at', { ascending: false });
 
       if (publicError) throw publicError;
 
-      // ✅ PHASE 2: Si connecté, récupérer TOUS ses propres produits (incluant pending/rejected)
+      // ✅ PHASE 2: Si connecté, récupérer TOUS ses propres produits avec info vendeur
       let sellerProducts: any[] = [];
       if (user) {
         const { data: myProducts } = await supabase
           .from('marketplace_products')
-          .select('*')
+          .select(`
+            *,
+            vendor_profiles!inner(
+              shop_name,
+              shop_logo_url,
+              average_rating,
+              total_sales
+            )
+          `)
           .eq('seller_id', user.id)
           .order('created_at', { ascending: false });
         
@@ -54,9 +70,12 @@ export const useMarketplaceProducts = () => {
           ? product.images[0] 
           : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
         images: Array.isArray(product.images) ? product.images : [],
-        rating: 4.5,
-        reviews: Math.floor(Math.random() * 200) + 10,
-        seller: 'Vendeur Kwenda',
+        rating: product.rating_average || 4.5,
+        reviews: product.rating_count || Math.floor(Math.random() * 200) + 10,
+        seller: (product.vendor_profiles as any)?.shop_name || 'Vendeur',
+        sellerLogo: (product.vendor_profiles as any)?.shop_logo_url,
+        sellerRating: (product.vendor_profiles as any)?.average_rating || 0,
+        sellerTotalSales: (product.vendor_profiles as any)?.total_sales || 0,
         category: product.category?.toLowerCase() || 'other',
         description: product.description || '',
         specifications: {},

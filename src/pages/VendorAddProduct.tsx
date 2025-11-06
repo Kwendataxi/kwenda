@@ -61,6 +61,23 @@ export default function VendorAddProduct() {
       return false;
     }
 
+    // ✅ Validation: Vérifier que l'utilisateur a un profil vendeur
+    const { data: vendorProfile, error: profileError } = await supabase
+      .from('vendor_profiles')
+      .select('id, shop_name')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (profileError || !vendorProfile) {
+      toast({
+        title: "⚠️ Profil vendeur manquant",
+        description: "Veuillez compléter votre profil vendeur avant d'ajouter des produits.",
+        variant: "destructive"
+      });
+      navigate('/vendor-registration');
+      return false;
+    }
+
     setIsSubmitting(true);
     setUploadProgress(0);
     
