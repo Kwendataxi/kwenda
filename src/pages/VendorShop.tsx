@@ -96,44 +96,43 @@ const VendorShop: React.FC = () => {
   const loadVendorData = async () => {
     setLoading(true);
     try {
-      // Load vendor profile from cache with real stats
+      // ✅ CORRECTION PHASE 1: Charger directement depuis vendor_profiles
       const { data: profileData, error: profileError } = await supabase
-        .from('vendor_stats_cache')
+        .from('vendor_profiles')
         .select('*')
-        .eq('vendor_id', vendorId)
-        .maybeSingle();
+        .eq('user_id', vendorId)
+        .single();
 
       if (profileError || !profileData) {
-        // Fallback to vendor_profiles if not in cache yet
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('vendor_profiles')
-          .select('*')
-          .eq('user_id', vendorId)
-          .single();
-
-        if (fallbackError) {
-          console.error('[VendorShop] Vendor not found:', { vendorId, error: fallbackError });
-          toast({
-            variant: 'destructive',
-            title: '🏪 Boutique introuvable',
-            description: 'Cette boutique n\'existe pas ou a été supprimée.'
-          });
-          navigate('/marketplace');
-          return;
-        }
-        
-        setProfile({
-          ...fallbackData,
-          total_sales: 0,
-          average_rating: 0,
-          follower_count: 0,
-          total_reviews: 0
-        } as any);
-        setTotalReviews(0);
-      } else {
-        setProfile(profileData as any);
-        setTotalReviews(profileData.total_reviews || 0);
+        console.error('[VendorShop] Vendor not found:', { vendorId, error: profileError });
+        toast({
+          variant: 'destructive',
+          title: '🏪 Boutique introuvable',
+          description: 'Cette boutique n\'existe pas ou a été supprimée.'
+        });
+        navigate('/marketplace');
+        return;
       }
+
+      // ✅ Utiliser les vraies valeurs de la DB avec fallback sur 0
+      const vendorProfile = {
+        ...profileData,
+        total_sales: profileData.total_sales || 0,
+        average_rating: profileData.average_rating || 0,
+        follower_count: profileData.follower_count || 0,
+        total_reviews: 0
+      };
+
+      console.log('[VendorShop] ✅ Profile loaded:', {
+        shop_name: vendorProfile.shop_name,
+        user_id: vendorProfile.user_id,
+        total_sales: vendorProfile.total_sales,
+        average_rating: vendorProfile.average_rating,
+        products_expected: 'loading...'
+      });
+
+      setProfile(vendorProfile as VendorProfile);
+      setTotalReviews(0);
 
       // Check if current user is subscribed
       const { data: { user } } = await supabase.auth.getUser();
@@ -174,20 +173,42 @@ const VendorShop: React.FC = () => {
 
       if (productsError) throw productsError;
 
+      // ✅ CORRECTION PHASE 2: Helper pour parser les images correctement
+      const parseImages = (images: any): string[] => {
+        if (!images) return [];
+        if (Array.isArray(images)) return images;
+        if (typeof images === 'string') {
+          try {
+            const parsed = JSON.parse(images);
+            return Array.isArray(parsed) ? parsed : [images];
+          } catch {
+            return [images];
+          }
+        }
+        return [];
+      };
+
       const formattedProducts = productsData.map((p: any) => ({
         id: p.id,
         title: p.title,
         description: p.description,
         price: p.price,
-        images: p.images || [],
+        images: parseImages(p.images),
         category: p.category,
         stock_count: p.stock_count || 0,
         created_at: p.created_at,
         seller: {
           id: p.seller_id,
-          display_name: (p.vendor_profiles as any)?.shop_name || 'Vendeur'
+          display_name: p.vendor_profiles?.shop_name || 'Vendeur'
         }
       }));
+
+      console.log('[VendorShop] ✅ Products loaded:', {
+        count: formattedProducts.length,
+        shopName: formattedProducts[0]?.seller?.display_name,
+        firstProductTitle: formattedProducts[0]?.title,
+        firstProductImages: formattedProducts[0]?.images?.length
+      });
 
       setProducts(formattedProducts);
     } catch (error) {
