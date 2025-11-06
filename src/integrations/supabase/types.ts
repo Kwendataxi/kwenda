@@ -11104,9 +11104,11 @@ export type Database = {
           id: string
           is_read: boolean
           message: string | null
+          metadata: Json | null
           priority: string
           read_at: string | null
           title: string
+          type: string | null
           updated_at: string
           user_id: string
         }
@@ -11120,9 +11122,11 @@ export type Database = {
           id?: string
           is_read?: boolean
           message?: string | null
+          metadata?: Json | null
           priority?: string
           read_at?: string | null
           title: string
+          type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -11136,9 +11140,11 @@ export type Database = {
           id?: string
           is_read?: boolean
           message?: string | null
+          metadata?: Json | null
           priority?: string
           read_at?: string | null
           title?: string
+          type?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -11961,6 +11967,7 @@ export type Database = {
         Row: {
           acknowledged_at: string | null
           created_at: string
+          customer_id: string | null
           id: string
           is_acknowledged: boolean
           is_read: boolean
@@ -11976,6 +11983,7 @@ export type Database = {
         Insert: {
           acknowledged_at?: string | null
           created_at?: string
+          customer_id?: string | null
           id?: string
           is_acknowledged?: boolean
           is_read?: boolean
@@ -11991,6 +11999,7 @@ export type Database = {
         Update: {
           acknowledged_at?: string | null
           created_at?: string
+          customer_id?: string | null
           id?: string
           is_acknowledged?: boolean
           is_read?: boolean

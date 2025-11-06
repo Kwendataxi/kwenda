@@ -573,8 +573,47 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         />
       </section>
 
+      {/* EMPTY STATE - Aucun produit disponible */}
+      {!loading && filteredProducts.length === 0 && (
+        <motion.div 
+          className="text-center py-16 px-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="max-w-md mx-auto">
+            <div className="mb-6 relative">
+              <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center">
+                <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold mb-3">Aucun produit disponible</h3>
+            <p className="text-muted-foreground mb-6">
+              La marketplace est en cours de préparation. 
+              Revenez bientôt pour découvrir nos produits !
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={() => {
+                  handleResetFilters();
+                  loadProducts();
+                }}
+                variant="default"
+              >
+                Actualiser
+              </Button>
+              <Button 
+                onClick={() => onNavigate('/vendeur/inscription')}
+                variant="outline"
+              >
+                Devenir vendeur
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* SECTION TENDANCES */}
-      {trendingProducts.length > 0 && (
+      {!loading && filteredProducts.length > 0 && trendingProducts.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
             <motion.h2 
@@ -609,7 +648,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       )}
 
       {/* SECTION NOUVEAUTÉS */}
-      {newProducts.length > 0 && (
+      {!loading && filteredProducts.length > 0 && newProducts.length > 0 && (
         <section>
           <motion.h2 
             className="text-2xl font-bold flex items-center gap-2 mb-4"
@@ -639,7 +678,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       )}
 
       {/* SECTION PRÈS DE VOUS - seulement si >3 produits */}
-      {nearbyCalculated.length > 3 && (
+      {!loading && filteredProducts.length > 0 && nearbyCalculated.length > 3 && (
         <section>
           <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
             <MapPin className="h-5 w-5 text-green-500" />
@@ -662,7 +701,8 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       )}
 
       {/* TOUS LES PRODUITS - Grille moderne avec toggle vue */}
-      <section data-section="all-products">
+      {!loading && filteredProducts.length > 0 && (
+        <section data-section="all-products">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold">Tous les produits</h2>
           
@@ -697,7 +737,8 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           loading={loading}
           emptyMessage="Aucun produit trouvé"
         />
-      </section>
+        </section>
+      )}
     </div>
   );
 
