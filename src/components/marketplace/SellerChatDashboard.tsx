@@ -1,18 +1,16 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar } from '@/components/ui/avatar';
 import { 
   MessageCircle, 
   CheckCircle, 
   Clock,
-  User,
   Package
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
+import { useUniversalChat } from '@/hooks/useUniversalChat';
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -53,7 +51,7 @@ const ConversationCard: React.FC<ConversationCardProps> = ({
               {conversation.other_participant?.display_name}
             </h4>
             <span className="text-xs text-muted-foreground">
-              {formatDistance(new Date(conversation.last_message_at), new Date(), {
+              {conversation.last_message_at && formatDistance(new Date(conversation.last_message_at), new Date(), {
                 addSuffix: true,
                 locale: fr
               })}
@@ -63,13 +61,13 @@ const ConversationCard: React.FC<ConversationCardProps> = ({
           <div className="flex items-center gap-2 mb-1">
             <Package className="h-3 w-3 text-muted-foreground" />
             <p className="text-xs text-muted-foreground truncate flex-1">
-              {conversation.product?.title}
+              {conversation.title || 'Conversation'}
             </p>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-primary">
-              {conversation.product?.price?.toLocaleString()} CDF
+            <span className="text-xs font-medium text-primary capitalize">
+              {conversation.context_type}
             </span>
             {unreadCount > 0 && (
               <Badge variant="destructive" className="h-5 px-1.5 text-xs">
@@ -85,33 +83,23 @@ const ConversationCard: React.FC<ConversationCardProps> = ({
 
 export const SellerChatDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { conversations, messages } = useMarketplaceChat();
+  const { conversations } = useUniversalChat();
 
-  // Filter conversations where user is the seller
+  // Filter marketplace conversations where user is participant
   const sellerConversations = conversations
-    .filter(conv => conv.seller_id === user?.id)
+    .filter(conv => conv.context_type === 'marketplace')
     .sort((a, b) => {
-      // Prioritize unread messages
-      const unreadA = (messages[a.id] || []).filter(
-        m => !m.is_read && m.sender_id !== user?.id
-      ).length;
-      const unreadB = (messages[b.id] || []).filter(
-        m => !m.is_read && m.sender_id !== user?.id
-      ).length;
-      
-      if (unreadA !== unreadB) return unreadB - unreadA;
-
-      // Then by date
-      return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+      if (a.unread_count !== b.unread_count) {
+        return (b.unread_count || 0) - (a.unread_count || 0);
+      }
+      return new Date(b.last_message_at || 0).getTime() - new Date(a.last_message_at || 0).getTime();
     });
 
   const activeConversations = sellerConversations.filter(c => c.status === 'active');
-  const completedConversations = sellerConversations.filter(c => c.status === 'completed');
+  const archivedConversations = sellerConversations.filter(c => c.status === 'archived');
   
   const totalUnread = sellerConversations.reduce((total, conv) => {
-    return total + (messages[conv.id] || []).filter(
-      m => !m.is_read && m.sender_id !== user?.id
-    ).length;
+    return total + (conv.unread_count || 0);
   }, 0);
 
   return (
@@ -139,9 +127,9 @@ export const SellerChatDashboard: React.FC = () => {
           <Card className="p-3 text-center">
             <CheckCircle className="h-5 w-5 text-green-500 mx-auto mb-1" />
             <p className="text-2xl font-bold text-green-500">
-              {completedConversations.length}
+              {archivedConversations.length}
             </p>
-            <p className="text-xs text-muted-foreground">Terminées</p>
+            <p className="text-xs text-muted-foreground">Archivées</p>
           </Card>
         </div>
       </div>
@@ -156,15 +144,11 @@ export const SellerChatDashboard: React.FC = () => {
             </div>
           ) : (
             sellerConversations.map(conv => {
-              const unreadCount = (messages[conv.id] || []).filter(
-                m => !m.is_read && m.sender_id !== user?.id
-              ).length;
-
               return (
                 <ConversationCard
                   key={conv.id}
                   conversation={conv}
-                  unreadCount={unreadCount}
+                  unreadCount={conv.unread_count || 0}
                   onClick={() => {
                     // Open chat - to be implemented
                     console.log('Open conversation:', conv.id);

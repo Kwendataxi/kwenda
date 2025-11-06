@@ -46,7 +46,7 @@ import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useUserVerification } from '@/hooks/useUserVerification';
 import { useWallet } from '@/hooks/useWallet';
-import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
+import { useUniversalChat } from '@/hooks/useUniversalChat';
 
 // Utiliser les types unifiés de marketplace.ts
 import { MarketplaceProduct, CartItem as MarketplaceCartItem, HorizontalProduct, productToCartItem } from '@/types/marketplace';
@@ -82,7 +82,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { orders, loading: ordersLoading, refetch: refetchOrders } = useMarketplaceOrders();
   const { verification } = useUserVerification();
   const { wallet } = useWallet();
-  const { startConversation } = useMarketplaceChat();
+  const { createOrFindConversation } = useUniversalChat();
   
   // State management
   const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow'>('shop');
@@ -949,8 +949,13 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             toast({ title: "✅ Paiement confirmé", description: "Votre commande sera bientôt livrée" });
           }}
           onOpenChat={async () => {
-            const conversationId = await startConversation(pendingFeeOrder.product_id, pendingFeeOrder.seller_id);
-            if (conversationId) {
+            const conversation = await createOrFindConversation(
+              'marketplace',
+              pendingFeeOrder.seller_id,
+              pendingFeeOrder.product_id,
+              `Chat - Commande #${pendingFeeOrder.id.slice(0, 8)}`
+            );
+            if (conversation) {
               setIsFeeDialogOpen(false);
               toast({ title: "Chat ouvert", description: "Discutez avec le vendeur" });
             }
