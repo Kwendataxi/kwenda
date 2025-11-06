@@ -38,23 +38,19 @@ export const PartnerRentalStoreView = () => {
     queryFn: async () => {
       const { data: partner, error } = await supabase
         .from('partenaires')
-        .select(`
-          id,
-          user_id,
-          company_name,
-          banner_image,
-          slogan,
-          shop_description,
-          phone,
-          email,
-          website,
-          profiles!inner(avatar_url, display_name)
-        `)
+        .select('*')
         .eq('id', partnerId)
         .maybeSingle();
 
       if (error) throw error;
       if (!partner) throw new Error('Partenaire introuvable');
+
+      // Fetch profile separately
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('avatar_url, display_name')
+        .eq('id', partner.user_id)
+        .maybeSingle();
 
       // Fetch stats from materialized view
       const { data: stats } = await supabase
@@ -73,13 +69,14 @@ export const PartnerRentalStoreView = () => {
         phone: partner.phone,
         email: partner.email,
         website: partner.website,
-        profiles: partner.profiles,
+        avatar_url: profile?.avatar_url,
+        display_name: profile?.display_name,
         stats: stats || {
           total_vehicles: 0,
           available_vehicles: 0,
           total_bookings: 0,
           completed_bookings: 0,
-          avg_rating: 0,
+          rating_average: 0,
           rating_count: 0,
           total_revenue: 0
         }
@@ -246,7 +243,7 @@ export const PartnerRentalStoreView = () => {
               <div className="relative">
                 <div className="w-32 h-32 rounded-full border-4 border-background overflow-hidden shadow-2xl">
                   <img 
-                    src={partnerData.profiles?.avatar_url || '/placeholder.svg'}
+                    src={partnerData.avatar_url || '/placeholder.svg'}
                     alt={partnerData.company_name}
                     className="w-full h-full object-cover"
                   />
@@ -320,7 +317,7 @@ export const PartnerRentalStoreView = () => {
             <CardContent className="p-4 text-center">
               <Star className="h-8 w-8 mx-auto mb-2 text-yellow-500 fill-yellow-500" />
               <div className="text-2xl font-bold">
-                {partnerData.stats.avg_rating ? partnerData.stats.avg_rating.toFixed(1) : '0.0'}
+                {partnerData.stats.rating_average ? partnerData.stats.rating_average.toFixed(1) : '0.0'}
               </div>
               <div className="text-xs text-muted-foreground">
                 {partnerData.stats.rating_count} avis

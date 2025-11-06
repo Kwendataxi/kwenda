@@ -5665,6 +5665,7 @@ export type Database = {
           email: string
           id: string
           is_active: boolean | null
+          phone: string | null
           phone_number: string
           reviewed_at: string | null
           service_areas: string[] | null
@@ -5677,6 +5678,7 @@ export type Database = {
           verification_status: string | null
           verified_at: string | null
           verified_by: string | null
+          website: string | null
         }
         Insert: {
           address: string
@@ -5698,6 +5700,7 @@ export type Database = {
           email: string
           id?: string
           is_active?: boolean | null
+          phone?: string | null
           phone_number: string
           reviewed_at?: string | null
           service_areas?: string[] | null
@@ -5710,6 +5713,7 @@ export type Database = {
           verification_status?: string | null
           verified_at?: string | null
           verified_by?: string | null
+          website?: string | null
         }
         Update: {
           address?: string
@@ -5731,6 +5735,7 @@ export type Database = {
           email?: string
           id?: string
           is_active?: boolean | null
+          phone?: string | null
           phone_number?: string
           reviewed_at?: string | null
           service_areas?: string[] | null
@@ -5743,6 +5748,7 @@ export type Database = {
           verification_status?: string | null
           verified_at?: string | null
           verified_by?: string | null
+          website?: string | null
         }
         Relationships: []
       }

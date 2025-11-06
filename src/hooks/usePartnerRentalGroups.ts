@@ -20,13 +20,24 @@ export const usePartnerRentalGroups = (city?: string) => {
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ['rental-vehicles-grouped', city],
     queryFn: async () => {
+      // Fetch partners
       const { data: allPartners } = await supabase
         .from('partenaires')
-        .select(`
-          id,
-          company_name,
-          profiles(avatar_url, display_name)
-        `);
+        .select('id, user_id, company_name');
+
+      // Fetch profiles for avatars
+      const userIds = allPartners?.map(p => p.user_id) || [];
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('id, avatar_url, display_name')
+        .in('id', userIds);
+
+      // Merge partners with profiles
+      const partnersWithProfiles = allPartners?.map(p => ({
+        ...p,
+        avatar_url: allProfiles?.find(pr => pr.id === p.user_id)?.avatar_url,
+        display_name: allProfiles?.find(pr => pr.id === p.user_id)?.display_name
+      }));
 
       let query = supabase
         .from('rental_vehicles')
@@ -46,7 +57,7 @@ export const usePartnerRentalGroups = (city?: string) => {
       
       const vehiclesWithPartner = (data || []).map(v => ({
         ...v,
-        partner: allPartners?.find(p => p.id === v.partner_id)
+        partner: partnersWithProfiles?.find(p => p.id === v.partner_id)
       }));
       
       return vehiclesWithPartner;
@@ -116,7 +127,7 @@ export const usePartnerRentalGroups = (city?: string) => {
         groupsMap.set(partnerId, {
           partnerId,
           partnerName: partner.company_name,
-          partnerAvatar: partner.profiles?.avatar_url || null,
+          partnerAvatar: partner.avatar_url || null,
           vehicleCount: 0,
           avgRating: partnerStats?.rating_average || 0,
           ratingCount: partnerStats?.rating_count || 0,
