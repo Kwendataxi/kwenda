@@ -285,7 +285,7 @@ export const VendorSubscriptionManager = () => {
                         {getPlanIcon(plan.name)}
                       </div>
                       {plan.price > 0 && (
-                        <Badge variant="outline">{plan.price.toLocaleString()} FC/mois</Badge>
+                        <Badge variant="outline">{plan.price.toLocaleString()} CDF/mois</Badge>
                       )}
                       {plan.price === 0 && (
                         <Badge variant="secondary">Gratuit</Badge>

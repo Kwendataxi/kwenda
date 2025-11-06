@@ -186,7 +186,7 @@ export const VendorAnalytics = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-green-600">
-              {analytics.totalRevenue.toLocaleString()} FC
+              {analytics.totalRevenue.toLocaleString()} CDF
             </p>
           </CardContent>
         </Card>
@@ -248,7 +248,7 @@ export const VendorAnalytics = () => {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip 
-                  formatter={(value: number) => `${value.toLocaleString()} FC`}
+                  formatter={(value: number) => `${value.toLocaleString()} CDF`}
                 />
                 <Line 
                   type="monotone" 
@@ -273,7 +273,7 @@ export const VendorAnalytics = () => {
                 <XAxis dataKey="title" tick={{ fontSize: 12 }} />
                 <YAxis />
                 <Tooltip 
-                  formatter={(value: number) => `${value.toLocaleString()} FC`}
+                  formatter={(value: number) => `${value.toLocaleString()} CDF`}
                 />
                 <Bar 
                   dataKey="revenue" 
@@ -313,7 +313,7 @@ export const VendorAnalytics = () => {
                   </div>
                 </div>
                 <p className="text-lg font-bold text-green-600">
-                  {product.revenue.toLocaleString()} FC
+                  {product.revenue.toLocaleString()} CDF
                 </p>
               </div>
             ))}

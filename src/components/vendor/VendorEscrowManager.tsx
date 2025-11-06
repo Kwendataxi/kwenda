@@ -164,7 +164,7 @@ export const VendorEscrowManager = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-yellow-600">
-              {balance.pending.toLocaleString()} FC
+              {balance.pending.toLocaleString()} CDF
             </p>
           </CardContent>
         </Card>
@@ -178,7 +178,7 @@ export const VendorEscrowManager = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-green-600">
-              {balance.released.toLocaleString()} FC
+              {balance.released.toLocaleString()} CDF
             </p>
           </CardContent>
         </Card>
@@ -192,7 +192,7 @@ export const VendorEscrowManager = () => {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-primary">
-              {balance.total.toLocaleString()} FC
+              {balance.total.toLocaleString()} CDF
             </p>
           </CardContent>
         </Card>
@@ -257,7 +257,7 @@ export const VendorEscrowManager = () => {
                         ? 'text-destructive'
                         : 'text-yellow-600'
                     }`}>
-                      {Number(transaction.amount).toLocaleString()} FC
+                      {Number(transaction.amount).toLocaleString()} CDF
                     </p>
                     {transaction.released_at && (
                       <p className="text-xs text-muted-foreground">

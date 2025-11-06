@@ -23,7 +23,7 @@ export const VendorEscrow = () => {
             <div>
               <p className="text-sm text-muted-foreground">Solde disponible</p>
               <p className="text-4xl font-bold text-green-600">
-                {(merchantAccount?.balance || 0).toLocaleString()} FC
+                {(merchantAccount?.balance || 0).toLocaleString()} CDF
               </p>
             </div>
             <Button size="lg">
@@ -55,7 +55,7 @@ export const VendorEscrow = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-lg">{(transaction.seller_amount || 0).toLocaleString()} FC</p>
+                  <p className="font-bold text-lg">{(transaction.seller_amount || 0).toLocaleString()} CDF</p>
                   <Badge variant={transaction.status === 'held' ? 'secondary' : 'default'}>
                     {transaction.status === 'held' ? (
                       <>

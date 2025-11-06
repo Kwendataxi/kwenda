@@ -50,7 +50,7 @@ export const VendorEarnings = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-600">{totalEarned.toLocaleString()} FC</p>
+            <p className="text-2xl font-bold text-green-600">{totalEarned.toLocaleString()} CDF</p>
             <p className="text-xs text-muted-foreground mt-1">
               {completedSales.length} ventes complétées
             </p>
@@ -65,7 +65,7 @@ export const VendorEarnings = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-orange-600">{totalPending.toLocaleString()} FC</p>
+            <p className="text-2xl font-bold text-orange-600">{totalPending.toLocaleString()} CDF</p>
             <p className="text-xs text-muted-foreground mt-1">
               {pendingSales.length} ventes en cours
             </p>

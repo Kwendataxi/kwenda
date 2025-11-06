@@ -77,7 +77,7 @@ export const VendorDashboardOverview = ({ onTabChange }: VendorDashboardOverview
         <StatsCompactCard
           icon={DollarSign}
           label="Escrow"
-          value={`${stats.pendingEscrow.toLocaleString()} FC`}
+          value={`${stats.pendingEscrow.toLocaleString()} CDF`}
           color="yellow"
         />
       </div>

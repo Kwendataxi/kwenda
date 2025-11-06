@@ -381,7 +381,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{order.total_amount} FC</p>
+                      <p className="font-semibold">{order.total_amount.toLocaleString()} CDF</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString()}
                       </p>
@@ -430,7 +430,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-green-600">{order.total_amount} FC</p>
+                      <p className="font-semibold text-green-600">{order.total_amount.toLocaleString()} CDF</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(order.created_at).toLocaleDateString()}
                       </p>

@@ -170,7 +170,7 @@ export const ModernVendorProductCard = ({ product, onDelete }: ModernVendorProdu
           
           {/* Prix en rouge vif */}
           <p className="text-2xl font-bold text-destructive">
-            {product.price.toLocaleString()} FC
+            {product.price.toLocaleString()} CDF
           </p>
         </div>
         
