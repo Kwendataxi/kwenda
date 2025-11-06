@@ -63,7 +63,12 @@ export default function YangoBottomSheet({
   }, [onSheetPositionChange]);
 
   return (
-    <Drawer open={true} dismissible={true}>
+    <Drawer 
+      open={true} 
+      dismissible={true}
+      snapPoints={[0.3, 0.6, 0.85]}
+      activeSnapPoint={0.6}
+    >
       <DrawerContent className="max-h-[75vh]">
         {/* Handle bar interactif */}
         <div className="flex items-center justify-center py-2">
