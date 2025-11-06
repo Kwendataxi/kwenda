@@ -485,7 +485,7 @@ const VendorShop: React.FC = () => {
               <TrendingUp className="h-5 w-5 text-green-500" />
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold">{profile.total_sales}</div>
+              <div className="text-lg font-bold">{profile.total_sales || 0}</div>
               <div className="text-xs text-muted-foreground">Ventes</div>
             </div>
           </div>
@@ -495,7 +495,7 @@ const VendorShop: React.FC = () => {
               <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold">{profile.average_rating.toFixed(1)}</div>
+              <div className="text-lg font-bold">{profile.average_rating?.toFixed(1) || '0.0'}</div>
               <div className="text-xs text-muted-foreground">Note</div>
             </div>
           </div>
@@ -505,7 +505,7 @@ const VendorShop: React.FC = () => {
               <Heart className="h-5 w-5 text-red-500" />
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold">{profile.follower_count}</div>
+              <div className="text-lg font-bold">{profile.follower_count || 0}</div>
               <div className="text-xs text-muted-foreground">Abonnés</div>
             </div>
           </div>
