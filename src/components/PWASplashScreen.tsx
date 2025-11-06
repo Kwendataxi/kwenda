@@ -24,9 +24,11 @@ export const PWASplashScreen = ({ onComplete }: PWASplashScreenProps) => {
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     let completionTimeout: NodeJS.Timeout;
-    const minDuration = 500;
-    const maxDuration = 1500;
     const startTime = Date.now();
+    
+    // ✅ Durée adaptative selon l'état d'authentification
+    let minDuration = 500;
+    let maxDuration = 1500;
 
     const tryComplete = (session?: any, userRole?: string | null) => {
       const elapsed = Date.now() - startTime;
@@ -54,6 +56,13 @@ export const PWASplashScreen = ({ onComplete }: PWASplashScreenProps) => {
         ]);
 
         const { data: { session } } = await supabase.auth.getSession();
+        
+        // ✅ Adapter la durée du splash selon l'authentification
+        if (session?.user) {
+          minDuration = 800;  // Utilisateur connecté : splash plus long pour masquer la navigation
+        } else {
+          minDuration = 400;  // Visiteur : splash court
+        }
         
         let userRole: string | null = null;
         if (session?.user) {

@@ -45,6 +45,7 @@ import { useServiceRealtime } from "./hooks/useServiceRealtime";
 // Critical imports
 import Index from "./pages/Index";
 import { SmartHome } from "./components/navigation/SmartHome";
+import { PublicHome } from "./components/navigation/PublicHome";
 
 // Route modules
 import {
@@ -117,7 +118,8 @@ const AppContent = () => {
                         <Suspense fallback={<RouteLoadingFallback />}>
                           <Routes>
                             {/* Landing page */}
-                            {!isSpecificBuild() && <Route path="/" element={<Index />} />}
+            {!isSpecificBuild() && <Route path="/" element={<PublicHome />} />}
+            {!isSpecificBuild() && <Route path="/landing" element={<Index />} />}
                             {!isSpecificBuild() && <Route path="/app" element={<SmartHome />} />}
                             
                             {/* Shared routes */}
