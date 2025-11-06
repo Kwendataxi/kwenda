@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useModernRentals } from '@/hooks/useModernRentals';
 import { usePartnerRentalGroups } from '@/hooks/usePartnerRentalGroups';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,6 +42,16 @@ export const RentalVehicleDetails = () => {
   const navigate = useNavigate();
   const { vehicles, calculateCityPrice, isLoading } = useModernRentals();
   const { partnerGroups } = usePartnerRentalGroups();
+  const [showFooter, setShowFooter] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowFooter(window.scrollY > 300);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const vehicle = vehicles.find(v => v.id === vehicleId);
   const partnerGroup = partnerGroups.find(p => p.partnerId === vehicle?.partner_id);
@@ -101,7 +111,11 @@ export const RentalVehicleDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header compact moderne */}
-      <VehicleHeader vehicleName={vehicle.name} />
+      <VehicleHeader 
+        vehicleName={vehicle.name} 
+        minPrice={formatCDF(calculateCityPrice(minPrice, vehicle.category_id))}
+        showPriceOnScroll
+      />
 
       <div className="max-w-5xl mx-auto pb-24 sm:pb-6">
         {/* Galerie photos */}
@@ -447,63 +461,136 @@ export const RentalVehicleDetails = () => {
         </div>
       </div>
 
-      {/* CTA Réservation - Différencié Desktop/Mobile */}
-      {/* Desktop : Card classique */}
-      <div className="hidden sm:block fixed bottom-6 left-0 right-0 z-40">
-        <div className="max-w-5xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-          >
-            <Card className="border-2 border-primary shadow-2xl">
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center justify-between gap-6">
-                  <div>
-                    <p className="text-sm text-muted-foreground">À partir de</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-primary">
-                      {formatCDF(calculateCityPrice(minPrice, vehicle.category_id))}
-                      <span className="text-base ml-1 font-normal">/ jour</span>
-                    </p>
+      {/* CTA Réservation - Footer fixe avec animation progressive */}
+      <AnimatePresence>
+        {showFooter && (
+          <>
+            {/* Footer Desktop */}
+            <motion.div 
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="hidden lg:block fixed bottom-0 left-0 right-0 z-40"
+            >
+              <div className="max-w-5xl mx-auto px-6 pb-6">
+                <Card className="border-2 border-destructive/30 shadow-2xl overflow-hidden">
+                  {/* Header avec badges de confiance */}
+                  <div className="bg-gradient-to-r from-destructive/10 to-transparent px-6 py-2 border-b">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <Badge variant="secondary" className="text-xs bg-destructive text-white">
+                        ⚡ Réservation instantanée
+                      </Badge>
+                      <Separator orientation="vertical" className="h-4" />
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        Annulation gratuite 48h
+                      </span>
+                      <Separator orientation="vertical" className="h-4" />
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Shield className="h-3 w-3 text-primary" />
+                        Paiement sécurisé
+                      </span>
+                    </div>
                   </div>
+                  
+                  {/* Contenu principal */}
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between gap-8">
+                      {/* Prix avec détails */}
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground mb-2">Tarif journalier</p>
+                        <div className="flex items-baseline gap-3">
+                          <p className="text-4xl font-bold text-destructive">
+                            {formatCDF(calculateCityPrice(minPrice, vehicle.category_id))}
+                          </p>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">/jour</p>
+                            <Badge variant="outline" className="text-xs border-green-500 text-green-600">
+                              -15% sur une semaine
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* CTA avec sous-texte */}
+                      <div className="text-right">
+                        <Button 
+                          size="lg" 
+                          className="h-14 px-10 bg-destructive hover:bg-destructive/90 text-base font-bold shadow-xl"
+                          onClick={() => navigate(`/rental-booking/${vehicle.id}`)}
+                        >
+                          <Calendar className="h-5 w-5 mr-3" />
+                          Réserver maintenant
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Confirmation immédiate par SMS
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </motion.div>
+
+            {/* Footer Mobile */}
+            <motion.div 
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
+            >
+              <div className="bg-background border-t-2 border-destructive/20 shadow-2xl p-4 pb-safe">
+                {/* Header du footer avec badge */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Disponible maintenant
+                    </span>
+                  </div>
+                  <Badge className="bg-destructive text-white text-xs">
+                    Réservation instantanée
+                  </Badge>
+                </div>
+                
+                {/* Prix et CTA */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground mb-1">À partir de</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-2xl font-bold text-destructive">
+                        {formatCDF(calculateCityPrice(minPrice, vehicle.category_id)).split(' ')[0]}
+                      </p>
+                      <span className="text-sm font-bold text-destructive">CDF</span>
+                      <span className="text-xs text-muted-foreground">/jour</span>
+                    </div>
+                  </div>
+                  
                   <Button 
                     size="lg" 
-                    className="px-6 sm:px-8"
+                    className="h-14 px-6 bg-destructive hover:bg-destructive/90 shadow-lg"
                     onClick={() => navigate(`/rental-booking/${vehicle.id}`)}
                   >
                     <Calendar className="h-5 w-5 mr-2" />
-                    Réserver maintenant
+                    <span className="font-bold">Réserver</span>
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
+                
+                {/* Trust badge */}
+                <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                  <span>Annulation gratuite 48h avant</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-      {/* Mobile : Bottom bar sticky */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t shadow-xl p-4 safe-bottom">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground">À partir de</p>
-            <p className="text-xl font-bold text-primary truncate">
-              {formatCDF(calculateCityPrice(minPrice, vehicle.category_id))}
-              <span className="text-xs ml-1">/j</span>
-            </p>
-          </div>
-          <Button 
-            size="lg" 
-            className="flex-1"
-            onClick={() => navigate(`/rental-booking/${vehicle.id}`)}
-          >
-            <Calendar className="h-5 w-5 mr-2" />
-            Réserver
-          </Button>
-        </div>
-      </div>
-
-      {/* Spacer pour éviter que le contenu soit caché sur mobile */}
-      <div className="h-24 sm:hidden" />
+      {/* Spacer adaptatif pour éviter que le contenu soit caché */}
+      <div className="h-32 lg:h-0" />
     </div>
   );
 };
