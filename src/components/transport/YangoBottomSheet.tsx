@@ -7,6 +7,11 @@ import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHandle,
+} from '@/components/ui/drawer';
 
 interface YangoBottomSheetProps {
   bookingStep: 'vehicle' | 'destination' | 'confirm';
@@ -57,20 +62,20 @@ export default function YangoBottomSheet({
   }, [onSheetPositionChange]);
 
   return (
-    <motion.div
-      role="dialog"
-      aria-label="Options de réservation"
-      initial={{ y: '100%' }}
-      animate={{ y: 0 }}
-      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-[2rem] shadow-2xl"
-      style={{ maxHeight: '70vh' }}
-    >
-      {/* Handle bar */}
-      <div className="w-16 h-1.5 bg-grey-300 rounded-full mx-auto mt-3 mb-4" />
+    <Drawer open={true} dismissible={false}>
+      <DrawerContent className="max-h-[75vh]">
+        {/* Handle bar interactif */}
+        <div className="flex items-center justify-center py-2">
+          <div className="w-16 h-1.5 bg-muted rounded-full" />
+        </div>
+        
+        {/* Indicateur de drag */}
+        <div className="absolute top-2 right-4 text-xs text-muted-foreground">
+          Glissez pour ajuster
+        </div>
 
-      {/* Contenu scrollable */}
-      <div className="px-5 pb-6 overflow-y-auto font-montserrat" style={{ maxHeight: 'calc(70vh - 32px)' }}>
+        {/* Contenu scrollable */}
+        <div className="px-5 pb-6 overflow-y-auto font-montserrat" style={{ maxHeight: 'calc(75vh - 64px)' }}>
         {/* ÉTAPE 1 : Sélection du véhicule */}
         {bookingStep === 'vehicle' && (
           <div className="space-y-5">
@@ -183,6 +188,7 @@ export default function YangoBottomSheet({
           </motion.div>
         )}
       </div>
-    </motion.div>
+      </DrawerContent>
+    </Drawer>
   );
 }

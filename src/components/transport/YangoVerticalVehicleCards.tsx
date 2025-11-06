@@ -33,7 +33,7 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
 
   const vehicles: YangoVehicle[] = useMemo(() => [
     {
-      id: 'taxi_moto',
+      id: 'moto',
       name: 'Moto',
       icon: Bike,
       estimatedTime: 5,
@@ -46,7 +46,7 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
       iconColor: 'text-congo-yellow'
     },
     {
-      id: 'taxi_eco',
+      id: 'eco',
       name: 'Eco',
       icon: Car,
       estimatedTime: 8,
@@ -59,7 +59,7 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
       iconColor: 'text-congo-green'
     },
     {
-      id: 'taxi_confort',
+      id: 'standard',
       name: 'Standard',
       icon: Car,
       estimatedTime: 10,
@@ -72,7 +72,7 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
       iconColor: 'text-congo-blue'
     },
     {
-      id: 'taxi_premium',
+      id: 'premium',
       name: 'Premium',
       icon: Car,
       estimatedTime: 12,
@@ -86,20 +86,26 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
     }
   ], []);
 
-  const calculatePrice = useCallback((vehicle: YangoVehicle): number => {
+  const calculatePrice = useCallback((vehicle: YangoVehicle): { price: number; hasRule: boolean } => {
     const distanceKm = Math.max(distance, 0);
     const rule = rules.find(r => r.service_type === 'transport' && r.vehicle_class === vehicle.id);
     if (rule) {
-      return Math.round((Number(rule.base_price) || 0) + distanceKm * (Number(rule.price_per_km) || 0));
+      return { 
+        price: Math.round((Number(rule.base_price) || 0) + distanceKm * (Number(rule.price_per_km) || 0)),
+        hasRule: true
+      };
     }
     const pricePerKm = 150;
-    return Math.round(vehicle.basePrice + (distanceKm * pricePerKm * vehicle.multiplier));
+    return { 
+      price: Math.round(vehicle.basePrice + (distanceKm * pricePerKm * vehicle.multiplier)),
+      hasRule: false
+    };
   }, [distance, rules]);
 
   return (
     <div className="space-y-3 font-montserrat" style={{ willChange: 'transform' }}>
       {vehicles.map((vehicle, index) => {
-        const price = calculatePrice(vehicle);
+        const { price, hasRule } = calculatePrice(vehicle);
         const isSelected = selectedVehicleId === vehicle.id;
 
         return (
@@ -140,6 +146,11 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="font-medium">{vehicle.estimatedTime}m</span>
+                {hasRule && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded text-[10px] font-semibold">
+                    Prix officiel
+                  </span>
+                )}
               </div>
             </div>
 
@@ -150,6 +161,20 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
               </p>
               <p className="text-xs font-semibold text-muted-foreground">FC</p>
             </div>
+
+            {/* Badge disponibilité */}
+            {vehicle.available && !isSelected && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute top-2 right-2"
+              >
+                <div className="flex items-center gap-1 px-2 py-1 bg-green-500/10 rounded-full backdrop-blur-sm border border-green-500/20">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-xs font-medium text-green-600 dark:text-green-400">Dispo</span>
+                </div>
+              </motion.div>
+            )}
 
             {/* Badge sélection */}
             {isSelected && (
