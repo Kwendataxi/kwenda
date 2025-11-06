@@ -197,7 +197,7 @@ export const ModernProductCard = ({
             className="w-full"
             onClick={(e) => {
               e.stopPropagation();
-              onViewDetails(product);
+              window.location.href = `/marketplace/product/${product.id}`;
             }}
           >
             <Eye className="h-4 w-4 mr-2" />

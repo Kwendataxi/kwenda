@@ -11,6 +11,7 @@ const Food = lazy(() => import('@/pages/Food'));
 const TransportPage = lazy(() => import('@/pages/Transport'));
 const DeliveryPage = lazy(() => import('@/pages/Delivery'));
 const Marketplace = lazy(() => import('@/pages/Marketplace'));
+const MarketplaceProductDetails = lazy(() => import('@/pages/MarketplaceProductDetails'));
 const VendorShop = lazy(() => import('@/pages/VendorShop'));
 const ModernVendorDashboard = lazy(() => import('@/pages/ModernVendorDashboard'));
 const VendorRegistration = lazy(() => import('@/pages/VendorRegistration'));
@@ -96,7 +97,14 @@ export const ClientRoutes = () => {
           </ServiceGuard>
         } 
       />
-      {/* ✅ PHASE 3: Route supprimée (maintenant publique dans PublicRoutes) */}
+      <Route 
+        path="/marketplace/product/:productId" 
+        element={
+          <ServiceGuard serviceCategory="marketplace">
+            <MarketplaceProductDetails />
+          </ServiceGuard>
+        } 
+      />
 
       {/* Vendeur */}
       <Route 

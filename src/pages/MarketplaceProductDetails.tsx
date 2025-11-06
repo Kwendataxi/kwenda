@@ -1,0 +1,238 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useWallet } from '@/hooks/useWallet';
+import { toast } from 'sonner';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FileText } from 'lucide-react';
+
+// Components
+import { MarketplaceProductHeader } from '@/components/marketplace/MarketplaceProductHeader';
+import { MarketplaceImageGallery } from '@/components/marketplace/MarketplaceImageGallery';
+import { ProductInfoCard } from '@/components/marketplace/ProductInfoCard';
+import { SellerInfoCard } from '@/components/marketplace/SellerInfoCard';
+import { PurchaseCard } from '@/components/marketplace/PurchaseCard';
+import { MobileBottomCTA } from '@/components/marketplace/MobileBottomCTA';
+import { ProductReviewsSection } from '@/components/marketplace/ProductReviewsSection';
+import { SimilarProductsCarousel } from '@/components/marketplace/SimilarProductsCarousel';
+import { ProductSpecifications } from '@/components/marketplace/ProductSpecifications';
+import { UnifiedShoppingCart } from '@/components/marketplace/cart/UnifiedShoppingCart';
+
+// Hooks
+import { useMarketplaceProductDetails, useSimilarProducts } from '@/hooks/useMarketplaceProductDetails';
+import { productToCartItem } from '@/types/marketplace';
+
+const MarketplaceProductDetails = () => {
+  const { productId } = useParams<{ productId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { wallet } = useWallet();
+  
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Fetch product data
+  const { data: product, isLoading, error } = useMarketplaceProductDetails(productId || '');
+  const { data: similarProducts = [] } = useSimilarProducts(
+    productId || '',
+    product?.category || '',
+    product?.seller_id || ''
+  );
+
+  // Redirect si erreur
+  useEffect(() => {
+    if (error) {
+      toast.error('Produit introuvable');
+      navigate('/marketplace');
+    }
+  }, [error, navigate]);
+
+  const handleAddToCart = (quantity: number = 1) => {
+    if (!product) return;
+
+    const existingItem = cartItems.find(item => item.id === product.id);
+    
+    if (existingItem) {
+      setCartItems(cartItems.map(item =>
+        item.id === product.id
+          ? { ...item, quantity: item.quantity + quantity }
+          : item
+      ));
+    } else {
+      const cartItem = productToCartItem(product, quantity);
+      setCartItems([...cartItems, cartItem]);
+    }
+
+    toast.success(`${quantity} article(s) ajouté(s) au panier`);
+  };
+
+  const handleBuyNow = (quantity: number = 1) => {
+    if (!user) {
+      toast.error('Veuillez vous connecter');
+      navigate('/auth/login');
+      return;
+    }
+
+    handleAddToCart(quantity);
+    setIsCartOpen(true);
+  };
+
+  const handleTopUp = () => {
+    toast.info('Rechargement du wallet à venir');
+  };
+
+  const handleRemoveFromCart = (productId: string) => {
+    setCartItems(cartItems.filter(item => item.id !== productId));
+  };
+
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemoveFromCart(productId);
+      return;
+    }
+    setCartItems(cartItems.map(item =>
+      item.id === productId ? { ...item, quantity } : item
+    ));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b">
+          <div className="container mx-auto px-4 h-16">
+            <Skeleton className="h-full w-full" />
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.5fr,1fr] gap-6">
+            <Skeleton className="aspect-square" />
+            <Skeleton className="h-96" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return null;
+  }
+
+  const walletBalance = wallet?.balance || 0;
+
+  return (
+    <div className="min-h-screen bg-background pb-safe">
+      {/* Header */}
+      <MarketplaceProductHeader
+        title={product.title}
+        cartCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+        onCartClick={() => setIsCartOpen(true)}
+      />
+      
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr,1fr] gap-4 lg:gap-8">
+          
+          {/* Colonne Gauche - Galerie & Détails */}
+          <div className="space-y-4">
+            {/* Galerie */}
+            <MarketplaceImageGallery
+              images={product.images}
+              productTitle={product.title}
+            />
+            
+            {/* Description complète (desktop seulement) */}
+            <Card className="hidden lg:block">
+              <CardContent className="p-6">
+                <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Description
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                  {product.description}
+                </p>
+              </CardContent>
+            </Card>
+            
+            {/* Spécifications techniques */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <ProductSpecifications specifications={product.specifications as Record<string, string>} />
+            )}
+            
+            {/* Reviews section */}
+            <ProductReviewsSection
+              avgRating={product.rating}
+              reviews={[]} // TODO: Fetch real reviews
+            />
+            
+            {/* Produits similaires */}
+            <SimilarProductsCarousel
+              products={similarProducts}
+              onAddToCart={(productId) => handleAddToCart(1)}
+            />
+          </div>
+          
+          {/* Colonne Droite - Infos & Actions */}
+          <div className="space-y-4">
+            {/* Card Infos Produit */}
+            <ProductInfoCard
+              title={product.title}
+              category={product.category}
+              condition={product.condition}
+              description={product.description}
+              price={product.price}
+              rating={product.rating}
+              reviewCount={product.reviews}
+              stockCount={product.stockCount}
+              brand={product.brand}
+            />
+            
+            {/* Card Vendeur */}
+            <SellerInfoCard
+              sellerId={product.seller_id}
+              sellerName={(product as any).vendor?.shop_name || 'Vendeur'}
+              sellerAvatar={(product as any).vendor?.shop_logo_url}
+              sellerRating={(product as any).vendor?.average_rating || 0}
+              totalSales={(product as any).vendor?.total_sales || 0}
+              responseRate={95}
+            />
+            
+            {/* Desktop CTA fixe */}
+            <div className="hidden lg:block">
+              <PurchaseCard
+                productId={product.id}
+                productPrice={product.price}
+                stockCount={product.stockCount}
+                walletBalance={walletBalance}
+                onAddToCart={handleAddToCart}
+                onBuyNow={handleBuyNow}
+                onTopUp={handleTopUp}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Bottom CTA */}
+      <MobileBottomCTA
+        productPrice={product.price}
+        stockCount={product.stockCount}
+        walletBalance={walletBalance}
+        onAddToCart={handleAddToCart}
+        onBuyNow={handleBuyNow}
+        onTopUp={handleTopUp}
+      />
+
+      {/* Shopping Cart */}
+      <UnifiedShoppingCart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onRemoveItem={handleRemoveFromCart}
+        onUpdateQuantity={handleUpdateQuantity}
+      />
+    </div>
+  );
+};
+
+export default MarketplaceProductDetails;
