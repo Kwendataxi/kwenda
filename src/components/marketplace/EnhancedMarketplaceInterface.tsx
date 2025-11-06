@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp } from 'lucide-react';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,6 +39,7 @@ import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
 import { AdvancedFilters } from './AdvancedFilters';
 import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
+import { MessagesTab } from './MessagesTab';
 
 // Hooks
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
@@ -758,7 +759,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       {/* Content */}
       <div className="p-4 content-scrollable">
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as any)}>
-          <TabsList className="grid w-full grid-cols-3 bg-muted/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-4 bg-muted/50 backdrop-blur-sm">
             <TabsTrigger value="shop" className="flex items-center gap-1 touch-manipulation">
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Boutique</span>
@@ -766,6 +767,10 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             <TabsTrigger value="orders" className="flex items-center gap-1 touch-manipulation">
               <CartIcon className="w-4 h-4" />
               <span className="hidden sm:inline">Commandes</span>
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="flex items-center gap-1 touch-manipulation">
+              <MessageCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Messages</span>
             </TabsTrigger>
             <TabsTrigger value="escrow" className="flex items-center gap-1 touch-manipulation">
               <Shield className="w-4 h-4" />
@@ -779,6 +784,10 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
           <TabsContent value="orders" className="mt-4">
             <AdvancedOrderTracker />
+          </TabsContent>
+
+          <TabsContent value="messages" className="mt-4">
+            <MessagesTab />
           </TabsContent>
 
           <TabsContent value="escrow" className="mt-4">

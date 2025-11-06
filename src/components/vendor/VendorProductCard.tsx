@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ModerationStatusBadge } from './ModerationStatusBadge';
 
 interface VendorProduct {
   id: string;
@@ -41,17 +42,9 @@ export const VendorProductCard = ({
     }).format(price);
   };
 
+  // ✅ PHASE 2: Utiliser le badge unifié
   const getStatusBadge = () => {
-    switch (product.moderation_status) {
-      case 'approved':
-        return <Badge className="bg-green-500">Approuvé</Badge>;
-      case 'pending':
-        return <Badge variant="secondary">En attente</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejeté</Badge>;
-      default:
-        return <Badge variant="outline">Inconnu</Badge>;
-    }
+    return <ModerationStatusBadge status={product.moderation_status} />;
   };
 
   return (
