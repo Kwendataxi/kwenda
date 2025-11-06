@@ -121,14 +121,14 @@ const AppContent = () => {
                             {!isSpecificBuild() && <Route path="/app" element={<SmartHome />} />}
                             
                             {/* Shared routes */}
-                            <SharedRoutes />
+                            {SharedRoutes()}
                             
                             {/* Role-specific routes */}
-                            <ClientRoutes />
-                            <DriverRoutes />
-                            <PartnerRoutes />
-                            <AdminRoutes />
-                            <PublicRoutes />
+                            {ClientRoutes()}
+                            {DriverRoutes()}
+                            {PartnerRoutes()}
+                            {AdminRoutes()}
+                            {PublicRoutes()}
                             
                             {/* 404 - Must be last */}
                             <Route path="*" element={<NotFound />} />
