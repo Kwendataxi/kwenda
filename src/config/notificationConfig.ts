@@ -43,7 +43,40 @@ export const NOTIFICATION_CONFIG = {
     normal: 2000,
     high: 1500,  // Un peu plus court pour attirer l'attention
     urgent: 1500
-  }
+  },
+  
+  // Mapping événements → sons
+  SOUND_MAPPING: {
+    // Transport
+    'transport.driver_assigned': 'driverAssigned',
+    'transport.driver_arrived': 'driverArrived',
+    'transport.in_progress': 'rideStarted',
+    'transport.completed': 'deliveryCompleted',
+    
+    // Livraison
+    'delivery.confirmed': 'orderConfirmed',
+    'delivery.picked_up': 'deliveryPicked',
+    'delivery.delivered': 'deliveryCompleted',
+    
+    // Marketplace
+    'marketplace.new_order': 'newOrder',
+    'marketplace.order_confirmed': 'orderConfirmed',
+    'marketplace.payment': 'paymentReceived',
+    'marketplace.product_approved': 'productApproved',
+    'marketplace.product_rejected': 'productRejected',
+    
+    // Admin
+    'admin.urgent': 'urgentAlert',
+    'admin.warning': 'warning',
+    'admin.error': 'error',
+    'admin.success': 'success',
+    
+    // Chat
+    'chat.message': 'message',
+    
+    // Défaut
+    'default': 'general'
+  } as const
 } as const;
 
 // Types dérivés pour TypeScript
@@ -54,6 +87,11 @@ export type PriorityLevel = keyof typeof NOTIFICATION_CONFIG.PRIORITY_DURATIONS;
 // Fonction utilitaire pour obtenir la durée selon la priorité
 export const getDurationByPriority = (priority: PriorityLevel = 'normal'): number => {
   return NOTIFICATION_CONFIG.PRIORITY_DURATIONS[priority];
+};
+
+// Fonction utilitaire pour obtenir le son selon l'événement
+export const getSoundForEvent = (eventKey: string): string => {
+  return (NOTIFICATION_CONFIG.SOUND_MAPPING as any)[eventKey] || 'general';
 };
 
 // Validation des durées (ne doit pas dépasser 2 secondes)

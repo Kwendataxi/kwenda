@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { pushNotificationService } from '@/services/pushNotificationService';
+import { notificationSoundService } from '@/services/notificationSound';
 
 interface UniversalChatInterfaceProps {
   isFloating?: boolean;
@@ -92,6 +93,7 @@ export const UniversalChatInterface = ({
           
           // Afficher notification navigateur si type = chat_message
           if (notification.type === 'chat_message') {
+            await notificationSoundService.playNotificationSound('message');
             await pushNotificationService.showNotification(
               notification.title,
               {

@@ -1,4 +1,5 @@
 interface NotificationSounds {
+  // Marketplace
   newOrder: string;
   orderConfirmed: string;
   paymentReceived: string;
@@ -7,11 +8,31 @@ interface NotificationSounds {
   productFlagged: string;
   lowStockAlert: string;
   reviewReceived: string;
+  
+  // Transport & Livraison
+  driverAssigned: string;
+  driverArrived: string;
+  rideStarted: string;
+  deliveryPicked: string;
+  deliveryCompleted: string;
+  
+  // Admin
+  urgentAlert: string;
+  
+  // Chat
+  message: string;
+  
+  // Génériques
+  success: string;
+  error: string;
+  warning: string;
+  info: string;
   general: string;
 }
 
 class NotificationSoundService {
   private sounds: NotificationSounds = {
+    // Marketplace
     newOrder: '/sounds/new-order.mp3',
     orderConfirmed: '/sounds/order-confirmed.mp3', 
     paymentReceived: '/sounds/payment-received.mp3',
@@ -20,11 +41,32 @@ class NotificationSoundService {
     productFlagged: '/sounds/product-flagged.mp3',
     lowStockAlert: '/sounds/low-stock.mp3',
     reviewReceived: '/sounds/review-received.mp3',
+    
+    // Transport & Livraison
+    driverAssigned: '/sounds/driver-assigned.mp3',
+    driverArrived: '/sounds/driver-arrived.mp3',
+    rideStarted: '/sounds/ride-started.mp3',
+    deliveryPicked: '/sounds/delivery-picked.mp3',
+    deliveryCompleted: '/sounds/delivery-completed.mp3',
+    
+    // Admin
+    urgentAlert: '/sounds/urgent-alert.mp3',
+    
+    // Chat
+    message: '/sounds/message.mp3',
+    
+    // Génériques
+    success: '/sounds/success.mp3',
+    error: '/sounds/error.mp3',
+    warning: '/sounds/warning.mp3',
+    info: '/sounds/info.mp3',
     general: '/sounds/notification.mp3'
   };
 
   private audioContext: AudioContext | null = null;
   private audioBuffers: Map<string, AudioBuffer> = new Map();
+  private soundEnabled: boolean = true;
+  private volume: number = 0.7;
 
   private async initAudioContext() {
     if (!this.audioContext) {
@@ -63,7 +105,7 @@ class NotificationSoundService {
     const gainNode = this.audioContext.createGain();
     
     source.buffer = audioBuffer;
-    gainNode.gain.value = 0.7; // Volume
+    gainNode.gain.value = this.volume; // Volume depuis préférences
     
     source.connect(gainNode);
     gainNode.connect(this.audioContext.destination);
@@ -71,7 +113,33 @@ class NotificationSoundService {
     source.start(0);
   }
 
-  async playNotificationSound(type: 'newOrder' | 'orderConfirmed' | 'paymentReceived' | 'productApproved' | 'productRejected' | 'productFlagged' | 'lowStockAlert' | 'reviewReceived' | 'general' = 'general') {
+  setSoundEnabled(enabled: boolean) {
+    this.soundEnabled = enabled;
+    localStorage.setItem('kwenda_sounds_enabled', String(enabled));
+  }
+
+  setVolume(volume: number) {
+    this.volume = Math.max(0, Math.min(1, volume));
+    localStorage.setItem('kwenda_sounds_volume', String(volume));
+  }
+
+  getSoundEnabled(): boolean {
+    const stored = localStorage.getItem('kwenda_sounds_enabled');
+    return stored !== null ? stored === 'true' : true;
+  }
+
+  getVolume(): number {
+    const stored = localStorage.getItem('kwenda_sounds_volume');
+    return stored ? parseFloat(stored) : 0.7;
+  }
+
+  async playNotificationSound(type: keyof NotificationSounds = 'general') {
+    // Charger préférences
+    this.soundEnabled = this.getSoundEnabled();
+    this.volume = this.getVolume();
+
+    if (!this.soundEnabled) return;
+
     try {
       const soundUrl = this.sounds[type];
       const audioBuffer = await this.loadSound(soundUrl);

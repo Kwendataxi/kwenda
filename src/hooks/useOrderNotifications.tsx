@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { notificationSoundService } from '@/services/notificationSound';
 
 interface OrderNotification {
   id: string;
@@ -100,6 +101,13 @@ export const useOrderNotifications = () => {
         const newNotification = payload.new as OrderNotification;
         setNotifications(prev => [newNotification, ...prev]);
         setUnreadCount(prev => prev + 1);
+        
+        // 🔊 Jouer son selon type
+        if (newNotification.notification_type.includes('order_created') || newNotification.notification_type.includes('new_order')) {
+          notificationSoundService.playNotificationSound('newOrder');
+        } else {
+          notificationSoundService.playNotificationSound('general');
+        }
         
         // Show browser notification if permission granted
         if (Notification.permission === 'granted') {

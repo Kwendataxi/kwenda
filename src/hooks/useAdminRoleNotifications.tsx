@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { NOTIFICATION_CONFIG } from '@/config/notificationConfig';
+import { notificationSoundService } from '@/services/notificationSound';
 
 interface AdminRoleNotification {
   id: string;
@@ -149,6 +150,19 @@ export const useAdminRoleNotifications = () => {
           const isError = category.includes('error') || priority === 'urgent';
           const isWarning = category.includes('warning') || category.includes('alert');
           const isSuccess = category.includes('success') || category.includes('approved');
+
+          // 🔊 Jouer son selon priorité/catégorie
+          if (priority === 'urgent') {
+            notificationSoundService.playNotificationSound('urgentAlert');
+          } else if (isError) {
+            notificationSoundService.playNotificationSound('error');
+          } else if (isWarning) {
+            notificationSoundService.playNotificationSound('warning');
+          } else if (isSuccess) {
+            notificationSoundService.playNotificationSound('success');
+          } else {
+            notificationSoundService.playNotificationSound('general');
+          }
 
           if (isError) {
             toast.error(newNotification.title, {

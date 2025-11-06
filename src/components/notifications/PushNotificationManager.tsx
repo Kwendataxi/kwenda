@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { notificationSoundService } from '@/services/notificationSound';
 
 export const PushNotificationManager = () => {
   const { user } = useAuth();
@@ -20,10 +21,11 @@ export const PushNotificationManager = () => {
           table: 'transport_bookings',
           filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
+        async (payload) => {
           const { status, driver_id } = payload.new;
           
           if (status === 'driver_assigned' && driver_id) {
+            await notificationSoundService.playNotificationSound('driverAssigned');
             toast.success('🚗 Chauffeur assigné !', {
               description: 'Votre chauffeur est en route vers vous',
               action: {
@@ -32,14 +34,17 @@ export const PushNotificationManager = () => {
               }
             });
           } else if (status === 'driver_arrived') {
+            await notificationSoundService.playNotificationSound('driverArrived');
             toast.info('📍 Chauffeur arrivé', {
               description: 'Votre chauffeur est à votre emplacement'
             });
           } else if (status === 'in_progress') {
+            await notificationSoundService.playNotificationSound('rideStarted');
             toast.success('🏁 Course démarrée', {
               description: 'Bonne route !'
             });
           } else if (status === 'completed') {
+            await notificationSoundService.playNotificationSound('deliveryCompleted');
             toast.success('✅ Course terminée', {
               description: 'Merci d\'avoir utilisé Kwenda !',
               action: {
@@ -63,18 +68,21 @@ export const PushNotificationManager = () => {
           table: 'delivery_orders',
           filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
+        async (payload) => {
           const { status } = payload.new;
           
           if (status === 'confirmed') {
+            await notificationSoundService.playNotificationSound('orderConfirmed');
             toast.success('📦 Commande confirmée', {
               description: 'Votre livraison est en cours de préparation'
             });
           } else if (status === 'driver_assigned') {
+            await notificationSoundService.playNotificationSound('driverAssigned');
             toast.info('🚴 Livreur assigné', {
               description: 'Un livreur va récupérer votre colis'
             });
           } else if (status === 'picked_up') {
+            await notificationSoundService.playNotificationSound('deliveryPicked');
             toast.success('📫 Colis récupéré', {
               description: 'Le livreur est en route vers la destination',
               action: {
@@ -87,6 +95,7 @@ export const PushNotificationManager = () => {
               description: 'Votre colis arrive bientôt'
             });
           } else if (status === 'delivered') {
+            await notificationSoundService.playNotificationSound('deliveryCompleted');
             toast.success('🎉 Livraison réussie !', {
               description: 'Votre colis a été livré',
               action: {
@@ -110,10 +119,11 @@ export const PushNotificationManager = () => {
           table: 'marketplace_orders',
           filter: `buyer_id=eq.${user.id}`
         },
-        (payload) => {
+        async (payload) => {
           const { status } = payload.new;
           
           if (status === 'confirmed') {
+            await notificationSoundService.playNotificationSound('orderConfirmed');
             toast.success('🛍️ Commande acceptée', {
               description: 'Le vendeur a accepté votre commande'
             });
@@ -126,6 +136,7 @@ export const PushNotificationManager = () => {
               }
             });
           } else if (status === 'delivered') {
+            await notificationSoundService.playNotificationSound('deliveryCompleted');
             toast.success('✅ Commande livrée', {
               description: 'Profitez de votre achat !',
               action: {
@@ -149,10 +160,11 @@ export const PushNotificationManager = () => {
           table: 'food_orders',
           filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
+        async (payload) => {
           const { status } = payload.new;
           
           if (status === 'confirmed') {
+            await notificationSoundService.playNotificationSound('orderConfirmed');
             toast.success('🍽️ Commande confirmée', {
               description: 'Le restaurant prépare votre commande'
             });
@@ -173,6 +185,7 @@ export const PushNotificationManager = () => {
               }
             });
           } else if (status === 'delivered') {
+            await notificationSoundService.playNotificationSound('deliveryCompleted');
             toast.success('🎉 Bon appétit !', {
               description: 'Votre commande a été livrée',
               action: {
