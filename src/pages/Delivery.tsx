@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepByStepDeliveryInterface from '@/components/delivery/StepByStepDeliveryInterface';
 import { OrderConfirmationStep } from '@/components/delivery/OrderConfirmationStep';
 import DeliveryTrackingHub from '@/components/delivery/DeliveryTrackingHub';
-import { Package, ArrowLeft } from 'lucide-react';
+import { Package, ArrowLeft, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRoleBasedNavigation } from '@/hooks/useRoleBasedNavigation';
 
 const DeliveryPage = () => {
+  const navigate = useNavigate();
+  const { getRedirectPath, primaryRole } = useRoleBasedNavigation();
   const [activeView, setActiveView] = useState<'create' | 'confirm' | 'track'>('create');
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
   const [deliveryData, setDeliveryData] = useState<any>(null);
@@ -33,6 +37,11 @@ const DeliveryPage = () => {
     setActiveView('confirm');
   };
 
+  const handleBackToHome = () => {
+    const homePath = getRedirectPath(primaryRole);
+    navigate(homePath);
+  };
+
   if (activeView === 'track' && activeOrderId) {
     return (
       <DeliveryTrackingHub
@@ -50,13 +59,13 @@ const DeliveryPage = () => {
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => setActiveView('create')}
-                className="mr-2"
+                onClick={handleBackToHome}
+                className="mr-2 gap-2 hover:bg-primary/10"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline">Accueil</span>
               </Button>
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Package className="h-6 w-6 text-primary" />
@@ -107,6 +116,16 @@ const DeliveryPage = () => {
       <div className="sticky top-0 z-10 glassmorphism border-b border-border/20 p-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBackToHome}
+              className="mr-2 gap-2 hover:bg-primary/10"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Accueil</span>
+            </Button>
+            <div className="h-6 w-px bg-border hidden sm:block" />
             <div className="p-2 bg-primary/10 rounded-lg">
               <Package className="h-6 w-6 text-primary" />
             </div>
