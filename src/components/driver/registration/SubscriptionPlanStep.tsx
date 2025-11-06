@@ -8,6 +8,7 @@ import { Sparkles, Zap, CheckCircle2, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 
 interface SubscriptionPlan {
   id: string;
@@ -31,17 +32,27 @@ export const SubscriptionPlanStep: React.FC<SubscriptionPlanStepProps> = ({
 }) => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const { serviceType } = useDriverServiceType();
+
+  // ✅ PHASE 5: Vocabulaire adapté
+  const vocabulary = {
+    rides: serviceType === 'delivery' ? 'livraisons' : 'courses',
+  };
 
   useEffect(() => {
     const fetchPlans = async () => {
       try {
+        // ✅ PHASE 5: Filtrer les plans selon le service
+        const serviceTypeForQuery = serviceType === 'taxi' ? 'transport' : serviceType;
         const { data, error } = await supabase
           .from('subscription_plans')
           .select('*')
           .eq('is_active', true)
+          .or(`service_type.eq.${serviceTypeForQuery},service_type.eq.all`)
           .order('price', { ascending: true });
 
         if (error) throw error;
+        console.log(`🎫 Plans chargés pour inscription (${serviceType}):`, data?.length);
         setPlans(data || []);
       } catch (error) {
         console.error('Error fetching plans:', error);
@@ -52,7 +63,7 @@ export const SubscriptionPlanStep: React.FC<SubscriptionPlanStepProps> = ({
     };
 
     fetchPlans();
-  }, []);
+  }, [serviceType]);
 
   if (loading) {
     return (
@@ -163,7 +174,7 @@ export const SubscriptionPlanStep: React.FC<SubscriptionPlanStepProps> = ({
                       </div>
                       <div>
                         <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                          {plan.rides_included} courses
+                          {plan.rides_included} {vocabulary.rides}
                         </p>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           incluses par mois

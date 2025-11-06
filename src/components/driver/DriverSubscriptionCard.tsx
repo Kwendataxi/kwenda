@@ -5,11 +5,20 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Zap, Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useDriverSubscriptions } from '@/hooks/useDriverSubscriptions';
+import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export const DriverSubscriptionCard: React.FC = () => {
   const { currentSubscription, loading } = useDriverSubscriptions();
+  const { serviceType } = useDriverServiceType();
+
+  // ✅ PHASE 3: Vocabulaire adapté selon le service
+  const vocabulary = {
+    rides: serviceType === 'delivery' ? 'livraisons' : 'courses',
+    ride: serviceType === 'delivery' ? 'livraison' : 'course',
+    accept: serviceType === 'delivery' ? 'accepter des livraisons' : 'accepter des courses',
+  };
 
   if (loading) {
     return (
@@ -35,7 +44,7 @@ export const DriverSubscriptionCard: React.FC = () => {
           <div>
             <h3 className="font-semibold text-destructive">Aucun abonnement actif</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Vous devez souscrire à un abonnement pour accepter des courses
+              Vous devez souscrire à un abonnement pour {vocabulary.accept}
             </p>
           </div>
           <Button className="w-full">
@@ -76,14 +85,14 @@ export const DriverSubscriptionCard: React.FC = () => {
 
         {/* Rides Remaining - BIG NUMBER */}
         <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-6 text-center">
-          <p className="text-sm text-muted-foreground mb-2">Courses restantes</p>
+          <p className="text-sm text-muted-foreground mb-2">{vocabulary.rides.charAt(0).toUpperCase() + vocabulary.rides.slice(1)} restantes</p>
           <p className={`text-5xl font-bold ${
             isLowCredits ? 'text-orange-500' : 'text-primary'
           }`}>
             {currentSubscription.rides_remaining}
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            sur {plan?.max_rides_per_day || 0} courses
+            sur {plan?.max_rides_per_day || 0} {vocabulary.rides}
           </p>
         </div>
 
@@ -130,7 +139,7 @@ export const DriverSubscriptionCard: React.FC = () => {
               Crédits faibles
             </p>
             <p className="text-xs text-orange-800 dark:text-orange-200 mt-1">
-              Il vous reste seulement {currentSubscription.rides_remaining} courses. Renouvelez votre abonnement.
+              Il vous reste seulement {currentSubscription.rides_remaining} {vocabulary.rides}. Renouvelez votre abonnement.
             </p>
           </div>
         )}

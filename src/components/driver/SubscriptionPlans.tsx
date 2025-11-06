@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import {
   Dialog,
   DialogContent,
@@ -59,8 +60,14 @@ export const SubscriptionPlans: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [paymentProvider, setPaymentProvider] = useState<'orange_money' | 'm_pesa' | 'airtel_money'>('orange_money');
   const [processing, setProcessing] = useState(false);
+  const { serviceType } = useDriverServiceType();
   const [serviceFilter, setServiceFilter] = useState<'all' | 'transport' | 'delivery'>('all');
   const { toast } = useToast();
+
+  // ✅ PHASE 5: Vocabulaire adapté
+  const vocabulary = {
+    rides: serviceType === 'delivery' ? 'livraisons' : 'courses',
+  };
 
   useEffect(() => {
     loadData();
@@ -71,14 +78,17 @@ export const SubscriptionPlans: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Charger les plans disponibles
+      // ✅ PHASE 5: Filtrer les plans selon le service
+      const serviceTypeForQuery = serviceType === 'taxi' ? 'transport' : serviceType;
       const { data: plansData, error: plansError } = await supabase
         .from('subscription_plans')
         .select('*')
         .eq('is_active', true)
+        .or(`service_type.eq.${serviceTypeForQuery},service_type.eq.all`)
         .order('price', { ascending: true });
 
       if (plansError) throw plansError;
+      console.log(`🎫 Plans chargés pour service "${serviceType}":`, plansData?.length);
       setPlans(plansData || []);
 
       // Charger l'abonnement actif
@@ -198,11 +208,11 @@ export const SubscriptionPlans: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-4 rounded-xl bg-gradient-to-br from-success/10 to-success/5 border border-success/20">
-                <p className="text-xs text-muted-foreground mb-1">Courses restantes</p>
+                <p className="text-xs text-muted-foreground mb-1">{vocabulary.rides.charAt(0).toUpperCase() + vocabulary.rides.slice(1)} restantes</p>
                 <p className="text-3xl font-black text-success">{activeSubscription.rides_remaining}</p>
               </div>
               <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                <p className="text-xs text-muted-foreground mb-1">Courses utilisées</p>
+                <p className="text-xs text-muted-foreground mb-1">{vocabulary.rides.charAt(0).toUpperCase() + vocabulary.rides.slice(1)} utilisées</p>
                 <p className="text-3xl font-black text-primary">{activeSubscription.rides_used}</p>
               </div>
               <div className="p-4 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20">

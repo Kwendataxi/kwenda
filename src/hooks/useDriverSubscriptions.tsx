@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from './useAuth'
 import { useToast } from './use-toast'
+import { useDriverServiceType } from './useDriverServiceType'
 
 interface SubscriptionPlan {
   id: string
@@ -32,19 +33,24 @@ interface DriverSubscription {
 export const useDriverSubscriptions = () => {
   const { user } = useAuth()
   const { toast } = useToast()
+  const { serviceType } = useDriverServiceType()
   const [loading, setLoading] = useState(false)
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
   const [currentSubscription, setCurrentSubscription] = useState<DriverSubscription | null>(null)
 
   const fetchPlans = async () => {
     try {
+      // ✅ PHASE 2: Filtrer les plans selon le service du chauffeur
       const { data, error } = await supabase
         .from('subscription_plans')
         .select('*')
         .eq('is_active', true)
+        .or(`service_type.eq.${serviceType === 'taxi' ? 'transport' : serviceType},service_type.eq.all`)
         .order('priority_level', { ascending: true })
 
       if (error) throw error
+      
+      console.log(`🎫 Plans chargés pour service "${serviceType}":`, data?.length)
       setPlans(data || [])
     } catch (error) {
       console.error('Error fetching subscription plans:', error)
@@ -157,7 +163,7 @@ export const useDriverSubscriptions = () => {
     if (user) {
       fetchCurrentSubscription()
     }
-  }, [user])
+  }, [user, serviceType]) // ✅ Recharger quand serviceType change
 
   return {
     loading,

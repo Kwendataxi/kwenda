@@ -39,6 +39,33 @@ serve(async (req) => {
 
     console.log('✅ Plan trouvé:', plan.name, plan.price, plan.currency)
 
+    // ✅ PHASE 4: Vérifier la cohérence service_type / plan
+    const { data: driverService, error: serviceError } = await supabase
+      .from('driver_service_preferences')
+      .select('service_type')
+      .eq('driver_id', driver_id)
+      .single()
+
+    if (serviceError && serviceError.code !== 'PGRST116') {
+      console.error('⚠️ Erreur récupération service:', serviceError)
+    }
+
+    // Valider la cohérence
+    if (driverService && plan.service_type !== 'all') {
+      const driverServiceType = driverService.service_type === 'taxi' ? 'transport' : driverService.service_type
+      
+      if (plan.service_type !== driverServiceType) {
+        const errorMsg = driverServiceType === 'transport' 
+          ? `❌ Ce plan est réservé aux livreurs. Choisissez un plan VTC.`
+          : `❌ Ce plan est réservé aux chauffeurs VTC. Choisissez un plan Livraison.`
+        
+        console.error(errorMsg, { plan_service: plan.service_type, driver_service: driverServiceType })
+        throw new Error(errorMsg)
+      }
+      
+      console.log('✅ Cohérence plan/service validée:', driverServiceType, '→', plan.service_type)
+    }
+
     // 2. Récupérer le portefeuille du chauffeur
     const { data: wallet, error: walletError } = await supabase
       .from('user_wallets')
