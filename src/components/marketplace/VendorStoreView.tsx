@@ -12,13 +12,12 @@ import {
   MapPin, 
   Calendar,
   Search,
-  Grid3X3,
-  List,
   Package,
   TrendingUp,
   Users,
   Shield,
-  ShoppingCart
+  ShoppingCart,
+  Sparkles
 } from 'lucide-react';
 import { useVendorFollowers } from '@/hooks/useVendorFollowers';
 import { CompactProductCard } from './CompactProductCard';
@@ -68,7 +67,6 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [activeProductsCount, setActiveProductsCount] = useState(0);
   const [localCart, setLocalCart] = useState<CartItem[]>([]);
@@ -397,59 +395,108 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
         ))}
       </div>
 
-      {/* Mini cart summary */}
+      {/* Mini cart summary - VERSION MODERNE */}
       <AnimatePresence>
         {localCart.length > 0 && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="border-b overflow-hidden"
           >
-            <div className="p-3 bg-primary/5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">
-                    {localCart.reduce((sum, item) => sum + item.quantity, 0)} article(s) sélectionné(s)
-                  </span>
+            <div className="p-4 bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 backdrop-blur-sm relative overflow-hidden">
+              {/* Shimmer effect animé */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                animate={{
+                  x: ['-100%', '200%'],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'linear',
+                }}
+              />
+              
+              <div className="relative z-10">
+                {/* En-tête avec icône animée */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <motion.div
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                    >
+                      <ShoppingCart className="h-5 w-5 text-primary" />
+                    </motion.div>
+                    <div>
+                      <span className="text-sm font-bold text-foreground">
+                        Panier en cours
+                      </span>
+                      <motion.div
+                        key={localCart.reduce((sum, item) => sum + item.quantity, 0)}
+                        initial={{ scale: 1.2 }}
+                        animate={{ scale: 1 }}
+                        className="text-xs text-muted-foreground"
+                      >
+                        {localCart.reduce((sum, item) => sum + item.quantity, 0)} article(s) sélectionné(s)
+                      </motion.div>
+                    </div>
+                  </div>
+                  
+                  {/* Boutons d'action */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        document.getElementById('vendor-checkout-button')?.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'end'
+                        });
+                      }}
+                      className="text-xs h-7 font-semibold hover:bg-primary/20"
+                    >
+                      Voir le panier
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setLocalCart([])}
+                      className="text-xs h-7 text-destructive hover:bg-destructive/10"
+                    >
+                      Vider
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLocalCart([])}
-                  className="text-xs h-7"
-                >
-                  Vider
-                </Button>
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                Total : {localCart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()} CDF
+                
+                {/* Total avec animation */}
+                <Card className="bg-gradient-to-r from-primary/5 to-purple-500/5 border-primary/20">
+                  <CardContent className="p-3">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-sm text-muted-foreground">Total estimé</span>
+                      <motion.span
+                        key={localCart.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
+                        initial={{ scale: 1.3, color: 'hsl(var(--primary))' }}
+                        animate={{ scale: 1, color: 'currentColor' }}
+                        transition={{ type: 'spring', stiffness: 400 }}
+                        className="text-2xl font-bold text-primary"
+                      >
+                        {new Intl.NumberFormat('fr-CD', {
+                          style: 'currency',
+                          currency: 'CDF',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0
+                        }).format(localCart.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+                      </motion.span>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Header with view controls */}
-      <div className="flex items-center gap-4 p-4 border-b bg-background/95 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-          >
-            <Grid3X3 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-          >
-            <List className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
 
       {/* Search */}
       <div className="p-4 border-b">
@@ -478,7 +525,7 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
                 Essayez un autre terme de recherche
               </p>
             </div>
-          ) : viewMode === 'grid' ? (
+          ) : (
             <motion.div
               initial="hidden"
               animate="visible"
@@ -520,47 +567,6 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
                     onAddToCart={() => handleAddToCart(product)}
                     onViewDetails={() => onViewDetails(product)}
                     userLocation={userLocation}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div 
-              className="grid gap-3 grid-cols-1"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: {
-                    staggerChildren: 0.08
-                  }
-                }
-              }}
-            >
-              {filteredProducts.map((product) => (
-                <motion.div
-                  key={product.id}
-                  variants={{
-                    hidden: { opacity: 0, x: -20 },
-                    visible: {
-                      opacity: 1,
-                      x: 0,
-                      transition: {
-                        type: 'spring',
-                        stiffness: 300
-                      }
-                    }
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <CompactProductCard
-                    product={product}
-                    onAddToCart={() => handleAddToCart(product)}
-                    onViewDetails={() => onViewDetails(product)}
-                    userLocation={userLocation}
-                    className="flex-row"
                   />
                 </motion.div>
               ))}
