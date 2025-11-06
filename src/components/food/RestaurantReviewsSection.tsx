@@ -14,10 +14,10 @@ interface Review {
   rating: number;
   comment: string | null;
   created_at: string;
-  rater: {
+  profiles: {
     display_name: string;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 interface RestaurantReviewsSectionProps {
@@ -57,7 +57,7 @@ export const RestaurantReviewsSection: React.FC<RestaurantReviewsSectionProps> =
           rating,
           comment,
           created_at,
-          rater:rater_user_id (
+          profiles!inner (
             display_name,
             avatar_url
           )
@@ -186,16 +186,16 @@ export const RestaurantReviewsSection: React.FC<RestaurantReviewsSectionProps> =
             <Card className="p-4">
               <div className="flex items-start gap-3">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={review.rater.avatar_url || undefined} />
+                  <AvatarImage src={review.profiles?.avatar_url || undefined} />
                   <AvatarFallback>
-                    {review.rater.display_name?.[0]?.toUpperCase() || 'U'}
+                    {review.profiles?.display_name?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span className="font-semibold truncate">
-                      {review.rater.display_name || 'Utilisateur'}
+                      {review.profiles?.display_name || 'Utilisateur'}
                     </span>
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {formatDistanceToNow(new Date(review.created_at), {

@@ -59,14 +59,12 @@ export const RatingDialog: React.FC<RatingDialogProps> = ({
     }
 
     try {
-      await submitRating({
+      await submitRating(
         ratedUserId,
         rating,
-        comment: comment.trim() || undefined,
-        bookingId: orderType === 'transport' ? orderId : undefined,
-        deliveryId: orderType === 'delivery' ? orderId : undefined,
-        marketplaceOrderId: orderType === 'marketplace' ? orderId : undefined
-      });
+        comment.trim() || undefined,
+        orderType === 'transport' ? orderId : undefined
+      );
 
       onSuccess?.();
       onOpenChange(false);

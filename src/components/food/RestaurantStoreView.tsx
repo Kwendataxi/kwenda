@@ -91,7 +91,7 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
       const { data: ratingsData } = await supabase
         .from('user_ratings')
         .select('rating')
-        .eq('rated_user_id', restaurant.user_id);
+        .eq('rated_user_id', restaurant.user_id || restaurant.id);
 
       const totalRatings = ratingsData?.length || 0;
       const avgRating = totalRatings > 0
@@ -131,7 +131,7 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
       const { data: existingRating } = await supabase
         .from('user_ratings')
         .select('id')
-        .eq('rated_user_id', restaurant.user_id)
+        .eq('rated_user_id', restaurant.user_id || restaurant.id)
         .eq('rater_user_id', user.id)
         .maybeSingle();
 
@@ -144,8 +144,8 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: restaurant.name,
-        text: `Découvrez ${restaurant.name} sur Kwenda Food`,
+        title: restaurant.restaurant_name,
+        text: `Découvrez ${restaurant.restaurant_name} sur Kwenda Food`,
         url: window.location.href,
       });
     } else {
@@ -259,7 +259,7 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
 
       {/* Restaurant Info */}
       <div className="pt-16 px-4 text-center">
-        <h1 className="text-2xl font-bold">{restaurant.name}</h1>
+        <h1 className="text-2xl font-bold">{restaurant.restaurant_name}</h1>
         {restaurant.description && (
           <p className="text-muted-foreground mt-1">{restaurant.description}</p>
         )}
@@ -271,16 +271,16 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
               <span>{restaurant.city}</span>
             </div>
           )}
-          {restaurant.phone && (
+          {restaurant.phone_number && (
             <div className="flex items-center gap-1">
               <Phone className="w-4 h-4" />
-              <span>{restaurant.phone}</span>
+              <span>{restaurant.phone_number}</span>
             </div>
           )}
         </div>
 
         <div className="flex items-center justify-center gap-2 mt-3">
-          <Badge>{restaurant.cuisine_type}</Badge>
+          {restaurant.cuisine_types?.[0] && <Badge>{restaurant.cuisine_types[0]}</Badge>}
           {restaurant.delivery_available && <Badge variant="secondary">Livraison</Badge>}
           {restaurant.takeaway_available && <Badge variant="secondary">À emporter</Badge>}
         </div>
@@ -408,7 +408,7 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
       {/* Reviews Section */}
       <div className="mt-12">
         <RestaurantReviewsSection
-          restaurantId={restaurant.user_id}
+          restaurantId={restaurant.user_id || restaurant.id}
           averageRating={stats.averageRating}
           totalRatings={stats.ratingCount}
         />
@@ -419,7 +419,7 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
         <div id="checkout-section">
           <RestaurantCheckoutBar
             cart={cart}
-            restaurantName={restaurant.name}
+            restaurantName={restaurant.restaurant_name}
             onCheckout={onProceedToCheckout}
             onUpdateCart={onUpdateCartItem}
           />
@@ -430,8 +430,8 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
       <RestaurantRatingDialog
         open={ratingDialogOpen}
         onOpenChange={setRatingDialogOpen}
-        restaurantId={restaurant.user_id}
-        restaurantName={restaurant.name}
+        restaurantId={restaurant.user_id || restaurant.id}
+        restaurantName={restaurant.restaurant_name}
         restaurantLogo={restaurant.logo_url}
         onSuccess={() => {
           loadRestaurantData();

@@ -60,14 +60,15 @@ export const VendorRatingDialog: React.FC<VendorRatingDialogProps> = ({
     }
 
     try {
-      await submitRating({
-        ratedUserId: vendorId,
+      const success = await submitRating(
+        vendorId,
         rating,
-        comment: comment.trim() || undefined
-      });
+        comment.trim() || undefined
+      );
 
-      // Trigger confetti
-      confetti({
+      if (success) {
+        // Trigger confetti
+        confetti({
         particleCount: 150,
         spread: 100,
         origin: { y: 0.6 },

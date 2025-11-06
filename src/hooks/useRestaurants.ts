@@ -6,34 +6,30 @@ export const useRestaurants = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchRestaurants = async (city: string, filters?: {
-    cuisine?: string;
-    minRating?: number;
-    maxDeliveryTime?: number;
-  }) => {
+  const fetchRestaurants = async (city: string) => {
     setLoading(true);
     try {
       console.log('🍽️ Fetching restaurants for city:', city);
       
-      let query = supabase
+      const { data, error } = await supabase
         .from('restaurant_profiles')
         .select('*')
         .eq('city', city)
         .eq('is_active', true)
-        .in('verification_status', ['approved', 'pending']);
-
-      if (filters?.minRating) {
-        query = query.gte('rating_average', filters.minRating);
-      }
-
-      const { data, error } = await query.order('rating_average', { ascending: false });
+        .eq('verification_status', 'approved')
+        .order('rating_average', { ascending: false });
       
       console.log('🍽️ Restaurants data:', { data, error, count: data?.length });
       
       if (error) throw error;
 
-      setRestaurants((data || []) as Restaurant[]);
-      return (data || []) as Restaurant[];
+      const mapped = (data || []).map(r => ({
+        ...r,
+        phone_number: r.phone_number || '',
+      })) as Restaurant[];
+      
+      setRestaurants(mapped);
+      return mapped;
     } catch (error) {
       console.error('❌ Error fetching restaurants:', error);
       setRestaurants([]);
