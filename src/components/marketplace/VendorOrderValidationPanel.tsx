@@ -24,7 +24,12 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
   const [validatingOrder, setValidatingOrder] = useState<string | null>(null);
   const [deliveryFees, setDeliveryFees] = useState<Record<string, number>>({});
   const [deliveryMethods, setDeliveryMethods] = useState<Record<string, string>>({});
-  const [mapModalOpen, setMapModalOpen] = useState<string | null>(null);
+  const [mapModalData, setMapModalData] = useState<{
+    orderId: string;
+    deliveryCoordinates: { lat: number; lng: number };
+    deliveryAddress?: string;
+    pickupCoordinates?: { lat: number; lng: number };
+  } | null>(null);
 
   // ✅ PHASE 2: Les commandes sont déjà filtrées par le hook useVendorOrders
   // On garde une sécurité pour filtrer sur vendor_confirmation_status
@@ -153,12 +158,19 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
                     <p className="text-muted-foreground text-xs">
                       📍 Coordonnées: {order.delivery_coordinates.lat?.toFixed(4)}, {order.delivery_coordinates.lng?.toFixed(4)}
                       <br />
-                      <button
-                        onClick={() => setMapModalOpen(order.id)}
-                        className="text-primary cursor-pointer hover:underline text-xs font-medium"
-                      >
-                        Voir sur la carte →
-                      </button>
+                    <button
+                      onClick={() => {
+                        setMapModalData({
+                          orderId: order.id,
+                          deliveryCoordinates: order.delivery_coordinates,
+                          deliveryAddress: order.delivery_address,
+                          pickupCoordinates: order.pickup_coordinates
+                        });
+                      }}
+                      className="text-primary cursor-pointer hover:underline text-xs font-medium"
+                    >
+                      🗺️ Voir sur la carte (livreurs disponibles) →
+                    </button>
                     </p>
                   ) : (
                     <p className="text-muted-foreground">Non renseignée</p>
@@ -278,16 +290,15 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
       ))}
 
       {/* Modal carte de livraison */}
-      {pendingOrders.map((order) => (
+      {mapModalData && (
         <DeliveryMapModal
-          key={`map-${order.id}`}
-          open={mapModalOpen === order.id}
-          onClose={() => setMapModalOpen(null)}
-          deliveryCoordinates={order.delivery_coordinates}
-          deliveryAddress={order.delivery_address}
-          pickupCoordinates={order.pickup_coordinates}
+          open={!!mapModalData}
+          onClose={() => setMapModalData(null)}
+          deliveryCoordinates={mapModalData.deliveryCoordinates}
+          deliveryAddress={mapModalData.deliveryAddress}
+          pickupCoordinates={mapModalData.pickupCoordinates}
         />
-      ))}
+      )}
     </div>
   );
 };
