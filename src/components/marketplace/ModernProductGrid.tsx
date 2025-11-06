@@ -146,6 +146,7 @@ export const ModernProductGrid = ({
                 product={product}
                 variant={viewMode}
                 onQuickView={onQuickView}
+                onViewDetails={onProductClick}
                 onBuyNow={onAddToCart}
                 cartQuantity={getCartQuantity(product.id)}
                 showSeller={true}

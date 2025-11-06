@@ -13,6 +13,7 @@ interface OptimizedProductCardProps {
   product: Product;
   variant?: 'grid' | 'list' | 'minimal';
   onQuickView?: (product: Product) => void;
+  onViewDetails?: (product: Product) => void;
   onBuyNow?: (product: Product) => void;
   cartQuantity?: number;
   showSeller?: boolean;
@@ -24,6 +25,7 @@ export const OptimizedProductCard = ({
   product,
   variant = 'grid',
   onQuickView,
+  onViewDetails,
   onBuyNow,
   cartQuantity = 0,
   showSeller = true,
@@ -125,18 +127,24 @@ export const OptimizedProductCard = ({
             <div className="flex flex-col gap-2 justify-center">
               <Button
                 size="sm"
-                onClick={() => onBuyNow?.(product)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBuyNow?.(product);
+                }}
                 disabled={!inStock}
                 className="min-w-[100px]"
               >
                 <ShoppingCart className="h-4 w-4 mr-1" />
                 Acheter
               </Button>
-              {onQuickView && (
+              {onViewDetails && (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onQuickView(product)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewDetails(product);
+                  }}
                 >
                   <Eye className="h-4 w-4 mr-1" />
                   Voir
@@ -187,7 +195,8 @@ export const OptimizedProductCard = ({
     <motion.div
       whileHover={{ y: -6, scale: 1.02 }}
       transition={{ duration: 0.3 }}
-      className="group h-full"
+      className="group h-full cursor-pointer"
+      onClick={() => onViewDetails?.(product)}
     >
       <Card className="relative overflow-hidden bg-card hover:shadow-xl transition-all duration-300 h-full flex flex-col">
         {/* Image Container - aspect-square pour uniformité */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -74,6 +74,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { toast } = useToast();
   const { t, formatCurrency } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const geolocation = useGeolocation();
   const locationLoading = geolocation.loading;
@@ -649,11 +650,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               if (originalProduct) addToCart(originalProduct);
             }}
             onViewDetails={(product) => {
-              const originalProduct = trendingProducts.find(p => p.id === product.id);
-              if (originalProduct) {
-                setSelectedProduct(originalProduct);
-                setIsProductDetailsOpen(true);
-              }
+              navigate(`/marketplace/product/${product.id}`);
             }}
             onViewSeller={setSelectedVendorId}
             userLocation={coordinates}
@@ -680,11 +677,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               if (originalProduct) addToCart(originalProduct);
             }}
             onViewDetails={(product) => {
-              const originalProduct = newProducts.find(p => p.id === product.id);
-              if (originalProduct) {
-                setSelectedProduct(originalProduct);
-                setIsProductDetailsOpen(true);
-              }
+              navigate(`/marketplace/product/${product.id}`);
             }}
             onViewSeller={setSelectedVendorId}
             userLocation={coordinates}
@@ -705,10 +698,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                 key={p.id}
                 product={p}
                 onAddToCart={() => addToCart(p)}
-                onViewDetails={() => {
-                  setSelectedProduct(p);
-                  setIsProductDetailsOpen(true);
-                }}
+                onViewDetails={() => navigate(`/marketplace/product/${p.id}`)}
               />
             ))}
           </ResponsiveGrid>
@@ -739,8 +729,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         <ModernProductGrid
           products={filteredProducts}
           onProductClick={(product) => {
-            setSelectedProduct(product);
-            setIsProductDetailsOpen(true);
+            navigate(`/marketplace/product/${product.id}`);
           }}
           onQuickView={(product) => {
             setQuickViewProduct(product);
@@ -838,8 +827,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         onViewFullDetails={(product) => {
           setIsQuickViewOpen(false);
           setQuickViewProduct(null);
-          setSelectedProduct(product);
-          setIsProductDetailsOpen(true);
+          navigate(`/marketplace/product/${product.id}`);
         }}
         cartQuantity={quickViewProduct ? cartItems.find(i => i.id === quickViewProduct.id)?.quantity || 0 : 0}
       />

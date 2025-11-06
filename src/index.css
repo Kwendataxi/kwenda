@@ -279,6 +279,15 @@ All colors MUST be HSL.
     padding-right: max(var(--safe-area-right), 0px);
   }
 
+  /* Classe utilitaire pour bottom padding avec safe area */
+  .pb-safe {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   /* Empêcher le scroll élastique iOS sur les conteneurs scrollables */
   .no-overscroll {
     overscroll-behavior: contain;

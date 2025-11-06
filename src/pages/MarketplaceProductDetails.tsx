@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, AlertCircle } from 'lucide-react';
 
 // Components
 import { MarketplaceProductHeader } from '@/components/marketplace/MarketplaceProductHeader';
@@ -40,13 +42,29 @@ const MarketplaceProductDetails = () => {
     product?.seller_id || ''
   );
 
-  // Redirect si erreur
-  useEffect(() => {
-    if (error) {
-      toast.error('Produit introuvable');
-      navigate('/marketplace');
-    }
-  }, [error, navigate]);
+  // Error state rendu directement (pas de redirect automatique)
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen flex items-center justify-center bg-background p-4"
+      >
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 text-center space-y-4">
+            <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
+            <h2 className="text-xl font-bold">Produit introuvable</h2>
+            <p className="text-muted-foreground">
+              Ce produit n'existe plus ou a été supprimé.
+            </p>
+            <Button onClick={() => navigate('/marketplace')} className="w-full">
+              Retour à la marketplace
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   const handleAddToCart = (quantity: number = 1) => {
     if (!product) return;
@@ -121,7 +139,13 @@ const MarketplaceProductDetails = () => {
   const walletBalance = wallet?.balance || 0;
 
   return (
-    <div className="min-h-screen bg-background pb-safe">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-background pb-safe"
+    >
       {/* Header */}
       <MarketplaceProductHeader
         title={product.title}
@@ -231,7 +255,7 @@ const MarketplaceProductDetails = () => {
         onRemoveItem={handleRemoveFromCart}
         onUpdateQuantity={handleUpdateQuantity}
       />
-    </div>
+    </motion.div>
   );
 };
 
