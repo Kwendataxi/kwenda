@@ -27,7 +27,7 @@ interface ModernTaxiInterfaceProps {
 
 export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiInterfaceProps) {
   const [bookingStep, setBookingStep] = useState<'vehicle' | 'destination' | 'confirm'>('vehicle');
-  const [selectedVehicle, setSelectedVehicle] = useState('eco');
+  const [selectedVehicle, setSelectedVehicle] = useState('');
   const [pickupLocation, setPickupLocation] = useState<LocationData | null>(null);
   const [destinationLocation, setDestinationLocation] = useState<LocationData | null>(null);
   const [showDestinationSearch, setShowDestinationSearch] = useState(false);

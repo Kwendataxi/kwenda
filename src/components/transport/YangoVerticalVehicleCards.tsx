@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, memo } from 'react';
+import React, { useMemo, useCallback, memo, useEffect } from 'react';
 import { Bike, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { usePricingRules } from '@/hooks/usePricingRules';
@@ -10,7 +10,7 @@ interface YangoVehicle {
   icon: React.ComponentType<any>;
   estimatedTime: number;
   basePrice: number;
-  multiplier: number;
+  pricePerKm: number;
   available: boolean;
   gradient: string;
   borderColor: string;
@@ -22,90 +22,110 @@ interface YangoVerticalVehicleCardsProps {
   distance: number;
   selectedVehicleId: string;
   onVehicleSelect: (vehicleId: string) => void;
+  city?: string;
 }
 
 const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
   distance,
   selectedVehicleId,
-  onVehicleSelect
+  onVehicleSelect,
+  city = 'Kinshasa'
 }) => {
-  const { rules } = usePricingRules();
+  const { rules } = usePricingRules(city);
 
-  const vehicles: YangoVehicle[] = useMemo(() => [
-    {
-      id: 'moto',
-      name: 'Moto',
-      icon: Bike,
-      estimatedTime: 5,
-      basePrice: 300,
-      multiplier: 0.6,
-      available: true,
-      gradient: 'from-yellow-50/80 to-yellow-100/80',
-      borderColor: 'border-l-congo-yellow',
-      bgColor: 'bg-yellow-50',
-      iconColor: 'text-congo-yellow'
-    },
-    {
-      id: 'eco',
-      name: 'Eco',
-      icon: Car,
-      estimatedTime: 8,
-      basePrice: 500,
-      multiplier: 1.0,
-      available: true,
-      gradient: 'from-green-50/80 to-green-100/80',
-      borderColor: 'border-l-congo-green',
-      bgColor: 'bg-green-50',
-      iconColor: 'text-congo-green'
-    },
-    {
-      id: 'standard',
-      name: 'Standard',
-      icon: Car,
-      estimatedTime: 10,
-      basePrice: 750,
-      multiplier: 1.5,
-      available: true,
-      gradient: 'from-blue-50/80 to-blue-100/80',
-      borderColor: 'border-l-congo-blue',
-      bgColor: 'bg-blue-50',
-      iconColor: 'text-congo-blue'
-    },
-    {
-      id: 'premium',
-      name: 'Premium',
-      icon: Car,
-      estimatedTime: 12,
-      basePrice: 1200,
-      multiplier: 2.0,
-      available: true,
-      gradient: 'from-purple-50/80 to-purple-100/80',
-      borderColor: 'border-l-purple-500',
-      bgColor: 'bg-purple-50',
-      iconColor: 'text-purple-600'
-    }
-  ], []);
-
-  const calculatePrice = useCallback((vehicle: YangoVehicle): { price: number; hasRule: boolean } => {
-    const distanceKm = Math.max(distance, 0);
-    const rule = rules.find(r => r.service_type === 'transport' && r.vehicle_class === vehicle.id);
-    if (rule) {
-      return { 
-        price: Math.round((Number(rule.base_price) || 0) + distanceKm * (Number(rule.price_per_km) || 0)),
-        hasRule: true
-      };
-    }
-    const pricePerKm = 150;
-    return { 
-      price: Math.round(vehicle.basePrice + (distanceKm * pricePerKm * vehicle.multiplier)),
-      hasRule: false
+  // Configuration visuelle des véhicules
+  const getVehicleDisplayConfig = useCallback((vehicleClass: string) => {
+    const configs: Record<string, any> = {
+      moto: {
+        name: 'Moto',
+        icon: Bike,
+        estimatedTime: 5,
+        gradient: 'from-yellow-50/80 to-yellow-100/80',
+        borderColor: 'border-l-congo-yellow',
+        bgColor: 'bg-yellow-50',
+        iconColor: 'text-congo-yellow'
+      },
+      eco: {
+        name: 'Eco',
+        icon: Car,
+        estimatedTime: 8,
+        gradient: 'from-green-50/80 to-green-100/80',
+        borderColor: 'border-l-congo-green',
+        bgColor: 'bg-green-50',
+        iconColor: 'text-congo-green'
+      },
+      standard: {
+        name: 'Standard',
+        icon: Car,
+        estimatedTime: 10,
+        gradient: 'from-blue-50/80 to-blue-100/80',
+        borderColor: 'border-l-congo-blue',
+        bgColor: 'bg-blue-50',
+        iconColor: 'text-congo-blue'
+      },
+      premium: {
+        name: 'Premium',
+        icon: Car,
+        estimatedTime: 12,
+        gradient: 'from-purple-50/80 to-purple-100/80',
+        borderColor: 'border-l-purple-500',
+        bgColor: 'bg-purple-50',
+        iconColor: 'text-purple-600'
+      }
     };
-  }, [distance, rules]);
+    return configs[vehicleClass] || configs.standard;
+  }, []);
+
+  // Charger dynamiquement les véhicules depuis pricing_rules
+  const vehicles: YangoVehicle[] = useMemo(() => {
+    const activeRules = rules.filter(r => 
+      r.service_type === 'transport' && 
+      r.is_active === true
+    );
+
+    return activeRules.map(rule => {
+      const config = getVehicleDisplayConfig(rule.vehicle_class);
+      return {
+        id: rule.vehicle_class,
+        name: config.name,
+        icon: config.icon,
+        estimatedTime: config.estimatedTime,
+        basePrice: Number(rule.base_price),
+        pricePerKm: Number(rule.price_per_km),
+        available: true,
+        gradient: config.gradient,
+        borderColor: config.borderColor,
+        bgColor: config.bgColor,
+        iconColor: config.iconColor
+      };
+    }).sort((a, b) => a.basePrice - b.basePrice);
+  }, [rules, getVehicleDisplayConfig]);
+
+  // Message si aucun véhicule disponible
+  if (vehicles.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Car className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+        <h3 className="font-semibold text-foreground mb-1">
+          Aucun véhicule disponible
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Aucun service de transport actif pour {city}
+        </p>
+      </div>
+    );
+  }
+
+  // Sélectionner automatiquement le premier véhicule si aucun n'est sélectionné
+  useEffect(() => {
+    if (!selectedVehicleId && vehicles.length > 0) {
+      onVehicleSelect(vehicles[0].id);
+    }
+  }, [vehicles, selectedVehicleId, onVehicleSelect]);
 
   return (
     <div className="space-y-3 font-montserrat" style={{ willChange: 'transform' }}>
       {vehicles.map((vehicle, index) => {
-        const { price, hasRule } = calculatePrice(vehicle);
         const isSelected = selectedVehicleId === vehicle.id;
 
         return (
@@ -146,20 +166,23 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="font-medium">{vehicle.estimatedTime}m</span>
-                {hasRule && (
-                  <span className="ml-1 px-1.5 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded text-[10px] font-semibold">
-                    Prix officiel
-                  </span>
-                )}
               </div>
             </div>
 
             {/* Prix */}
-            <div className="flex-shrink-0 text-right">
-              <p className="text-lg font-extrabold text-foreground">
-                {vehicle.available ? `${price.toLocaleString()}` : 'N/A'}
-              </p>
-              <p className="text-xs font-semibold text-muted-foreground">FC</p>
+            <div className="flex-shrink-0 text-right space-y-0.5">
+              <div className="flex flex-col items-end">
+                <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
+                  Base
+                </div>
+                <div className="text-base font-bold text-foreground">
+                  {vehicle.basePrice.toLocaleString()} CDF
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <span className="font-semibold">{vehicle.pricePerKm} CDF</span>
+                <span>/km</span>
+              </div>
             </div>
 
             {/* Badge disponibilité */}

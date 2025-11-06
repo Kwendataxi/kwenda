@@ -23,15 +23,16 @@ export interface PricingRule {
   updated_at: string;
 }
 
-export const usePricingRules = () => {
+export const usePricingRules = (city: string = 'Kinshasa') => {
   const queryClient = useQueryClient();
 
   const query = useQuery<PricingRule[]>({
-    queryKey: ['pricing_rules'],
+    queryKey: ['pricing_rules', city],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('pricing_rules')
         .select('*')
+        .eq('city', city)
         .eq('is_active', true);
       if (error) throw error;
       return (data || []) as PricingRule[];
@@ -45,8 +46,12 @@ export const usePricingRules = () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'pricing_rules' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['pricing_rules'] });
+        (payload: any) => {
+          // Invalider uniquement si le changement affecte cette ville
+          const affectedCity = payload.new?.city || payload.old?.city;
+          if (affectedCity === city) {
+            queryClient.invalidateQueries({ queryKey: ['pricing_rules', city] });
+          }
         }
       )
       .subscribe();
@@ -54,7 +59,7 @@ export const usePricingRules = () => {
     return () => {
       try { supabase.removeChannel(channel); } catch {}
     };
-  }, [queryClient]);
+  }, [queryClient, city]);
 
   const upsertRule = useMutation({
     mutationFn: async (rule: Partial<PricingRule> & { service_type: ServiceCategory; vehicle_class: string }) => {
@@ -123,7 +128,7 @@ export const usePricingRules = () => {
     rules: query.data || [],
     isLoading: query.isLoading,
     error: query.error as Error | null,
-    refresh: () => queryClient.invalidateQueries({ queryKey: ['pricing_rules'] }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: ['pricing_rules', city] }),
     upsertRule,
     deactivateRule,
   };
