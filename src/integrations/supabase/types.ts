@@ -2029,6 +2029,13 @@ export type Database = {
             referencedRelation: "partenaires"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "driver_codes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
+          },
         ]
       }
       driver_codes_enhanced: {
@@ -2081,6 +2088,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "partenaires"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_codes_enhanced_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
           },
         ]
       }
@@ -2756,6 +2770,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partenaires"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "driver_vehicle_associations_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
             referencedColumns: ["user_id"]
           },
         ]
@@ -4258,6 +4279,13 @@ export type Database = {
             referencedRelation: "partenaires"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lottery_prize_types_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
+          },
         ]
       }
       lottery_special_events: {
@@ -5621,6 +5649,7 @@ export type Database = {
           address: string
           admin_comments: string | null
           bank_account_number: string | null
+          banner_image: string | null
           business_type: string
           city: string | null
           commission_rate: number | null
@@ -5639,6 +5668,8 @@ export type Database = {
           phone_number: string
           reviewed_at: string | null
           service_areas: string[] | null
+          shop_description: string | null
+          slogan: string | null
           tax_number: string | null
           updated_at: string | null
           user_id: string
@@ -5651,6 +5682,7 @@ export type Database = {
           address: string
           admin_comments?: string | null
           bank_account_number?: string | null
+          banner_image?: string | null
           business_type: string
           city?: string | null
           commission_rate?: number | null
@@ -5669,6 +5701,8 @@ export type Database = {
           phone_number: string
           reviewed_at?: string | null
           service_areas?: string[] | null
+          shop_description?: string | null
+          slogan?: string | null
           tax_number?: string | null
           updated_at?: string | null
           user_id: string
@@ -5681,6 +5715,7 @@ export type Database = {
           address?: string
           admin_comments?: string | null
           bank_account_number?: string | null
+          banner_image?: string | null
           business_type?: string
           city?: string | null
           commission_rate?: number | null
@@ -5699,6 +5734,8 @@ export type Database = {
           phone_number?: string
           reviewed_at?: string | null
           service_areas?: string[] | null
+          shop_description?: string | null
+          slogan?: string | null
           tax_number?: string | null
           updated_at?: string | null
           user_id?: string
@@ -5756,6 +5793,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "partenaires"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_audit_logs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
           },
         ]
       }
@@ -5855,6 +5899,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partenaires"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "partner_driver_requests_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
             referencedColumns: ["user_id"]
           },
         ]
@@ -5989,11 +6040,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "partner_rental_bookings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
+          },
+          {
             foreignKeyName: "partner_rental_bookings_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "partner_rental_vehicles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_rental_followers: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          id: string
+          partner_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          id?: string
+          partner_id: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          id?: string
+          partner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_rental_followers_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_rental_followers_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
           },
         ]
       }
@@ -6154,6 +6248,13 @@ export type Database = {
             referencedRelation: "partenaires"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "partner_rental_vehicles_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
+          },
         ]
       }
       partner_security_config: {
@@ -6236,6 +6337,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "partenaires"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_subscription_earnings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
           },
           {
             foreignKeyName: "partner_subscription_earnings_subscription_id_fkey"
@@ -8083,39 +8191,57 @@ export type Database = {
       }
       rental_subscription_plans: {
         Row: {
+          analytics_access: boolean | null
           category_id: string
           created_at: string
           currency: string
+          custom_banner: boolean | null
           description: string | null
+          featured_in_homepage: boolean | null
           features: Json | null
           id: string
           is_active: boolean
+          max_vehicles: number | null
           monthly_price: number
           name: string
+          priority_support: boolean | null
+          tier: string | null
           updated_at: string
         }
         Insert: {
+          analytics_access?: boolean | null
           category_id: string
           created_at?: string
           currency?: string
+          custom_banner?: boolean | null
           description?: string | null
+          featured_in_homepage?: boolean | null
           features?: Json | null
           id?: string
           is_active?: boolean
+          max_vehicles?: number | null
           monthly_price?: number
           name: string
+          priority_support?: boolean | null
+          tier?: string | null
           updated_at?: string
         }
         Update: {
+          analytics_access?: boolean | null
           category_id?: string
           created_at?: string
           currency?: string
+          custom_banner?: boolean | null
           description?: string | null
+          featured_in_homepage?: boolean | null
           features?: Json | null
           id?: string
           is_active?: boolean
+          max_vehicles?: number | null
           monthly_price?: number
           name?: string
+          priority_support?: boolean | null
+          tier?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -11329,6 +11455,7 @@ export type Database = {
           rated_user_id: string
           rater_user_id: string
           rating: number
+          rating_context: string | null
         }
         Insert: {
           booking_id?: string | null
@@ -11340,6 +11467,7 @@ export type Database = {
           rated_user_id: string
           rater_user_id: string
           rating: number
+          rating_context?: string | null
         }
         Update: {
           booking_id?: string | null
@@ -11351,6 +11479,7 @@ export type Database = {
           rated_user_id?: string
           rater_user_id?: string
           rating?: number
+          rating_context?: string | null
         }
         Relationships: [
           {
@@ -13059,6 +13188,20 @@ export type Database = {
           email: string | null
           error_code: string | null
           error_message: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      partner_rental_stats: {
+        Row: {
+          available_vehicles: number | null
+          completed_bookings: number | null
+          followers_count: number | null
+          partner_id: string | null
+          rating_average: number | null
+          rating_count: number | null
+          total_bookings: number | null
+          total_vehicles: number | null
           user_id: string | null
         }
         Relationships: []
@@ -14790,6 +14933,7 @@ export type Database = {
       refresh_admin_cache: { Args: never; Returns: undefined }
       refresh_ai_stats: { Args: never; Returns: undefined }
       refresh_driver_status: { Args: never; Returns: undefined }
+      refresh_partner_rental_stats: { Args: never; Returns: undefined }
       refresh_security_stats: { Args: never; Returns: undefined }
       refresh_vendor_stats_cache: {
         Args: { p_vendor_id: string }
