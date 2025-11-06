@@ -23,7 +23,7 @@ export const useMarketplaceProducts = () => {
 
       if (publicError) throw publicError;
 
-      // Si connecté, récupérer aussi ses propres produits
+      // ✅ PHASE 2: Si connecté, récupérer TOUS ses propres produits (incluant pending/rejected)
       let sellerProducts: any[] = [];
       if (user) {
         const { data: myProducts } = await supabase

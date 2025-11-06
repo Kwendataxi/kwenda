@@ -46,11 +46,14 @@ export const useMarketplaceChat = () => {
     if (!user) return;
 
     try {
+      // ✅ PHASE 4: Corriger le JOIN pour gérer les produits supprimés
       const { data, error } = await supabase
         .from('conversations')
         .select(`
           *,
-          marketplace_products!inner(title, price, images)
+          marketplace_products(title, price, images),
+          buyer:profiles!conversations_buyer_id_fkey(display_name, avatar_url),
+          seller:profiles!conversations_seller_id_fkey(display_name, avatar_url)
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false, nullsFirst: false });

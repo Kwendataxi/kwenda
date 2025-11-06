@@ -5072,6 +5072,54 @@ export type Database = {
           },
         ]
       }
+      marketplace_ratings: {
+        Row: {
+          buyer_id: string | null
+          comment: string | null
+          created_at: string | null
+          id: string
+          order_id: string | null
+          product_id: string | null
+          rating: number | null
+          seller_id: string | null
+        }
+        Insert: {
+          buyer_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          product_id?: string | null
+          rating?: number | null
+          seller_id?: string | null
+        }
+        Update: {
+          buyer_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          product_id?: string | null
+          rating?: number | null
+          seller_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_ratings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_ratings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_share_analytics: {
         Row: {
           clicks: number | null

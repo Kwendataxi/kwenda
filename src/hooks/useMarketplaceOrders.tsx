@@ -471,9 +471,32 @@ export const useMarketplaceOrders = () => {
 
     const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+    // ✅ PHASE 1: Créer le wallet automatiquement s'il n'existe pas
+    if (!wallet) {
+      try {
+        const { data: newWallet, error: walletError } = await supabase
+          .from('user_wallets')
+          .insert({ 
+            user_id: user.id, 
+            balance: 0, 
+            bonus_balance: 0 
+          })
+          .select()
+          .single();
+        
+        if (walletError) {
+          throw new Error('Impossible de créer votre portefeuille. Contactez le support.');
+        }
+        
+        throw new Error(`Solde insuffisant (0 CDF). Rechargez votre compte pour continuer.`);
+      } catch (error: any) {
+        throw new Error(error.message || 'Erreur de création du portefeuille');
+      }
+    }
+
     // Check wallet balance
-    if (!wallet || wallet.balance < totalAmount) {
-      throw new Error(`Solde insuffisant. Vous avez besoin de ${totalAmount.toLocaleString()} CDF`);
+    if (wallet.balance < totalAmount) {
+      throw new Error(`Solde insuffisant. Vous avez ${wallet.balance.toLocaleString()} CDF mais il vous faut ${totalAmount.toLocaleString()} CDF.`);
     }
 
     try {

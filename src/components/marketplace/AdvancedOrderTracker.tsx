@@ -28,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { format, formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
+import { RateOrderDialog } from './RateOrderDialog';
 
 interface OrderStep {
   id: string;
@@ -514,48 +515,16 @@ export const AdvancedOrderTracker: React.FC = () => {
       <>
         {renderOrderDetails()}
         
-        {/* Rating Dialog */}
-        <Dialog open={showRatingDialog} onOpenChange={setShowRatingDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Évaluer votre commande</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Note</label>
-                <div className="flex gap-1 mt-2">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <button
-                      key={value}
-                      onClick={() => setRating(value)}
-                      className={`p-1 ${value <= rating ? 'text-yellow-500' : 'text-muted-foreground'}`}
-                    >
-                      <Star className="w-6 h-6 fill-current" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Commentaire (optionnel)</label>
-                <Textarea
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  placeholder="Partagez votre expérience..."
-                  className="mt-2"
-                  rows={3}
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowRatingDialog(false)}>
-                  Plus tard
-                </Button>
-                <Button onClick={() => handleCompleteOrder(selectedOrder.id)}>
-                  Confirmer la réception
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* ✅ PHASE 3: Rating Dialog intégré */}
+        <RateOrderDialog
+          isOpen={showRatingDialog}
+          onClose={() => setShowRatingDialog(false)}
+          order={selectedOrder}
+          onSuccess={() => {
+            setSelectedOrder(null);
+            setShowRatingDialog(false);
+          }}
+        />
       </>
     );
   }
