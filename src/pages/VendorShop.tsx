@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera, Home } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { YangoProductCard } from '@/components/marketplace/YangoProductCard';
 import { VendorShopShareButtons } from '@/components/marketplace/VendorShopShareButtons';
 import { useToast } from '@/hooks/use-toast';
@@ -410,12 +411,13 @@ const VendorShop: React.FC = () => {
               )}
               
               <Button
-                variant="ghost"
-                size="icon"
+                variant="default"
+                size="sm"
                 onClick={() => setShowShareDialog(true)}
-                title="Partager ma boutique"
+                className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg"
               >
-                <Share2 className="h-5 w-5" />
+                <Share2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Partager</span>
               </Button>
               
               <Button
@@ -487,6 +489,31 @@ const VendorShop: React.FC = () => {
           </div>
         </div>
 
+        {/* CTA Partage après stats */}
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-blue-200 dark:border-blue-800">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm mb-1">
+                  ❤️ Vous aimez cette boutique ?
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Partagez-la avec vos proches pour leur faire découvrir !
+                </p>
+              </div>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowShareDialog(true)}
+                className="gap-2 shrink-0"
+              >
+                <Share2 className="h-4 w-4" />
+                Partager
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* ✅ PHASE 2: Bouton S'abonner adaptatif */}
         {!user ? (
           <Button
@@ -549,25 +576,58 @@ const VendorShop: React.FC = () => {
         </div>
       </div>
 
-      {/* Dialog Partage */}
+      {/* Dialog Partage Amélioré */}
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              Partager la boutique {profile.shop_name}
+          <DialogHeader className="space-y-3">
+            {/* Icône animée */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto"
+            >
+              <Share2 className="h-8 w-8 text-white" />
+            </motion.div>
+            
+            <DialogTitle className="text-center text-xl">
+              Partager {profile.shop_name}
             </DialogTitle>
             <DialogDescription className="text-center">
-              Partagez cette boutique avec vos contacts
+              Choisissez comment partager cette boutique
             </DialogDescription>
           </DialogHeader>
-          <VendorShopShareButtons
-            vendorId={profile.user_id}
-            vendorName={profile.shop_name}
-            productCount={products.length}
-            rating={profile.average_rating}
-          />
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <VendorShopShareButtons
+              vendorId={profile.user_id}
+              vendorName={profile.shop_name}
+              productCount={products.length}
+              rating={profile.average_rating}
+            />
+          </motion.div>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Action Button - Partage Rapide */}
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.5, type: "spring", stiffness: 260, damping: 20 }}
+        className="fixed bottom-20 right-4 z-30"
+      >
+        <Button
+          size="lg"
+          onClick={() => setShowShareDialog(true)}
+          className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/80 shadow-2xl hover:shadow-primary/50 hover:scale-110 transition-all duration-300"
+        >
+          <Share2 className="h-6 w-6" />
+        </Button>
+      </motion.div>
     </div>
   );
 };
