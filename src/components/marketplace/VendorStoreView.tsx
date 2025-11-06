@@ -17,7 +17,8 @@ import {
   Users,
   Shield,
   ShoppingCart,
-  Sparkles
+  Sparkles,
+  Award
 } from 'lucide-react';
 import { useVendorFollowers } from '@/hooks/useVendorFollowers';
 import { CompactProductCard } from './CompactProductCard';
@@ -29,9 +30,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { SimilarVendorsSlider } from './SimilarVendorsSlider';
 import { FloatingCartIndicator } from './FloatingCartIndicator';
 import { VendorCheckoutBar } from './VendorCheckoutBar';
+import { VendorRatingDialog } from './VendorRatingDialog';
+import { VendorReviewsSection } from './VendorReviewsSection';
 import { CartItem } from '@/types/marketplace';
 import { triggerAddToCartEffect } from '@/lib/animations/cartEffects';
 import confetti from 'canvas-confetti';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Product {
   id: string;
@@ -70,6 +74,9 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [activeProductsCount, setActiveProductsCount] = useState(0);
   const [localCart, setLocalCart] = useState<CartItem[]>([]);
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [canRateVendor, setCanRateVendor] = useState(false);
+  const [hasRatedVendor, setHasRatedVendor] = useState(false);
   const { followerCount } = useVendorFollowers(vendorId);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -77,6 +84,47 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
   useEffect(() => {
     loadVendorData();
   }, [vendorId]);
+
+  useEffect(() => {
+    if (user) {
+      checkRatingEligibility();
+    }
+  }, [user, vendorId]);
+
+  const checkRatingEligibility = async () => {
+    if (!user) {
+      setCanRateVendor(false);
+      setHasRatedVendor(false);
+      return;
+    }
+
+    try {
+      // Check if user has completed orders from this vendor
+      const { data: orders } = await supabase
+        .from('marketplace_orders')
+        .select('id, status')
+        .eq('buyer_id', user.id)
+        .eq('seller_id', vendorId)
+        .eq('status', 'delivered');
+
+      const hasCompletedOrders = orders && orders.length > 0;
+
+      // Check if user has already rated this vendor
+      const { data: existingRating } = await supabase
+        .from('user_ratings')
+        .select('id')
+        .eq('rater_user_id', user.id)
+        .eq('rated_user_id', vendorId)
+        .maybeSingle();
+
+      setCanRateVendor(hasCompletedOrders);
+      setHasRatedVendor(!!existingRating);
+    } catch (error) {
+      console.error('Error checking rating eligibility:', error);
+      setCanRateVendor(false);
+      setHasRatedVendor(false);
+    }
+  };
 
   const loadVendorData = async () => {
     try {
@@ -312,15 +360,42 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
           <Button variant="ghost" size="icon" onClick={onClose} className="bg-background/80 backdrop-blur-sm">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Button
-            variant={isSubscribed ? "secondary" : "default"}
-            size="sm"
-            onClick={handleSubscribe}
-            className="gap-2 font-semibold"
-          >
-            <Users className="h-4 w-4" />
-            {isSubscribed ? 'Abonné' : 'S\'abonner'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={hasRatedVendor ? "outline" : "default"}
+                    size="sm"
+                    onClick={() => setRatingDialogOpen(true)}
+                    disabled={!user || (!canRateVendor && !hasRatedVendor)}
+                    className="gap-2 font-semibold bg-background/80 backdrop-blur-sm"
+                  >
+                    <Star className={cn("h-4 w-4", hasRatedVendor && "fill-yellow-400 text-yellow-400")} />
+                    {hasRatedVendor ? 'Votre avis' : 'Noter'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {!user 
+                    ? 'Connectez-vous pour noter' 
+                    : !canRateVendor && !hasRatedVendor
+                    ? 'Effectuez un achat pour noter cette boutique'
+                    : hasRatedVendor
+                    ? 'Vous avez déjà noté cette boutique'
+                    : 'Notez votre expérience avec cette boutique'}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Button
+              variant={isSubscribed ? "secondary" : "default"}
+              size="sm"
+              onClick={handleSubscribe}
+              className="gap-2 font-semibold bg-background/80 backdrop-blur-sm"
+            >
+              <Users className="h-4 w-4" />
+              {isSubscribed ? 'Abonné' : 'S\'abonner'}
+            </Button>
+          </div>
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 bg-gradient-to-t from-black/80 to-transparent">
@@ -371,7 +446,7 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
         {[
           { label: "Produits", value: activeProductsCount, icon: Package, color: "text-blue-500" },
           { label: "Ventes", value: (vendor?.total_sales || 0).toLocaleString(), icon: TrendingUp, color: "text-green-500" },
-          { label: "Note", value: vendor?.average_rating?.toFixed(1) || '0.0', icon: Star, color: "text-yellow-500" },
+          { label: "Note", value: vendor?.average_rating?.toFixed(1) || '0.0', icon: Star, color: "text-yellow-500", count: vendor?.rating_count || 0, clickable: true },
           { label: "Abonnés", value: followerCount, icon: Users, color: "text-purple-500" }
         ].map((stat, i) => (
           <motion.div
@@ -384,12 +459,34 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
               stiffness: 300,
               damping: 20
             }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: stat.clickable ? 1.05 : 1.02 }}
+            whileTap={stat.clickable ? { scale: 0.95 } : undefined}
+            onClick={stat.clickable ? () => {
+              document.getElementById('vendor-reviews-section')?.scrollIntoView({
+                behavior: 'smooth'
+              });
+            } : undefined}
+            className={stat.clickable ? 'cursor-pointer' : ''}
           >
-            <Card className="p-3 text-center hover:shadow-lg transition-shadow">
-              <stat.icon className={`h-5 w-5 mx-auto mb-1 ${stat.color}`} />
-              <p className="text-lg font-bold">{stat.value}</p>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+            <Card className={cn(
+              "p-3 text-center transition-all duration-300",
+              stat.clickable && "hover:shadow-[0_0_20px_rgba(250,204,21,0.3)]"
+            )}>
+              <stat.icon className={cn(
+                "h-5 w-5 mx-auto mb-1",
+                stat.color,
+                stat.clickable && stat.label === "Note" && "fill-yellow-400"
+              )} />
+              <p className="text-lg font-bold">
+                {stat.value}
+                {stat.label === "Note" && <span className="text-xs text-muted-foreground">/5</span>}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {stat.label}
+                {stat.clickable && stat.count !== undefined && stat.count > 0 && (
+                  <span className="block text-[10px]">({stat.count} avis)</span>
+                )}
+              </p>
             </Card>
           </motion.div>
         ))}
@@ -575,6 +672,15 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
         </div>
       </ScrollArea>
 
+      {/* Reviews Section */}
+      {!loading && (
+        <VendorReviewsSection
+          vendorId={vendorId}
+          averageRating={vendor?.average_rating || 0}
+          totalRatings={vendor?.rating_count || 0}
+        />
+      )}
+
       {/* Similar Vendors Section */}
       {!loading && products.length > 0 && (
         <SimilarVendorsSlider
@@ -603,6 +709,19 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
         cartItems={localCart}
         onCheckout={handleCheckout}
         vendorName={vendor?.shop_name || vendor?.display_name || 'cette boutique'}
+      />
+
+      {/* Rating Dialog */}
+      <VendorRatingDialog
+        open={ratingDialogOpen}
+        onOpenChange={setRatingDialogOpen}
+        vendorId={vendorId}
+        vendorName={vendor?.shop_name || vendor?.display_name || 'Boutique'}
+        vendorLogo={vendor?.shop_logo_url || vendor?.avatar_url}
+        onSuccess={() => {
+          loadVendorData();
+          checkRatingEligibility();
+        }}
       />
     </div>
   );
