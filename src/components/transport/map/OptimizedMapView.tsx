@@ -184,22 +184,6 @@ const OptimizedMapView = React.memo(({
     <div className={`relative w-full h-full ${className}`}>
       <div ref={mapRef} className="absolute inset-0" />
       
-      {/* Markers personnalisés */}
-      {/* Ne pas afficher le PickupMarker vert si c'est la même position que userLocation */}
-      {pickup && userLocation && (
-        Math.abs(pickup.lat - userLocation.lat) > 0.0001 || 
-        Math.abs(pickup.lng - userLocation.lng) > 0.0001
-      ) && <PickupMarker map={mapInstanceRef.current} position={pickup} label={pickup.name || pickup.address} />}
-      {destination && <DestinationMarker map={mapInstanceRef.current} position={destination} label={destination.name || destination.address} />}
-      
-      {/* Marqueur position actuelle - Draggable avec fallback */}
-      <CurrentPositionMarker 
-        map={mapInstanceRef.current} 
-        position={userLocation || pickup} 
-        onClickPosition={onClickPosition}
-        onDragEnd={onDragMarker}
-        isDraggable={true}
-      />
       
       {/* Contrôles carte */}
       <KwendaMapControls
