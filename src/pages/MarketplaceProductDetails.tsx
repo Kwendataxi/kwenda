@@ -154,11 +154,11 @@ const MarketplaceProductDetails = () => {
       />
       
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-4 sm:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr,1fr] gap-4 lg:gap-8">
+      <div className="container mx-auto px-4 py-3 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr,1fr] gap-3 lg:gap-6">
           
           {/* Colonne Gauche - Galerie & Détails */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Galerie */}
             <MarketplaceImageGallery
               images={product.images}
@@ -197,7 +197,7 @@ const MarketplaceProductDetails = () => {
           </div>
           
           {/* Colonne Droite - Infos & Actions */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Card Infos Produit */}
             <ProductInfoCard
               title={product.title}

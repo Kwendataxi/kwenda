@@ -43,33 +43,33 @@ export const ProductInfoCard: React.FC<ProductInfoCardProps> = ({
   const originalPrice = discount > 0 ? price / (1 - discount / 100) : null;
 
   return (
-    <Card className="border-2">
-      <CardContent className="p-4 sm:p-6 space-y-4">
-        {/* Title & Badges */}
-        <div className="space-y-3">
-          <h2 className="text-xl sm:text-2xl font-bold line-clamp-2">
-            {title}
-          </h2>
-          
-          {/* Badges inline */}
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">{category}</Badge>
-            <Badge variant="outline">{condition}</Badge>
-            {discount > 0 && (
-              <Badge className="bg-destructive">-{discount}%</Badge>
-            )}
-          </div>
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        {/* Title */}
+        <h2 className="text-lg sm:text-xl font-semibold line-clamp-2">
+          {title}
+        </h2>
+        
+        {/* Badges + Stock inline */}
+        <div className="flex items-center gap-2 flex-wrap text-sm">
+          <Badge variant="secondary" className="text-xs">{category}</Badge>
+          <Badge variant="outline" className="text-xs">{condition}</Badge>
+          {discount > 0 && (
+            <Badge className="bg-destructive text-xs">-{discount}%</Badge>
+          )}
+          <span className="text-muted-foreground">•</span>
+          <span className={stockCount > 5 ? 'text-green-600' : 'text-orange-500'}>
+            {stockCount} en stock
+          </span>
         </div>
         
-        <Separator />
-        
-        {/* Rating */}
-        <div className="flex items-center gap-3">
+        {/* Rating inline */}
+        <div className="flex items-center gap-2 text-sm">
           <div className="flex gap-0.5">
             {[1,2,3,4,5].map(i => (
               <Star 
                 key={i} 
-                className={`h-4 w-4 ${
+                className={`h-3 w-3 ${
                   i <= Math.floor(rating) 
                     ? 'fill-yellow-500 text-yellow-500' 
                     : 'text-muted-foreground'
@@ -77,63 +77,27 @@ export const ProductInfoCard: React.FC<ProductInfoCardProps> = ({
               />
             ))}
           </div>
-          <span className="font-semibold">{rating.toFixed(1)}</span>
-          <span className="text-sm text-muted-foreground">({reviewCount} avis)</span>
+          <span className="font-medium">{rating.toFixed(1)}</span>
+          <span className="text-muted-foreground">({reviewCount})</span>
         </div>
         
-        <Separator />
-        
-        {/* Prix avec animation */}
-        <motion.div 
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          className="space-y-2"
-        >
-          <div className="flex items-baseline gap-3 flex-wrap">
-            <span className="text-3xl sm:text-4xl font-bold text-primary">
-              {formatPrice(price)}
+        {/* Prix simplifié */}
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <span className="text-2xl font-bold text-primary">
+            {formatPrice(price)}
+          </span>
+          {originalPrice && (
+            <span className="text-base text-muted-foreground line-through">
+              {formatPrice(originalPrice)}
             </span>
-            {originalPrice && (
-              <span className="text-lg text-muted-foreground line-through">
-                {formatPrice(originalPrice)}
-              </span>
-            )}
-          </div>
-        </motion.div>
-        
-        <Separator />
-        
-        {/* Grille infos clés */}
-        <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Stock</p>
-            <Badge className={stockCount > 5 ? 'bg-green-600' : 'bg-orange-500'}>
-              <Package className="h-3 w-3 mr-1" />
-              {stockCount} disponibles
-            </Badge>
-          </div>
-          {brand && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Marque</p>
-              <p className="text-sm font-semibold">{brand}</p>
-            </div>
           )}
         </div>
         
-        {/* Description mobile (accordéon) */}
+        {/* Description visible directement (mobile) */}
         <div className="lg:hidden">
-          <Accordion type="single" collapsible>
-            <AccordionItem value="desc" className="border-none">
-              <AccordionTrigger className="text-base font-semibold">
-                Description
-              </AccordionTrigger>
-              <AccordionContent>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {description}
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+            {description}
+          </p>
         </div>
       </CardContent>
     </Card>

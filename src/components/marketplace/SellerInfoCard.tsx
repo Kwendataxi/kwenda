@@ -37,63 +37,45 @@ export const SellerInfoCard: React.FC<SellerInfoCardProps> = ({
 
   return (
     <Card>
-      <CardContent className="p-4 space-y-4">
-        <h3 className="font-bold text-base flex items-center gap-2">
-          <Store className="h-5 w-5" />
-          Informations vendeur
-        </h3>
-        
+      <CardContent className="p-4 space-y-3">
         {/* Profil vendeur cliquable */}
         <div 
-          className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+          className="flex items-center gap-3 hover:bg-muted/30 p-2 rounded-lg transition-colors cursor-pointer"
           onClick={handleVisitShop}
         >
           <img 
             src={sellerAvatar || '/placeholder.svg'}
             alt={sellerName}
-            className="w-14 h-14 rounded-full object-cover ring-2 ring-background shadow-md"
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
           />
           <div className="flex-1 min-w-0">
-            <p className="font-semibold line-clamp-1">{sellerName}</p>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 flex-wrap">
-              <Badge variant="secondary" className="text-xs">
-                <ShieldCheck className="h-3 w-3 mr-1" />
-                Vérifié
-              </Badge>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                {sellerRating.toFixed(1)}
-              </span>
+            <p className="font-medium line-clamp-1">{sellerName}</p>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+              <span>{sellerRating.toFixed(1)}</span>
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         </div>
         
-        {/* Stats vendeur */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="text-center p-2 bg-muted/20 rounded">
-            <p className="text-xs text-muted-foreground">Produits</p>
-            <p className="text-lg font-bold">{productCount}</p>
-          </div>
-          <div className="text-center p-2 bg-muted/20 rounded">
-            <p className="text-xs text-muted-foreground">Ventes</p>
-            <p className="text-lg font-bold">{totalSales}</p>
-          </div>
-          <div className="text-center p-2 bg-muted/20 rounded">
-            <p className="text-xs text-muted-foreground whitespace-nowrap">Taux réponse</p>
-            <p className="text-lg font-bold text-green-600">{responseRate}%</p>
-          </div>
+        {/* Stats inline */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="font-medium">{productCount} produits</span>
+          <span>•</span>
+          <span className="font-medium">{totalSales} ventes</span>
+          <span>•</span>
+          <span className="font-medium text-green-600">{responseRate}% réponses</span>
         </div>
         
-        {/* Bouton chat */}
+        {/* Bouton CTA */}
         <Button 
           variant="outline" 
+          size="sm"
           className="w-full"
-          onClick={handleStartChat}
+          onClick={handleVisitShop}
         >
-          <MessageCircle className="h-4 w-4 mr-2" />
-          Contacter le vendeur
+          <Store className="h-3 w-3 mr-2" />
+          Visiter la boutique
         </Button>
       </CardContent>
     </Card>

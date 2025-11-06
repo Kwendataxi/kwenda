@@ -68,23 +68,22 @@ export const SimilarProductsCarousel: React.FC<SimilarProductsCarouselProps> = (
       </div>
 
       <div className="overflow-hidden -mx-4 sm:mx-0" ref={emblaRef}>
-        <div className="flex gap-3 px-4 sm:px-0">
+        <div className="flex gap-2 px-4 sm:px-0">
           {products.map(product => {
             const mainImage = Array.isArray(product.images) && product.images.length > 0 
               ? product.images[0] 
               : '/placeholder.svg';
             const inStock = (product.stock_quantity ?? 1) > 0;
-            const rating = product.rating_average || 0;
 
             return (
               <div 
                 key={product.id}
-                className="flex-[0_0_75%] sm:flex-[0_0_45%] lg:flex-[0_0_30%] min-w-0 cursor-pointer"
+                className="flex-[0_0_85%] sm:flex-[0_0_45%] lg:flex-[0_0_30%] min-w-0 cursor-pointer"
                 onClick={() => handleProductClick(product.id)}
               >
-                <Card className="h-full hover:shadow-lg transition-shadow">
-                  <CardContent className="p-3 space-y-2">
-                    {/* Image */}
+                <Card className="h-full hover:shadow-md transition-shadow">
+                  <CardContent className="p-2 space-y-2">
+                    {/* Image - Focus principal */}
                     <div className="relative aspect-square rounded-lg overflow-hidden bg-muted">
                       <img
                         src={mainImage}
@@ -94,40 +93,21 @@ export const SimilarProductsCarousel: React.FC<SimilarProductsCarouselProps> = (
                       />
                       {!inStock && (
                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <Badge variant="secondary">Rupture de stock</Badge>
+                          <Badge variant="secondary" className="text-xs">Rupture</Badge>
                         </div>
                       )}
                     </div>
 
-                    {/* Info */}
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-sm line-clamp-2 min-h-[2.5rem]">
+                    {/* Info minimale */}
+                    <div className="space-y-1">
+                      <h4 className="font-medium text-sm line-clamp-1">
                         {product.title}
                       </h4>
 
-                      {/* Rating */}
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                        <span className="text-xs font-medium">
-                          {rating > 0 ? rating.toFixed(1) : '0.0'}
-                        </span>
-                      </div>
-
-                      {/* Prix */}
-                      <p className="text-lg font-bold text-primary">
+                      {/* Prix seul */}
+                      <p className="text-base font-bold text-primary">
                         {formatPrice(product.price)}
                       </p>
-
-                      {/* Action button */}
-                      <Button 
-                        size="sm"
-                        className="w-full"
-                        onClick={(e) => handleAddToCart(e, product.id)}
-                        disabled={!inStock}
-                      >
-                        <ShoppingCart className="h-3 w-3 mr-1" />
-                        {inStock ? 'Ajouter' : 'Indisponible'}
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
