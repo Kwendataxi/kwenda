@@ -53,7 +53,7 @@ export const ModernVehicleCard: React.FC<ModernVehicleCardProps> = ({
     >
       <Card 
         className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 hover:border-primary/50"
-        onClick={() => navigate(`/rental/vehicle/${vehicle.id}`)}
+        onClick={() => navigate(`/rental/${vehicle.id}/details`)}
       >
         {/* Image avec overlay gradient bottom */}
         <div className="relative aspect-[4/3] overflow-hidden">
