@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera, Home } from 'lucide-react';
+import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera, Home, Shield, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { YangoProductCard } from '@/components/marketplace/YangoProductCard';
 import { VendorShopShareButtons } from '@/components/marketplace/VendorShopShareButtons';
@@ -148,7 +148,7 @@ const VendorShop: React.FC = () => {
         setIsSubscribed(subData?.is_active || false);
       }
 
-      // Load vendor products
+      // Load vendor products with correct JOIN
       const { data: productsData, error: productsError } = await supabase
         .from('marketplace_products')
         .select(`
@@ -161,9 +161,14 @@ const VendorShop: React.FC = () => {
           stock_count,
           created_at,
           seller_id,
-          profiles!marketplace_products_seller_id_fkey(display_name)
+          status,
+          vendor_profiles!inner(
+            shop_name,
+            shop_logo_url
+          )
         `)
         .eq('seller_id', vendorId)
+        .eq('status', 'active')
         .eq('moderation_status', 'approved')
         .order('created_at', { ascending: false });
 
@@ -180,7 +185,7 @@ const VendorShop: React.FC = () => {
         created_at: p.created_at,
         seller: {
           id: p.seller_id,
-          display_name: p.profiles?.display_name || 'Vendeur'
+          display_name: (p.vendor_profiles as any)?.shop_name || 'Vendeur'
         }
       }));
 
@@ -363,27 +368,36 @@ const VendorShop: React.FC = () => {
         />
       )}
       
-      {/* Header Boutique Style Yango */}
-      <header className="bg-card border-b sticky top-0 z-20">
+      {/* Header Boutique Moderne */}
+      <header className="bg-gradient-to-br from-background via-muted/30 to-background border-b sticky top-0 z-20 backdrop-blur-xl">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo + Nom Boutique */}
+            {/* Logo + Nom Boutique avec badge vérifié */}
             <div className="flex items-center gap-3">
-              {profile.shop_logo_url ? (
-                <img 
-                  src={profile.shop_logo_url} 
-                  alt={profile.shop_name}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-border"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                  <Camera className="h-7 w-7 text-muted-foreground" />
+              <div className="relative">
+                {profile.shop_logo_url ? (
+                  <img 
+                    src={profile.shop_logo_url} 
+                    alt={profile.shop_name}
+                    className="w-14 h-14 rounded-xl object-cover border-2 border-primary/20 shadow-lg"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-primary/20">
+                    <Store className="h-7 w-7 text-primary" />
+                  </div>
+                )}
+                {/* Badge vérifié */}
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-blue-500 border-2 border-background flex items-center justify-center">
+                  <Shield className="h-3.5 w-3.5 text-white" />
                 </div>
-              )}
+              </div>
+              
               <div>
-                <h1 className="text-xl font-bold">{profile.shop_name}</h1>
+                <h1 className="text-xl font-bold flex items-center gap-2">
+                  {profile.shop_name}
+                </h1>
                 {profile.shop_description && (
-                  <p className="text-sm text-muted-foreground line-clamp-1">
+                  <p className="text-xs text-muted-foreground line-clamp-1 max-w-[200px]">
                     {profile.shop_description}
                   </p>
                 )}
@@ -454,38 +468,46 @@ const VendorShop: React.FC = () => {
       )}
 
       <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Statistiques Style Yango */}
-        <div className="grid grid-cols-4 gap-2 bg-card rounded-lg p-4 border">
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 mb-1">
-              <ThumbsUp className="h-4 w-4 text-blue-500" />
-              <span className="text-xs text-muted-foreground">{totalReviews}</span>
+        {/* Statistiques Modernes */}
+        <div className="grid grid-cols-4 gap-3 bg-gradient-to-br from-card to-muted/20 rounded-2xl p-5 border shadow-sm">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+              <Package className="h-5 w-5 text-blue-500" />
             </div>
-            <span className="text-xs font-medium">Évaluation</span>
+            <div className="text-center">
+              <div className="text-lg font-bold">{products.length}</div>
+              <div className="text-xs text-muted-foreground">Produits</div>
+            </div>
           </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 mb-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs text-muted-foreground">{profile.average_rating.toFixed(1)}</span>
+          
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-green-500" />
             </div>
-            <span className="text-xs font-medium">Note</span>
+            <div className="text-center">
+              <div className="text-lg font-bold">{profile.total_sales}</div>
+              <div className="text-xs text-muted-foreground">Ventes</div>
+            </div>
           </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 mb-1">
-              <Package className="h-4 w-4 text-green-500" />
-              <span className="text-xs text-muted-foreground">{profile.total_sales}</span>
+          
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+              <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
             </div>
-            <span className="text-xs font-medium">Livraisons</span>
+            <div className="text-center">
+              <div className="text-lg font-bold">{profile.average_rating.toFixed(1)}</div>
+              <div className="text-xs text-muted-foreground">Note</div>
+            </div>
           </div>
-
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 mb-1">
-              <Heart className="h-4 w-4 text-red-500" />
-              <span className="text-xs text-muted-foreground">{profile.follower_count}</span>
+          
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
+              <Heart className="h-5 w-5 text-red-500" />
             </div>
-            <span className="text-xs font-medium">Abonnés</span>
+            <div className="text-center">
+              <div className="text-lg font-bold">{profile.follower_count}</div>
+              <div className="text-xs text-muted-foreground">Abonnés</div>
+            </div>
           </div>
         </div>
 
@@ -545,33 +567,61 @@ const VendorShop: React.FC = () => {
           </h2>
           
           {products.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">
-                  Aucun produit disponible pour le moment.
-                </p>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="border-dashed border-2">
+                <CardContent className="py-16 text-center">
+                  <div className="w-20 h-20 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+                    <Package className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Aucun produit disponible</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Cette boutique n'a pas encore ajouté de produits.
+                  </p>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/marketplace')}
+                    className="gap-2"
+                  >
+                    <Store className="h-4 w-4" />
+                    Découvrir d'autres boutiques
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {products.map((product) => (
-                <YangoProductCard
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ staggerChildren: 0.1 }}
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+            >
+              {products.map((product, index) => (
+                <motion.div
                   key={product.id}
-                  product={{
-                    id: product.id,
-                    title: product.title,
-                    price: product.price,
-                    image: product.images[0] || '/placeholder.svg',
-                    isNew: isNewProduct(product.created_at),
-                    stockCount: product.stock_count || 0
-                  }}
-                  isFavorite={isFavorite(product.id)}
-                  onAddToCart={() => handleAddToCart(product)}
-                  onToggleFavorite={() => user ? toggleFavorite(product.id) : navigate('/auth')}
-                />
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <YangoProductCard
+                    product={{
+                      id: product.id,
+                      title: product.title,
+                      price: product.price,
+                      image: product.images[0] || '/placeholder.svg',
+                      isNew: isNewProduct(product.created_at),
+                      stockCount: product.stock_count || 0
+                    }}
+                    isFavorite={isFavorite(product.id)}
+                    onAddToCart={() => handleAddToCart(product)}
+                    onToggleFavorite={() => user ? toggleFavorite(product.id) : navigate('/auth')}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
