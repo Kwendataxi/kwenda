@@ -45,17 +45,10 @@ export const useVendorOrders = () => {
 
       const vendorProductIds = vendorProducts.map((p: any) => p.id);
 
-      // ✅ PHASE 1: Récupérer les commandes avec JOIN sur buyer (profiles)
+      // ✅ CORRECTION: Récupérer les commandes SANS JOIN
       const { data: orders, error } = await supabase
         .from('marketplace_orders')
-        .select(`
-          *,
-          buyer:profiles!marketplace_orders_buyer_id_fkey(
-            id,
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .in('product_id', vendorProductIds)
         .eq('vendor_confirmation_status', 'awaiting_confirmation')
         .in('status', ['pending', 'pending_payment', 'confirmed'])
@@ -63,17 +56,41 @@ export const useVendorOrders = () => {
 
       if (error) throw error;
 
-      // ✅ PHASE 1: Enrichir avec les données produit SANS transformer la structure
+      // ✅ CORRECTION: Récupérer les buyers séparément
+      const buyerIds = [...new Set(orders?.map(o => o.buyer_id).filter(Boolean))];
+      let buyersMap: Record<string, any> = {};
+
+      if (buyerIds.length > 0) {
+        const { data: buyers } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url')
+          .in('id', buyerIds);
+        
+        if (buyers) {
+          buyersMap = buyers.reduce((acc, buyer) => ({
+            ...acc,
+            [buyer.id]: buyer
+          }), {});
+        }
+      }
+
+      // ✅ CORRECTION: Enrichir avec les données produit ET buyer
       const enrichedOrders = orders?.map((order: any) => {
         const product = vendorProducts.find((p: any) => p.id === order.product_id);
+        const buyer = buyersMap[order.buyer_id];
         
         return {
-          ...order, // ✅ Garder toute la structure DB (unit_price, total_amount, etc.)
+          ...order,
           product: product ? { 
             id: product.id,
             title: product.title,
             price: product.price,
             images: product.images || []
+          } : null,
+          buyer: buyer ? {
+            id: buyer.id,
+            display_name: buyer.display_name,
+            avatar_url: buyer.avatar_url
           } : null
         };
       }) || [];
