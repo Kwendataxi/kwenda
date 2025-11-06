@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Wallet, ShoppingBag, ShoppingCart, Minus, Plus, ShieldCheck, Truck } from 'lucide-react';
+import { Wallet, ShoppingBag, ShoppingCart, Minus, Plus, ShieldCheck, Truck, MessageCircle } from 'lucide-react';
 
 interface PurchaseCardProps {
   productId: string;
@@ -13,6 +13,8 @@ interface PurchaseCardProps {
   onAddToCart: (quantity: number) => void;
   onBuyNow: (quantity: number) => void;
   onTopUp: () => void;
+  onContactSeller?: () => void;
+  sellerName?: string;
 }
 
 export const PurchaseCard: React.FC<PurchaseCardProps> = ({
@@ -22,7 +24,9 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
   walletBalance,
   onAddToCart,
   onBuyNow,
-  onTopUp
+  onTopUp,
+  onContactSeller,
+  sellerName
 }) => {
   const [quantity, setQuantity] = useState(1);
 
@@ -124,6 +128,17 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
                 <ShoppingCart className="h-5 w-5 mr-2" />
                 Ajouter au panier
               </Button>
+              {onContactSeller && (
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="w-full h-12 border-primary/30 hover:bg-primary/5"
+                  onClick={onContactSeller}
+                >
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  Contacter {sellerName || 'le vendeur'}
+                </Button>
+              )}
             </>
           ) : (
             <Button 

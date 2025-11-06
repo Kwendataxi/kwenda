@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ShoppingCart, Minus, Plus, Wallet } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Minus, Plus, Wallet, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface MobileBottomCTAProps {
@@ -10,6 +10,7 @@ interface MobileBottomCTAProps {
   onAddToCart: (quantity: number) => void;
   onBuyNow: (quantity: number) => void;
   onTopUp: () => void;
+  onContactSeller?: () => void;
 }
 
 export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
@@ -18,7 +19,8 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
   walletBalance,
   onAddToCart,
   onBuyNow,
-  onTopUp
+  onTopUp,
+  onContactSeller
 }) => {
   const [quantity, setQuantity] = useState(1);
 
@@ -122,6 +124,20 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
           )}
         </div>
       </motion.div>
+
+      {/* Bouton Chat flottant mobile */}
+      {onContactSeller && (
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={onContactSeller}
+          className="lg:hidden fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl flex items-center justify-center"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 6.5rem)' }}
+        >
+          <MessageCircle className="h-6 w-6" />
+        </motion.button>
+      )}
 
       {/* Spacer pour éviter que le contenu soit caché */}
       <div className="h-32 lg:hidden" />

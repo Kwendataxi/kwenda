@@ -28,7 +28,7 @@ export const SellerInfoCard: React.FC<SellerInfoCardProps> = ({
   const navigate = useNavigate();
 
   const handleVisitShop = () => {
-    navigate(`/marketplace/vendor/${sellerId}/shop`);
+    navigate(`/marketplace/shop/${sellerId}`);
   };
 
   const handleStartChat = () => {

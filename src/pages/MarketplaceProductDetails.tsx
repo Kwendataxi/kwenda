@@ -3,11 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
+import { useChat } from '@/components/chat/ChatProvider';
+import { useUniversalChat } from '@/hooks/useUniversalChat';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { FileText, AlertCircle } from 'lucide-react';
+import { FileText, AlertCircle, Package, DollarSign, MapPin } from 'lucide-react';
+import { TopUpModal } from '@/components/wallet/TopUpModal';
+import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
 
 // Components
 import { MarketplaceProductHeader } from '@/components/marketplace/MarketplaceProductHeader';
@@ -30,9 +34,13 @@ const MarketplaceProductDetails = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { wallet } = useWallet();
+  const { openChat } = useChat();
+  const { createOrFindConversation } = useUniversalChat();
   
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Fetch product data
   const { data: product, isLoading, error } = useMarketplaceProductDetails(productId || '');
@@ -97,7 +105,57 @@ const MarketplaceProductDetails = () => {
   };
 
   const handleTopUp = () => {
-    toast.info('Rechargement du wallet à venir');
+    setShowTopUpModal(true);
+  };
+
+  const handleContactSeller = async () => {
+    if (!user) {
+      toast.error('Veuillez vous connecter pour contacter le vendeur');
+      navigate('/auth/login');
+      return;
+    }
+
+    if (!product) return;
+
+    try {
+      const conversation = await createOrFindConversation(
+        'marketplace',
+        product.seller_id,
+        product.id,
+        `Discussion sur : ${product.title}`
+      );
+
+      if (conversation) {
+        openChat({
+          contextType: 'marketplace',
+          contextId: product.id,
+          participantId: product.seller_id,
+          title: `Chat avec ${(product as any).vendor?.shop_name || 'le vendeur'}`,
+          quickActions: [
+            { 
+              label: "📦 Disponibilité ?", 
+              action: () => {},
+              icon: Package
+            },
+            { 
+              label: "💰 Prix négociable ?", 
+              action: () => {},
+              icon: DollarSign
+            },
+            { 
+              label: "📍 Lieu de retrait ?", 
+              action: () => {},
+              icon: MapPin
+            }
+          ]
+        });
+        
+        toast.success('Chat ouvert avec le vendeur');
+      }
+    } catch (error) {
+      console.error('Erreur ouverture chat:', error);
+      toast.error('Impossible d\'ouvrir le chat');
+    }
   };
 
   const handleRemoveFromCart = (productId: string) => {
@@ -231,6 +289,8 @@ const MarketplaceProductDetails = () => {
                 onAddToCart={handleAddToCart}
                 onBuyNow={handleBuyNow}
                 onTopUp={handleTopUp}
+                onContactSeller={handleContactSeller}
+                sellerName={(product as any).vendor?.shop_name || 'le vendeur'}
               />
             </div>
           </div>
@@ -245,6 +305,7 @@ const MarketplaceProductDetails = () => {
         onAddToCart={handleAddToCart}
         onBuyNow={handleBuyNow}
         onTopUp={handleTopUp}
+        onContactSeller={handleContactSeller}
       />
 
       {/* Shopping Cart */}
@@ -254,6 +315,24 @@ const MarketplaceProductDetails = () => {
         cartItems={cartItems}
         onRemoveItem={handleRemoveFromCart}
         onUpdateQuantity={handleUpdateQuantity}
+      />
+
+      {/* Top Up Modal */}
+      <TopUpModal
+        open={showTopUpModal}
+        onClose={() => setShowTopUpModal(false)}
+        onSuccess={() => {
+          setShowConfetti(true);
+          toast.success('Rechargement effectué avec succès !');
+        }}
+        currency={wallet?.currency || 'CDF'}
+        quickAmounts={[5000, 10000, 25000, 50000, 100000]}
+      />
+
+      {/* Confetti de succès */}
+      <SuccessConfetti 
+        show={showConfetti} 
+        onComplete={() => setShowConfetti(false)} 
       />
     </motion.div>
   );
