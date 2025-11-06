@@ -30,6 +30,7 @@ const ProgrammePartenaire = lazy(() => import('@/pages/partner/ProgrammePartenai
 const CarteCouverture = lazy(() => import('@/pages/locations/CarteCouverture'));
 const UnifiedTracking = lazy(() => import('@/pages/UnifiedTracking'));
 const VendorShop = lazy(() => import('@/pages/VendorShop'));
+const RestaurantPublicPage = lazy(() => import('@/pages/RestaurantPublicPage'));
 
 // Test pages
 const AuthSystemTest = lazy(() => import('@/pages/test/AuthSystemTest'));
@@ -91,6 +92,9 @@ export const PublicRoutes = () => {
       
       {/* ✅ PHASE 1: Route publique pour partage de boutiques */}
       <Route path="/marketplace/shop/:vendorId" element={<VendorShop />} />
+      
+      {/* ✅ Route publique pour partage de restaurants */}
+      <Route path="/food/restaurant/:restaurantId" element={<RestaurantPublicPage />} />
       
       {/* Test Routes (dev) */}
       <Route path="/test/auth-system" element={<AuthSystemTest />} />

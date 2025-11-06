@@ -62,3 +62,12 @@ export const getTrackingUrl = (trackingType: string, trackingId: string): string
 export const getSharedTripUrl = (shareId: string): string => {
   return `${getAppBaseUrl()}/shared-trip/${shareId}`;
 };
+
+/**
+ * Génère une URL complète pour le partage d'un restaurant
+ * @param restaurantId ID du restaurant
+ * @returns URL complète du restaurant
+ */
+export const getRestaurantUrl = (restaurantId: string): string => {
+  return `${getAppBaseUrl()}/food/restaurant/${restaurantId}`;
+};

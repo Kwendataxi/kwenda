@@ -5,10 +5,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat, Store } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat, Store, Share2 } from 'lucide-react';
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
 import { useFoodNotifications } from '@/hooks/useFoodNotifications';
+import { RestaurantShareButtons } from '@/components/food/RestaurantShareButtons';
 
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
@@ -19,11 +21,21 @@ interface RestaurantStats {
   pendingOrders: number;
 }
 
+interface RestaurantProfile {
+  id: string;
+  restaurant_name: string;
+  city: string;
+  rating_average?: number;
+  cuisine_types?: string[];
+}
+
 export default function RestaurantDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [restaurantProfile, setRestaurantProfile] = useState<RestaurantProfile | null>(null);
+  const [menuCount, setMenuCount] = useState(0);
   const [stats, setStats] = useState<RestaurantStats>({
     todayOrders: 0,
     todayRevenue: 0,
@@ -69,6 +81,22 @@ export default function RestaurantDashboard() {
       }
 
       setRestaurantId(profile.id);
+      setRestaurantProfile({
+        id: profile.id,
+        restaurant_name: profile.restaurant_name,
+        city: profile.city,
+        rating_average: profile.rating_average,
+        cuisine_types: profile.cuisine_types
+      });
+
+      // Charger le nombre de plats
+      const { data: menuData } = await supabase
+        .from('food_products')
+        .select('id', { count: 'exact', head: true })
+        .eq('restaurant_id', profile.id)
+        .eq('is_available', true);
+      
+      setMenuCount(menuData?.length || 0);
 
       // Charger les stats du jour
       const today = new Date().toISOString().split('T')[0];
@@ -133,10 +161,32 @@ export default function RestaurantDashboard() {
               <h1 className="text-3xl font-bold">Dashboard Restaurant</h1>
               <p className="text-muted-foreground">Gérez votre restaurant Kwenda Food</p>
             </div>
-            <Button onClick={() => navigate('/restaurant/menu')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter un plat
-            </Button>
+            <div className="flex gap-2">
+              {restaurantProfile && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline">
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Partager mon restaurant
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    <RestaurantShareButtons
+                      restaurantId={restaurantProfile.id}
+                      restaurantName={restaurantProfile.restaurant_name}
+                      menuCount={menuCount}
+                      rating={restaurantProfile.rating_average || 0}
+                      city={restaurantProfile.city}
+                      cuisineType={restaurantProfile.cuisine_types?.[0]}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+              <Button onClick={() => navigate('/restaurant/menu')}>
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter un plat
+              </Button>
+            </div>
           </div>
 
         {/* Message bienvenue nouveaux restaurants */}

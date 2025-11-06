@@ -2,51 +2,58 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2, MessageCircle, Facebook, Copy, Check, Mail, MessageSquare, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getVendorShopUrl } from '@/config/appUrl';
+import { getRestaurantUrl } from '@/config/appUrl';
 
-interface VendorShopShareButtonsProps {
-  vendorId: string;
-  vendorName: string;
-  productCount: number;
+interface RestaurantShareButtonsProps {
+  restaurantId: string;
+  restaurantName: string;
+  menuCount: number;
   rating?: number;
+  city: string;
+  cuisineType?: string;
 }
 
-export const VendorShopShareButtons: React.FC<VendorShopShareButtonsProps> = ({
-  vendorId,
-  vendorName,
-  productCount,
-  rating = 0
+export const RestaurantShareButtons: React.FC<RestaurantShareButtonsProps> = ({
+  restaurantId,
+  restaurantName,
+  menuCount,
+  rating = 0,
+  city,
+  cuisineType
 }) => {
   const { toast } = useToast();
   const [copied, setCopied] = React.useState(false);
   const [messageCopied, setMessageCopied] = React.useState(false);
 
-  const shopUrl = getVendorShopUrl(vendorId);
+  const restaurantUrl = getRestaurantUrl(restaurantId);
   
-  const shareMessage = `💥 ${vendorName} est en ligne sur Kwenda Shop !
+  const shareMessage = `💥 ${restaurantName} est en ligne sur Kwenda Food !
 
-Découvre nos produits, passe ta commande et fais-toi livrer où que tu sois 📦✨
+Découvre notre menu, passe ta commande et fais-toi livrer où que tu sois 🍽️✨
 
-📊 ${productCount} produits disponibles
-⭐ Note ${rating.toFixed(1)}/5
-📍 Kinshasa, RDC
+🍴 ${menuCount} plats disponibles
+${cuisineType ? `👨‍🍳 Cuisine ${cuisineType}\n` : ''}⭐ Note ${rating.toFixed(1)}/5
+📍 ${city}, RDC
 
-👉 Visite la boutique maintenant : ${shopUrl}`;
+👉 Commande maintenant : ${restaurantUrl}`;
   
-  const shortMessage = `Boutique ${vendorName} sur Kwenda Shop - ${shopUrl}`;
+  const shortMessage = `Restaurant ${restaurantName} sur Kwenda Food - ${restaurantUrl}`;
 
   const handleWhatsAppShare = () => {
+    console.log('[RestaurantShare] Shared via WhatsApp:', { restaurantId, restaurantName, timestamp: new Date().toISOString() });
     const url = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
     window.open(url, '_blank');
   };
 
   const handleFacebookShare = () => {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shopUrl)}&quote=${encodeURIComponent(`Boutique ${vendorName} sur Kwenda Shop`)}`;
+    console.log('[RestaurantShare] Shared via Facebook:', { restaurantId, restaurantName });
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(restaurantUrl)}&quote=${encodeURIComponent(`Restaurant ${restaurantName} sur Kwenda Food`)}`;
     window.open(url, '_blank');
   };
 
   const handleTelegram = () => {
-    const url = `https://t.me/share/url?url=${encodeURIComponent(shopUrl)}&text=${encodeURIComponent(shareMessage)}`;
+    console.log('[RestaurantShare] Shared via Telegram:', { restaurantId, restaurantName });
+    const url = `https://t.me/share/url?url=${encodeURIComponent(restaurantUrl)}&text=${encodeURIComponent(shareMessage)}`;
     window.open(url, '_blank');
   };
 
@@ -56,7 +63,7 @@ Découvre nos produits, passe ta commande et fais-toi livrer où que tu sois �
   };
 
   const handleEmail = () => {
-    const subject = `Boutique ${vendorName} sur Kwenda Shop`;
+    const subject = `Restaurant ${restaurantName} sur Kwenda Food`;
     const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareMessage)}`;
     window.open(url, '_self');
   };
@@ -68,11 +75,11 @@ Découvre nos produits, passe ta commande et fais-toi livrer où que tu sois �
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(shopUrl);
+      await navigator.clipboard.writeText(restaurantUrl);
       setCopied(true);
       toast({
         title: 'Lien copié !',
-        description: 'Le lien de votre boutique a été copié.'
+        description: 'Le lien de votre restaurant a été copié.'
       });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -106,9 +113,9 @@ Découvre nos produits, passe ta commande et fais-toi livrer où que tu sois �
     if (navigator.share && window.isSecureContext) {
       try {
         await navigator.share({
-          title: `Boutique ${vendorName}`,
+          title: `Restaurant ${restaurantName}`,
           text: shareMessage,
-          url: shopUrl
+          url: restaurantUrl
         });
       } catch (error) {
         // User cancelled

@@ -23,7 +23,15 @@ export const VendorSimpleShareButtons: React.FC<VendorSimpleShareButtonsProps> =
   const shopUrl = getVendorShopUrl(vendorId);
   
   // Message enrichi avec emojis
-  const shareMessage = `🏪 Découvre ma boutique sur Kwenda Shop !\n\n📍 ${vendorName}\n🛍️ ${productCount} produits disponibles\n⭐ Note ${rating.toFixed(1)}/5\n📍 Kinshasa, RDC\n\n👉 ${shopUrl}`;
+  const shareMessage = `💥 ${vendorName} est en ligne sur Kwenda Shop !
+
+Découvre nos produits, passe ta commande et fais-toi livrer où que tu sois 📦✨
+
+📊 ${productCount} produits disponibles
+⭐ Note ${rating.toFixed(1)}/5
+📍 Kinshasa, RDC
+
+👉 Visite la boutique maintenant : ${shopUrl}`;
 
   const handleWhatsAppShare = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
