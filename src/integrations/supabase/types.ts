@@ -8490,6 +8490,35 @@ export type Database = {
           },
         ]
       }
+      restaurant_followers: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          id: string
+          restaurant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          id?: string
+          restaurant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          id?: string
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_followers_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_inventory: {
         Row: {
           created_at: string

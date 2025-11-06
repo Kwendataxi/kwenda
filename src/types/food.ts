@@ -1,6 +1,9 @@
 export interface Restaurant {
   id: string;
+  user_id: string;
+  name: string;
   restaurant_name: string;
+  cuisine_type?: string;
   cuisine_types?: string[];
   logo_url?: string;
   banner_url?: string;
@@ -9,9 +12,12 @@ export interface Restaurant {
   rating_count?: number;
   average_preparation_time?: number;
   minimum_order_amount?: number;
+  delivery_available?: boolean;
+  takeaway_available?: boolean;
   is_active: boolean;
   verification_status: string;
   city: string;
+  phone?: string;
   phone_number: string;
   address: string;
 }

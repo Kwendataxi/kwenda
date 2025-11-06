@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRestaurants } from '@/hooks/useRestaurants';
 import { supabase } from '@/integrations/supabase/client';
 import { RestaurantList } from './RestaurantList';
-import { RestaurantMenu } from './RestaurantMenu';
+import { RestaurantStoreView } from './RestaurantStoreView';
 import { FoodCheckout } from './FoodCheckout';
 import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { toast } from 'sonner';
@@ -150,13 +150,14 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         )}
 
         {step === 'menu' && selectedRestaurant && (
-          <RestaurantMenu
+          <RestaurantStoreView
             restaurant={selectedRestaurant}
             cart={cart}
             onAddToCart={handleAddToCart}
             onUpdateCartItem={handleUpdateCartItem}
             onRemoveFromCart={handleRemoveFromCart}
             onProceedToCheckout={() => setStep('checkout')}
+            onBack={() => setStep('restaurants')}
           />
         )}
 
