@@ -228,15 +228,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     } catch (error) {
       console.error('Error loading products:', error);
       
-      // Set empty products on error instead of showing error toast
+      // Set empty products on error
       setProducts([]);
       
-      // Only show toast for network errors, not empty results
-      if (error instanceof Error && error.message !== 'No rows found') {
+      // Show explicit error toast for critical errors only
+      if (error instanceof Error && !error.message.includes('No rows')) {
         toast({
-          title: t('common.error'),
-          description: 'Impossible de charger les produits. Veuillez réessayer.',
+          title: "Erreur de chargement",
+          description: "Impossible de charger les produits. Vérifiez votre connexion internet.",
           variant: 'destructive',
+          duration: 5000,
         });
       }
     } finally {

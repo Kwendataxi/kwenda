@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentCity } from '@/types/unifiedLocation';
 
@@ -63,8 +63,8 @@ export const useGooglePlacesAutocomplete = (
     debounceMs = 300
   } = options;
 
-  // Detect current city for location bias if not provided
-  const getCurrentLocationBias = useCallback(() => {
+  // ✅ FIX: Use useMemo instead of useCallback to stabilize locationBias
+  const locationBias = useMemo(() => {
     if (location) return location;
     
     const currentCity = getCurrentCity();
@@ -99,8 +99,6 @@ export const useGooglePlacesAutocomplete = (
 
       try {
         abortControllerRef.current = new AbortController();
-        
-        const locationBias = getCurrentLocationBias();
         
         const { data, error: supabaseError } = await supabase.functions.invoke(
           'google-places-autocomplete',
@@ -143,7 +141,7 @@ export const useGooglePlacesAutocomplete = (
         setIsLoading(false);
       }
     }, debounceMs);
-  }, [language, radius, types, sessionToken, getCurrentLocationBias, debounceMs]);
+  }, [language, radius, types, sessionToken, locationBias, debounceMs]);
 
   const getPlaceDetails = useCallback(async (placeId: string): Promise<PlaceDetails | null> => {
     try {

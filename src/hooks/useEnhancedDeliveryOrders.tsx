@@ -563,9 +563,9 @@ export const useEnhancedDeliveryOrders = () => {
         deliveryType: mode
       };
 
-      console.log('📡 [CLIENT] Appel Edge Function delivery-dispatcher:', dispatchPayload);
+      console.log('📡 [CLIENT] Appel Edge Function notify-nearby-drivers:', dispatchPayload);
 
-      const { data, error } = await supabase.functions.invoke('delivery-dispatcher', {
+      const { data, error } = await supabase.functions.invoke('notify-nearby-drivers', {
         body: dispatchPayload
       });
 
