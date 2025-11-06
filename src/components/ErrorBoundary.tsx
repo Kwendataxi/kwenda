@@ -20,11 +20,14 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    // Auto-reload silencieux pour les erreurs de hooks React
+    // Pour les erreurs de hooks, afficher un message personnalisé (pas d'auto-reload = boucle infinie)
     if (error.message?.includes('hooks') || error.message?.includes('Rendered more')) {
-      console.warn('🔄 [ErrorBoundary] Hooks error detected, auto-reloading...', error.message);
-      setTimeout(() => window.location.reload(), 100);
-      return { hasError: false, error: null, errorInfo: null };
+      console.error('🔥 [ErrorBoundary] Hooks error detected:', error.message);
+      return { 
+        hasError: true, 
+        error: new Error('Erreur de chargement des services. Veuillez recharger la page.'), 
+        errorInfo: null 
+      };
     }
     return { hasError: true, error, errorInfo: null };
   }

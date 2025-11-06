@@ -21,46 +21,45 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
   const { t } = useLanguage();
   const { configurations, loading } = useServiceConfigurations();
   
-  // Mapping des icônes et gradients par catégorie
-  const iconMap = useMemo(() => ({
-    taxi: Car,
-    delivery: Truck,
-    rental: Car,
-    marketplace: ShoppingBag,
-    food: Utensils,
-    more: MoreHorizontal
-  }), []);
-  
-  const gradientMap = useMemo(() => ({
-    taxi: 'from-congo-red-electric via-congo-red to-congo-red-vibrant',
-    delivery: 'from-congo-yellow-electric via-congo-yellow to-congo-yellow-vibrant',
-    rental: 'from-congo-green-electric via-congo-green to-congo-green-vibrant',
-    marketplace: 'from-secondary via-accent to-secondary-light',
-    food: 'from-orange-500 via-red-500 to-orange-600',
-    more: 'from-gray-500 via-gray-600 to-gray-700'
-  }), []);
-
-  const nameMap = useMemo(() => ({
-    taxi: 'Taxi',
-    delivery: t('home.services.delivery'),
-    rental: t('home.services.rental'),
-    marketplace: t('home.services.shopping'),
-    food: t('home.services.food'),
-    more: t('home.services.more')
-  }), [t]);
-
-  // Charger les services dynamiquement depuis la DB
+  // Charger les services dynamiquement depuis la DB avec maps intégrés (évite dépendances circulaires)
   const mainServices = useMemo(() => {
-    // Retourner toujours le même nombre d'éléments (placeholders pendant le chargement)
-    // Ceci évite l'erreur "Rendered more hooks than during the previous render"
+    // Maps locaux (pas de dépendances externes)
+    const icons = {
+      taxi: Car,
+      delivery: Truck,
+      rental: Car,
+      marketplace: ShoppingBag,
+      food: Utensils,
+      more: MoreHorizontal
+    };
+    
+    const gradients = {
+      taxi: 'from-congo-red-electric via-congo-red to-congo-red-vibrant',
+      delivery: 'from-congo-yellow-electric via-congo-yellow to-congo-yellow-vibrant',
+      rental: 'from-congo-green-electric via-congo-green to-congo-green-vibrant',
+      marketplace: 'from-secondary via-accent to-secondary-light',
+      food: 'from-orange-500 via-red-500 to-orange-600',
+      more: 'from-gray-500 via-gray-600 to-gray-700'
+    };
+    
+    const names = {
+      taxi: 'Taxi',
+      delivery: t('home.services.delivery'),
+      rental: t('home.services.rental'),
+      marketplace: t('home.services.shopping'),
+      food: t('home.services.food'),
+      more: t('home.services.more')
+    };
+    
+    // Retourner toujours 6 éléments (placeholders si loading) pour éviter l'erreur de hooks
     if (loading) {
       return [
-        { id: 'transport-loading', name: 'Taxi', icon: Car, gradient: 'from-congo-red-electric via-congo-red to-congo-red-vibrant', available: false, isLoading: true },
-        { id: 'delivery-loading', name: t('home.services.delivery'), icon: Truck, gradient: 'from-congo-yellow-electric via-congo-yellow to-congo-yellow-vibrant', available: false, isLoading: true },
-        { id: 'rental-loading', name: t('home.services.rental'), icon: Car, gradient: 'from-congo-green-electric via-congo-green to-congo-green-vibrant', available: false, isLoading: true },
-        { id: 'marketplace-loading', name: t('home.services.shopping'), icon: ShoppingBag, gradient: 'from-secondary via-accent to-secondary-light', available: false, isLoading: true },
-        { id: 'food-loading', name: t('home.services.food'), icon: Utensils, gradient: 'from-orange-500 via-red-500 to-orange-600', available: false, isLoading: true },
-        { id: 'more-loading', name: t('home.services.more'), icon: MoreHorizontal, gradient: 'from-gray-500 via-gray-600 to-gray-700', available: false, isLoading: true },
+        { id: 'transport-loading', name: names.taxi, icon: icons.taxi, gradient: gradients.taxi, available: false, isLoading: true },
+        { id: 'delivery-loading', name: names.delivery, icon: icons.delivery, gradient: gradients.delivery, available: false, isLoading: true },
+        { id: 'rental-loading', name: names.rental, icon: icons.rental, gradient: gradients.rental, available: false, isLoading: true },
+        { id: 'marketplace-loading', name: names.marketplace, icon: icons.marketplace, gradient: gradients.marketplace, available: false, isLoading: true },
+        { id: 'food-loading', name: names.food, icon: icons.food, gradient: gradients.food, available: false, isLoading: true },
+        { id: 'more-loading', name: names.more, icon: icons.more, gradient: gradients.more, available: false, isLoading: true },
       ];
     }
     
@@ -79,10 +78,11 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
       
       return {
         id: serviceId,
-        name: category === 'taxi' ? 'Taxi' : (category === 'food' ? 'Food' : (service.display_name || nameMap[category])),
-        icon: iconMap[category],
-        gradient: gradientMap[category],
-        available: service.is_active
+        name: category === 'taxi' ? 'Taxi' : (category === 'food' ? 'Food' : (service.display_name || names[category])),
+        icon: icons[category],
+        gradient: gradients[category],
+        available: service.is_active,
+        isLoading: false
       };
     }).filter(Boolean) as Array<{
       id: string;
@@ -90,33 +90,21 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
       icon: any;
       gradient: string;
       available: boolean;
+      isLoading: boolean;
     }>;
 
     // Ajouter le service "Plus" à la fin
     return [...servicesList, {
       id: 'more',
-      name: t('home.services.more'),
-      icon: MoreHorizontal,
+      name: names.more,
+      icon: icons.more,
       gradient: 'linear-gradient(135deg, #6B7280 0%, #374151 100%)',
-      available: true
+      available: true,
+      isLoading: false
     }];
-  }, [configurations, loading, t, iconMap, gradientMap, nameMap]);
+  }, [configurations, loading, t]);
 
-  // Skeleton loader pendant le chargement
-  if (loading) {
-    return (
-      <div className="px-4">
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex flex-col items-center gap-2 animate-fade-in">
-              <Skeleton className="w-16 h-16 md:w-18 md:h-18 rounded-2xl" />
-              <Skeleton className="h-3 w-14" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // ✅ Plus besoin de skeleton loader séparé - useMemo retourne déjà des placeholders
 
   // Couleurs plates modernes pour chaque service
   const serviceColors = useMemo(() => ({
@@ -138,8 +126,11 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
           return (
             <motion.button
               key={service.id}
-              onClick={() => onServiceSelect(service.id)}
-              className="relative flex flex-col items-center gap-3 group"
+              onClick={() => !service.isLoading && onServiceSelect(service.id)}
+              className={cn(
+                "relative flex flex-col items-center gap-3 group",
+                service.isLoading && "pointer-events-none opacity-60"
+              )}
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ 
@@ -153,7 +144,10 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
             >
               {/* Icon container - design doux amélioré */}
               <div
-                className="relative flex items-center justify-center w-24 h-24 rounded-[32px] shadow-[0_4px_12px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.12),0_12px_32px_rgba(0,0,0,0.16)] transition-all duration-400 ease-out will-change-transform"
+                className={cn(
+                  "relative flex items-center justify-center w-24 h-24 rounded-[32px] shadow-[0_4px_12px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.12),0_12px_32px_rgba(0,0,0,0.16)] transition-all duration-400 ease-out will-change-transform",
+                  service.isLoading && "animate-pulse"
+                )}
                 style={{
                   background: serviceColors[service.id] || serviceColors.transport,
                   boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.15)'
