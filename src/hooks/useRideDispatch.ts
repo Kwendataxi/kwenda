@@ -43,7 +43,7 @@ export const useRideDispatch = () => {
   const createAndDispatchRide = async (bookingData: BookingData) => {
     try {
       setIsSearching(true);
-      setSearchProgress({ radius: 5, driversFound: 0, status: 'searching' });
+      setSearchProgress({ radius: 10, driversFound: 0, status: 'searching' });
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -51,7 +51,12 @@ export const useRideDispatch = () => {
         throw new Error('User not authenticated');
       }
 
-      console.log('🚗 [RideDispatch] Creating booking...');
+      console.log('🚗 [RideDispatch] Creating booking...', {
+        pickup: bookingData.pickupLocation,
+        destination: bookingData.destination,
+        vehicleType: bookingData.vehicleType,
+        city: bookingData.city || 'Kinshasa'
+      });
 
       // 1. Créer le booking dans transport_bookings
       const { data: booking, error: bookingError } = await supabase
@@ -87,7 +92,11 @@ export const useRideDispatch = () => {
       console.log('📡 [RideDispatch] Dispatch result:', dispatchResult);
 
       if (dispatchResult.success && dispatchResult.driver) {
-        console.log('✅ [RideDispatch] Driver assigned:', dispatchResult.driver.driver_id);
+        console.log('✅ [RideDispatch] Driver assigned successfully:', {
+          driverId: dispatchResult.driver.driver_id,
+          distance: `${dispatchResult.driver.distance_km}km`,
+          score: dispatchResult.driver.score
+        });
         
         setSearchProgress({
           radius: 10,
@@ -95,19 +104,27 @@ export const useRideDispatch = () => {
           status: 'found'
         });
 
+        setAssignedDriver(dispatchResult.driver);
+
         return {
           success: true,
           booking,
           driver: dispatchResult.driver,
-          message: 'Chauffeur trouvé avec succès'
+          message: `Chauffeur trouvé à ${dispatchResult.driver.distance_km?.toFixed(1) || '~'}km`
         };
       } else {
+        console.warn('⚠️ [RideDispatch] No driver found:', {
+          message: dispatchResult.message,
+          driversScanned: dispatchResult.driversFound || 0,
+          lastRadius: dispatchResult.searchRadius || 30
+        });
+        
         setSearchProgress(prev => ({ ...prev, status: 'failed' }));
         
         return {
           success: false,
           booking,
-          message: dispatchResult.message || 'Aucun chauffeur disponible'
+          message: dispatchResult.message || 'Aucun chauffeur disponible dans un rayon de 30km. Veuillez réessayer dans quelques minutes.'
         };
       }
     } catch (error) {
@@ -186,17 +203,23 @@ export const useRideDispatch = () => {
     };
   };
 
-  // ⚡ PHASE 3: Smart Retry avec Backoff Exponentiel
+  // ⚡ PHASE 4: Smart Retry avec rayon élargi et logs détaillés
   const dispatchWithRetry = async (
     booking: any,
     bookingData: BookingData,
     attempt: number = 1
   ): Promise<any> => {
     const maxAttempts = 3;
-    const radius = 5 + (attempt - 1) * 5; // 5km, 10km, 15km
+    const radius = 10 + (attempt - 1) * 10; // 10km, 20km, 30km (augmenté pour meilleur matching)
     const priority = attempt >= 2 ? 'high' : 'normal';
     
-    console.log(`🔄 [RideDispatch] Dispatch attempt ${attempt}/${maxAttempts} (radius: ${radius}km, priority: ${priority})`);
+    console.log(`🔄 [RideDispatch] Dispatch attempt ${attempt}/${maxAttempts}`, {
+      radius: `${radius}km`,
+      priority,
+      vehicleType: bookingData.vehicleType,
+      city: bookingData.city || 'Kinshasa',
+      coordinates: bookingData.pickupCoordinates
+    });
 
     try {
       const result = await callEdgeFunction('ride-dispatcher', {
@@ -212,12 +235,17 @@ export const useRideDispatch = () => {
 
       // Succès ou dernière tentative
       if (result.success || attempt >= maxAttempts) {
+        console.log(`${result.success ? '✅' : '❌'} [RideDispatch] Final result:`, {
+          success: result.success,
+          attempt,
+          driversFound: result.driversFound || 0
+        });
         return result;
       }
 
       // Échec mais tentatives restantes - Backoff exponentiel
       const backoffTime = 2000 * attempt; // 2s, 4s, 6s
-      console.log(`⏳ [RideDispatch] Retry in ${backoffTime}ms...`);
+      console.log(`⏳ [RideDispatch] No drivers at ${radius}km. Expanding search... (retry in ${backoffTime}ms)`);
       
       setSearchProgress({
         radius,
