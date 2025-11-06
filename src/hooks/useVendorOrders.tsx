@@ -63,13 +63,13 @@ export const useVendorOrders = () => {
       if (buyerIds.length > 0) {
         const { data: buyers } = await supabase
           .from('profiles')
-          .select('id, display_name, avatar_url')
-          .in('id', buyerIds);
+          .select('user_id, display_name, avatar_url, phone_number')
+          .in('user_id', buyerIds);
         
         if (buyers) {
           buyersMap = buyers.reduce((acc, buyer) => ({
             ...acc,
-            [buyer.id]: buyer
+            [buyer.user_id]: buyer
           }), {});
         }
       }
@@ -88,9 +88,10 @@ export const useVendorOrders = () => {
             images: product.images || []
           } : null,
           buyer: buyer ? {
-            id: buyer.id,
+            id: buyer.user_id,
             display_name: buyer.display_name,
-            avatar_url: buyer.avatar_url
+            avatar_url: buyer.avatar_url,
+            phone_number: buyer.phone_number
           } : null
         };
       }) || [];

@@ -7,6 +7,7 @@ import { Star, Package, Clock, CheckCircle, Truck, MessageSquare, MapPin } from 
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { useUniversalChat } from '@/hooks/useUniversalChat';
+import { useChat } from '@/components/chat/ChatProvider';
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { RatingDialog } from '@/components/rating/RatingDialog';
@@ -17,6 +18,7 @@ export const ClientMarketplaceOrders: React.FC = () => {
   const { toast } = useToast();
   const { orders, loading, completeOrder } = useMarketplaceOrders();
   const { createOrFindConversation } = useUniversalChat();
+  const { openChat } = useChat();
   
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
@@ -58,27 +60,39 @@ export const ClientMarketplaceOrders: React.FC = () => {
     }
   };
 
-  const handleStartChat = async (productId: string, sellerId: string) => {
+  const handleStartChat = async (productId: string, sellerId: string, productTitle: string) => {
     try {
       const conversation = await createOrFindConversation(
         'marketplace',
         sellerId,
         productId,
-        'Discussion marketplace'
+        `Discussion: ${productTitle}`
       );
       
       if (conversation) {
+        openChat({
+          contextType: 'marketplace',
+          contextId: productId,
+          participantId: sellerId,
+          title: `💬 Chat avec le vendeur`,
+          quickActions: [
+            { label: "Où est ma commande ?", action: () => {} },
+            { label: "Changer l'adresse", action: () => {} },
+            { label: "Annuler la commande", action: () => {} }
+          ]
+        });
+
         toast({
           title: '💬 Chat ouvert',
-          description: 'Vous pouvez maintenant discuter avec le vendeur',
+          description: 'Vous pouvez maintenant discuter avec le vendeur'
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur ouverture chat:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible d\'ouvrir le chat',
-        variant: 'destructive',
+        description: error.message || 'Impossible d\'ouvrir le chat',
+        variant: 'destructive'
       });
     }
   };
@@ -219,7 +233,7 @@ export const ClientMarketplaceOrders: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleStartChat(order.product_id, order.seller_id)}
+                      onClick={() => handleStartChat(order.product_id, order.seller_id, order.product?.title || 'Produit')}
                     >
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Contacter le vendeur

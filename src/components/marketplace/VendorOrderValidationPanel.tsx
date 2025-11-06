@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUniversalChat } from '@/hooks/useUniversalChat';
+import { useChat } from '@/components/chat/ChatProvider';
 import { useToast } from '@/hooks/use-toast';
 import { MessageSquare, Package, MapPin, Calculator } from 'lucide-react';
 import { DeliveryMapModal } from './DeliveryMapModal';
@@ -21,6 +22,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
   const { user } = useAuth();
   const { toast } = useToast();
   const { createOrFindConversation } = useUniversalChat();
+  const { openChat } = useChat();
   const [validatingOrder, setValidatingOrder] = useState<string | null>(null);
   const [deliveryFees, setDeliveryFees] = useState<Record<string, number>>({});
   const [deliveryMethods, setDeliveryMethods] = useState<Record<string, string>>({});
@@ -115,16 +117,28 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
       );
       
       if (conversation) {
+        openChat({
+          contextType: 'marketplace',
+          contextId: order.product_id,
+          participantId: order.buyer_id,
+          title: `💬 Chat avec ${order.buyer?.display_name || order.buyer?.phone_number || 'le client'}`,
+          quickActions: [
+            { label: "Commande prête", action: () => {} },
+            { label: "Retard de préparation", action: () => {} },
+            { label: "Produit manquant", action: () => {} }
+          ]
+        });
+
         toast({
           title: "💬 Chat ouvert",
-          description: `Vous pouvez maintenant discuter avec ${order.buyer?.display_name || 'le client'}`,
+          description: `Conversation avec ${order.buyer?.display_name || 'le client'}`,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur ouverture chat:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'ouvrir le chat",
+        description: error.message || "Impossible d'ouvrir le chat",
         variant: "destructive",
       });
     }
@@ -153,7 +167,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
                   <Badge variant="outline">Nouvelle commande</Badge>
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Client: {order.buyer?.display_name || order.buyer_contact || order.buyer_email || 'Client'} • Quantité: {order.quantity}
+                  Client: {order.buyer?.display_name || order.buyer?.phone_number || order.buyer_contact || 'Client'} • Quantité: {order.quantity}
                 </p>
               </div>
               <div className="text-right">
