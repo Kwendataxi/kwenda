@@ -9,7 +9,8 @@ import { isSpecificBuild, isClientApp } from '@/config/appConfig';
 const ClientApp = lazy(() => import('@/pages/ClientApp'));
 const Food = lazy(() => import('@/pages/Food'));
 const TransportPage = lazy(() => import('@/pages/Transport'));
-const Marketplace = lazy(() => import('@/pages/marketplace/Marketplace'));
+const DeliveryPage = lazy(() => import('@/pages/Delivery'));
+const Marketplace = lazy(() => import('@/pages/Marketplace'));
 const VendorShop = lazy(() => import('@/pages/VendorShop'));
 const ModernVendorDashboard = lazy(() => import('@/pages/ModernVendorDashboard'));
 const VendorRegistration = lazy(() => import('@/pages/VendorRegistration'));
@@ -58,6 +59,18 @@ export const ClientRoutes = () => {
           <ServiceGuard serviceCategory="taxi">
             <ProtectedRoute>
               <TransportPage />
+            </ProtectedRoute>
+          </ServiceGuard>
+        } 
+      />
+
+      {/* Delivery */}
+      <Route 
+        path="/delivery" 
+        element={
+          <ServiceGuard serviceCategory="delivery">
+            <ProtectedRoute>
+              <DeliveryPage />
             </ProtectedRoute>
           </ServiceGuard>
         } 
