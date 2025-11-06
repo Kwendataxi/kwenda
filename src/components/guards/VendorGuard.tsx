@@ -21,7 +21,7 @@ export const VendorGuard = ({ children }: { children: React.ReactNode }) => {
     }
 
     // ✅ Vérification SÉCURISÉE via database (pas localStorage!)
-    const { data, error } = await supabase
+    const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
@@ -29,8 +29,21 @@ export const VendorGuard = ({ children }: { children: React.ReactNode }) => {
       .eq('is_active', true)
       .maybeSingle();
 
-    if (error || !data) {
+    if (roleError || !roleData) {
       navigate('/marketplace'); // Rediriger vers marketplace client
+      return;
+    }
+
+    // ✅ Vérifier que le profil vendeur existe
+    const { data: profileData, error: profileError } = await supabase
+      .from('vendor_profiles')
+      .select('id, shop_name')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (profileError || !profileData) {
+      console.error('Profil vendeur manquant:', profileError);
+      navigate('/vendeur/inscription');
       return;
     }
 

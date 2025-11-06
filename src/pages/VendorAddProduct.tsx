@@ -74,7 +74,7 @@ export default function VendorAddProduct() {
         description: "Veuillez compléter votre profil vendeur avant d'ajouter des produits.",
         variant: "destructive"
       });
-      navigate('/vendor-registration');
+      navigate('/vendeur/inscription');
       return false;
     }
 
@@ -206,6 +206,11 @@ export default function VendorAddProduct() {
       
       if (error.message?.includes('timeout') || error.message?.includes('Connexion')) {
         errorMessage = "Délai d'attente dépassé. Vérifiez votre connexion internet.";
+      } else if (error.message?.includes('fk_marketplace_products_seller') || 
+                 error.message?.includes('vendor_profiles') ||
+                 error.message?.includes('foreign key')) {
+        errorMessage = "⚠️ Profil vendeur incomplet. Veuillez compléter votre profil.";
+        navigate('/vendeur/inscription');
       } else if (error.message?.includes('permission') || error.message?.includes('policy')) {
         errorMessage = "Vous n'avez pas les permissions pour publier un produit.";
       } else if (error.message?.includes('bucket') || error.message?.includes('storage')) {

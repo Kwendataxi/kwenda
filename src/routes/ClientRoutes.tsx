@@ -14,7 +14,7 @@ const Marketplace = lazy(() => import('@/pages/Marketplace'));
 const MarketplaceProductDetails = lazy(() => import('@/pages/MarketplaceProductDetails'));
 const VendorShop = lazy(() => import('@/pages/VendorShop'));
 const ModernVendorDashboard = lazy(() => import('@/pages/ModernVendorDashboard'));
-const VendorRegistration = lazy(() => import('@/pages/VendorRegistration'));
+const VendorSetupWizard = lazy(() => import('@/components/vendor/VendorSetupWizard'));
 const VendorAddProduct = lazy(() => import('@/pages/VendorAddProduct'));
 const VendorEditProduct = lazy(() => import('@/pages/VendorEditProduct'));
 const VendorChatConversation = lazy(() => import('@/pages/VendorChatConversation'));
@@ -111,7 +111,7 @@ export const ClientRoutes = () => {
         path="/vendeur/inscription" 
         element={
           <ProtectedRoute>
-            <VendorRegistration />
+            <VendorSetupWizard />
           </ProtectedRoute>
         } 
       />
