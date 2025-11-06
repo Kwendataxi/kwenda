@@ -19,7 +19,7 @@ interface ModernPartnerCardProps {
   partnerId: string;
   partnerName: string;
   partnerAvatar: string | null;
-  tier: 'free' | 'basic' | 'pro' | 'business' | 'enterprise' | 'gold' | 'platinum';
+  tier: string;
   vehicleCount: number;
   avgRating: number;
   ratingCount: number;
@@ -63,7 +63,7 @@ export const ModernPartnerCard: React.FC<ModernPartnerCardProps> = ({
                 className="w-16 h-16 rounded-xl object-cover ring-2 ring-white shadow-lg"
               />
               <div className="absolute -bottom-1 -right-1">
-                <PartnerTierBadge tier={tier} size="sm" />
+                <PartnerTierBadge tier={tier} className="text-xs scale-90" />
               </div>
             </div>
 

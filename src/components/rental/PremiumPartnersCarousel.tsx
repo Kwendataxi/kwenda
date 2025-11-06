@@ -16,7 +16,7 @@ interface PremiumPartner {
   partnerId: string;
   partnerName: string;
   partnerAvatar: string | null;
-  tier: 'gold' | 'platinum';
+  tier: string;
   vehicleCount: number;
   avgRating: number;
   topVehicles: Array<{ id: string; images: string[] }>;
