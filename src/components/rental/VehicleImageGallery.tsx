@@ -30,14 +30,14 @@ export const VehicleImageGallery: React.FC<VehicleImageGalleryProps> = ({
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Image principale avec navigation */}
-        <div className="relative rounded-2xl overflow-hidden bg-muted group">
+      <div className="space-y-3 sm:space-y-4">
+        {/* Image principale avec navigation - responsive aspect ratio */}
+        <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-muted group">
           <motion.img
             key={currentIndex}
             src={images[currentIndex]}
             alt={`${vehicleName} - Image ${currentIndex + 1}`}
-            className="w-full h-[400px] object-cover"
+            className="w-full aspect-[16/10] sm:aspect-[16/9] object-cover"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
@@ -78,16 +78,16 @@ export const VehicleImageGallery: React.FC<VehicleImageGalleryProps> = ({
           </div>
         </div>
 
-        {/* Miniatures */}
+        {/* Miniatures - plus grandes sur mobile */}
         {images.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 px-1 -mx-1 snap-x snap-mandatory scrollbar-hide">
             {images.map((image, index) => (
               <button
                 key={index}
                 onClick={() => handleThumbnailClick(index)}
-                className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border-2 transition-all snap-center ${
                   index === currentIndex
-                    ? 'border-primary ring-2 ring-primary/20'
+                    ? 'border-primary ring-2 ring-primary/20 scale-105'
                     : 'border-transparent hover:border-muted-foreground/30'
                 }`}
               >

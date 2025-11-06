@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Users, Settings, Fuel, Gauge, MapPin, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -50,21 +51,28 @@ export const VehicleSpecifications: React.FC<VehicleSpecificationsProps> = ({ ve
     <div className="space-y-4">
       <h3 className="font-bold text-lg">Caractéristiques</h3>
       
-      {/* Grille des spécifications */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {/* Grille des spécifications - modernisée */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {specs.map((spec, index) => {
           const IconComponent = spec.icon;
           return (
-            <div
+            <motion.div
               key={index}
-              className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
+              className="group p-4 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 hover:from-primary/10 hover:to-primary/5 transition-all duration-300 cursor-default"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <IconComponent className={`h-4 w-4 ${spec.color}`} />
-                <p className="text-xs text-muted-foreground">{spec.label}</p>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-background group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                  <IconComponent className={`h-5 w-5 ${spec.color}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground mb-0.5">{spec.label}</p>
+                  <p className="text-sm font-bold line-clamp-1">{spec.value}</p>
+                </div>
               </div>
-              <p className="text-sm font-semibold">{spec.value}</p>
-            </div>
+            </motion.div>
           );
         })}
       </div>
