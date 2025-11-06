@@ -95,14 +95,7 @@ export const ClientRoutes = () => {
           </ServiceGuard>
         } 
       />
-      <Route 
-        path="/marketplace/shop/:vendorId" 
-        element={
-          <ServiceGuard serviceCategory="marketplace">
-            <VendorShop />
-          </ServiceGuard>
-        } 
-      />
+      {/* ✅ PHASE 3: Route supprimée (maintenant publique dans PublicRoutes) */}
 
       {/* Vendeur */}
       <Route 

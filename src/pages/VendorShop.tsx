@@ -68,13 +68,21 @@ const VendorShop: React.FC = () => {
 
   useEffect(() => {
     if (vendorId) {
+      // ✅ PHASE 6: Logging pour monitoring
+      console.log('[VendorShop] Opening shared shop:', {
+        vendorId,
+        isAuthenticated: !!user,
+        referrer: document.referrer,
+        timestamp: new Date().toISOString()
+      });
+
       // Validation UUID avant chargement
       if (!validateVendorIdOrRedirect(vendorId, navigate)) {
         return;
       }
       loadVendorData();
     }
-  }, [vendorId, navigate]);
+  }, [vendorId, navigate, user]);
 
   const loadVendorData = async () => {
     setLoading(true);
@@ -182,11 +190,22 @@ const VendorShop: React.FC = () => {
 
   const handleSubscribe = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    
+    // ✅ PHASE 2: CTA pour visiteurs non connectés
     if (!user) {
       toast({
-        variant: 'destructive',
-        title: 'Connectez-vous',
-        description: 'Vous devez être connecté pour vous abonner.'
+        title: '🔒 Connectez-vous',
+        description: 'Créez un compte pour vous abonner à cette boutique.',
+        action: (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate('/auth')}
+            className="mt-2"
+          >
+            Se connecter
+          </Button>
+        )
       });
       return;
     }
@@ -245,6 +264,25 @@ const VendorShop: React.FC = () => {
   };
 
   const handleAddToCart = (product: Product) => {
+    // ✅ PHASE 2: Vérifier si l'utilisateur est connecté
+    if (!user) {
+      toast({
+        title: '🔒 Connectez-vous',
+        description: 'Créez un compte pour ajouter des produits au panier.',
+        action: (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate('/auth')}
+            className="mt-2"
+          >
+            Se connecter
+          </Button>
+        )
+      });
+      return;
+    }
+
     if (product.stock_count === 0) {
       toast({
         variant: 'destructive',
@@ -420,16 +458,28 @@ const VendorShop: React.FC = () => {
           </div>
         </div>
 
-        {/* Bouton S'abonner */}
-        <Button
-          variant={isSubscribed ? "outline" : "default"}
-          size="lg"
-          className="w-full"
-          onClick={handleSubscribe}
-        >
-          <Heart className={`h-5 w-5 mr-2 ${isSubscribed ? 'fill-current' : ''}`} />
-          {isSubscribed ? 'Abonné ✓' : 'S\'abonner'}
-        </Button>
+        {/* ✅ PHASE 2: Bouton S'abonner adaptatif */}
+        {!user ? (
+          <Button
+            variant="default"
+            size="lg"
+            className="w-full"
+            onClick={() => navigate('/auth')}
+          >
+            <Heart className="h-5 w-5 mr-2" />
+            Créer un compte pour s'abonner
+          </Button>
+        ) : (
+          <Button
+            variant={isSubscribed ? "outline" : "default"}
+            size="lg"
+            className="w-full"
+            onClick={handleSubscribe}
+          >
+            <Heart className={`h-5 w-5 mr-2 ${isSubscribed ? 'fill-current' : ''}`} />
+            {isSubscribed ? 'Abonné ✓' : 'S\'abonner'}
+          </Button>
+        )}
 
         {/* Grille Produits */}
         <div>
@@ -462,7 +512,7 @@ const VendorShop: React.FC = () => {
                   }}
                   isFavorite={isFavorite(product.id)}
                   onAddToCart={() => handleAddToCart(product)}
-                  onToggleFavorite={() => toggleFavorite(product.id)}
+                  onToggleFavorite={() => user ? toggleFavorite(product.id) : navigate('/auth')}
                 />
               ))}
             </div>
