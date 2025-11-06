@@ -157,8 +157,11 @@ export const VendorShopInfoCard: React.FC<VendorShopInfoCardProps> = ({
           {/* Info régénération lien */}
           {vendorId && (
             <Alert>
-              <AlertDescription className="text-xs">
-                💡 Générez un nouveau lien à chaque partage pour garantir son bon fonctionnement.
+              <AlertDescription className="text-xs space-y-2">
+                <p>💡 Générez un nouveau lien à chaque partage pour garantir son bon fonctionnement.</p>
+                <div className="font-mono text-muted-foreground pt-1">
+                  ID: {vendorId.slice(0, 8)}...{vendorId.slice(-8)} ({vendorId.length} car.)
+                </div>
               </AlertDescription>
             </Alert>
           )}

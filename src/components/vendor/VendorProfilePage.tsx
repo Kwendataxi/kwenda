@@ -52,9 +52,20 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
         .maybeSingle();
       
       if (error) throw error;
+      
+      // Debug log pour vérifier l'UUID
+      console.log('[VendorProfile] Loaded vendor:', {
+        user_id: data?.user_id,
+        id: data?.id,
+        shop_name: data?.shop_name,
+        user_id_length: data?.user_id?.length
+      });
+      
       return data;
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 0,  // Force refresh à chaque visite
+    gcTime: 0      // Pas de cache
   });
 
   const handleSignOut = async () => {
