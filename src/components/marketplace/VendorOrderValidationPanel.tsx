@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 import { useToast } from '@/hooks/use-toast';
 import { MessageSquare, Package, MapPin, Calculator } from 'lucide-react';
+import { DeliveryMapModal } from './DeliveryMapModal';
 
 interface VendorOrderValidationPanelProps {
   orders: any[];
@@ -23,6 +24,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
   const [validatingOrder, setValidatingOrder] = useState<string | null>(null);
   const [deliveryFees, setDeliveryFees] = useState<Record<string, number>>({});
   const [deliveryMethods, setDeliveryMethods] = useState<Record<string, string>>({});
+  const [mapModalOpen, setMapModalOpen] = useState<string | null>(null);
 
   // ✅ PHASE 2: Les commandes sont déjà filtrées par le hook useVendorOrders
   // On garde une sécurité pour filtrer sur vendor_confirmation_status
@@ -57,7 +59,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
     
     toast({ 
       title: "Estimation calculée", 
-      description: `Distance: ${distance.toFixed(1)} km - Frais estimés: ${estimatedFee} FC` 
+      description: `Distance: ${distance.toFixed(1)} km - Frais estimés: ${estimatedFee.toLocaleString()} CDF` 
     });
   };
 
@@ -128,7 +130,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
                   <Badge variant="outline">Nouvelle commande</Badge>
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Client: {order.buyer?.display_name || 'Anonyme'} • Quantité: {order.quantity}
+                  Client: {order.buyer?.display_name || order.buyer_email || 'Client sans nom'} • Quantité: {order.quantity}
                 </p>
               </div>
               <div className="text-right">
@@ -151,9 +153,12 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
                     <p className="text-muted-foreground text-xs">
                       📍 Coordonnées: {order.delivery_coordinates.lat?.toFixed(4)}, {order.delivery_coordinates.lng?.toFixed(4)}
                       <br />
-                      <span className="text-primary cursor-pointer hover:underline">
-                        Voir sur la carte
-                      </span>
+                      <button
+                        onClick={() => setMapModalOpen(order.id)}
+                        className="text-primary cursor-pointer hover:underline text-xs font-medium"
+                      >
+                        Voir sur la carte →
+                      </button>
                     </p>
                   ) : (
                     <p className="text-muted-foreground">Non renseignée</p>
@@ -187,7 +192,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
 
               <div className="grid gap-3">
                 <div>
-                  <Label htmlFor={`fee-${order.id}`}>Montant (FC)</Label>
+                  <Label htmlFor={`fee-${order.id}`}>Montant (CDF)</Label>
                   <Input
                     id={`fee-${order.id}`}
                     type="number"
@@ -198,23 +203,41 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
                 </div>
 
                 <div>
-                  <Label>Mode de livraison</Label>
+                  <Label className="text-base font-semibold mb-3 block">Mode de livraison</Label>
                   <RadioGroup
                     value={deliveryMethods[order.id] || 'kwenda'}
                     onValueChange={(value) => setDeliveryMethods(prev => ({ ...prev, [order.id]: value }))}
+                    className="grid grid-cols-1 gap-3"
                   >
-                    <div className="flex items-center space-x-2">
+                    <label 
+                      htmlFor={`kwenda-${order.id}`}
+                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        (deliveryMethods[order.id] || 'kwenda') === 'kwenda' 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
                       <RadioGroupItem value="kwenda" id={`kwenda-${order.id}`} />
-                      <Label htmlFor={`kwenda-${order.id}`} className="cursor-pointer">
-                        Livreur Kwenda (automatique)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
+                      <div className="flex-1">
+                        <p className="font-semibold">🚚 Livreur Kwenda</p>
+                        <p className="text-xs text-muted-foreground">Un coursier prendra en charge la livraison automatiquement</p>
+                      </div>
+                    </label>
+
+                    <label 
+                      htmlFor={`self-${order.id}`}
+                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        deliveryMethods[order.id] === 'self' 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
                       <RadioGroupItem value="self" id={`self-${order.id}`} />
-                      <Label htmlFor={`self-${order.id}`} className="cursor-pointer">
-                        Je livre moi-même
-                      </Label>
-                    </div>
+                      <div className="flex-1">
+                        <p className="font-semibold">🏍️ Je livre moi-même</p>
+                        <p className="text-xs text-muted-foreground">Vous assurerez la livraison personnellement</p>
+                      </div>
+                    </label>
                   </RadioGroup>
                 </div>
               </div>
@@ -252,6 +275,18 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
             </div>
           </CardContent>
         </Card>
+      ))}
+
+      {/* Modal carte de livraison */}
+      {pendingOrders.map((order) => (
+        <DeliveryMapModal
+          key={`map-${order.id}`}
+          open={mapModalOpen === order.id}
+          onClose={() => setMapModalOpen(null)}
+          deliveryCoordinates={order.delivery_coordinates}
+          deliveryAddress={order.delivery_address}
+          pickupCoordinates={order.pickup_coordinates}
+        />
       ))}
     </div>
   );
