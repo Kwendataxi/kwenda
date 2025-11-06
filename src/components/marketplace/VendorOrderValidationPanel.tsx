@@ -107,6 +107,16 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
   };
 
   const handleOpenChat = async (order: any) => {
+    // ✅ Empêcher les conversations avec soi-même
+    if (order.buyer_id === user?.id) {
+      toast({
+        title: "❌ Action impossible",
+        description: "Vous ne pouvez pas discuter avec vous-même",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const conversation = await createOrFindConversation(
         'marketplace',

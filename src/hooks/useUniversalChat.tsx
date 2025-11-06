@@ -18,6 +18,8 @@ export interface UniversalConversation {
     id: string;
     display_name: string;
     avatar_url?: string;
+    shop_name?: string;
+    shop_logo_url?: string;
   };
   unread_count?: number;
 }
@@ -38,6 +40,8 @@ export interface UniversalMessage {
     id: string;
     display_name: string;
     avatar_url?: string;
+    shop_name?: string;
+    shop_logo_url?: string;
   };
 }
 
@@ -73,14 +77,26 @@ export const useUniversalChat = () => {
         .select('user_id, display_name, avatar_url')
         .in('user_id', participantIds);
 
+      const { data: vendorProfiles } = await supabase
+        .from('vendor_profiles')
+        .select('user_id, shop_name, shop_logo_url')
+        .in('user_id', participantIds);
+
       const profilesMap = profiles?.reduce((acc, profile) => {
         acc[profile.user_id] = profile;
+        return acc;
+      }, {} as any) || {};
+
+      const vendorProfilesMap = vendorProfiles?.reduce((acc, vp) => {
+        acc[vp.user_id] = vp;
         return acc;
       }, {} as any) || {};
 
       const enrichedConversations = conversationsData?.map(conv => {
         const otherParticipantId = conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
         const unreadCount = conv.unified_messages?.filter((msg: any) => !msg.is_read && msg.sender_id !== user.id).length || 0;
+        const profile = profilesMap[otherParticipantId];
+        const vendorProfile = vendorProfilesMap[otherParticipantId];
         
         return {
           id: conv.id,
@@ -96,8 +112,10 @@ export const useUniversalChat = () => {
           last_message_at: conv.last_message_at,
           other_participant: {
             id: otherParticipantId,
-            display_name: profilesMap[otherParticipantId]?.display_name || 'Utilisateur',
-            avatar_url: profilesMap[otherParticipantId]?.avatar_url,
+            display_name: profile?.display_name || 'Utilisateur',
+            avatar_url: profile?.avatar_url,
+            shop_name: vendorProfile?.shop_name,
+            shop_logo_url: vendorProfile?.shop_logo_url,
           },
           unread_count: unreadCount,
         } as UniversalConversation;
@@ -130,29 +148,46 @@ export const useUniversalChat = () => {
         .select('user_id, display_name, avatar_url')
         .in('user_id', senderIds);
 
+      const { data: vendorProfiles } = await supabase
+        .from('vendor_profiles')
+        .select('user_id, shop_name, shop_logo_url')
+        .in('user_id', senderIds);
+
       const profilesMap = profiles?.reduce((acc, profile) => {
         acc[profile.user_id] = profile;
         return acc;
       }, {} as any) || {};
 
-      const enrichedMessages = messagesData?.map(msg => ({
-        id: msg.id,
-        conversation_id: msg.conversation_id,
-        sender_id: msg.sender_id,
-        content: msg.content,
-        message_type: msg.message_type as 'text' | 'location' | 'image' | 'file' | 'quick_action',
-        metadata: msg.metadata,
-        attachments: msg.attachments || [],
-        is_read: msg.is_read,
-        reply_to_id: msg.reply_to_id,
-        created_at: msg.created_at,
-        updated_at: msg.updated_at,
-        sender: {
-          id: msg.sender_id,
-          display_name: profilesMap[msg.sender_id]?.display_name || 'Utilisateur',
-          avatar_url: profilesMap[msg.sender_id]?.avatar_url,
-        },
-      } as UniversalMessage)) || [];
+      const vendorProfilesMap = vendorProfiles?.reduce((acc, vp) => {
+        acc[vp.user_id] = vp;
+        return acc;
+      }, {} as any) || {};
+
+      const enrichedMessages = messagesData?.map(msg => {
+        const profile = profilesMap[msg.sender_id];
+        const vendorProfile = vendorProfilesMap[msg.sender_id];
+        
+        return {
+          id: msg.id,
+          conversation_id: msg.conversation_id,
+          sender_id: msg.sender_id,
+          content: msg.content,
+          message_type: msg.message_type as 'text' | 'location' | 'image' | 'file' | 'quick_action',
+          metadata: msg.metadata,
+          attachments: msg.attachments || [],
+          is_read: msg.is_read,
+          reply_to_id: msg.reply_to_id,
+          created_at: msg.created_at,
+          updated_at: msg.updated_at,
+          sender: {
+            id: msg.sender_id,
+            display_name: profile?.display_name || 'Utilisateur',
+            avatar_url: profile?.avatar_url,
+            shop_name: vendorProfile?.shop_name,
+            shop_logo_url: vendorProfile?.shop_logo_url,
+          } as any,
+        } as UniversalMessage;
+      }) || [];
 
       setMessages(prev => ({
         ...prev,

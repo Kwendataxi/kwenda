@@ -208,10 +208,17 @@ export const UniversalChatInterface = ({
             )}
             <div>
               <h3 className="font-semibold">
-                {selectedConversation 
-                  ? conversations.find(c => c.id === selectedConversation)?.other_participant?.display_name || 'Chat'
-                  : 'Messages'
-                }
+                {selectedConversation ? (() => {
+                  const conv = conversations.find(c => c.id === selectedConversation);
+                  
+                  // ✅ Si marketplace, afficher nom de boutique
+                  if (conv?.context_type === 'marketplace' && conv.other_participant?.shop_name) {
+                    return `🛍️ ${conv.other_participant.shop_name}`;
+                  }
+                  
+                  // Sinon, nom utilisateur
+                  return conv?.other_participant?.display_name || 'Chat';
+                })() : 'Messages'}
               </h3>
               {selectedConversation && (
                 <p className="text-sm text-muted-foreground">
@@ -439,42 +446,52 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "flex gap-2 max-w-[85%] mb-3",
+        "flex gap-2 max-w-[80%] mb-3",
         isOwnMessage ? "ml-auto flex-row-reverse" : "mr-auto"
       )}
     >
       {/* Avatar visible seulement pour les messages reçus */}
       {!isOwnMessage && (
-        <Avatar className="h-8 w-8 ring-2 ring-border/20">
+        <Avatar className="h-8 w-8 ring-2 ring-primary/20 flex-shrink-0">
           <AvatarImage src={message.sender?.avatar_url} />
-          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-xs font-semibold">
+          <AvatarFallback className="bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground text-xs font-semibold">
             {message.sender?.display_name?.charAt(0) || 'V'}
           </AvatarFallback>
         </Avatar>
       )}
 
-      {/* Bulle message avec glassmorphism */}
-      <div className={cn(
-        "rounded-2xl px-4 py-2.5 max-w-full shadow-md",
-        isOwnMessage 
-          ? "bg-gradient-to-br from-primary to-primary/90 text-white rounded-tr-sm" 
-          : "bg-white dark:bg-zinc-800 text-foreground border border-border/50 rounded-tl-sm backdrop-blur-sm"
-      )}>
-        {message.message_type === 'location' ? (
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            <span className="text-sm font-medium">📍 Position partagée</span>
-          </div>
-        ) : (
-          <p className="text-sm leading-relaxed">{message.content}</p>
+      {/* Container avec nom expéditeur pour messages reçus */}
+      <div className="flex flex-col gap-1 flex-1 min-w-0">
+        {/* Nom de l'expéditeur pour messages reçus */}
+        {!isOwnMessage && (
+          <span className="text-xs text-muted-foreground font-medium px-1">
+            {(message.sender as any)?.shop_name || message.sender?.display_name || 'Vendeur'}
+          </span>
         )}
-        <p className={cn(
-          "text-xs mt-1 flex items-center gap-1",
-          isOwnMessage ? "text-white/70 justify-end" : "text-muted-foreground"
+
+        {/* Bulle message style WhatsApp */}
+        <div className={cn(
+          "rounded-2xl px-4 py-3 max-w-full shadow-sm",
+          isOwnMessage 
+            ? "bg-primary text-primary-foreground rounded-br-sm" 
+            : "bg-muted/80 text-foreground rounded-bl-sm"
         )}>
-          {new Date(message.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-          {isOwnMessage && <span>✓</span>}
-        </p>
+          {message.message_type === 'location' ? (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span className="text-sm font-medium">📍 Position partagée</span>
+            </div>
+          ) : (
+            <p className="text-sm leading-relaxed break-words">{message.content}</p>
+          )}
+          <p className={cn(
+            "text-xs mt-1.5 flex items-center gap-1",
+            isOwnMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground"
+          )}>
+            {new Date(message.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            {isOwnMessage && <span className="font-bold">✓</span>}
+          </p>
+        </div>
       </div>
     </motion.div>
   );
