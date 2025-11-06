@@ -321,7 +321,7 @@ export const AdminProductDetails: React.FC<AdminProductDetailsProps> = ({ produc
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Prix</Label>
-                <p className="text-lg font-semibold text-primary">{product.price.toLocaleString()} FC</p>
+                <p className="text-lg font-semibold text-primary">{product.price.toLocaleString()} CDF</p>
               </div>
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Catégorie</Label>

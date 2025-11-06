@@ -79,7 +79,7 @@ export const DeliveryFeeApprovalDialog = ({
             <div className="flex-1">
               <p className="font-medium">{order.product?.title || 'Produit'}</p>
               <p className="text-sm text-muted-foreground">
-                Quantité: {order.quantity} × {order.unit_price} FC
+                Quantité: {order.quantity} × {order.unit_price} CDF
               </p>
             </div>
           </div>
@@ -101,15 +101,15 @@ export const DeliveryFeeApprovalDialog = ({
           <div className="space-y-2 p-4 border rounded-lg">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Sous-total produit</span>
-              <span className="font-medium">{subtotal} FC</span>
+              <span className="font-medium">{subtotal} CDF</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Frais de livraison</span>
-              <span className="font-semibold text-primary">{deliveryFee} FC</span>
+              <span className="font-semibold text-primary">{deliveryFee} CDF</span>
             </div>
             <div className="border-t pt-2 flex justify-between">
               <span className="font-semibold">Total à payer</span>
-              <span className="text-xl font-bold">{total} FC</span>
+              <span className="text-xl font-bold">{total} CDF</span>
             </div>
           </div>
 

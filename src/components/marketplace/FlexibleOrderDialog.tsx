@@ -14,6 +14,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { MapPin, Package, CreditCard, Minus, Plus, Wallet, Smartphone, Navigation, Shield } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
+import { ClientLocationPicker } from './ClientLocationPicker';
 
 interface Product {
   id: string;
@@ -59,8 +60,11 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
   const [step, setStep] = useState<'details' | 'payment' | 'mobile_money'>('details');
   const [quantity, setQuantity] = useState(1);
   const [deliveryMethod, setDeliveryMethod] = useState<string>('pickup');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [deliveryCoordinates, setDeliveryCoordinates] = useState<any>(null);
+  const [deliveryLocation, setDeliveryLocation] = useState<{
+    lat: number;
+    lng: number;
+    address: string;
+  } | null>(null);
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'mobile_money'>('wallet');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,30 +73,7 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
   const subtotal = product ? quantity * product.price : 0;
   const totalAmount = subtotal + (deliveryMethod !== 'pickup' ? DELIVERY_FEE : 0);
 
-  // Get current location for delivery
-  const handleGetCurrentLocation = async () => {
-    try {
-      if (geolocation.latitude && geolocation.longitude) {
-        setDeliveryCoordinates({
-          lat: geolocation.latitude,
-          lng: geolocation.longitude
-        });
-        setDeliveryAddress(`${geolocation.latitude.toFixed(6)}, ${geolocation.longitude.toFixed(6)}`);
-        toast({
-          title: "Position capturée",
-          description: "Votre position a été enregistrée pour la livraison",
-        });
-      } else {
-        throw new Error("Position non disponible");
-      }
-    } catch (error) {
-      toast({
-        title: "Erreur de géolocalisation",
-        description: "Impossible d'obtenir votre position. Veuillez saisir l'adresse manuellement.",
-        variant: "destructive",
-      });
-    }
-  };
+  // Supprimé - géré par ClientLocationPicker
 
   const handleSubmitOrder = async (paymentData?: any) => {
     if (!product) return;
@@ -105,8 +86,11 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
         sellerId: product.seller_id,
         quantity,
         unitPrice: product.price,
-        deliveryAddress: deliveryMethod !== 'pickup' ? deliveryAddress : undefined,
-        deliveryCoordinates: deliveryMethod !== 'pickup' ? deliveryCoordinates : undefined,
+        deliveryAddress: deliveryMethod !== 'pickup' ? deliveryLocation?.address : undefined,
+        deliveryCoordinates: deliveryMethod !== 'pickup' ? { 
+          lat: deliveryLocation!.lat, 
+          lng: deliveryLocation!.lng 
+        } : undefined,
         deliveryMethod,
         notes,
         paymentMethod,
@@ -137,18 +121,17 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
     setStep('details');
     setQuantity(1);
     setDeliveryMethod('pickup');
-    setDeliveryAddress('');
-    setDeliveryCoordinates(null);
+    setDeliveryLocation(null);
     setNotes('');
     setPaymentMethod('wallet');
     onClose();
   };
 
   const handleNextStep = () => {
-    if (deliveryMethod !== 'pickup' && !deliveryCoordinates) {
+    if (deliveryMethod !== 'pickup' && !deliveryLocation) {
       toast({
         title: "Position requise",
-        description: "Veuillez capturer votre position pour la livraison",
+        description: "Veuillez sélectionner votre position de livraison sur la carte",
         variant: "destructive",
       });
       return;
@@ -196,7 +179,7 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{product.title}</h3>
                     <p className="text-muted-foreground">
-                      {product.price.toLocaleString()} FC
+                      {product.price.toLocaleString()} CDF
                     </p>
                   </div>
                 </div>
@@ -264,43 +247,15 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
               </Select>
             </div>
 
-            {/* Geolocation for delivery */}
+            {/* Mini-carte interactive de localisation */}
             {deliveryMethod !== 'pickup' && (
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Position de livraison</Label>
-                <div className="space-y-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleGetCurrentLocation}
-                    disabled={geoLoading}
-                    className="w-full h-12 justify-start gap-3"
-                  >
-                    <Navigation className="h-5 w-5" />
-                    {geoLoading ? 'Localisation...' : 'Utiliser ma position actuelle'}
-                  </Button>
-                  
-                  {deliveryCoordinates && (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center gap-2 text-green-700">
-                        <MapPin className="h-4 w-4" />
-                        <span className="text-sm font-medium">Position capturée</span>
-                      </div>
-                      <p className="text-xs text-green-600 mt-1">
-                        Lat: {deliveryCoordinates.lat}, Lng: {deliveryCoordinates.lng}
-                      </p>
-                    </div>
-                  )}
-                  
-                  <Textarea
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Ou saisissez votre adresse complète"
-                    rows={2}
-                    className="resize-none"
-                  />
-                </div>
-              </div>
+              <ClientLocationPicker
+                value={deliveryLocation}
+                onChange={setDeliveryLocation}
+                label="📍 Où souhaitez-vous être livré ?"
+                initialCenter={{ lat: -4.3217, lng: 15.3125 }}
+                required
+              />
             )}
 
             {/* Order Notes */}
@@ -324,13 +279,13 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Sous-total ({quantity} article{quantity > 1 ? 's' : ''})</span>
-                    <span className="font-medium">{subtotal.toLocaleString()} FC</span>
+                    <span className="font-medium">{subtotal.toLocaleString()} CDF</span>
                   </div>
                   
                   {deliveryMethod !== 'pickup' && (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Livraison Flash</span>
-                      <span className="font-medium">{DELIVERY_FEE.toLocaleString()} FC</span>
+                      <span className="font-medium">{DELIVERY_FEE.toLocaleString()} CDF</span>
                     </div>
                   )}
                   
@@ -338,7 +293,7 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
                   
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-primary">{totalAmount.toLocaleString()} FC</span>
+                    <span className="text-primary">{totalAmount.toLocaleString()} CDF</span>
                   </div>
                 </div>
               </CardContent>
@@ -356,7 +311,7 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
               <Button
                 onClick={handleNextStep}
                 className="flex-1 h-12 font-semibold"
-                disabled={deliveryMethod !== 'pickup' && (!deliveryCoordinates && !deliveryAddress.trim())}
+                disabled={deliveryMethod !== 'pickup' && !deliveryLocation}
               >
                 Continuer
               </Button>
@@ -371,7 +326,7 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total à payer</span>
-                  <span className="text-2xl font-bold text-primary">{totalAmount.toLocaleString()} FC</span>
+                  <span className="text-2xl font-bold text-primary">{totalAmount.toLocaleString()} CDF</span>
                 </div>
               </CardContent>
             </Card>

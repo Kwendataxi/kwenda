@@ -99,11 +99,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               
               <div className="flex items-baseline gap-2 mb-4">
                 <span className="text-2xl font-bold text-primary">
-                  {product.price.toLocaleString()} FC
+                  {product.price.toLocaleString()} CDF
                 </span>
                 {product.originalPrice && (
                   <span className="text-lg text-muted-foreground line-through">
-                    {product.originalPrice.toLocaleString()} FC
+                    {product.originalPrice.toLocaleString()} CDF
                   </span>
                 )}
               </div>

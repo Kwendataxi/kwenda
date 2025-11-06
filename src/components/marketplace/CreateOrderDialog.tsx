@@ -112,7 +112,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
             <div className="flex-1">
               <h3 className="font-semibold text-lg">{product.title}</h3>
               <p className="text-muted-foreground">
-                {product.price.toLocaleString()} FC
+                {product.price.toLocaleString()} CDF
               </p>
             </div>
           </div>
@@ -222,7 +222,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Sous-total ({quantity} article{quantity > 1 ? 's' : ''})</span>
-                <span className="font-medium">{totalAmount.toLocaleString()} FC</span>
+                <span className="font-medium">{totalAmount.toLocaleString()} CDF</span>
               </div>
               
               {deliveryMethod !== 'pickup' && (
@@ -236,7 +236,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({
               
               <div className="flex justify-between text-lg font-bold">
                 <span>Total</span>
-                <span className="text-primary">{totalAmount.toLocaleString()} FC</span>
+                <span className="text-primary">{totalAmount.toLocaleString()} CDF</span>
               </div>
             </div>
           </div>

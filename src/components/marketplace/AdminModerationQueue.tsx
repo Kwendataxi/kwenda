@@ -367,7 +367,7 @@ export const AdminModerationQueue: React.FC<AdminModerationQueueProps> = ({ onBa
                         </span>
                         <span>•</span>
                         <span className="font-semibold text-primary">
-                          {product.price.toLocaleString()} FC
+                          {product.price.toLocaleString()} CDF
                         </span>
                         <span>•</span>
                         <span>{product.category}</span>
@@ -445,7 +445,7 @@ export const AdminModerationQueue: React.FC<AdminModerationQueueProps> = ({ onBa
               <div>
                 <h3 className="text-lg font-semibold">{selectedProduct.title}</h3>
                 <p className="text-2xl font-bold text-primary mt-1">
-                  {selectedProduct.price.toLocaleString()} FC
+                  {selectedProduct.price.toLocaleString()} CDF
                 </p>
               </div>
 

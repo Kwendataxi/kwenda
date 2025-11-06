@@ -251,7 +251,7 @@ export const AdvancedOrderTracker: React.FC = () => {
                         Commande #{order.id.slice(0, 8)}
                       </p>
                       <p className="text-sm font-medium">
-                        {order.total_amount.toLocaleString()} FC
+                        {order.total_amount.toLocaleString()} CDF
                       </p>
                     </div>
                   </div>
@@ -316,7 +316,7 @@ export const AdvancedOrderTracker: React.FC = () => {
               <div>
                 <h3 className="text-xl font-semibold">{selectedOrder.product?.title}</h3>
                 <p className="text-muted-foreground">
-                  {selectedOrder.quantity} × {selectedOrder.unit_price.toLocaleString()} FC
+                  {selectedOrder.quantity} × {selectedOrder.unit_price.toLocaleString()} CDF
                 </p>
               </div>
               {getStatusBadge(selectedOrder.status)}

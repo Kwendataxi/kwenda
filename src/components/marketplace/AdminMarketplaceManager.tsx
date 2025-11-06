@@ -412,7 +412,7 @@ export const AdminMarketplaceManager: React.FC<AdminMarketplaceManagerProps> = (
                     <DollarSign className="h-4 w-4 text-purple-500" />
                     <div>
                       <p className="text-sm text-muted-foreground">Revenus</p>
-                      <p className="text-2xl font-bold">{stats.totalRevenue.toLocaleString()} FC</p>
+                      <p className="text-2xl font-bold">{stats.totalRevenue.toLocaleString()} CDF</p>
                     </div>
                   </div>
                 </CardContent>
@@ -589,7 +589,7 @@ export const AdminMarketplaceManager: React.FC<AdminMarketplaceManagerProps> = (
                             Par {product.seller?.display_name} • {product.category}
                           </p>
                           <p className="text-sm font-semibold text-primary">
-                            {product.price.toLocaleString()} FC
+                            {product.price.toLocaleString()} CDF
                           </p>
                         </div>
 

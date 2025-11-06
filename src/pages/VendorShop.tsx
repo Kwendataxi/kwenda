@@ -506,7 +506,7 @@ const VendorShop: React.FC = () => {
               <TrendingUp className="h-5 w-5 text-green-500" />
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold">{profile.total_sales || 0}</div>
+              <div className="text-lg font-bold">{(profile.total_sales || 0).toLocaleString()} CDF</div>
               <div className="text-xs text-muted-foreground">Ventes</div>
             </div>
           </div>

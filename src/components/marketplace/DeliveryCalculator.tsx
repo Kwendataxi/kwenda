@@ -194,7 +194,7 @@ export const DeliveryCalculator: React.FC<DeliveryCalculatorProps> = ({
               <div className="flex items-center gap-1">
                 <DollarSign className="w-4 h-4 text-primary" />
                 <span className="font-bold text-primary">
-                  {deliveryInfo.cost.toLocaleString()} FC
+                  {deliveryInfo.cost.toLocaleString()} CDF
                 </span>
               </div>
             </div>

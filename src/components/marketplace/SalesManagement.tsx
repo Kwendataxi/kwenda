@@ -368,7 +368,7 @@ export const SalesManagement: React.FC<SalesManagementProps> = ({
               </div>
               
               <h4 className="font-medium mb-2 line-clamp-2">{product.title}</h4>
-              <p className="text-lg font-bold text-primary mb-2">{product.price.toLocaleString()} FC</p>
+              <p className="text-lg font-bold text-primary mb-2">{product.price.toLocaleString()} CDF</p>
               
               <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
                 {product.status === 'active' ? 'Actif' : 'Inactif'}

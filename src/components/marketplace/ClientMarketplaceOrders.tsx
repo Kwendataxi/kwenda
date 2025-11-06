@@ -146,10 +146,10 @@ export const ClientMarketplaceOrders: React.FC<ClientMarketplaceOrdersProps> = (
                         Quantité: {order.quantity}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Prix unitaire: {order.unit_price.toLocaleString()} FC
+                        Prix unitaire: {order.unit_price.toLocaleString()} CDF
                       </p>
                       <p className="font-semibold">
-                        Total: {order.total_amount.toLocaleString()} FC
+                        Total: {order.total_amount.toLocaleString()} CDF
                       </p>
                     </div>
                   </div>

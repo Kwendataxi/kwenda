@@ -207,7 +207,7 @@ export const VendorProductsList: React.FC = () => {
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="text-2xl font-bold text-primary">{product.price.toLocaleString()} FC</p>
+                    <p className="text-2xl font-bold text-primary">{product.price.toLocaleString()} CDF</p>
                     <p className="text-xs text-muted-foreground">Catégorie: {product.category}</p>
                   </div>
                 </div>

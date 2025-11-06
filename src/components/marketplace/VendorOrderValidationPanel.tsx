@@ -132,7 +132,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-lg font-semibold">{order.unit_price * order.quantity} FC</p>
+                <p className="text-lg font-semibold">{(order.unit_price * order.quantity).toLocaleString()} CDF</p>
                 <p className="text-xs text-muted-foreground">Montant produit</p>
               </div>
             </div>
@@ -223,10 +223,10 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
                 <div className="p-3 bg-primary/10 rounded-lg">
                   <p className="text-sm font-semibold">Total commande</p>
                   <p className="text-2xl font-bold text-primary">
-                    {(order.unit_price * order.quantity) + deliveryFees[order.id]} FC
+                    {((order.unit_price * order.quantity) + deliveryFees[order.id]).toLocaleString()} CDF
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Produit: {order.unit_price * order.quantity} FC + Livraison: {deliveryFees[order.id]} FC
+                    Produit: {(order.unit_price * order.quantity).toLocaleString()} CDF + Livraison: {deliveryFees[order.id]?.toLocaleString() || 0} CDF
                   </p>
                 </div>
               )}
