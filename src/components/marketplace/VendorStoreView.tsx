@@ -85,18 +85,19 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
 
       if (vendorError) throw vendorError;
 
-      // Load vendor's display info from profiles
+      // Load vendor's bio from profiles (keep profiles for bio only)
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('display_name, avatar_url, bio')
+        .select('bio')
         .eq('id', vendorId)
         .single();
 
+      // Use shop_name and shop_logo_url from vendor_profiles
       setVendor({
         ...vendorData,
-        display_name: profileData?.display_name,
-        avatar_url: profileData?.avatar_url,
-        bio: profileData?.bio
+        bio: profileData?.bio,
+        display_name: vendorData?.shop_name || 'Boutique',
+        avatar_url: vendorData?.shop_logo_url || null
       });
 
       // Check subscription status
@@ -132,7 +133,7 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
         rating: 4.5,
         reviewCount: Math.floor(Math.random() * 50) + 5,
         category: product.category,
-        seller: profileData?.display_name || 'Vendeur',
+        seller: vendorData?.shop_name || 'Vendeur',
         sellerId: product.seller_id,
         isAvailable: product.status === 'active',
         location: product.coordinates && typeof product.coordinates === 'object' 
@@ -256,12 +257,22 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
               animate={{ scale: 1 }}
               className="relative"
             >
-              <div className="w-20 h-20 rounded-full border-4 border-white overflow-hidden">
-                {vendor?.avatar_url ? (
-                  <img src={vendor.avatar_url} className="w-full h-full object-cover" />
+              <div className="w-20 h-20 rounded-full border-4 border-white overflow-hidden bg-white">
+                {vendor?.shop_logo_url ? (
+                  <img 
+                    src={vendor.shop_logo_url} 
+                    className="w-full h-full object-cover" 
+                    alt="Logo boutique"
+                  />
+                ) : vendor?.avatar_url ? (
+                  <img 
+                    src={vendor.avatar_url} 
+                    className="w-full h-full object-cover" 
+                    alt="Avatar"
+                  />
                 ) : (
-                  <div className="w-full h-full bg-primary flex items-center justify-center text-white text-2xl">
-                    {vendor?.display_name?.[0] || 'V'}
+                  <div className="w-full h-full bg-primary flex items-center justify-center text-white text-2xl font-bold">
+                    {vendor?.shop_name?.[0] || vendor?.display_name?.[0] || 'V'}
                   </div>
                 )}
               </div>
@@ -274,8 +285,8 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
             </motion.div>
 
             <div className="flex-1 text-white">
-              <h1 className="text-2xl font-bold">{vendor?.display_name || 'Boutique'}</h1>
-              <p className="text-sm opacity-90">{vendor?.bio || 'Vendeur certifié Kwenda'}</p>
+              <h1 className="text-2xl font-bold">{vendor?.shop_name || vendor?.display_name || 'Boutique'}</h1>
+              <p className="text-sm opacity-90">{vendor?.shop_description || vendor?.bio || 'Vendeur certifié Kwenda'}</p>
             </div>
           </div>
         </div>
@@ -285,7 +296,7 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
       <div className="grid grid-cols-4 gap-2 p-4 border-b">
         {[
           { label: "Produits", value: activeProductsCount, icon: Package, color: "text-blue-500" },
-          { label: "Ventes", value: `${(vendor?.total_sales || 0).toLocaleString()} CDF`, icon: TrendingUp, color: "text-green-500" },
+          { label: "Ventes", value: (vendor?.total_sales || 0).toLocaleString(), icon: TrendingUp, color: "text-green-500" },
           { label: "Note", value: vendor?.average_rating?.toFixed(1) || '0.0', icon: Star, color: "text-yellow-500" },
           { label: "Abonnés", value: followerCount, icon: Users, color: "text-purple-500" }
         ].map((stat, i) => (
