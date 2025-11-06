@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
+import { useUniversalChat } from '@/hooks/useUniversalChat';
 import { useToast } from '@/hooks/use-toast';
 import { MessageSquare, Package, MapPin, Calculator } from 'lucide-react';
 import { DeliveryMapModal } from './DeliveryMapModal';
@@ -20,7 +20,7 @@ interface VendorOrderValidationPanelProps {
 export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderValidationPanelProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { startConversation } = useMarketplaceChat();
+  const { createOrFindConversation } = useUniversalChat();
   const [validatingOrder, setValidatingOrder] = useState<string | null>(null);
   const [deliveryFees, setDeliveryFees] = useState<Record<string, number>>({});
   const [deliveryMethods, setDeliveryMethods] = useState<Record<string, string>>({});
@@ -105,10 +105,28 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
   };
 
   const handleOpenChat = async (order: any) => {
-    const conversationId = await startConversation(order.product_id, order.seller_id);
-    if (conversationId) {
-      toast({ title: "Chat ouvert", description: "Vous pouvez maintenant discuter avec le client" });
-      // TODO: Ouvrir le chat dans un modal ou naviguer vers la conversation
+    try {
+      const conversation = await createOrFindConversation(
+        'marketplace',
+        order.buyer_id,
+        order.product_id,
+        `Commande ${order.product?.title || 'Marketplace'}`,
+        { order_id: order.id, product_id: order.product_id }
+      );
+      
+      if (conversation) {
+        toast({
+          title: "💬 Chat ouvert",
+          description: `Vous pouvez maintenant discuter avec ${order.buyer?.display_name || 'le client'}`,
+        });
+      }
+    } catch (error) {
+      console.error('Erreur ouverture chat:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ouvrir le chat",
+        variant: "destructive",
+      });
     }
   };
 
@@ -135,7 +153,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
                   <Badge variant="outline">Nouvelle commande</Badge>
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Client: {order.buyer?.display_name || order.buyer_email || 'Client sans nom'} • Quantité: {order.quantity}
+                  Client: {order.buyer?.display_name || order.buyer_contact || order.buyer_email || 'Client'} • Quantité: {order.quantity}
                 </p>
               </div>
               <div className="text-right">

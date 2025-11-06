@@ -6,19 +6,17 @@ import { Avatar } from '@/components/ui/avatar';
 import { Star, Package, Clock, CheckCircle, Truck, MessageSquare, MapPin } from 'lucide-react';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useAuth } from '@/hooks/useAuth';
+import { useUniversalChat } from '@/hooks/useUniversalChat';
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { RatingDialog } from '@/components/rating/RatingDialog';
 import { useToast } from '@/hooks/use-toast';
 
-interface ClientMarketplaceOrdersProps {
-  onStartChat?: (productId: string, sellerId: string) => void;
-}
-
-export const ClientMarketplaceOrders: React.FC<ClientMarketplaceOrdersProps> = ({ onStartChat }) => {
+export const ClientMarketplaceOrders: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { orders, loading, completeOrder } = useMarketplaceOrders();
+  const { createOrFindConversation } = useUniversalChat();
   
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
@@ -55,6 +53,31 @@ export const ClientMarketplaceOrders: React.FC<ClientMarketplaceOrdersProps> = (
       toast({
         title: '❌ Erreur',
         description: 'Impossible de confirmer la réception',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleStartChat = async (productId: string, sellerId: string) => {
+    try {
+      const conversation = await createOrFindConversation(
+        'marketplace',
+        sellerId,
+        productId,
+        'Discussion marketplace'
+      );
+      
+      if (conversation) {
+        toast({
+          title: '💬 Chat ouvert',
+          description: 'Vous pouvez maintenant discuter avec le vendeur',
+        });
+      }
+    } catch (error) {
+      console.error('Erreur ouverture chat:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'ouvrir le chat',
         variant: 'destructive',
       });
     }
@@ -193,16 +216,14 @@ export const ClientMarketplaceOrders: React.FC<ClientMarketplaceOrdersProps> = (
 
                   {/* Actions */}
                   <div className="flex flex-wrap gap-2 pt-2">
-                    {onStartChat && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onStartChat(order.product_id, order.seller_id)}
-                      >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Contacter le vendeur
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStartChat(order.product_id, order.seller_id)}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Contacter le vendeur
+                    </Button>
 
                     {order.status === 'delivered' && (
                       <Button
