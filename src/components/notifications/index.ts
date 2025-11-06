@@ -29,3 +29,6 @@ export { NotificationItem } from './NotificationItem';
 
 // Composants spéciaux
 export { CancellationNotification } from './CancellationNotification';
+
+// Composants de test
+export { ChatNotificationTest } from '../chat/ChatNotificationTest';

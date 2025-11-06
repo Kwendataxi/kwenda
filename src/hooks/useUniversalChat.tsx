@@ -227,6 +227,12 @@ export const useUniversalChat = () => {
   ) => {
     if (!user) return null;
 
+    // ⚠️ Empêcher les conversations avec soi-même
+    if (participantId === user.id) {
+      console.error('Cannot create conversation with yourself');
+      throw new Error('Impossible de créer une conversation avec vous-même');
+    }
+
     try {
       // First try to find existing conversation
       let query = supabase

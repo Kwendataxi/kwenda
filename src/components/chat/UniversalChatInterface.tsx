@@ -25,6 +25,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { AIAssistantWidget } from '@/components/ai/AIAssistantWidget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { pushNotificationService } from '@/services/pushNotificationService';
 
 interface UniversalChatInterfaceProps {
   isFloating?: boolean;
@@ -48,6 +50,7 @@ export const UniversalChatInterface = ({
   hideHeader = false
 }: UniversalChatInterfaceProps) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const {
     conversations,
     messages,
@@ -69,6 +72,46 @@ export const UniversalChatInterface = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [conversationMessages]);
+
+  // Écouter les nouvelles notifications push pour les messages en temps réel
+  useEffect(() => {
+    if (!user) return;
+
+    const notificationChannel = supabase
+      .channel('chat-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'push_notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        async (payload) => {
+          const notification = payload.new as any;
+          
+          // Afficher notification navigateur si type = chat_message
+          if (notification.type === 'chat_message') {
+            await pushNotificationService.showNotification(
+              notification.title,
+              {
+                body: notification.body,
+                tag: notification.data?.conversation_id,
+                data: {
+                  url: `/chat?conversation=${notification.data?.conversation_id}`
+                },
+                requireInteraction: false
+              }
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(notificationChannel);
+    };
+  }, [user]);
 
   // Auto-select conversation if contextType and participantId provided
   useEffect(() => {
