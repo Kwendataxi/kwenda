@@ -9,6 +9,7 @@ export const EDGE_FUNCTIONS = {
   // Fonctions de transport et livraison
   RIDE_DISPATCHER: 'ride-dispatcher',
   DELIVERY_DISPATCHER: 'delivery-dispatcher',
+  NOTIFY_DRIVERS_BIDDING: 'notify-drivers-bidding',
   
   // Fonctions financières
   WALLET_TOPUP: 'wallet-topup',

@@ -26,7 +26,17 @@ interface RideNotification {
   ridesRemaining?: number;
   biddingMode?: boolean;
   offerCount?: number;
+  biddingClosesAt?: string;
 }
+
+// Helper pour calculer temps restant
+const getRemainingTime = (closesAt: string): string => {
+  const remaining = new Date(closesAt).getTime() - Date.now();
+  if (remaining <= 0) return 'Expiré';
+  const minutes = Math.floor(remaining / 60000);
+  const seconds = Math.floor((remaining % 60000) / 1000);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
 
 export default function DriverRideNotifications() {
   const { user } = useAuth();
@@ -63,25 +73,28 @@ export default function DriverRideNotifications() {
       if (data && data.length > 0) {
         console.log(`✅ Loaded ${data.length} pending ride notifications`);
         
-        const mappedNotifications: RideNotification[] = data.map((notif: any) => ({
-          id: notif.reference_id || notif.id,
-          title: notif.title,
-          message: notif.message,
-          distance: (notif as any).metadata?.distance || 0,
-          estimatedTime: Math.ceil(((notif as any).metadata?.distance || 0) * 3), // 3 min per km
-          expiresIn: 120, // 2 minutes
-          pickupAddress: (notif as any).metadata?.pickupLocation?.address,
-          destinationAddress: (notif as any).metadata?.destinationLocation?.address,
-          estimatedPrice: (notif as any).metadata?.estimatedPrice,
-          vehicleClass: (notif as any).metadata?.vehicleClass,
-          ridesRemaining: (notif as any).metadata?.rides_remaining,
-          status: 'pending',
-          bookedForOther: (notif as any).metadata?.bookedForOther,
-          beneficiaryName: (notif as any).metadata?.beneficiaryName,
-          beneficiaryPhone: (notif as any).metadata?.beneficiaryPhone,
-          biddingMode: (notif as any).metadata?.biddingMode || false,
-          offerCount: (notif as any).metadata?.offerCount || 0
-        }));
+        const mappedNotifications: RideNotification[] = data.map((notif: any) => {
+          const isBidding = notif.notification_type === 'ride_bidding' || 
+                            (notif as any).metadata?.biddingMode === true;
+          
+          return {
+            id: notif.reference_id || notif.id,
+            title: isBidding ? '🎯 Mode Enchères' : notif.title,
+            message: notif.message,
+            distance: (notif as any).metadata?.distance || 0,
+            estimatedTime: Math.ceil(((notif as any).metadata?.distance || 0) * 3),
+            expiresIn: 120,
+            pickupAddress: (notif as any).metadata?.pickupLocation?.address,
+            destinationAddress: (notif as any).metadata?.destinationLocation?.address,
+            estimatedPrice: (notif as any).metadata?.estimatedPrice,
+            vehicleClass: (notif as any).metadata?.vehicleClass,
+            ridesRemaining: (notif as any).metadata?.rides_remaining,
+            status: 'pending',
+            biddingMode: isBidding,
+            offerCount: (notif as any).metadata?.offerCount || 0,
+            biddingClosesAt: (notif as any).metadata?.biddingClosesAt
+          };
+        });
 
         setNotifications(mappedNotifications);
       }
@@ -380,6 +393,10 @@ export default function DriverRideNotifications() {
                 {/* Action Buttons */}
                 {notification.biddingMode ? (
                   <div className="space-y-2">
+                    <Badge variant="secondary" className="w-full justify-center py-1">
+                      🎯 Mode Enchères • {notification.offerCount || 0} offre(s)
+                    </Badge>
+                    
                     <Button
                       size="sm"
                       className="w-full"
@@ -388,6 +405,13 @@ export default function DriverRideNotifications() {
                       <DollarSign className="h-3 w-3 mr-1" />
                       💰 Faire une offre
                     </Button>
+                    
+                    {notification.biddingClosesAt && (
+                      <p className="text-xs text-center text-muted-foreground">
+                        ⏱️ Expire dans {getRemainingTime(notification.biddingClosesAt)}
+                      </p>
+                    )}
+                    
                     <Button
                       size="sm"
                       variant="outline"

@@ -196,3 +196,6 @@ verify_jwt = true  # ✅ PHASE 2: Finalisation course avec prélèvement commiss
 
 [functions.detect-cancellation-fraud]
 verify_jwt = false  # ✅ PHASE 2: Détection annulations frauduleuses (appelé automatiquement)
+
+[functions.notify-drivers-bidding]
+verify_jwt = true  # ✅ JWT requis pour notifications mode enchères

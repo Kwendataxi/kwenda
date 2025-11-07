@@ -14,6 +14,11 @@ interface BookingData {
   pickupTime?: string;
 }
 
+interface CreateRideOptions {
+  biddingMode?: boolean;
+  biddingDuration?: number; // en secondes
+}
+
 interface SearchProgress {
   radius: number;
   driversFound: number;
@@ -40,10 +45,15 @@ export const useRideDispatch = () => {
   });
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
 
-  const createAndDispatchRide = async (bookingData: BookingData) => {
+  const createAndDispatchRide = async (
+    bookingData: BookingData, 
+    options: CreateRideOptions = {}
+  ) => {
     try {
       setIsSearching(true);
       setSearchProgress({ radius: 10, driversFound: 0, status: 'searching' });
+      
+      const { biddingMode = false, biddingDuration = 300 } = options;
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -55,27 +65,35 @@ export const useRideDispatch = () => {
         pickup: bookingData.pickupLocation,
         destination: bookingData.destination,
         vehicleType: bookingData.vehicleType,
-        city: bookingData.city || 'Kinshasa'
+        city: bookingData.city || 'Kinshasa',
+        biddingMode
       });
 
       // 1. Créer le booking dans transport_bookings
+      const bookingInsert: any = {
+        user_id: user.id,
+        pickup_location: bookingData.pickupLocation,
+        destination: bookingData.destination,
+        pickup_latitude: bookingData.pickupCoordinates.lat,
+        pickup_longitude: bookingData.pickupCoordinates.lng,
+        destination_latitude: bookingData.destinationCoordinates.lat,
+        destination_longitude: bookingData.destinationCoordinates.lng,
+        vehicle_type: bookingData.vehicleType,
+        estimated_price: bookingData.estimatedPrice,
+        city: bookingData.city || 'Kinshasa',
+        pickup_time: bookingData.pickupTime || new Date().toISOString(),
+        status: biddingMode ? 'bidding' : 'pending',
+        payment_status: 'pending',
+        bidding_mode: biddingMode
+      };
+
+      if (biddingMode) {
+        bookingInsert.bidding_closes_at = new Date(Date.now() + biddingDuration * 1000).toISOString();
+      }
+
       const { data: booking, error: bookingError } = await supabase
         .from('transport_bookings')
-        .insert([{
-          user_id: user.id,
-          pickup_location: bookingData.pickupLocation,
-          destination: bookingData.destination,
-          pickup_latitude: bookingData.pickupCoordinates.lat,
-          pickup_longitude: bookingData.pickupCoordinates.lng,
-          destination_latitude: bookingData.destinationCoordinates.lat,
-          destination_longitude: bookingData.destinationCoordinates.lng,
-          vehicle_type: bookingData.vehicleType,
-          estimated_price: bookingData.estimatedPrice,
-          city: bookingData.city || 'Kinshasa',
-          pickup_time: bookingData.pickupTime || new Date().toISOString(),
-          status: 'pending',
-          payment_status: 'pending'
-        }])
+        .insert([bookingInsert])
         .select()
         .single();
 
@@ -84,11 +102,48 @@ export const useRideDispatch = () => {
       console.log('✅ [RideDispatch] Booking created:', booking.id);
       setActiveBookingId(booking.id);
 
-      // 2. Déclencher le dispatching automatiquement avec smart retry
-      console.log('📡 [RideDispatch] Calling ride-dispatcher...');
-      
-      const dispatchResult = await dispatchWithRetry(booking, bookingData, 1);
+      // 2. Fork le dispatching selon le mode
+      if (biddingMode) {
+        console.log('🎯 [RideDispatch] Bidding mode activated, notifying drivers...');
+        
+        try {
+          const biddingResult = await callEdgeFunction('notify-drivers-bidding', {
+            bookingId: booking.id,
+            pickupLat: bookingData.pickupCoordinates.lat,
+            pickupLng: bookingData.pickupCoordinates.lng,
+            estimatedPrice: bookingData.estimatedPrice,
+            vehicleType: bookingData.vehicleType,
+            biddingDuration
+          });
 
+          console.log('✅ [RideDispatch] Bidding notifications sent:', {
+            notifiedDrivers: biddingResult.notifiedDrivers,
+            biddingClosesAt: biddingResult.biddingClosesAt
+          });
+
+          setSearchProgress({
+            radius: 15,
+            driversFound: biddingResult.notifiedDrivers || 0,
+            status: 'found'
+          });
+
+          return {
+            success: true,
+            booking,
+            biddingActive: true,
+            notifiedDrivers: biddingResult.notifiedDrivers,
+            message: `${biddingResult.notifiedDrivers} chauffeurs notifiés. En attente des offres...`
+          };
+        } catch (error) {
+          console.error('❌ [RideDispatch] Bidding notification error:', error);
+          // Fallback au dispatching classique en cas d'erreur
+          toast.error('Erreur mode enchères, passage en mode classique');
+        }
+      }
+
+      // Dispatching classique
+      console.log('📡 [RideDispatch] Calling ride-dispatcher...');
+      const dispatchResult = await dispatchWithRetry(booking, bookingData, 1);
       console.log('📡 [RideDispatch] Dispatch result:', dispatchResult);
 
       if (dispatchResult.success && dispatchResult.driver) {

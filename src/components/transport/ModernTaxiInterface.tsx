@@ -42,6 +42,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   // États pour réservation pour autrui
   const [isForSomeoneElse, setIsForSomeoneElse] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
+  const [biddingEnabled, setBiddingEnabled] = useState(false);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   // 🔧 PERF FIX: Mémoïser popularPlaces
@@ -265,16 +266,27 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         beneficiaryPhone: selectedBeneficiary?.phone
       };
 
-      console.log('🚗 [ModernTaxiInterface] Starting ride dispatch...', bookingData);
+      console.log('🚗 [ModernTaxiInterface] Starting ride dispatch with bidding:', biddingEnabled);
 
-      const result = await createAndDispatchRide(bookingData);
+      // ✅ Passer le mode bidding au dispatching
+      const result = await createAndDispatchRide(bookingData, {
+        biddingMode: biddingEnabled,
+        biddingDuration: 300 // 5 minutes
+      });
 
       // Stocker l'ID de la réservation pour le bidding
       if (result.booking?.id) {
         setTempBookingId(result.booking.id);
       }
 
-      if (result.success && result.driver) {
+      if (result.biddingActive) {
+        // Mode bidding : notification et attente des offres
+        console.log('✅ Bidding mode active, waiting for offers...');
+        toast.success('🎯 Mode enchères activé !', {
+          description: `${result.notifiedDrivers || 0} chauffeurs notifiés. Attendez les offres...`
+        });
+        // Le modal RideBiddingModal s'ouvrira automatiquement via PriceConfirmationModal
+      } else if (result.success && result.driver) {
         console.log('✅ [ModernTaxiInterface] Driver assigned successfully');
         
         // Commencer à écouter les mises à jour en temps réel
@@ -286,7 +298,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           ...result,
           bookingId: result.booking.id
         });
-      } else {
+      } else if (!result.success) {
         toast.error('Aucun chauffeur disponible', {
           description: result.message || 'Tous les chauffeurs sont occupés. Réessayez dans quelques instants.'
         });

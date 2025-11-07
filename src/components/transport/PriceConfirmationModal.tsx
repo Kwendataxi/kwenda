@@ -2,12 +2,13 @@ import { motion } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, Loader2, Users } from 'lucide-react';
+import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, Loader2, Users, Info } from 'lucide-react';
 import { Car, Bike, Crown } from 'lucide-react';
 import { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { RideBiddingModal } from './RideBiddingModal';
+import { BiddingExplanationDialog } from './BiddingExplanationDialog';
 
 interface PriceConfirmationModalProps {
   open: boolean;
@@ -50,6 +51,7 @@ export default function PriceConfirmationModal({
   const [isSearching, setIsSearching] = useState(false);
   const [biddingEnabled, setBiddingEnabled] = useState(false);
   const [showBiddingModal, setShowBiddingModal] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
 
   const vehicle = VEHICLE_CONFIG[vehicleType] || VEHICLE_CONFIG['taxi_eco'];
   const VehicleIcon = vehicle.icon;
@@ -205,7 +207,7 @@ export default function PriceConfirmationModal({
             </div>
           </motion.div>
 
-          {/* Toggle mode bidding */}
+          {/* Toggle mode bidding avec bouton info */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -213,9 +215,19 @@ export default function PriceConfirmationModal({
             className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20"
           >
             <div className="flex-1">
-              <Label htmlFor="bidding-toggle" className="text-sm font-semibold cursor-pointer">
-                🎯 Mode enchères
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="bidding-toggle" className="text-sm font-semibold cursor-pointer">
+                  🎯 Mode enchères
+                </Label>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => setShowExplanation(true)}
+                >
+                  <Info className="h-3 w-3" />
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Recevoir plusieurs offres et choisir le meilleur prix
               </p>
