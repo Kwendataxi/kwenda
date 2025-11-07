@@ -952,6 +952,7 @@ export type Database = {
           rating_count: number | null
           role: string | null
           service_areas: string[] | null
+          service_specialization: string | null
           service_type: string | null
           total_rides: number | null
           updated_at: string | null
@@ -992,6 +993,7 @@ export type Database = {
           rating_count?: number | null
           role?: string | null
           service_areas?: string[] | null
+          service_specialization?: string | null
           service_type?: string | null
           total_rides?: number | null
           updated_at?: string | null
@@ -1032,6 +1034,7 @@ export type Database = {
           rating_count?: number | null
           role?: string | null
           service_areas?: string[] | null
+          service_specialization?: string | null
           service_type?: string | null
           total_rides?: number | null
           updated_at?: string | null
@@ -14233,6 +14236,13 @@ export type Database = {
           latitude: number
           longitude: number
           vehicle_class: string
+        }[]
+      }
+      get_driver_service_info: {
+        Args: { driver_user_id: string }
+        Returns: {
+          service_specialization: string
+          service_type: string
         }[]
       }
       get_driver_service_type: {
