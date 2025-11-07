@@ -76,7 +76,7 @@ export const useDriverRegistration = () => {
             phone_number: data.phoneNumber,
             license_number: data.licenseNumber,
             vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
-            service_type: data.serviceType
+            service_type: data.serviceCategory // ✅ FIX: Utiliser serviceCategory
           }
         }
       });
@@ -130,7 +130,8 @@ export const useDriverRegistration = () => {
           phone_number: data.phoneNumber,
           license_number: data.licenseNumber,
           vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
-          service_type: data.serviceType,
+          service_type: data.serviceCategory, // ✅ FIX: Utiliser serviceCategory
+          service_specialization: data.serviceSpecialization, // ✅ Ajouter spécialisation
           delivery_capacity: data.deliveryCapacity,
           vehicle_class: 'standard',
           has_own_vehicle: data.hasOwnVehicle
@@ -174,7 +175,7 @@ export const useDriverRegistration = () => {
             p_phone_number: data.phoneNumber,
             p_license_number: data.licenseNumber || null,
             p_vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
-            p_service_type: data.serviceType || null,
+            p_service_type: data.serviceCategory, // ✅ FIX: Utiliser serviceCategory ('taxi' ou 'delivery')
             p_delivery_capacity: data.deliveryCapacity || null,
             p_vehicle_class: 'standard',
             p_has_own_vehicle: data.hasOwnVehicle
@@ -296,12 +297,12 @@ export const useDriverRegistration = () => {
       // 5. Créer la demande de chauffeur
       const requestData: any = {
         user_id: authData.user.id,
-        service_type: data.serviceType,
+        service_type: data.serviceCategory, // ✅ FIX: Utiliser serviceCategory ('taxi' ou 'delivery')
         license_number: data.licenseNumber,
         license_expiry: data.licenseExpiry,
         documents: [],
         status: 'pending',
-        has_own_vehicle: data.hasOwnVehicle, // Ajout du flag véhicule propre
+        has_own_vehicle: data.hasOwnVehicle,
       };
 
       // Ajouter les infos véhicule seulement si le chauffeur a son propre véhicule
@@ -326,9 +327,7 @@ export const useDriverRegistration = () => {
         .from('driver_service_preferences')
         .upsert({
           driver_id: authData.user.id,
-          service_types: [data.serviceType],
-          vehicle_classes: ['standard'],
-          preferred_zones: ['Kinshasa'],
+          service_type: data.serviceCategory, // ✅ FIX: Utiliser serviceCategory
           is_active: true,
         });
 
