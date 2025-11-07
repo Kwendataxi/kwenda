@@ -122,7 +122,7 @@ export const useRestaurantDelivery = () => {
 
   const getDeliveryStatus = async (orderId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('food_delivery_assignments')
         .select(`
           *,
@@ -136,7 +136,7 @@ export const useRestaurantDelivery = () => {
       if (error) throw error;
       
       if (data) {
-        setAssignment(data as DeliveryAssignment);
+        setAssignment(data as any);
       }
       
       return data;
@@ -149,7 +149,7 @@ export const useRestaurantDelivery = () => {
   const cancelDelivery = async (assignmentId: string, reason: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('food_delivery_assignments')
         .update({
           assignment_status: 'cancelled',

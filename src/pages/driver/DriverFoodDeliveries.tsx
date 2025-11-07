@@ -55,7 +55,7 @@ export default function DriverFoodDeliveries() {
 
   const loadDeliveries = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('food_delivery_assignments')
         .select(`
           *,
@@ -74,7 +74,7 @@ export default function DriverFoodDeliveries() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDeliveries(data || []);
+      setDeliveries((data || []) as any);
     } catch (error: any) {
       console.error('Error loading deliveries:', error);
       toast.error('Erreur de chargement', {
@@ -110,7 +110,7 @@ export default function DriverFoodDeliveries() {
   const handleAcceptDelivery = async (deliveryId: string) => {
     setActionLoading(deliveryId);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('food_delivery_assignments')
         .update({
           assignment_status: 'driver_accepted',
@@ -137,7 +137,7 @@ export default function DriverFoodDeliveries() {
   const handlePickup = async (deliveryId: string) => {
     setActionLoading(deliveryId);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('food_delivery_assignments')
         .update({
           assignment_status: 'picked_up',
@@ -165,7 +165,7 @@ export default function DriverFoodDeliveries() {
   const handleComplete = async (deliveryId: string) => {
     setActionLoading(deliveryId);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('food_delivery_assignments')
         .update({
           assignment_status: 'delivered',

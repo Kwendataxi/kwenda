@@ -107,7 +107,6 @@ serve(async (req) => {
         delivery_coordinates: order.delivery_coordinates || {},
         delivery_fee: deliveryFee,
         driver_earnings: driverEarnings,
-        platform_fee: platformFee,
         assignment_status: 'driver_found',
         estimated_pickup_time: new Date(Date.now() + 15 * 60000).toISOString(), // +15 min
         estimated_delivery_time: new Date(Date.now() + 45 * 60000).toISOString() // +45 min
@@ -138,27 +137,30 @@ serve(async (req) => {
     }
 
     // 7️⃣ Notifier le livreur
-    await supabase.from('delivery_notifications').insert({
+    await supabase.from('push_notifications').insert({
       user_id: selectedDriver.user_id,
       title: '🍽️ Nouvelle livraison Food',
       message: `Restaurant: ${order.restaurant.restaurant_name}\nLivraison: ${order.delivery_address}\nGain: ${driverEarnings} CDF`,
       notification_type: 'food_delivery_request',
-      related_order_id: orderId,
       metadata: {
         assignment_id: assignment.id,
         restaurant_name: order.restaurant.restaurant_name,
         delivery_fee: deliveryFee,
-        driver_earnings: driverEarnings
+        driver_earnings: driverEarnings,
+        order_id: orderId
       }
     });
 
     // 8️⃣ Notifier le client
-    await supabase.from('delivery_notifications').insert({
+    await supabase.from('push_notifications').insert({
       user_id: order.customer_id,
       title: '🚗 Livreur assigné',
       message: `${selectedDriver.display_name} va récupérer votre commande chez ${order.restaurant.restaurant_name}`,
       notification_type: 'food_delivery_update',
-      related_order_id: orderId
+      metadata: {
+        order_id: orderId,
+        driver_name: selectedDriver.display_name
+      }
     });
 
     console.log(`✅ Food delivery assigned successfully to ${selectedDriver.display_name}`);

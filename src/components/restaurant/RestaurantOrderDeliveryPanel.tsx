@@ -42,7 +42,7 @@ export function RestaurantOrderDeliveryPanel({
   const loadDeliveryInfo = async () => {
     const info = await getDeliveryStatus(orderId);
     if (info) {
-      setDeliveryInfo(info);
+      setDeliveryInfo(info as any);
     }
   };
 

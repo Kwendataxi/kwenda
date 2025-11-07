@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 
 const DriverApp = () => {
   const { loading, serviceType, serviceSpecialization } = useDriverServiceInfo();
-  const [tab, setTab] = useState<'orders' | 'food' | 'earnings' | 'challenges' | 'subscription' | 'profile'>('orders');
+  const [tab, setTab] = useState<'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile' | 'food'>('orders');
   const [showMigrationModal, setShowMigrationModal] = useState(false);
 
   // 🔔 Activer les notifications système temps réel
@@ -175,7 +175,7 @@ const DriverApp = () => {
           <UniversalBottomNavigation 
             userType="driver"
             activeTab={tab} 
-            onTabChange={(newTab) => {
+            onTabChange={(newTab: any) => {
               if (newTab === 'orders' || newTab === 'food' || newTab === 'earnings' || newTab === 'challenges' || newTab === 'subscription' || newTab === 'profile') {
                 setTab(newTab);
               }
