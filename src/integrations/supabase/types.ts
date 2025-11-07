@@ -1958,6 +1958,13 @@ export type Database = {
             referencedRelation: "driver_service_preferences_legacy"
             referencedColumns: ["driver_id"]
           },
+          {
+            foreignKeyName: "dispatcher_rejections_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_status_unified"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       driver_bonus_rides: {
@@ -2343,6 +2350,13 @@ export type Database = {
             referencedRelation: "driver_service_preferences_legacy"
             referencedColumns: ["driver_id"]
           },
+          {
+            foreignKeyName: "driver_locations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: true
+            referencedRelation: "driver_status_unified"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       driver_online_status_table: {
@@ -2716,6 +2730,13 @@ export type Database = {
             referencedRelation: "driver_service_preferences_legacy"
             referencedColumns: ["driver_id"]
           },
+          {
+            foreignKeyName: "driver_service_preferences_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_status_unified"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       driver_subscriptions: {
@@ -2861,6 +2882,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "driver_service_preferences_legacy"
             referencedColumns: ["driver_id"]
+          },
+          {
+            foreignKeyName: "driver_vehicle_associations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_status_unified"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "driver_vehicle_associations_partner_id_fkey"
@@ -3523,6 +3551,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "driver_service_preferences_legacy"
             referencedColumns: ["driver_id"]
+          },
+          {
+            foreignKeyName: "food_orders_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_status_unified"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "food_orders_restaurant_id_fkey"
@@ -4309,6 +4344,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "driver_service_preferences_legacy"
             referencedColumns: ["driver_id"]
+          },
+          {
+            foreignKeyName: "lottery_prize_deliveries_delivery_person_id_fkey"
+            columns: ["delivery_person_id"]
+            isOneToOne: false
+            referencedRelation: "driver_status_unified"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "lottery_prize_deliveries_win_id_fkey"
@@ -5999,6 +6041,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "driver_service_preferences_legacy"
             referencedColumns: ["driver_id"]
+          },
+          {
+            foreignKeyName: "partner_driver_requests_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_status_unified"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "partner_driver_requests_partner_id_fkey"
@@ -13258,6 +13307,23 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_status_unified: {
+        Row: {
+          chauffeur_id: string | null
+          heading: number | null
+          is_active: boolean | null
+          is_available: boolean | null
+          is_online: boolean | null
+          last_ping: string | null
+          latitude: number | null
+          longitude: number | null
+          speed: number | null
+          truly_online: boolean | null
+          user_id: string | null
+          verification_status: string | null
+        }
+        Relationships: []
+      }
       heatmap_grid_density: {
         Row: {
           density: number | null
@@ -14768,6 +14834,7 @@ export type Database = {
       }
       is_current_user_admin: { Args: never; Returns: boolean }
       is_current_user_super_admin: { Args: never; Returns: boolean }
+      is_driver_truly_online: { Args: { p_user_id: string }; Returns: boolean }
       is_restaurant_owner: {
         Args: { p_restaurant_id: string }
         Returns: boolean
@@ -15044,6 +15111,7 @@ export type Database = {
       refresh_admin_cache: { Args: never; Returns: undefined }
       refresh_ai_stats: { Args: never; Returns: undefined }
       refresh_driver_status: { Args: never; Returns: undefined }
+      refresh_driver_status_unified: { Args: never; Returns: undefined }
       refresh_partner_rental_stats: { Args: never; Returns: undefined }
       refresh_security_stats: { Args: never; Returns: undefined }
       refresh_vendor_stats_cache: {

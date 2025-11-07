@@ -28,31 +28,39 @@ export const useDriverStatus = () => {
     serviceTypes: ['taxi', 'delivery', 'marketplace']
   });
 
-  // ✅ PHASE 2: Charger le statut depuis chauffeurs (is_active)
+  // ✅ PHASE 1: Charger le statut depuis driver_locations (source de vérité unifiée)
   const loadDriverStatus = useCallback(async () => {
     if (!user) return;
 
     try {
-      const { data: driverProfile, error } = await supabase
+      // Charger depuis driver_locations ET chauffeurs
+      const { data: driverLocation, error: locationError } = await supabase
+        .from('driver_locations')
+        .select('is_online, is_available')
+        .eq('driver_id', user.id)
+        .single();
+
+      const { data: chauffeur, error: chauffeurError } = await supabase
         .from('chauffeurs')
-        .select('is_active, verification_status')
+        .select('verification_status')
         .eq('user_id', user.id)
         .single();
 
-      if (error) {
-        console.error('Error loading driver status:', error);
-        return;
+      if (locationError && locationError.code !== 'PGRST116') {
+        console.error('Error loading driver location:', locationError);
       }
 
-      if (driverProfile) {
-        setStatus({
-          isOnline: driverProfile.is_active || false,
-          isAvailable: driverProfile.is_active && driverProfile.verification_status === 'verified',
-          currentOrderId: null, // Géré par useDriverDispatch
-          currentOrderType: null,
-          serviceTypes: ['taxi', 'delivery', 'marketplace']
-        });
-      }
+      // Utiliser driver_locations.is_online comme source de vérité
+      const isOnline = driverLocation?.is_online || false;
+      const isVerified = chauffeur?.verification_status === 'verified';
+
+      setStatus({
+        isOnline,
+        isAvailable: isOnline && isVerified && (driverLocation?.is_available || false),
+        currentOrderId: null,
+        currentOrderType: null,
+        serviceTypes: ['taxi', 'delivery', 'marketplace']
+      });
     } catch (error: any) {
       console.error('Error loading driver status:', error);
     } finally {
@@ -60,7 +68,7 @@ export const useDriverStatus = () => {
     }
   }, [user]);
 
-  // ✅ PHASE 2: Passer en ligne (utiliser chauffeurs.is_active)
+  // ✅ PHASE 1: Passer en ligne (mise à jour driver_locations + trigger auto sync chauffeurs)
   const goOnline = async (latitude?: number, longitude?: number): Promise<boolean> => {
     if (!user) {
       toast.error('Vous devez être connecté');
@@ -69,16 +77,29 @@ export const useDriverStatus = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('chauffeurs')
-        .update({ is_active: true })
-        .eq('user_id', user.id);
+      // 1. Mettre à jour driver_locations (source de vérité)
+      const { error: locationError } = await supabase
+        .from('driver_locations')
+        .upsert({
+          driver_id: user.id,
+          is_online: true,
+          is_available: true,
+          last_ping: new Date().toISOString(),
+          latitude: latitude || -4.3217,
+          longitude: longitude || 15.3069
+        });
 
-      if (error) {
-        console.error('Error going online:', error);
+      if (locationError) {
+        console.error('Error updating driver location:', locationError);
         toast.error('Impossible de passer en ligne');
         return false;
       }
+
+      // 2. Synchroniser chauffeurs.is_active (le trigger le fera aussi)
+      await supabase
+        .from('chauffeurs')
+        .update({ is_active: true })
+        .eq('user_id', user.id);
 
       setStatus(prev => ({ ...prev, isOnline: true, isAvailable: true }));
       toast.success('✅ Vous êtes maintenant en ligne');
@@ -92,7 +113,7 @@ export const useDriverStatus = () => {
     }
   };
 
-  // ✅ PHASE 2: Passer hors ligne (utiliser chauffeurs.is_active)
+  // ✅ PHASE 1: Passer hors ligne (mise à jour driver_locations + sync chauffeurs)
   const goOffline = async (): Promise<boolean> => {
     if (!user) {
       toast.error('Vous devez être connecté');
@@ -101,16 +122,27 @@ export const useDriverStatus = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('chauffeurs')
-        .update({ is_active: false })
-        .eq('user_id', user.id);
+      // 1. Mettre à jour driver_locations
+      const { error: locationError } = await supabase
+        .from('driver_locations')
+        .update({ 
+          is_online: false, 
+          is_available: false,
+          last_ping: new Date().toISOString()
+        })
+        .eq('driver_id', user.id);
 
-      if (error) {
-        console.error('Error going offline:', error);
+      if (locationError) {
+        console.error('Error updating driver location:', locationError);
         toast.error('Impossible de passer hors ligne');
         return false;
       }
+
+      // 2. Synchroniser chauffeurs.is_active
+      await supabase
+        .from('chauffeurs')
+        .update({ is_active: false })
+        .eq('user_id', user.id);
 
       setStatus(prev => ({ ...prev, isOnline: false, isAvailable: false }));
       toast.info('⏸️ Vous êtes maintenant hors ligne');

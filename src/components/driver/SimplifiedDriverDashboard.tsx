@@ -1,21 +1,21 @@
 /**
- * 🎯 PHASE 1: Dashboard Simplifié Chauffeur
- * Interface épurée avec hiérarchie visuelle claire
+ * 🎯 PHASE 3: Dashboard Carte Plein Écran
+ * Grande carte Google Maps permanente avec position temps réel style Yango
  */
 
-import React, { useState } from 'react';
-import { CompactStatusCard } from './CompactStatusCard';
-import { AvailableRidesSection } from './AvailableRidesSection';
-import { ActiveRideHighlight } from './ActiveRideHighlight';
-import { CompactStatsBar } from './CompactStatsBar';
+import React, { useState, useEffect } from 'react';
+import { ModernOnlineToggle } from './ModernOnlineToggle';
+import { FloatingStatsCard } from './FloatingStatsCard';
 import { ActiveRideFloatingPanel } from './modals/ActiveRideFloatingPanel';
 import { NewRidePopup } from './modals/NewRidePopup';
 import { NavigationModal } from './NavigationModal';
-import { Button } from '@/components/ui/button';
-import { TrendingUp } from 'lucide-react';
+import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { useDriverEarnings } from '@/hooks/useDriverEarnings';
 import { useDriverHeartbeat } from '@/hooks/useDriverHeartbeat';
+import { useDriverGeolocation } from '@/hooks/useDriverGeolocation';
+import { useDriverStatus } from '@/hooks/useDriverStatus';
+import { useLiveDrivers } from '@/hooks/useLiveDrivers';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -34,14 +34,16 @@ export const SimplifiedDriverDashboard: React.FC<SimplifiedDriverDashboardProps>
   } = useDriverDispatch();
 
   const { stats, loading: statsLoading } = useDriverEarnings();
+  const { status } = useDriverStatus();
+  const { location } = useDriverGeolocation({ autoSync: true });
   
-  // ✅ PHASE 3: Activer le heartbeat automatique toutes les 2 minutes
+  // ✅ PHASE 3: Activer le heartbeat automatique
   useDriverHeartbeat();
   
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [showStatsPage, setShowStatsPage] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
+  const [onlineHours, setOnlineHours] = useState(0);
 
   // Filtrer selon le type de service
   const relevantNotifications = pendingNotifications.filter(n => 
@@ -117,46 +119,57 @@ export const SimplifiedDriverDashboard: React.FC<SimplifiedDriverDashboardProps>
     }
   };
 
+  // Calculer heures en ligne
+  useEffect(() => {
+    if (!status.isOnline) {
+      setOnlineHours(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setOnlineHours(prev => prev + (1/60)); // Incrémenter chaque minute
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [status.isOnline]);
+
   return (
-    <div className="space-y-4 pb-24 px-4">
-      {/* Header Status - Repliable */}
-      <CompactStatusCard serviceType={serviceType} />
-
-      {/* Barre de Stats Compacte - Seulement 2 KPIs */}
-      <CompactStatsBar
-        todayEarnings={stats.todayEarnings || 0}
-        totalRides={stats.todayTrips || 0}
-        onClick={() => setShowStatsPage(true)}
-      />
-
-      {/* Course Active - Priorité visuelle maximale */}
-      {relevantActiveOrders.length > 0 && (
-        <ActiveRideHighlight
-          order={relevantActiveOrders[0]}
-          onNavigate={() => handleStartNavigation(relevantActiveOrders[0])}
-          onComplete={() => handleCompleteOrder(relevantActiveOrders[0].id, relevantActiveOrders[0].type)}
+    <div className="h-screen flex flex-col">
+      {/* Toggle Online fixe en haut - TOUJOURS VISIBLE */}
+      <div className="bg-background border-b p-4 z-50">
+        <ModernOnlineToggle />
+      </div>
+      
+      {/* Carte plein écran */}
+      <div className="flex-1 relative">
+        <GoogleMapsKwenda
+          center={location ? { lat: location.latitude, lng: location.longitude } : undefined}
+          zoom={15}
+          height="100%"
+          driverLocation={location ? {
+            lat: location.latitude,
+            lng: location.longitude,
+            heading: null
+          } : undefined}
+          pickup={relevantActiveOrders.length > 0 ? relevantActiveOrders[0].pickup_coordinates : undefined}
+          destination={relevantActiveOrders.length > 0 ? (
+            serviceType === 'taxi' 
+              ? relevantActiveOrders[0].destination_coordinates 
+              : relevantActiveOrders[0].delivery_coordinates
+          ) : undefined}
+          showRoute={relevantActiveOrders.length > 0}
         />
-      )}
-
-      {/* Section Courses Disponibles */}
-      <AvailableRidesSection
-        notifications={relevantNotifications}
-        serviceType={serviceType}
-        onAccept={(notification) => setSelectedNotification(notification)}
-        onReject={handleRejectOrder}
-      />
-
-      {/* Bouton Stats Complètes */}
-      {!showStatsPage && (
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => setShowStatsPage(true)}
-        >
-          <TrendingUp className="h-4 w-4 mr-2" />
-          Voir mes statistiques complètes
-        </Button>
-      )}
+        
+        {/* Overlay floating stats - toujours visible si en ligne */}
+        {status.isOnline && (
+          <FloatingStatsCard 
+            todayEarnings={stats.todayEarnings || 0}
+            todayTrips={stats.todayTrips || 0}
+            onlineHours={onlineHours}
+            position="top-right"
+          />
+        )}
+      </div>
 
       {/* Popup Nouvelle Course */}
       {selectedNotification && (
