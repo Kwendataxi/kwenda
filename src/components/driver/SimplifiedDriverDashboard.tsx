@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { ModernOnlineToggle } from './ModernOnlineToggle';
 import { FloatingStatsCard } from './FloatingStatsCard';
 import { ActiveRideFloatingPanel } from './modals/ActiveRideFloatingPanel';
-import { NewRidePopup } from './modals/NewRidePopup';
+import { NewRidePopupExplosive } from './modals/NewRidePopupExplosive';
 import { NavigationModal } from './NavigationModal';
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
@@ -15,7 +15,7 @@ import { useDriverEarnings } from '@/hooks/useDriverEarnings';
 import { useDriverHeartbeat } from '@/hooks/useDriverHeartbeat';
 import { useDriverGeolocation } from '@/hooks/useDriverGeolocation';
 import { useDriverStatus } from '@/hooks/useDriverStatus';
-import { useLiveDrivers } from '@/hooks/useLiveDrivers';
+import { useBackgroundTracking } from '@/hooks/useBackgroundTracking';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -36,6 +36,9 @@ export const SimplifiedDriverDashboard: React.FC<SimplifiedDriverDashboardProps>
   const { stats, loading: statsLoading } = useDriverEarnings();
   const { status } = useDriverStatus();
   const { location } = useDriverGeolocation({ autoSync: true });
+  
+  // ✅ PHASE 4: Activer le background tracking GPS
+  const { isTracking } = useBackgroundTracking();
   
   // ✅ PHASE 3: Activer le heartbeat automatique
   useDriverHeartbeat();
@@ -171,9 +174,9 @@ export const SimplifiedDriverDashboard: React.FC<SimplifiedDriverDashboardProps>
         )}
       </div>
 
-      {/* Popup Nouvelle Course */}
+      {/* 💥 PHASE 5: Popup Explosive Nouvelle Course */}
       {selectedNotification && (
-        <NewRidePopup
+        <NewRidePopupExplosive
           open={!!selectedNotification}
           notification={selectedNotification}
           serviceType={serviceType}

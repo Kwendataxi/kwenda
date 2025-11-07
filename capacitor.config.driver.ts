@@ -20,6 +20,13 @@ const config: CapacitorConfig = {
       allowsBackgroundLocationUpdates: true,
       showsBackgroundLocationIndicator: true
     },
+    BackgroundGeolocation: {
+      notificationTitle: "Kwenda Driver - En service",
+      notificationText: "Position suivie en arrière-plan",
+      notificationIcon: "ic_stat_icon_config_sample",
+      notificationColor: "#F59E0B",
+      distanceFilter: 10
+    },
     Camera: {
       permissions: ["camera", "photos"]
     },
