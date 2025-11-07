@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { RestaurantCard } from './RestaurantCard';
 import { RestaurantSlider } from './RestaurantSlider';
 import { FoodPromoBanner } from './FoodPromoBanner';
 import { PopularDishesSection } from './PopularDishesSection';
+import { CategoryIconsSection } from './CategoryIconsSection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,6 +31,8 @@ export const RestaurantList = ({
   onViewAllDishes,
   onViewAllRestaurants
 }: RestaurantListProps) => {
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -64,15 +68,26 @@ export const RestaurantList = ({
 
   // Grouper par type de cuisine
   const cuisineTypes = Array.from(new Set(restaurants.flatMap(r => r.cuisine_types || ['Autre'])));
-  const topRated = restaurants.filter(r => (r.rating_average || 0) >= 4).slice(0, 6);
-  const newRestaurants = restaurants.slice(0, 6);
+  const topRated = restaurants.filter(r => (r.rating_average || 0) >= 4).slice(0, 8);
+  const newRestaurants = restaurants.slice(0, 8);
+  const fastDelivery = restaurants.filter(r => (r.average_preparation_time || 60) <= 30).slice(0, 6);
+
+  const filteredByCategory = categoryFilter
+    ? restaurants.filter(r => r.cuisine_types?.includes(categoryFilter))
+    : restaurants;
 
   return (
-    <div className="space-y-8 pb-6">
-      {/* Bande publicitaire moderne */}
+    <div className="space-y-6 pb-24 md:pb-6">
+      {/* 1. Promo Banner avec slide accueil */}
       <FoodPromoBanner />
 
-      {/* Section Plats Populaires */}
+      {/* 2. Catégories avec icônes */}
+      <CategoryIconsSection 
+        activeCategory={categoryFilter}
+        onCategorySelect={setCategoryFilter}
+      />
+
+      {/* 3. Popular Dishes Section */}
       {onAddToCart && (
         <PopularDishesSection 
           city={selectedCity}
@@ -81,7 +96,27 @@ export const RestaurantList = ({
         />
       )}
 
-      {/* Slider principal - Restaurants les mieux notés */}
+      {/* 4. New Restaurants */}
+      <RestaurantSlider
+        restaurants={newRestaurants}
+        loading={false}
+        onSelectRestaurant={onSelectRestaurant}
+        title="🆕 Nouveautés"
+        onViewAll={onViewAllRestaurants}
+      />
+
+      {/* 5. Fast Delivery (< 30 min) */}
+      {fastDelivery.length > 0 && (
+        <RestaurantSlider
+          restaurants={fastDelivery}
+          loading={false}
+          onSelectRestaurant={onSelectRestaurant}
+          title="⏱️ Livrés en -30 min"
+          onViewAll={onViewAllRestaurants}
+        />
+      )}
+
+      {/* 6. Top Rated Restaurants */}
       {topRated.length > 0 && (
         <RestaurantSlider
           restaurants={topRated}
@@ -92,58 +127,79 @@ export const RestaurantList = ({
         />
       )}
 
-      {/* Slider secondaire - Nouveaux restaurants */}
-      <RestaurantSlider
-        restaurants={newRestaurants}
-        loading={false}
-        onSelectRestaurant={onSelectRestaurant}
-        title="🆕 Nouveautés"
-        onViewAll={onViewAllRestaurants}
-      />
+      {/* 7. Restaurants by Category (tabs - option avancée) */}
+      {categoryFilter === '' && (
+        <div className="px-4">
+          <h2 className="text-xl font-bold mb-4 text-foreground">📂 Par Cuisine</h2>
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="w-full justify-start overflow-x-auto mb-4">
+              <TabsTrigger value="all" className="flex items-center gap-2">
+                Tous ({restaurants.length})
+              </TabsTrigger>
+              {cuisineTypes.slice(0, 5).map(cuisine => {
+                const count = restaurants.filter(r => r.cuisine_types?.includes(cuisine)).length;
+                return (
+                  <TabsTrigger key={cuisine} value={cuisine} className="flex items-center gap-2 capitalize">
+                    {cuisine} ({count})
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
 
-      {/* Tabs par type de cuisine */}
-      <div className="px-4">
-        <h2 className="text-xl font-bold mb-4 text-foreground">📂 Catégories</h2>
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="w-full justify-start overflow-x-auto mb-4">
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              Tous ({restaurants.length})
-            </TabsTrigger>
-            {cuisineTypes.slice(0, 5).map(cuisine => {
-              const count = restaurants.filter(r => r.cuisine_types?.includes(cuisine)).length;
-              return (
-                <TabsTrigger key={cuisine} value={cuisine} className="flex items-center gap-2 capitalize">
-                  {cuisine} ({count})
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+            <TabsContent value="all" className="grid grid-cols-1 gap-4">
+              {restaurants.map((restaurant) => (
+                <RestaurantCard
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                  onClick={() => onSelectRestaurant(restaurant)}
+                />
+              ))}
+            </TabsContent>
 
-          <TabsContent value="all" className="grid grid-cols-1 gap-4">
-            {restaurants.map((restaurant) => (
+            {cuisineTypes.map(cuisine => (
+              <TabsContent key={cuisine} value={cuisine} className="grid grid-cols-1 gap-4">
+                {restaurants
+                  .filter(r => r.cuisine_types?.includes(cuisine))
+                  .map((restaurant) => (
+                    <RestaurantCard
+                      key={restaurant.id}
+                      restaurant={restaurant}
+                      onClick={() => onSelectRestaurant(restaurant)}
+                    />
+                  ))}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
+      )}
+
+      {/* 8. Filtered restaurants (when category filter is active) */}
+      {categoryFilter !== '' && (
+        <div className="px-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-foreground">
+              Résultats ({filteredByCategory.length})
+            </h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCategoryFilter('')}
+              className="text-primary"
+            >
+              Effacer le filtre
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {filteredByCategory.map((restaurant) => (
               <RestaurantCard
                 key={restaurant.id}
                 restaurant={restaurant}
                 onClick={() => onSelectRestaurant(restaurant)}
               />
             ))}
-          </TabsContent>
-
-          {cuisineTypes.map(cuisine => (
-            <TabsContent key={cuisine} value={cuisine} className="grid grid-cols-1 gap-4">
-              {restaurants
-                .filter(r => r.cuisine_types?.includes(cuisine))
-                .map((restaurant) => (
-                  <RestaurantCard
-                    key={restaurant.id}
-                    restaurant={restaurant}
-                    onClick={() => onSelectRestaurant(restaurant)}
-                  />
-                ))}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

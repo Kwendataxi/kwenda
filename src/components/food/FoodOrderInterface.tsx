@@ -8,6 +8,7 @@ import { FoodCheckout } from './FoodCheckout';
 import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { AllDishesView } from './AllDishesView';
 import { AllRestaurantsView } from './AllRestaurantsView';
+import { FoodFooterNav } from './FoodFooterNav';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { AnimatePresence } from 'framer-motion';
@@ -138,7 +139,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const total = subtotal + deliveryFee + serviceFee;
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background pb-20 md:pb-0">
       {/* Header */}
       <KwendaFoodHeader
         step={step}
@@ -212,6 +213,8 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
           )}
         </AnimatePresence>
       </div>
+
+      <FoodFooterNav />
     </div>
   );
 };

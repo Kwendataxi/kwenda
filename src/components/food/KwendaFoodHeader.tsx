@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from 'next-themes';
+import { FoodSearchBar } from './FoodSearchBar';
 
 interface KwendaFoodHeaderProps {
   step: 'restaurants' | 'menu' | 'checkout' | 'all-dishes' | 'all-restaurants';
@@ -113,6 +114,20 @@ export const KwendaFoodHeader = ({
                 </p>
               </div>
             </div>
+
+            {/* SearchBar desktop */}
+            {step === 'restaurants' && (
+              <div className="hidden md:block flex-1 max-w-md mx-4">
+                <FoodSearchBar city={selectedCity} />
+              </div>
+            )}
+
+            {/* SearchBar mobile */}
+            {step === 'restaurants' && (
+              <div className="md:hidden">
+                <FoodSearchBar city={selectedCity} />
+              </div>
+            )}
             
             {/* Panier flottant avec animation */}
             {cartItemsCount > 0 && (

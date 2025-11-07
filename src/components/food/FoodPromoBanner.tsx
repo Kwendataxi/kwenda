@@ -15,6 +15,14 @@ interface PromoSlide {
 
 const promoSlides: PromoSlide[] = [
   {
+    id: '0',
+    title: 'Kwenda Food 🍽️',
+    description: 'Tes restaurants préférés, livrés rapidement.',
+    cta: '🔍 Explorer les restaurants',
+    gradient: 'from-orange-600 via-red-600 to-orange-700',
+    icon: '🍽️'
+  },
+  {
     id: '1',
     title: '-30% sur votre 1ère commande',
     description: 'Code: BIENVENUE30',
