@@ -4,8 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CheckCircle, Clock, Store, Phone, Mail, MapPin } from 'lucide-react';
+import { CheckCircle, Clock, Store, Phone, Mail, MapPin, Camera } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { RestaurantImageSettings } from './RestaurantImageSettings';
 
 interface RestaurantProfile {
   id: string;
@@ -23,6 +25,7 @@ export function RestaurantProfileHeader() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<RestaurantProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showImageEditor, setShowImageEditor] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -93,15 +96,40 @@ export function RestaurantProfileHeader() {
   });
 
   return (
+    <>
     <Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
-          <Avatar className="h-20 w-20 border-4 border-white dark:border-gray-800 shadow-lg">
-            <AvatarImage src={profile.logo_url || ''} alt={profile.restaurant_name} />
-            <AvatarFallback className="bg-orange-600 text-white text-2xl">
-              {profile.restaurant_name.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative group">
+            <Avatar className="h-20 w-20 border-4 border-white dark:border-gray-800 shadow-lg">
+              <AvatarImage src={profile.logo_url || ''} alt={profile.restaurant_name} />
+              <AvatarFallback className="bg-orange-600 text-white text-2xl">
+                {profile.restaurant_name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* Bouton d'édition en overlay */}
+            <button
+              onClick={() => setShowImageEditor(true)}
+              className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              aria-label="Modifier les images"
+            >
+              <Camera className="h-6 w-6 text-white" />
+            </button>
+
+            {/* Badge "Ajouter" si pas de logo */}
+            {!profile.logo_url && (
+              <div className="absolute -bottom-1 -right-1">
+                <button
+                  onClick={() => setShowImageEditor(true)}
+                  className="bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-lg hover:bg-orange-700 transition-colors flex items-center gap-1"
+                >
+                  <Camera className="h-3 w-3" />
+                  Ajouter
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="flex-1 space-y-3">
             <div>
@@ -136,5 +164,21 @@ export function RestaurantProfileHeader() {
         </div>
       </CardContent>
     </Card>
+
+    {/* Dialog pour modifier les images */}
+    <Dialog open={showImageEditor} onOpenChange={setShowImageEditor}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Modifier les images</DialogTitle>
+        </DialogHeader>
+        <RestaurantImageSettings 
+          onImageUpdate={() => {
+            loadProfile();
+            setShowImageEditor(false);
+          }}
+        />
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

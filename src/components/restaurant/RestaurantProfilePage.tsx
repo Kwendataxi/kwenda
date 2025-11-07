@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Settings, DollarSign, CreditCard, Users, TrendingUp, FileText, HelpCircle, Shield, Clock, Bell, ChefHat } from 'lucide-react';
+import { LogOut, Settings, DollarSign, CreditCard, Users, TrendingUp, FileText, HelpCircle, Shield, Clock, Bell, ChefHat, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -11,12 +11,37 @@ import { RestaurantInfoCard } from './RestaurantInfoCard';
 import { RestaurantStats } from './RestaurantStats';
 import { RestaurantDocuments } from './RestaurantDocuments';
 import { RestaurantSettings } from './RestaurantSettings';
+import { ImageOnboardingBanner } from './ImageOnboardingBanner';
+import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState as useStateForProfile } from 'react';
 
 export function RestaurantProfilePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [showDocuments, setShowDocuments] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [profile, setProfile] = useStateForProfile<{ logo_url: string | null; banner_url: string | null } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      loadProfileImages();
+    }
+  }, [user]);
+
+  const loadProfileImages = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('restaurant_profiles')
+        .select('logo_url, banner_url')
+        .eq('user_id', user.id)
+        .single();
+      if (data) setProfile(data);
+    } catch (error) {
+      console.error('Error loading profile images:', error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -32,6 +57,12 @@ export function RestaurantProfilePage() {
   };
 
   const quickActions = [
+    { 
+      icon: Camera, 
+      label: 'Modifier mes images', 
+      description: 'Logo et bannière',
+      onClick: () => setShowSettings(true)
+    },
     { 
       icon: DollarSign, 
       label: 'Revenus & Finances', 
@@ -49,12 +80,6 @@ export function RestaurantProfilePage() {
       label: 'Mon Équipe', 
       description: 'Gérer le personnel',
       onClick: () => toast({ title: 'Bientôt disponible' })
-    },
-    { 
-      icon: FileText, 
-      label: 'Documents', 
-      description: 'Certificats et licences',
-      onClick: () => setShowDocuments(true)
     },
   ];
 
@@ -78,7 +103,7 @@ export function RestaurantProfilePage() {
     {
       title: 'Paramètres',
       items: [
-        { icon: Settings, label: 'Paramètres du compte', onClick: () => setShowSettings(true) },
+        { icon: Settings, label: 'Images & Paramètres', onClick: () => setShowSettings(true) },
         { icon: Shield, label: 'Sécurité et confidentialité', onClick: () => setShowSettings(true) },
       ]
     },
@@ -95,6 +120,15 @@ export function RestaurantProfilePage() {
     <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <RestaurantProfileHeader />
+        
+        {/* Banner d'onboarding pour les nouveaux restaurants */}
+        {profile && (
+          <ImageOnboardingBanner
+            hasLogo={!!profile.logo_url}
+            hasBanner={!!profile.banner_url}
+            onAddImages={() => setShowSettings(true)}
+          />
+        )}
         
         <RestaurantStats />
 

@@ -12,7 +12,11 @@ interface RestaurantImages {
   banner_url: string | null;
 }
 
-export function RestaurantImageSettings() {
+interface RestaurantImageSettingsProps {
+  onImageUpdate?: () => void;
+}
+
+export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettingsProps = {}) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -149,6 +153,11 @@ export function RestaurantImageSettings() {
       });
       
       console.log(`✅ [RestaurantImages] Upload ${type} terminé avec succès`);
+
+      // Callback pour rafraîchir le parent
+      if (onImageUpdate) {
+        onImageUpdate();
+      }
     } catch (error: any) {
       console.error('❌ [RestaurantImages] Erreur upload complète:', {
         message: error.message,
@@ -189,6 +198,11 @@ export function RestaurantImageSettings() {
         title: "Image supprimée",
         description: `${type === 'logo' ? 'Logo' : 'Bannière'} supprimé(e) avec succès`
       });
+
+      // Callback pour rafraîchir le parent
+      if (onImageUpdate) {
+        onImageUpdate();
+      }
     } catch (error: any) {
       console.error('Erreur suppression:', error);
       toast({
