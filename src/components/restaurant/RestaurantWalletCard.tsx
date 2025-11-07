@@ -43,8 +43,8 @@ export const RestaurantWalletCard: React.FC<RestaurantWalletCardProps> = ({
                 <Wallet className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-white/80 text-sm font-medium">Wallet Restaurant</p>
-                <p className="text-xs text-white/60">KwendaPay</p>
+                <p className="text-white text-base font-bold">KwendaPay</p>
+                <p className="text-xs text-white/60">Mon portefeuille</p>
               </div>
             </div>
             {isLowBalance && (
