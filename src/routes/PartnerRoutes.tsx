@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { PartnerGuard } from '@/components/guards/PartnerGuard';
 import { isSpecificBuild, isPartnerApp } from '@/config/appConfig';
 import { isMobileApp } from '@/services/platformDetection';
 import Index from '@/pages/Index';
@@ -34,7 +35,9 @@ export const PartnerRoutes = () => {
         path="/app/partenaire" 
         element={
           <ProtectedRoute>
-            <PartnerApp />
+            <PartnerGuard>
+              <PartnerApp />
+            </PartnerGuard>
           </ProtectedRoute>
         } 
       />
@@ -42,7 +45,9 @@ export const PartnerRoutes = () => {
         path="/partenaire" 
         element={
           <ProtectedRoute>
-            <PartnerApp />
+            <PartnerGuard>
+              <PartnerApp />
+            </PartnerGuard>
           </ProtectedRoute>
         } 
       />
@@ -51,7 +56,9 @@ export const PartnerRoutes = () => {
         path="/partner/dashboard" 
         element={
           <ProtectedRoute>
-            <PartnerDashboard />
+            <PartnerGuard>
+              <PartnerDashboard />
+            </PartnerGuard>
           </ProtectedRoute>
         } 
       />
@@ -59,7 +66,9 @@ export const PartnerRoutes = () => {
         path="/partner/rental/subscription" 
         element={
           <ProtectedRoute>
-            <PartnerRentalSubscriptionManagement />
+            <PartnerGuard>
+              <PartnerRentalSubscriptionManagement />
+            </PartnerGuard>
           </ProtectedRoute>
         } 
       />

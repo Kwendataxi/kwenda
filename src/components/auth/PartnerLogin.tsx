@@ -115,9 +115,8 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
         }
       }
 
-      // ✅ CORRECTION : Stocker loginIntent pour redirection correcte
+      // ✅ Stocker uniquement loginIntent (non critique - juste pour UX redirection)
       localStorage.setItem('kwenda_login_intent', 'partner');
-      localStorage.setItem('kwenda_selected_role', 'partner');
 
       toast.success(t('auth.login_success'), {
         description: t('auth.welcome_partner')
