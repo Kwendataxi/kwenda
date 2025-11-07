@@ -11,6 +11,7 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useDriverCity } from './useDriverCity';
 
 export interface ServiceZone {
   id: string;
@@ -26,19 +27,23 @@ export interface ServiceZone {
 export const useDriverServiceZones = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { city: driverCity, loading: loadingCity } = useDriverCity();
 
-  // Charger toutes les zones disponibles
+  // ✅ PHASE 3 : Charger uniquement les zones de la ville du chauffeur
   const { data: availableZones, isLoading: loadingZones } = useQuery({
-    queryKey: ['service-zones'],
+    queryKey: ['service-zones', driverCity],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('service_zones')
         .select('*')
+        .eq('city', driverCity) // 🔥 FILTRAGE PAR VILLE ICI
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!driverCity
   });
 
   // Charger les zones actives du chauffeur
@@ -174,8 +179,8 @@ export const useDriverServiceZones = () => {
     zones,
     activeZones,
     suggestedZones,
-    driverCity: undefined, // Ville supprimée du schéma
-    loading: loadingZones || loadingDriver,
+    driverCity, // ✅ Maintenant disponible depuis useDriverCity
+    loading: loadingZones || loadingDriver || loadingCity,
     toggleZone,
     setActiveZones,
     zoneStats
