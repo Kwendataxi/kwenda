@@ -14,12 +14,17 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Wallet, Users, LogOut, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ReferralDashboard } from '../referral/ReferralDashboard';
+import { SupportModal } from '../support/SupportModal';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export const TaxiDriverProfile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showReferralDialog, setShowReferralDialog] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -137,7 +142,7 @@ export const TaxiDriverProfile = () => {
         <Button 
           variant="outline" 
           className="w-full justify-start gap-3"
-          onClick={() => {/* TODO: Parrainage */}}
+          onClick={() => setShowReferralDialog(true)}
         >
           <Users className="w-5 h-5" />
           Codes de parrainage
@@ -146,7 +151,7 @@ export const TaxiDriverProfile = () => {
         <Button 
           variant="outline" 
           className="w-full justify-start gap-3"
-          onClick={() => {/* TODO: Support */}}
+          onClick={() => setShowSupportModal(true)}
         >
           <Shield className="w-5 h-5" />
           Support & Assistance
@@ -164,6 +169,18 @@ export const TaxiDriverProfile = () => {
           Déconnexion
         </Button>
       </div>
+
+      {/* Dialogs */}
+      <Dialog open={showReferralDialog} onOpenChange={setShowReferralDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <ReferralDashboard />
+        </DialogContent>
+      </Dialog>
+
+      <SupportModal
+        open={showSupportModal}
+        onOpenChange={setShowSupportModal}
+      />
     </div>
   );
 };

@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { EarningsChart } from './EarningsChart';
 import { TransactionCard } from './TransactionCard';
+import { TopUpModal } from './TopUpModal';
+import { WithdrawModal } from './WithdrawModal';
 
 interface WalletData {
   balance: number;
@@ -47,6 +49,8 @@ export const ModernDriverWallet = ({ serviceType: propServiceType }: ModernDrive
   });
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   useEffect(() => {
     loadWalletData();
@@ -80,12 +84,25 @@ export const ModernDriverWallet = ({ serviceType: propServiceType }: ModernDrive
         .eq('user_id', user.id)
         .single();
 
+      // Calculer gains du jour
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { data: todayTransactions } = await supabase
+        .from('wallet_transactions')
+        .select('amount')
+        .eq('user_id', user.id)
+        .eq('transaction_type', 'credit')
+        .gte('created_at', today.toISOString());
+
+      const todayEarnings = todayTransactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+
       if (wallet) {
         setWalletData({
           balance: wallet.balance || 0,
           ecosystem_credits: wallet.ecosystem_credits || 0,
           kwenda_points: wallet.kwenda_points || 0,
-          todayEarnings: 0 // À calculer depuis les transactions du jour
+          todayEarnings
         });
       }
     } catch (error) {
@@ -221,11 +238,18 @@ export const ModernDriverWallet = ({ serviceType: propServiceType }: ModernDrive
 
       {/* Actions rapides */}
       <div className="grid grid-cols-2 gap-3">
-        <Button className={`bg-gradient-to-r from-${serviceColor}-500 to-${serviceColor}-600 hover:from-${serviceColor}-600 hover:to-${serviceColor}-700`}>
+        <Button 
+          className={`bg-gradient-to-r from-${serviceColor}-500 to-${serviceColor}-600 hover:from-${serviceColor}-600 hover:to-${serviceColor}-700`}
+          onClick={() => setShowTopUpModal(true)}
+        >
           <ArrowDownLeft className="w-4 h-4 mr-2" />
           Recharger
         </Button>
-        <Button variant="outline" className="border-2">
+        <Button 
+          variant="outline" 
+          className="border-2"
+          onClick={() => setShowWithdrawModal(true)}
+        >
           <ArrowUpRight className="w-4 h-4 mr-2" />
           Retirer
         </Button>
@@ -257,6 +281,26 @@ export const ModernDriverWallet = ({ serviceType: propServiceType }: ModernDrive
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <TopUpModal
+        open={showTopUpModal}
+        onOpenChange={setShowTopUpModal}
+        onSuccess={() => {
+          loadWalletData();
+          loadTransactions();
+        }}
+      />
+
+      <WithdrawModal
+        open={showWithdrawModal}
+        onOpenChange={setShowWithdrawModal}
+        currentBalance={walletData.balance}
+        onSuccess={() => {
+          loadWalletData();
+          loadTransactions();
+        }}
+      />
     </div>
   );
 };
