@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Bell, Clock, Shield, Globe, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { RestaurantImageSettings } from './RestaurantImageSettings';
 
 export function RestaurantSettings() {
   const { toast } = useToast();
@@ -43,6 +44,11 @@ export function RestaurantSettings() {
           Gérez les paramètres de votre compte restaurant
         </p>
       </div>
+
+      {/* Images du restaurant */}
+      <RestaurantImageSettings />
+
+      <Separator className="my-6" />
 
       {/* Notifications */}
       <Card>
