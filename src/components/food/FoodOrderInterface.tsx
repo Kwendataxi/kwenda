@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRestaurantsQuery } from '@/hooks/useRestaurantsQuery';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +10,6 @@ import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { AllDishesView } from './AllDishesView';
 import { AllRestaurantsView } from './AllRestaurantsView';
 import { FoodFooterNav } from './FoodFooterNav';
-import { BackToHomeButton } from './BackToHomeButton';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { AnimatePresence } from 'framer-motion';
@@ -24,6 +24,7 @@ interface FoodOrderInterfaceProps {
 }
 
 export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfaceProps) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [selectedCity, setSelectedCity] = useState('Kinshasa');
@@ -134,6 +135,10 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
     }
   };
 
+  const handleBackToHome = () => {
+    navigate('/app/client');
+  };
+
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const deliveryFee = 2000; // Fixed delivery fee for now
   const serviceFee = subtotal * 0.05; // 5% service fee
@@ -149,6 +154,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         selectedRestaurant={selectedRestaurant}
         cartItemsCount={cart.length}
         onBack={handleBack}
+        onBackToHome={handleBackToHome}
       />
 
       {/* Content with Animations */}
@@ -216,7 +222,6 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       </div>
 
       <FoodFooterNav />
-      <BackToHomeButton />
     </div>
   );
 };

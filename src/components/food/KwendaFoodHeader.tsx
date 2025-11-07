@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, ShoppingCart, Sparkles } from 'lucide-react';
+import { ArrowLeft, MapPin, ShoppingCart, Sparkles, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ interface KwendaFoodHeaderProps {
   selectedRestaurant?: { restaurant_name: string } | null;
   cartItemsCount: number;
   onBack: () => void;
+  onBackToHome?: () => void;
 }
 
 export const KwendaFoodHeader = ({
@@ -21,7 +22,8 @@ export const KwendaFoodHeader = ({
   onCityChange,
   selectedRestaurant,
   cartItemsCount,
-  onBack
+  onBack,
+  onBackToHome
 }: KwendaFoodHeaderProps) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -84,7 +86,7 @@ export const KwendaFoodHeader = ({
             className="flex items-center justify-between"
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              {step !== 'restaurants' && (
+              {step !== 'restaurants' ? (
                 <motion.div
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -96,6 +98,21 @@ export const KwendaFoodHeader = ({
                     className="text-white hover:bg-white/20 flex-shrink-0"
                   >
                     <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                </motion.div>
+              ) : onBackToHome && (
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Button 
+                    onClick={onBackToHome} 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white hover:bg-white/20 flex-shrink-0"
+                    title="Retour à l'accueil"
+                  >
+                    <Home className="w-5 h-5" />
                   </Button>
                 </motion.div>
               )}
