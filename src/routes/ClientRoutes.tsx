@@ -8,6 +8,9 @@ import { isSpecificBuild, isClientApp } from '@/config/appConfig';
 // Lazy imports
 const ClientApp = lazy(() => import('@/pages/ClientApp'));
 const Food = lazy(() => import('@/pages/Food'));
+const FoodOrders = lazy(() => import('@/pages/food/FoodOrders'));
+const FoodFavorites = lazy(() => import('@/pages/food/FoodFavorites'));
+const FoodExplore = lazy(() => import('@/pages/food/FoodExplore'));
 const TransportPage = lazy(() => import('@/pages/Transport'));
 const DeliveryPage = lazy(() => import('@/pages/Delivery'));
 const Marketplace = lazy(() => import('@/pages/Marketplace'));
@@ -88,8 +91,42 @@ export const ClientRoutes = () => {
         } 
       />
 
-      {/* Marketplace */}
+      {/* Food - Orders */}
       <Route 
+        path="/food/orders" 
+        element={
+          <ServiceGuard serviceCategory="food">
+            <ProtectedRoute>
+              <FoodOrders />
+            </ProtectedRoute>
+          </ServiceGuard>
+        } 
+      />
+
+      {/* Food - Favorites */}
+      <Route 
+        path="/food/favorites" 
+        element={
+          <ServiceGuard serviceCategory="food">
+            <ProtectedRoute>
+              <FoodFavorites />
+            </ProtectedRoute>
+          </ServiceGuard>
+        } 
+      />
+
+      {/* Food - Explore */}
+      <Route 
+        path="/food/explore" 
+        element={
+          <ServiceGuard serviceCategory="food">
+            <FoodExplore />
+          </ServiceGuard>
+        } 
+      />
+
+      {/* Marketplace */}
+      <Route
         path="/marketplace" 
         element={
           <ServiceGuard serviceCategory="marketplace">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, ShoppingBag, Heart, User } from 'lucide-react';
+import { Home, Search, ShoppingBag, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface NavItem {
@@ -15,7 +15,6 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'explore', label: 'Explorer', icon: Search, path: '/food/explore' },
   { id: 'orders', label: 'Commandes', icon: ShoppingBag, path: '/food/orders' },
   { id: 'favorites', label: 'Favoris', icon: Heart, path: '/food/favorites' },
-  { id: 'profile', label: 'Profil', icon: User, path: '/app/client' },
 ];
 
 export const FoodFooterNav: React.FC = () => {
