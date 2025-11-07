@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import ModernNotificationCenter from '@/components/notifications/ModernNotificationCenter';
 import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
 import { UniversalChatInterface } from '@/components/chat/UniversalChatInterface';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { FloatingChatButton } from '@/components/home/FloatingChatButton';
 import { Bell, Gift, MessageCircle, CheckCircle2, Sparkles } from 'lucide-react';
 import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
@@ -65,7 +64,6 @@ export const ComponentsDemo = () => {
               Testez tous les composants notifications, loterie et chat
             </p>
           </div>
-          <NotificationBell />
         </div>
 
         {/* Stats Overview */}

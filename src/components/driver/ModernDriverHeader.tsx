@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Car, Package, TrendingUp, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { useDriverDailyStats } from '@/hooks/useDriverDailyStats';
 import { useAuth } from '@/hooks/useAuth';
@@ -82,7 +81,6 @@ export const ModernDriverHeader: React.FC<ModernDriverHeaderProps> = ({
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-            <NotificationBell />
             <ThemeToggle variant="icon" size="md" />
           </motion.div>
         </div>

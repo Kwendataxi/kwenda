@@ -6,7 +6,6 @@ import { AdminVerticalNav } from './AdminVerticalNav';
 import { AdminPermissionSettings, AdminPermissionProvider, useAdminPermissions } from './AdminPermissionContext';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BackToTopButton } from '@/components/navigation/BackToTopButton';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { AdminRoleNotificationCenter } from '@/components/admin/AdminRoleNotificationCenter';
 import { cn } from '@/lib/utils';
 
@@ -30,10 +29,9 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
   if (isMobile) {
     return (
       <div className="min-h-screen bg-background">
-        <MobileAdminHeader 
-          onMenuToggle={() => setMobileMenuOpen(true)} 
-          notificationBell={<NotificationBell />}
-        />
+      <MobileAdminHeader 
+        onMenuToggle={() => setMobileMenuOpen(true)}
+      />
         
         {/* Mobile Menu Sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -50,7 +48,6 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
               <h2 className="text-lg font-semibold">Navigation Admin</h2>
               <div className="flex items-center gap-2">
                 <AdminRoleNotificationCenter />
-                <NotificationBell />
               </div>
             </div>
             
@@ -100,7 +97,6 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
           <h1 className="text-lg font-semibold">Admin Dashboard</h1>
           <div className="flex items-center gap-2">
             <AdminRoleNotificationCenter />
-            <NotificationBell />
           </div>
         </div>
       </header>

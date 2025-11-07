@@ -16,12 +16,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface MobileAdminHeaderProps {
   onMenuToggle?: () => void;
-  notificationBell?: React.ReactNode;
 }
 
 export const MobileAdminHeader: React.FC<MobileAdminHeaderProps> = ({
-  onMenuToggle,
-  notificationBell
+  onMenuToggle
 }) => {
   const isMobile = useIsMobile();
   const { user, signOut } = useAuth();
@@ -79,16 +77,6 @@ export const MobileAdminHeader: React.FC<MobileAdminHeaderProps> = ({
               className="text-primary-foreground hover:bg-primary-foreground/10"
             >
               <Search className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {notificationBell || (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="relative text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <Bell className="h-4 w-4" />
             </Button>
           )}
           

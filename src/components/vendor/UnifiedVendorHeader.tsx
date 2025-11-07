@@ -1,6 +1,5 @@
 import React from 'react';
 import { Store, MessageSquare, Home } from 'lucide-react';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
@@ -100,15 +99,6 @@ export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({
               </Button>
             </motion.div>
           )}
-          
-          {/* Notifications */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <NotificationBell />
-          </motion.div>
         </div>
       </div>
     </motion.header>

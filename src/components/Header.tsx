@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Phone, UtensilsCrossed } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
@@ -42,7 +41,6 @@ const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-2">
-            {user && <NotificationBell />}
             <Button asChild variant="outline" size="sm">
               <a href="/client">{t('nav.client')}</a>
             </Button>
