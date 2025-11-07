@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, ArrowUpRight, ArrowDownRight, Clock } from 'lucide-react';
+import { ArrowLeft, TrendingUp, ArrowUpRight, ArrowDownRight, Clock } from 'lucide-react';
 import { useRestaurantWallet } from '@/hooks/useRestaurantWallet';
 import { RestaurantWalletCard } from '@/components/restaurant/RestaurantWalletCard';
 import { RestaurantTopUpDialog } from '@/components/restaurant/RestaurantTopUpDialog';
@@ -11,6 +13,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function RestaurantWalletPage() {
+  const navigate = useNavigate();
   const [topUpDialogOpen, setTopUpDialogOpen] = useState(false);
   const { wallet, transactions, loading, topUpWallet, topUpLoading, formatAmount, getMonthlyStats } = useRestaurantWallet();
 
@@ -34,11 +37,21 @@ export default function RestaurantWalletPage() {
   };
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">KwendaPay</h1>
-        <p className="text-muted-foreground">Gérez vos finances restaurant</p>
+    <div className="space-y-6 pb-24 md:pb-6 max-w-7xl mx-auto p-4 md:p-6">
+      {/* Header avec bouton retour */}
+      <div className="flex items-center gap-4 mb-6">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => navigate('/restaurant')}
+          className="shrink-0"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">KwendaPay</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Gérez vos finances restaurant</p>
+        </div>
       </div>
 
         {/* Wallet Card */}
