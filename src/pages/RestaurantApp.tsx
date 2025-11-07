@@ -103,7 +103,7 @@ export default function RestaurantApp() {
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header - Fixe en haut */}
       <header className="flex-shrink-0 border-b">
-        <UniversalAppHeader title="Restaurant Kwenda" />
+        <UniversalAppHeader title="Kwenda Food" />
       </header>
       
       {/* Contenu scrollable - Prend tout l'espace restant */}

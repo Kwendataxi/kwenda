@@ -25,10 +25,10 @@ interface RestaurantTopUpDialogProps {
 }
 
 const SUGGESTED_AMOUNTS = [
-  { label: '10k FC', value: 10000 },
-  { label: '25k FC', value: 25000 },
-  { label: '50k FC', value: 50000 },
-  { label: '100k FC', value: 100000 },
+  { label: '10k CDF', value: 10000 },
+  { label: '25k CDF', value: 25000 },
+  { label: '50k CDF', value: 50000 },
+  { label: '100k CDF', value: 100000 },
 ];
 
 export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
@@ -56,7 +56,7 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
     if (!amountNum || amountNum < 5000) {
       toast({
         title: "Montant invalide",
-        description: "Le montant minimum est 5 000 FC",
+        description: "Le montant minimum est 5 000 CDF",
         variant: "destructive"
       });
       return;
@@ -65,7 +65,7 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
     if (amountNum > 500000) {
       toast({
         title: "Montant trop élevé",
-        description: "Le montant maximum est 500 000 FC",
+        description: "Le montant maximum est 500 000 CDF",
         variant: "destructive"
       });
       return;
@@ -115,7 +115,7 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
           <DialogHeader>
             <DialogTitle>Recharger mon wallet</DialogTitle>
             <DialogDescription>
-              Solde actuel: <span className="font-bold text-foreground">{currentBalance.toLocaleString()} FC</span>
+              Solde actuel: <span className="font-bold text-foreground">{currentBalance.toLocaleString()} CDF</span>
             </DialogDescription>
           </DialogHeader>
 
@@ -140,7 +140,7 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
                     max={500000}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Min: 5 000 FC • Max: 500 000 FC
+                    Min: 5 000 CDF • Max: 500 000 CDF
                   </p>
                 </div>
 
@@ -175,15 +175,15 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
                 <div className="p-4 bg-muted rounded-lg space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Montant</span>
-                    <span className="font-bold">{parseInt(amount).toLocaleString()} FC</span>
+                    <span className="font-bold">{parseInt(amount).toLocaleString()} CDF</span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Frais (2%)</span>
-                    <span>{fees.toLocaleString()} FC</span>
+                    <span>{fees.toLocaleString()} CDF</span>
                   </div>
                   <div className="border-t pt-2 flex justify-between font-bold">
                     <span>Total</span>
-                    <span className="text-primary">{total.toLocaleString()} FC</span>
+                    <span className="text-primary">{total.toLocaleString()} CDF</span>
                   </div>
                 </div>
 

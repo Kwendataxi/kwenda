@@ -77,7 +77,7 @@ export default function RestaurantWalletPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold">{monthlyStats.recharged.toLocaleString()} FC</span>
+                  <span className="text-2xl font-bold">{monthlyStats.recharged.toLocaleString()} CDF</span>
                   <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
                     <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
@@ -93,7 +93,7 @@ export default function RestaurantWalletPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold">{monthlyStats.spent.toLocaleString()} FC</span>
+                  <span className="text-2xl font-bold">{monthlyStats.spent.toLocaleString()} CDF</span>
                   <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
                     <ArrowDownRight className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                   </div>
@@ -169,7 +169,7 @@ export default function RestaurantWalletPage() {
                             </div>
                             <div className="text-right">
                               <p className={`text-lg font-bold ${getTransactionColor(tx.transaction_type)}`}>
-                                {tx.transaction_type === 'credit' ? '+' : '-'}{Math.abs(tx.amount).toLocaleString()} FC
+                                {tx.transaction_type === 'credit' ? '+' : '-'}{Math.abs(tx.amount).toLocaleString()} CDF
                               </p>
                               <Badge variant={getStatusBadge(tx.status)} className="text-xs">
                                 {tx.status}
@@ -202,7 +202,7 @@ export default function RestaurantWalletPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-green-600">
-                            +{tx.amount.toLocaleString()} FC
+                            +{tx.amount.toLocaleString()} CDF
                           </p>
                           <Badge variant={getStatusBadge(tx.status)} className="text-xs">
                             {tx.status}
@@ -233,7 +233,7 @@ export default function RestaurantWalletPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-red-600">
-                            -{Math.abs(tx.amount).toLocaleString()} FC
+                            -{Math.abs(tx.amount).toLocaleString()} CDF
                           </p>
                           <Badge variant={getStatusBadge(tx.status)} className="text-xs">
                             {tx.status}

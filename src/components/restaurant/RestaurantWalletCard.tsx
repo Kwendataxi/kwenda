@@ -66,7 +66,7 @@ export const RestaurantWalletCard: React.FC<RestaurantWalletCardProps> = ({
             ) : (
               <AnimatedBalance 
                 value={balance} 
-                currency="FC" 
+                currency="CDF" 
                 className="text-4xl font-bold"
               />
             )}
@@ -79,7 +79,7 @@ export const RestaurantWalletCard: React.FC<RestaurantWalletCardProps> = ({
                 <TrendingUp className="h-3 w-3" />
                 <span>Rechargé ce mois</span>
               </div>
-              <p className="text-lg font-bold">{monthlyRecharged.toLocaleString()} FC</p>
+              <p className="text-lg font-bold">{monthlyRecharged.toLocaleString()} CDF</p>
             </div>
             
             <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl">
@@ -87,7 +87,7 @@ export const RestaurantWalletCard: React.FC<RestaurantWalletCardProps> = ({
                 <TrendingDown className="h-3 w-3" />
                 <span>Dépensé ce mois</span>
               </div>
-              <p className="text-lg font-bold">{monthlySpent.toLocaleString()} FC</p>
+              <p className="text-lg font-bold">{monthlySpent.toLocaleString()} CDF</p>
             </div>
           </div>
 
@@ -101,7 +101,7 @@ export const RestaurantWalletCard: React.FC<RestaurantWalletCardProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-white/80">Bonus disponible</p>
-                  <p className="text-lg font-bold">{bonusBalance.toLocaleString()} FC</p>
+                  <p className="text-lg font-bold">{bonusBalance.toLocaleString()} CDF</p>
                 </div>
                 <div className="text-2xl">🎁</div>
               </div>
