@@ -16,6 +16,7 @@ export default function ModernRestaurantOrders() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [restaurantAddress, setRestaurantAddress] = useState<string>('');
   const [orders, setOrders] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
 
@@ -60,12 +61,13 @@ export default function ModernRestaurantOrders() {
 
       const { data: profile } = await supabase
         .from('restaurant_profiles')
-        .select('id')
+        .select('id, address')
         .eq('user_id', user.id)
         .single();
 
       if (profile) {
         setRestaurantId(profile.id);
+        setRestaurantAddress(profile.address || '');
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -180,6 +182,7 @@ export default function ModernRestaurantOrders() {
               orders={activeOrders}
               onStatusChange={handleStatusChange}
               onConfirmOrder={handleConfirmOrder}
+              restaurantAddress={restaurantAddress}
             />
           ) : (
             <div className="space-y-3">

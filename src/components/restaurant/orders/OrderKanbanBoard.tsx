@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Phone, MapPin, Clock, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { RestaurantOrderDeliveryPanel } from '../RestaurantOrderDeliveryPanel';
 
 interface Order {
   id: string;
@@ -21,6 +22,7 @@ interface OrderKanbanBoardProps {
   orders: Order[];
   onStatusChange: (orderId: string, newStatus: string) => void;
   onConfirmOrder: (orderId: string, prepTime: number) => void;
+  restaurantAddress?: string;
 }
 
 const COLUMNS = [
@@ -30,7 +32,7 @@ const COLUMNS = [
   { id: 'ready', label: 'Prêt', color: 'from-green-500 to-emerald-500', nextStatus: 'picked_up' },
 ];
 
-export const OrderKanbanBoard = ({ orders, onStatusChange, onConfirmOrder }: OrderKanbanBoardProps) => {
+export const OrderKanbanBoard = ({ orders, onStatusChange, onConfirmOrder, restaurantAddress = '' }: OrderKanbanBoardProps) => {
   const [orderTimers, setOrderTimers] = useState<{ [key: string]: number }>({});
 
   // Timer pour chaque commande
@@ -135,7 +137,7 @@ export const OrderKanbanBoard = ({ orders, onStatusChange, onConfirmOrder }: Ord
                           </div>
                         </div>
 
-                        {/* Action button */}
+                        {/* Action button ou panel de livraison */}
                         {order.status === 'pending' ? (
                           <Button
                             size="sm"
@@ -144,6 +146,16 @@ export const OrderKanbanBoard = ({ orders, onStatusChange, onConfirmOrder }: Ord
                           >
                             Confirmer (15 min)
                           </Button>
+                        ) : order.status === 'ready' ? (
+                          <div className="pt-2">
+                            <RestaurantOrderDeliveryPanel
+                              orderId={order.id}
+                              orderStatus={order.status}
+                              restaurantAddress={restaurantAddress}
+                              deliveryAddress={order.delivery_address}
+                              onStatusChange={() => window.location.reload()}
+                            />
+                          </div>
                         ) : (
                           <Button
                             size="sm"

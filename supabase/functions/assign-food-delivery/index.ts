@@ -20,9 +20,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    console.log(`Assigning delivery for order: ${orderId}`);
+    console.log(`🍽️ Assigning food delivery for order: ${orderId}`);
 
-    // 1. Récupérer la commande avec les infos du restaurant
+    // 1️⃣ Récupérer la commande avec les infos du restaurant
     const { data: order, error: orderError } = await supabase
       .from('food_orders')
       .select(`
@@ -32,14 +32,15 @@ serve(async (req) => {
           restaurant_name,
           city,
           address,
-          coordinates
+          coordinates,
+          user_id
         )
       `)
       .eq('id', orderId)
       .single();
 
     if (orderError || !order) {
-      console.error('Order fetch error:', orderError);
+      console.error('❌ Order fetch error:', orderError);
       return new Response(
         JSON.stringify({ error: 'Commande non trouvée' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -47,23 +48,25 @@ serve(async (req) => {
     }
 
     if (!order.restaurant) {
+      console.error('❌ Restaurant not found for order:', orderId);
       return new Response(
         JSON.stringify({ error: 'Restaurant non trouvé' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // 2. Trouver un livreur disponible dans la même ville
+    // 2️⃣ Trouver les livreurs disponibles dans la même ville
     const { data: drivers, error: driverError } = await supabase
-      .from('delivery_partners')
-      .select('user_id, display_name, phone_number')
-      .eq('is_available', true)
+      .from('driver_profiles')
+      .select('user_id, display_name, phone_number, current_location, vehicle_type')
+      .eq('is_online', true)
       .eq('city', order.restaurant.city)
-      .eq('is_active', true)
-      .limit(5);
+      .eq('availability_status', 'available')
+      .eq('service_type', 'delivery')
+      .limit(10);
 
     if (driverError) {
-      console.error('Driver fetch error:', driverError);
+      console.error('❌ Driver fetch error:', driverError);
       return new Response(
         JSON.stringify({ error: 'Erreur lors de la recherche de livreur' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -71,81 +74,105 @@ serve(async (req) => {
     }
 
     if (!drivers || drivers.length === 0) {
-      console.log('No available drivers found');
+      console.log('⚠️ No available drivers found in', order.restaurant.city);
       return new Response(
-        JSON.stringify({ error: 'Aucun livreur disponible dans cette ville' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: false,
+          error: 'Aucun livreur disponible dans cette ville',
+          needsManualAssignment: true 
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Sélectionner le premier livreur disponible
-    const driver = drivers[0];
-    console.log(`Selected driver: ${driver.user_id} - ${driver.display_name}`);
+    // 3️⃣ Sélectionner le meilleur livreur (premier disponible pour l'instant)
+    const selectedDriver = drivers[0];
+    console.log(`✅ Selected driver: ${selectedDriver.user_id} - ${selectedDriver.display_name}`);
 
-    // 3. Créer la mission de livraison
-    const { error: deliveryError } = await supabase
-      .from('delivery_orders')
+    // 4️⃣ Calculer les frais de livraison
+    const deliveryFee = order.delivery_fee || 3000; // Utiliser les frais existants ou 3000 CDF par défaut
+    const driverEarnings = deliveryFee * 0.75; // 75% pour le driver
+    const platformFee = deliveryFee * 0.25; // 25% pour la plateforme
+
+    // 5️⃣ Créer l'assignation de livraison
+    const { data: assignment, error: assignError } = await supabase
+      .from('food_delivery_assignments')
       .insert({
-        user_id: order.customer_id,
-        driver_id: driver.user_id,
-        delivery_type: 'food',
+        food_order_id: orderId,
+        driver_id: selectedDriver.user_id,
+        restaurant_id: order.restaurant.id,
         pickup_location: order.restaurant.address || 'Adresse du restaurant',
-        pickup_coordinates: order.restaurant.coordinates,
+        pickup_coordinates: order.restaurant.coordinates || {},
         delivery_location: order.delivery_address,
-        delivery_coordinates: order.delivery_coordinates,
-        total_price: order.delivery_fee,
-        status: 'assigned',
-        notes: `Commande Food #${order.order_number}`,
-        food_order_id: orderId
-      });
+        delivery_coordinates: order.delivery_coordinates || {},
+        delivery_fee: deliveryFee,
+        driver_earnings: driverEarnings,
+        platform_fee: platformFee,
+        assignment_status: 'driver_found',
+        estimated_pickup_time: new Date(Date.now() + 15 * 60000).toISOString(), // +15 min
+        estimated_delivery_time: new Date(Date.now() + 45 * 60000).toISOString() // +45 min
+      })
+      .select()
+      .single();
 
-    if (deliveryError) {
-      console.error('Delivery creation error:', deliveryError);
+    if (assignError) {
+      console.error('❌ Assignment creation error:', assignError);
       return new Response(
-        JSON.stringify({ error: 'Erreur lors de la création de la livraison' }),
+        JSON.stringify({ error: 'Erreur lors de la création de l\'assignation' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // 4. Mettre à jour le statut de la commande
+    // 6️⃣ Mettre à jour le statut de la commande
     const { error: updateError } = await supabase
       .from('food_orders')
       .update({
-        status: 'picked_up',
-        driver_id: driver.user_id,
+        status: 'driver_assigned',
+        driver_id: selectedDriver.user_id,
         updated_at: new Date().toISOString()
       })
       .eq('id', orderId);
 
     if (updateError) {
-      console.error('Order update error:', updateError);
+      console.error('⚠️ Order update error:', updateError);
     }
 
-    // 5. Notifier le livreur
+    // 7️⃣ Notifier le livreur
     await supabase.from('delivery_notifications').insert({
-      user_id: driver.user_id,
-      title: '📦 Nouvelle livraison Food',
-      message: `Restaurant: ${order.restaurant.restaurant_name} → ${order.delivery_address}`,
-      notification_type: 'new_delivery',
-      related_order_id: orderId
+      user_id: selectedDriver.user_id,
+      title: '🍽️ Nouvelle livraison Food',
+      message: `Restaurant: ${order.restaurant.restaurant_name}\nLivraison: ${order.delivery_address}\nGain: ${driverEarnings} CDF`,
+      notification_type: 'food_delivery_request',
+      related_order_id: orderId,
+      metadata: {
+        assignment_id: assignment.id,
+        restaurant_name: order.restaurant.restaurant_name,
+        delivery_fee: deliveryFee,
+        driver_earnings: driverEarnings
+      }
     });
 
-    // 6. Notifier le client
+    // 8️⃣ Notifier le client
     await supabase.from('delivery_notifications').insert({
       user_id: order.customer_id,
       title: '🚗 Livreur assigné',
-      message: `${driver.display_name} va livrer votre commande`,
-      notification_type: 'order_update',
+      message: `${selectedDriver.display_name} va récupérer votre commande chez ${order.restaurant.restaurant_name}`,
+      notification_type: 'food_delivery_update',
       related_order_id: orderId
     });
 
-    console.log(`Delivery assigned successfully to driver ${driver.display_name}`);
+    console.log(`✅ Food delivery assigned successfully to ${selectedDriver.display_name}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        driverName: driver.display_name,
-        driverPhone: driver.phone_number
+        assignment,
+        driver: {
+          id: selectedDriver.user_id,
+          name: selectedDriver.display_name,
+          phone: selectedDriver.phone_number,
+          vehicle: selectedDriver.vehicle_type
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -153,7 +180,7 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('Unexpected error:', error);
+    console.error('❌ Unexpected error:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Une erreur est survenue' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 
 const DriverApp = () => {
   const { loading, serviceType, serviceSpecialization } = useDriverServiceInfo();
-  const [tab, setTab] = useState<'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile'>('orders');
+  const [tab, setTab] = useState<'orders' | 'food' | 'earnings' | 'challenges' | 'subscription' | 'profile'>('orders');
   const [showMigrationModal, setShowMigrationModal] = useState(false);
 
   // 🔔 Activer les notifications système temps réel
@@ -143,6 +143,13 @@ const DriverApp = () => {
             {/* ✅ PHASE 3: Interface séparée par type de service */}
             {tab === 'orders' && renderServiceInterface()}
             
+            {/* Food Deliveries Tab */}
+            {tab === 'food' && (
+              <div className="responsive-padding">
+                {React.createElement(require('@/pages/driver/DriverFoodDeliveries').default)}
+              </div>
+            )}
+            
             {/* Autres onglets communs */}
             {tab === 'earnings' && (
               <div className="responsive-padding">
@@ -169,7 +176,7 @@ const DriverApp = () => {
             userType="driver"
             activeTab={tab} 
             onTabChange={(newTab) => {
-              if (newTab === 'orders' || newTab === 'earnings' || newTab === 'challenges' || newTab === 'subscription' || newTab === 'profile') {
+              if (newTab === 'orders' || newTab === 'food' || newTab === 'earnings' || newTab === 'challenges' || newTab === 'subscription' || newTab === 'profile') {
                 setTab(newTab);
               }
             }}
