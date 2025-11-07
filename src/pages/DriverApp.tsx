@@ -3,16 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
-import { VTCDriverInterface } from '@/components/driver/VTCDriverInterface';
-import { DeliveryDriverInterface } from '@/components/driver/DeliveryDriverInterface';
-import { SimplifiedDriverDashboard } from '@/components/driver/SimplifiedDriverDashboard';
+import { TaxiDriverDashboard } from '@/components/driver/taxi/TaxiDriverDashboard';
+import { DeliveryDriverDashboard } from '@/components/driver/delivery/DeliveryDriverDashboard';
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { SubscriptionPlans } from '@/components/driver/SubscriptionPlans';
 import { DriverProfilePage } from '@/components/driver/DriverProfilePage';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
-
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 const DriverApp = () => {
@@ -41,15 +39,15 @@ const DriverApp = () => {
     );
   }
 
-  // ✅ NOUVELLE VERSION: Dashboard simplifié
+  // ✅ PHASE 3: Router vers le bon dashboard selon le service_type
   const renderServiceInterface = () => {
     if (serviceType === 'taxi') {
-      return <SimplifiedDriverDashboard serviceType="taxi" />;
+      return <TaxiDriverDashboard />;
     } else if (serviceType === 'delivery') {
-      return <SimplifiedDriverDashboard serviceType="delivery" />;
+      return <DeliveryDriverDashboard />;
     }
     // Fallback : afficher taxi par défaut
-    return <SimplifiedDriverDashboard serviceType="taxi" />;
+    return <TaxiDriverDashboard />;
   };
 
 

@@ -1,0 +1,78 @@
+/**
+ * 🚗 THÈME TAXI - Bleu dynamique et professionnel
+ * Appliqué automatiquement quand data-service-type="taxi"
+ */
+
+:root[data-service-type="taxi"] {
+  /* Couleurs primaires taxi */
+  --primary: 221 83% 53%; /* Bleu Kwenda */
+  --primary-foreground: 210 40% 98%;
+  --primary-glow: 217 91% 60%;
+  
+  /* Accent taxi */
+  --accent: 204 94% 94%;
+  --accent-foreground: 221 83% 53%;
+  
+  /* Gradients taxi */
+  --service-gradient: linear-gradient(135deg, hsl(221, 83%, 53%) 0%, hsl(217, 71%, 53%) 100%);
+  --service-gradient-subtle: linear-gradient(180deg, hsl(221, 83%, 53%, 0.1) 0%, transparent 100%);
+  --service-glow: 0 0 40px hsl(221, 83%, 53%, 0.3);
+  
+  /* Shadows taxi */
+  --shadow-service: 0 10px 30px -10px hsl(221, 83%, 53%, 0.25);
+  --shadow-service-lg: 0 20px 60px -15px hsl(221, 83%, 53%, 0.35);
+  
+  /* Borders */
+  --service-border: hsl(221, 83%, 53%, 0.2);
+  
+  /* Status colors */
+  --status-active: 142 76% 36%; /* Vert pour "En course" */
+  --status-waiting: 48 96% 53%; /* Jaune pour "En attente" */
+  
+  /* Icône du service */
+  --service-icon: '🚗';
+  --service-name: 'Chauffeur Taxi';
+}
+
+/* Animations spécifiques taxi */
+@keyframes taxi-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(221, 83%, 53%, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 15px hsl(221, 83%, 53%, 0);
+  }
+}
+
+:root[data-service-type="taxi"] .service-pulse {
+  animation: taxi-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Bouton toggle online taxi */
+:root[data-service-type="taxi"] .toggle-online-active {
+  background: var(--service-gradient);
+  box-shadow: var(--service-glow);
+}
+
+/* Cards avec effet taxi */
+:root[data-service-type="taxi"] .service-card {
+  background: linear-gradient(135deg, hsl(221, 83%, 53%, 0.05) 0%, transparent 100%);
+  border-color: var(--service-border);
+}
+
+:root[data-service-type="taxi"] .service-card:hover {
+  box-shadow: var(--shadow-service);
+  border-color: hsl(221, 83%, 53%, 0.4);
+}
+
+/* Stats badge taxi */
+:root[data-service-type="taxi"] .stats-badge {
+  background: var(--service-gradient);
+  color: white;
+  font-weight: 600;
+}
+
+/* Progress bars taxi */
+:root[data-service-type="taxi"] .progress-bar {
+  background: var(--service-gradient);
+}

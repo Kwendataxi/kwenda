@@ -2,6 +2,8 @@
 /* Base styles - always loaded */
 @import './styles/performance.css';
 @import './styles/dark-mode-improvements.css';
+@import './styles/taxi-theme.css';
+@import './styles/delivery-theme.css';
 
 /* Global utility - scrollbar hide (used across the app) */
 .scrollbar-hide::-webkit-scrollbar {
