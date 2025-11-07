@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useDriverStatus } from './useDriverStatus';
 import { toast } from 'sonner';
+import { driverNotificationService } from '@/services/driverNotificationService';
 
 export interface UnifiedOrderNotification {
   id: string;
@@ -370,8 +371,6 @@ export const useDriverDispatch = () => {
 
     console.log('🎧 Écoute unifiée via notification service:', user.id);
 
-    const { driverNotificationService } = require('@/services/driverNotificationService');
-    
     driverNotificationService.start(user.id);
 
     const unsubscribe = driverNotificationService.subscribe((notification: any) => {
