@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useVendorOrders } from '@/hooks/useVendorOrders';
 import { VendorOrderValidationPanel } from '@/components/marketplace/VendorOrderValidationPanel';
+import { VendorOrderManagementInterface } from '@/components/marketplace/VendorOrderManagementInterface';
 import { Package, CheckCircle, Clock, Truck, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -368,39 +369,15 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
             </Card>
           ) : (
             activeOrders.map((order) => (
-              <Card key={order.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        {order.product?.title || 'Produit'}
-                        {getStatusBadge(order.status)}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Client: {order.buyer_phone || 'Téléphone non disponible'} • Qté: {order.quantity}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{order.total_amount.toLocaleString()} CDF</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {/* ✅ CORRIGÉ: Bouton visible pour tous les statuts actifs */}
-                  {['confirmed', 'preparing', 'ready_for_pickup', 'in_transit'].includes(order.status) && (
-                    <Button 
-                      onClick={() => handleOrderComplete(order.id)}
-                      className="w-full"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      {order.status === 'in_transit' ? 'Marquer comme livrée' : 'Terminer la commande'}
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+              <VendorOrderManagementInterface 
+                key={order.id}
+                order={order}
+                onStatusUpdate={() => {
+                  loadPendingOrders();
+                  loadActiveAndCompletedOrders();
+                  onRefresh?.();
+                }}
+              />
             ))
           )}
         </div>

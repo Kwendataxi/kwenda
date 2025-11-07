@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useUnifiedDeliveryQueue } from '@/hooks/useUnifiedDeliveryQueue';
 import { useDriverDeliveryActions } from '@/hooks/useDriverDeliveryActions';
+import { DeliveryCompletionDialog } from '@/components/marketplace/DeliveryCompletionDialog';
 import { MapPin, Package, Clock, Phone, Navigation, CheckCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { CancellationDialog } from '@/components/shared/CancellationDialog';
@@ -19,6 +20,15 @@ const DeliveryDriverInterface = () => {
   const [notes, setNotes] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+
+  const getPaymentMethod = (): 'wallet' | 'cash_on_delivery' => {
+    if (activeDelivery?.type === 'marketplace') {
+      // @ts-ignore - delivery_fee_payment_method sera disponible après génération types
+      return (activeDelivery.marketplace_order as any)?.delivery_fee_payment_method || 'wallet';
+    }
+    return 'wallet';
+  };
 
   const handleAcceptDelivery = async (deliveryId: string, type: 'marketplace' | 'direct') => {
     const success = await acceptDelivery(deliveryId, type);
@@ -99,28 +109,14 @@ const DeliveryDriverInterface = () => {
         );
       case 'in_transit':
         return (
-          <div className="space-y-4">
-            <Input
-              placeholder="Nom du destinataire *"
-              value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
-              required
-            />
-            <Textarea
-              placeholder="Notes de livraison (optionnel)"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-20"
-            />
-            <Button 
-              onClick={handleCompleteDelivery} 
-              className="w-full" 
-              disabled={loading || !recipientName}
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Terminer la livraison
-            </Button>
-          </div>
+          <Button 
+            onClick={() => setShowCompletionDialog(true)} 
+            className="w-full" 
+            disabled={loading}
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Terminer la livraison
+          </Button>
         );
       default:
         return null;
@@ -230,6 +226,21 @@ const DeliveryDriverInterface = () => {
           userType="driver"
           bookingType="delivery"
         />
+
+        {user && (
+          <DeliveryCompletionDialog
+            open={showCompletionDialog}
+            onOpenChange={setShowCompletionDialog}
+            orderId={activeDelivery.id}
+            driverId={user.id}
+            deliveryFee={activeDelivery.estimated_fee}
+            paymentMethod={getPaymentMethod()}
+            onComplete={() => {
+              setShowCompletionDialog(false);
+              updateDeliveryStatus('delivered');
+            }}
+          />
+        )}
       </div>
     );
   }
