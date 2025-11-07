@@ -16,7 +16,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { orderId, buyerId } = await req.json();
+    const { orderId, buyerId, deliveryFeePaymentMethod = 'wallet' } = await req.json();
 
     console.log('💰 Buyer accepting delivery fees:', { orderId, buyerId });
 
@@ -39,7 +39,8 @@ serve(async (req) => {
       throw new Error(`Impossible d'accepter: commande en statut ${order.status}`);
     }
 
-    // Vérifier/créer le paiement escrow avec le nouveau montant total
+    // 1. Créer escrow PRODUIT (montant HT livraison)
+    const productAmount = order.total_amount - (order.delivery_fee || 0);
     const { data: existingEscrow } = await supabase
       .from('escrow_payments')
       .select('*')
@@ -47,11 +48,10 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existingEscrow) {
-      // Mettre à jour le montant escrow
       const { error: escrowUpdateError } = await supabase
         .from('escrow_payments')
         .update({
-          amount: order.total_amount,
+          amount: productAmount,
           status: 'held',
           updated_at: new Date().toISOString()
         })
@@ -59,14 +59,13 @@ serve(async (req) => {
 
       if (escrowUpdateError) throw escrowUpdateError;
     } else {
-      // Créer paiement escrow
       const { error: escrowError } = await supabase
         .from('escrow_payments')
         .insert({
           order_id: orderId,
           buyer_id: buyerId,
           seller_id: order.seller_id,
-          amount: order.total_amount,
+          amount: productAmount,
           payment_method: 'wallet',
           status: 'held'
         });
@@ -74,11 +73,80 @@ serve(async (req) => {
       if (escrowError) throw escrowError;
     }
 
-    // Mettre à jour la commande
+    // 2. Gérer l'escrow LIVRAISON selon le mode de paiement
+    if (deliveryFeePaymentMethod === 'wallet') {
+      // Débiter le wallet client pour les frais de livraison
+      const { data: wallet, error: walletError } = await supabase
+        .from('user_wallets')
+        .select('balance, bonus_balance')
+        .eq('user_id', buyerId)
+        .single();
+
+      if (walletError || !wallet) throw new Error('Portefeuille introuvable');
+
+      const deliveryFee = order.delivery_fee || 0;
+      const bonusBalance = Number(wallet.bonus_balance || 0);
+      const mainBalance = Number(wallet.balance || 0);
+
+      // Priorité : bonus si couvre 100%, sinon balance principal
+      if (bonusBalance >= deliveryFee) {
+        const { error: updateError } = await supabase
+          .from('user_wallets')
+          .update({
+            bonus_balance: bonusBalance - deliveryFee,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', buyerId);
+
+        if (updateError) throw updateError;
+      } else if (mainBalance >= deliveryFee) {
+        const { error: updateError } = await supabase
+          .from('user_wallets')
+          .update({
+            balance: mainBalance - deliveryFee,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', buyerId);
+
+        if (updateError) throw updateError;
+      } else {
+        throw new Error('Solde insuffisant pour les frais de livraison');
+      }
+
+      // Créer escrow livraison (status: held)
+      const { error: deliveryEscrowError } = await supabase
+        .from('delivery_escrow_payments')
+        .insert({
+          order_id: orderId,
+          buyer_id: buyerId,
+          amount: deliveryFee,
+          payment_method: 'wallet',
+          status: 'held'
+        });
+
+      if (deliveryEscrowError) throw deliveryEscrowError;
+
+    } else if (deliveryFeePaymentMethod === 'cash_on_delivery') {
+      // Créer escrow livraison en attente de cash (status: pending_cash)
+      const { error: deliveryEscrowError } = await supabase
+        .from('delivery_escrow_payments')
+        .insert({
+          order_id: orderId,
+          buyer_id: buyerId,
+          amount: order.delivery_fee || 0,
+          payment_method: 'cash_on_delivery',
+          status: 'pending_cash'
+        });
+
+      if (deliveryEscrowError) throw deliveryEscrowError;
+    }
+
+    // 3. Mettre à jour la commande
     const { error: updateError } = await supabase
       .from('marketplace_orders')
       .update({
         delivery_fee_approved_by_buyer: true,
+        delivery_fee_payment_method: deliveryFeePaymentMethod,
         status: 'confirmed',
         payment_status: 'held',
         confirmed_at: new Date().toISOString(),

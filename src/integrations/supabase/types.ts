@@ -1516,6 +1516,53 @@ export type Database = {
           },
         ]
       }
+      delivery_escrow_payments: {
+        Row: {
+          amount: number
+          buyer_id: string
+          created_at: string | null
+          driver_id: string | null
+          id: string
+          order_id: string
+          payment_method: string
+          released_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          order_id: string
+          payment_method: string
+          released_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          order_id?: string
+          payment_method?: string
+          released_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_escrow_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_fees: {
         Row: {
           base_fee: number
@@ -1942,6 +1989,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      driver_cash_collections: {
+        Row: {
+          amount: number
+          collected_at: string | null
+          collection_type: string
+          created_at: string | null
+          delivery_order_id: string
+          driver_id: string
+          id: string
+          marketplace_order_id: string | null
+          notes: string | null
+          reconciled_at: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          collected_at?: string | null
+          collection_type: string
+          created_at?: string | null
+          delivery_order_id: string
+          driver_id: string
+          id?: string
+          marketplace_order_id?: string | null
+          notes?: string | null
+          reconciled_at?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          collected_at?: string | null
+          collection_type?: string
+          created_at?: string | null
+          delivery_order_id?: string
+          driver_id?: string
+          id?: string
+          marketplace_order_id?: string | null
+          notes?: string | null
+          reconciled_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_cash_collections_marketplace_order_id_fkey"
+            columns: ["marketplace_order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       driver_challenges: {
         Row: {
@@ -4808,6 +4905,7 @@ export type Database = {
           delivery_coordinates: Json | null
           delivery_fee: number | null
           delivery_fee_approved_by_buyer: boolean | null
+          delivery_fee_payment_method: string | null
           delivery_method: string
           driver_notes: string | null
           estimated_delivery_time: string | null
@@ -4848,6 +4946,7 @@ export type Database = {
           delivery_coordinates?: Json | null
           delivery_fee?: number | null
           delivery_fee_approved_by_buyer?: boolean | null
+          delivery_fee_payment_method?: string | null
           delivery_method?: string
           driver_notes?: string | null
           estimated_delivery_time?: string | null
@@ -4888,6 +4987,7 @@ export type Database = {
           delivery_coordinates?: Json | null
           delivery_fee?: number | null
           delivery_fee_approved_by_buyer?: boolean | null
+          delivery_fee_payment_method?: string | null
           delivery_method?: string
           driver_notes?: string | null
           estimated_delivery_time?: string | null
@@ -13413,6 +13513,7 @@ export type Database = {
         }[]
       }
       auto_monitor_edge_functions: { Args: never; Returns: undefined }
+      auto_release_escrow_after_48h: { Args: never; Returns: undefined }
       automated_security_maintenance: { Args: never; Returns: string }
       calculate_ab_significance: {
         Args: { experiment_id_param: string }
