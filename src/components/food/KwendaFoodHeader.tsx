@@ -122,10 +122,21 @@ export const KwendaFoodHeader = ({
               </div>
             )}
 
-            {/* SearchBar mobile */}
-            {step === 'restaurants' && (
+            {/* Sélecteur de ville mobile - à la place de la recherche */}
+            {showCitySelector && (
               <div className="md:hidden">
-                <FoodSearchBar city={selectedCity} />
+                <Select value={selectedCity} onValueChange={onCityChange}>
+                  <SelectTrigger className="w-auto h-10 bg-white/20 backdrop-blur-md border-white/30 text-white hover:bg-white/30 transition-colors">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Kinshasa">🏙️ Kinshasa</SelectItem>
+                    <SelectItem value="Lubumbashi">⚙️ Lubumbashi</SelectItem>
+                    <SelectItem value="Kolwezi">💎 Kolwezi</SelectItem>
+                    <SelectItem value="Abidjan">🌴 Abidjan</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
             
@@ -157,13 +168,13 @@ export const KwendaFoodHeader = ({
             )}
           </motion.div>
           
-          {/* Sélecteur de ville moderne */}
+          {/* Sélecteur de ville desktop uniquement - masqué sur mobile */}
           {showCitySelector && (
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="mt-4"
+              className="mt-4 hidden md:block"
             >
               <Select value={selectedCity} onValueChange={onCityChange}>
                 <SelectTrigger className="w-fit bg-white/20 backdrop-blur-md border-white/30 text-white hover:bg-white/30 transition-colors">
