@@ -11,6 +11,8 @@ import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
 import { useFoodNotifications } from '@/hooks/useFoodNotifications';
 import { RestaurantShareButtons } from '@/components/food/RestaurantShareButtons';
+import { RestaurantWalletCard } from '@/components/restaurant/RestaurantWalletCard';
+import { useRestaurantWallet } from '@/hooks/useRestaurantWallet';
 import { motion } from 'framer-motion';
 
 interface RestaurantStats {
@@ -44,6 +46,9 @@ export default function ModernRestaurantDashboard() {
 
   const { activeSubscription, checkExpirationWarning } = useRestaurantSubscription();
   const { subscribeToOrders } = useFoodOrders();
+  const { wallet, getMonthlyStats } = useRestaurantWallet();
+  
+  const monthlyStats = getMonthlyStats();
   
   useFoodNotifications(restaurantId || undefined);
 
@@ -315,6 +320,58 @@ export default function ModernRestaurantDashboard() {
           </Card>
         </motion.div>
       )}
+
+      {/* Section Wallet + Subscription */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RestaurantWalletCard
+          balance={wallet?.balance || 0}
+          bonusBalance={wallet?.bonus_balance || 0}
+          monthlySpent={monthlyStats.spent}
+          monthlyRecharged={monthlyStats.recharged}
+          onRecharge={() => navigate('/restaurant/wallet')}
+        />
+
+        {activeSubscription && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <Card className="h-full bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200 dark:border-purple-800">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Abonnement actif</p>
+                    <h3 className="text-2xl font-bold">{activeSubscription.plan.name}</h3>
+                  </div>
+                  <Badge className="bg-green-500">Actif</Badge>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Expire le</span>
+                    <span className="font-medium">
+                      {new Date(activeSubscription.end_date).toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Commission</span>
+                    <span className="font-medium">{activeSubscription.plan.commission_rate}%</span>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => navigate('/restaurant/subscription')}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Gérer mon abonnement
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </div>
 
       {/* Alerte abonnement */}
       {subscriptionWarning?.isExpiring && (

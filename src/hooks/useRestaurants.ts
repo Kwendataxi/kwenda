@@ -9,16 +9,26 @@ export const useRestaurants = () => {
   const fetchRestaurants = async (city: string) => {
     setLoading(true);
     try {
-      console.log('🍽️ Fetching restaurants for city:', city);
+      console.log('🍽️ [useRestaurants] Fetching restaurants for city:', city);
       
       const { data, error } = await supabase
         .from('restaurant_profiles')
         .select('*')
         .eq('city', city)
         .eq('is_active', true)
-        .order('rating_average', { ascending: false });
+        .order('created_at', { ascending: false });
       
-      console.log('🍽️ Restaurants data:', { data, error, count: data?.length });
+      console.log('🍽️ [useRestaurants] Query result:', { 
+        city,
+        error: error?.message,
+        count: data?.length,
+        restaurants: data?.map(r => ({ 
+          id: r.id, 
+          name: r.restaurant_name, 
+          is_active: r.is_active,
+          verification_status: r.verification_status 
+        }))
+      });
       
       if (error) throw error;
 

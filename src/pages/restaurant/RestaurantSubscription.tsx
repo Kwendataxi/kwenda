@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Check, Crown, Zap, Star, Wallet } from 'lucide-react';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
+import { useRestaurantWallet } from '@/hooks/useRestaurantWallet';
+import { RestaurantTopUpDialog } from '@/components/restaurant/RestaurantTopUpDialog';
 
 export default function RestaurantSubscription() {
   const navigate = useNavigate();
@@ -14,7 +16,10 @@ export default function RestaurantSubscription() {
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
-  const [walletBalance, setWalletBalance] = useState(0);
+  const [topUpDialogOpen, setTopUpDialogOpen] = useState(false);
+  
+  const { wallet, topUpWallet, topUpLoading } = useRestaurantWallet();
+  const walletBalance = wallet?.balance || 0;
 
   const {
     plans,
@@ -54,11 +59,7 @@ export default function RestaurantSubscription() {
         ]);
       }
 
-      // Vérifier solde wallet
-      const wallet = await checkWalletBalance();
-      if (wallet) {
-        setWalletBalance(wallet.balance);
-      }
+      // Wallet géré par useRestaurantWallet
     } catch (error) {
       console.error('Error loading restaurant data:', error);
     } finally {
@@ -138,8 +139,11 @@ export default function RestaurantSubscription() {
                   <p className="text-2xl font-bold">{walletBalance.toLocaleString()} FC</p>
                 </div>
               </div>
-              <Button variant="outline" onClick={() => navigate('/client')}>
-                Recharger
+              <Button 
+                variant="outline" 
+                onClick={() => setTopUpDialogOpen(true)}
+              >
+                💰 Recharger mon compte
               </Button>
             </div>
           </CardContent>
@@ -285,6 +289,18 @@ export default function RestaurantSubscription() {
           </div>
         </div>
       </div>
+
+      {/* Dialog de recharge */}
+      <RestaurantTopUpDialog
+        open={topUpDialogOpen}
+        onOpenChange={setTopUpDialogOpen}
+        currentBalance={walletBalance}
+        onSuccess={() => loadRestaurantData()}
+        onTopUp={async (amount, method, phone) => {
+          await topUpWallet({ amount, payment_method: method as any, phone_number: phone });
+        }}
+        loading={topUpLoading}
+      />
     </div>
   );
 }

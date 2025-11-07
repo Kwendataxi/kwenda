@@ -208,3 +208,9 @@ verify_jwt = true  # ✅ PHASE 2: Finalisation commande marketplace avec libéra
 
 [functions.auto-release-escrow]
 verify_jwt = false  # ✅ PHASE 4: Libération automatique après 7 jours (appelé par CRON)
+
+[functions.wallet-restaurant-topup]
+verify_jwt = true  # ✅ JWT requis pour recharge wallet restaurant
+
+[functions.mobile-money-webhook]
+verify_jwt = false  # ✅ Webhook appelé par providers Mobile Money

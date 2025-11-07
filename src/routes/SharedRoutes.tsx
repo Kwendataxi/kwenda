@@ -26,6 +26,7 @@ const RestaurantOrders = lazy(() => import('@/pages/restaurant/RestaurantOrders'
 const RestaurantSubscription = lazy(() => import('@/pages/restaurant/RestaurantSubscription'));
 const RestaurantPOS = lazy(() => import('@/pages/restaurant/RestaurantPOS'));
 const RestaurantProfile = lazy(() => import('@/pages/restaurant/RestaurantProfile'));
+const RestaurantWalletPage = lazy(() => import('@/pages/restaurant/RestaurantWalletPage'));
 
 export const SharedRoutes = () => {
   return (
@@ -54,6 +55,7 @@ export const SharedRoutes = () => {
       <Route path="/restaurant/subscription" element={<ProtectedRoute><RestaurantSubscription /></ProtectedRoute>} />
       <Route path="/restaurant/pos" element={<ProtectedRoute><RestaurantPOS /></ProtectedRoute>} />
       <Route path="/restaurant/profile" element={<ProtectedRoute><RestaurantProfile /></ProtectedRoute>} />
+      <Route path="/restaurant/wallet" element={<ProtectedRoute><RestaurantWalletPage /></ProtectedRoute>} />
       
       {/* Common protected routes */}
       <Route path="/role-selection" element={<ProtectedRoute><RoleSelection /></ProtectedRoute>} />
