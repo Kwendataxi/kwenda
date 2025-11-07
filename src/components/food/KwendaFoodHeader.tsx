@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, MapPin, ShoppingCart, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +38,7 @@ export const KwendaFoodHeader = ({
       default:
         return {
           title: 'Kwenda Food',
-          subtitle: 'Commandez vos plats préférés',
+          subtitle: 'Vos restaurants préférés',
           showCitySelector: true
         };
     }
@@ -47,88 +47,120 @@ export const KwendaFoodHeader = ({
   const { title, subtitle, showCitySelector } = getHeaderContent();
 
   return (
-    <motion.div
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100 }}
-      className="sticky top-0 z-50 bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 text-white shadow-xl"
-    >
-      <div className="px-4 py-3 md:py-4">
-        <div className="flex items-center justify-between gap-3">
-          {/* Gauche: Bouton retour + Logo + Titre */}
-          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onBack}
-              className="text-white hover:bg-white/20 flex-shrink-0"
-              aria-label="Retour"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex-1 min-w-0"
-            >
-              <h1 className="text-base md:text-xl font-bold truncate">
-                {title}
-              </h1>
-              {subtitle && (
-                <p className="text-xs md:text-sm opacity-90 truncate">
+    <header className="relative sticky top-0 z-50 overflow-hidden">
+      {/* Gradient moderne avec effet glassmorphism */}
+      <div className="relative bg-gradient-to-br from-[#FF6347] via-[#FFA500] to-[#FF4500] overflow-hidden">
+        {/* Effet ondulé animé */}
+        <motion.div 
+          className="absolute inset-0 opacity-20"
+          animate={{ 
+            backgroundPosition: ['0% 0%', '100% 100%', '0% 0%']
+          }}
+          transition={{ 
+            duration: 20, 
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          style={{
+            backgroundImage: 'radial-gradient(circle, white 2px, transparent 2px)',
+            backgroundSize: '40px 40px'
+          }}
+        />
+        
+        {/* Contenu */}
+        <div className="relative z-10 px-4 py-4">
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              {step !== 'restaurants' && (
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Button 
+                    onClick={onBack} 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white hover:bg-white/20 flex-shrink-0"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                </motion.div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl md:text-2xl font-bold text-white truncate flex items-center gap-2">
+                  {title}
+                  <motion.span
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    🍽️
+                  </motion.span>
+                </h1>
+                <p className="text-sm text-white/90 truncate">
                   {subtitle}
                 </p>
-              )}
-            </motion.div>
-          </div>
-
-          {/* Droite: Badge panier */}
-          {cartItemsCount > 0 && step !== 'checkout' && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              key={cartItemsCount}
-              className="flex-shrink-0"
-            >
-              <Badge 
-                variant="secondary"
-                className="bg-white/90 dark:bg-gray-900/90 text-primary hover:bg-white px-3 py-1.5 shadow-lg"
+              </div>
+            </div>
+            
+            {/* Panier flottant avec animation */}
+            {cartItemsCount > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="relative flex-shrink-0"
               >
-                <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
-                <span className="font-semibold">{cartItemsCount}</span>
-              </Badge>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-white hover:bg-white/20 relative"
+                >
+                  <ShoppingCart className="w-6 h-6" />
+                  <motion.span
+                    key={cartItemsCount}
+                    initial={{ scale: 1.5 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 bg-white text-[#FF6347] rounded-full w-6 h-6 text-xs font-bold flex items-center justify-center shadow-lg"
+                  >
+                    {cartItemsCount}
+                  </motion.span>
+                </Button>
+              </motion.div>
+            )}
+          </motion.div>
+          
+          {/* Sélecteur de ville moderne */}
+          {showCitySelector && (
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mt-4"
+            >
+              <Select value={selectedCity} onValueChange={onCityChange}>
+                <SelectTrigger className="w-fit bg-white/20 backdrop-blur-md border-white/30 text-white hover:bg-white/30 transition-colors">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Kinshasa">🏙️ Kinshasa</SelectItem>
+                  <SelectItem value="Lubumbashi">⚙️ Lubumbashi</SelectItem>
+                  <SelectItem value="Kolwezi">💎 Kolwezi</SelectItem>
+                  <SelectItem value="Abidjan">🌴 Abidjan</SelectItem>
+                </SelectContent>
+              </Select>
             </motion.div>
           )}
         </div>
 
-        {/* Sélecteur de ville */}
-        {showCitySelector && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-3 flex items-center gap-2"
-          >
-            <MapPin className="h-4 w-4 flex-shrink-0" />
-            <Select value={selectedCity} onValueChange={onCityChange}>
-              <SelectTrigger 
-                className="h-8 md:h-9 w-auto border-white/30 bg-white/10 text-white hover:bg-white/20 transition-colors"
-                aria-label="Sélectionner une ville"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Kinshasa">Kinshasa</SelectItem>
-                <SelectItem value="Lubumbashi">Lubumbashi</SelectItem>
-                <SelectItem value="Kolwezi">Kolwezi</SelectItem>
-                <SelectItem value="Abidjan">Abidjan</SelectItem>
-              </SelectContent>
-            </Select>
-          </motion.div>
-        )}
+        {/* Vague décorative en bas */}
+        <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-background/20 to-transparent" />
       </div>
-    </motion.div>
+    </header>
   );
 };

@@ -6,8 +6,9 @@ import { RestaurantList } from './RestaurantList';
 import { RestaurantStoreView } from './RestaurantStoreView';
 import { FoodCheckout } from './FoodCheckout';
 import { KwendaFoodHeader } from './KwendaFoodHeader';
-import { RestaurantDebugPanel } from './RestaurantDebugPanel';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
+import { AnimatePresence } from 'framer-motion';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -45,6 +46,14 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       }
       
       return [...prevCart, { ...product, quantity, notes }];
+    });
+
+    // Confetti animation
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.8 },
+      colors: ['#FFA500', '#FF6347', '#FFD700']
     });
 
     toast.success(t('food.added_to_cart', { product: product.name }));
@@ -136,44 +145,46 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         onBack={handleBack}
       />
 
-      {/* Content */}
+      {/* Content with Animations */}
       <div className="flex-1 overflow-auto">
-        {step === 'restaurants' && (
-          <>
-            <RestaurantDebugPanel selectedCity={selectedCity} />
+        <AnimatePresence mode="wait">
+          {step === 'restaurants' && (
             <RestaurantList
+              key="restaurants"
               restaurants={restaurants}
               loading={loading}
               onSelectRestaurant={handleSelectRestaurant}
               onForceRefresh={refetch}
             />
-          </>
-        )}
+          )}
 
-        {step === 'menu' && selectedRestaurant && (
-          <RestaurantStoreView
-            restaurant={selectedRestaurant}
-            cart={cart}
-            onAddToCart={handleAddToCart}
-            onUpdateCartItem={handleUpdateCartItem}
-            onRemoveFromCart={handleRemoveFromCart}
-            onProceedToCheckout={() => setStep('checkout')}
-            onBack={() => setStep('restaurants')}
-          />
-        )}
+          {step === 'menu' && selectedRestaurant && (
+            <RestaurantStoreView
+              key="menu"
+              restaurant={selectedRestaurant}
+              cart={cart}
+              onAddToCart={handleAddToCart}
+              onUpdateCartItem={handleUpdateCartItem}
+              onRemoveFromCart={handleRemoveFromCart}
+              onProceedToCheckout={() => setStep('checkout')}
+              onBack={() => setStep('restaurants')}
+            />
+          )}
 
-        {step === 'checkout' && selectedRestaurant && (
-          <FoodCheckout
-            cart={cart}
-            restaurant={selectedRestaurant}
-            subtotal={subtotal}
-            deliveryFee={deliveryFee}
-            serviceFee={serviceFee}
-            total={total}
-            onPlaceOrder={handlePlaceOrder}
-            onBack={() => setStep('menu')}
-          />
-        )}
+          {step === 'checkout' && selectedRestaurant && (
+            <FoodCheckout
+              key="checkout"
+              cart={cart}
+              restaurant={selectedRestaurant}
+              subtotal={subtotal}
+              deliveryFee={deliveryFee}
+              serviceFee={serviceFee}
+              total={total}
+              onPlaceOrder={handlePlaceOrder}
+              onBack={() => setStep('menu')}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
