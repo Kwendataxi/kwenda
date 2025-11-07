@@ -182,9 +182,25 @@ export default function VendorAddProduct() {
 
       if (error) throw error;
 
+      // ✅ PHASE 1: Notifier les admins automatiquement
+      try {
+        await supabase.functions.invoke('notify-admin-new-product', {
+          body: {
+            product_id: newProduct.id,
+            product_title: newProduct.title,
+            seller_id: user.id,
+            seller_name: vendorProfile.shop_name
+          }
+        });
+        console.log('✅ Admin notified of new product');
+      } catch (notifError) {
+        console.error('⚠️ Admin notification failed:', notifError);
+        // Ne pas bloquer la création du produit
+      }
+
       toast({
         title: "✅ Produit publié !",
-        description: "Votre produit sera visible après modération.",
+        description: "Votre produit sera visible après modération par notre équipe.",
       });
 
       navigate('/vendeur');
