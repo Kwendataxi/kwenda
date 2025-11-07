@@ -304,6 +304,16 @@ export default function PriceConfirmationModal({
           }}
         />
       )}
+
+      {/* Dialog explication bidding */}
+      <BiddingExplanationDialog
+        open={showExplanation}
+        onOpenChange={setShowExplanation}
+        onActivate={() => {
+          setBiddingEnabled(true);
+          setShowExplanation(false);
+        }}
+      />
     </Dialog>
   );
 }
