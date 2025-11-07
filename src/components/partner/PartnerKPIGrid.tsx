@@ -1,9 +1,10 @@
-
 import React from 'react';
-import { Users, Car, DollarSign, Wallet, Activity, TrendingUp, Clock } from 'lucide-react';
+import { Users, Car, DollarSign, Wallet, TrendingUp, Package, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { StatCard } from './shared/StatCard';
+import { motion } from 'framer-motion';
 
 interface PartnerKPIGridProps {
   stats: any;
@@ -16,107 +17,166 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
   if (!stats) {
     return (
       <div className="p-4">
-        <Card className="card-floating border-0 p-6 animate-pulse">
+        <Card className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/50 dark:border-gray-700/50 p-6 animate-pulse">
           <CardContent className="text-center">
-            <p className="text-muted-foreground">Chargement des statistiques...</p>
+            <p className="text-gray-600 dark:text-gray-400">Chargement des statistiques...</p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const kpiItems = [
-    {
-      icon: Users,
-      label: "Chauffeurs actifs",
-      value: stats?.activeDrivers || 0,
-      suffix: "",
-      color: "bg-accent",
-      badge: { text: (stats?.activeDrivers || 0) > 0 ? "Actifs" : "Aucun", icon: Activity, class: (stats?.activeDrivers || 0) > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
-    },
-    {
-      icon: Car,
-      label: "Courses en cours",
-      value: stats?.ongoingRides || 0,
-      suffix: "",
-      color: "bg-primary",
-      badge: { text: (stats?.ongoingRides || 0) > 0 ? "En cours" : "Aucune", icon: (stats?.ongoingRides || 0) > 0 ? TrendingUp : Clock, class: (stats?.ongoingRides || 0) > 0 ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-600" }
-    },
-    {
-      icon: DollarSign,
-      label: "Commissions gagnées",
-      value: Math.round(stats?.totalCommissions || 0).toLocaleString(),
-      suffix: " CDF",
-      color: "bg-secondary",
-      badge: { text: (stats?.totalCommissions || 0) > 0 ? "Gains réels" : "Aucun", icon: DollarSign, class: (stats?.totalCommissions || 0) > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
-    },
-    {
-      icon: Wallet,
-      label: "Montant rechargé",
-      value: Math.round(stats?.totalTopups || 0).toLocaleString(),
-      suffix: " CDF",
-      color: "bg-orange-500",
-      badge: { text: (stats?.totalTopups || 0) > 0 ? "Investissement" : "Aucun", icon: Wallet, class: (stats?.totalTopups || 0) > 0 ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-600" }
-    },
-  ];
+  const activeDrivers = stats?.activeDrivers || 0;
+  const ongoingRides = stats?.ongoingRides || 0;
+  const completedRides = stats?.completedRides || 0;
+  const todayRevenue = stats?.todayRevenue || 0;
+  const monthlyRevenue = stats?.monthlyRevenue || 0;
+  const totalFleet = stats?.totalFleet || 0;
+  const availableVehicles = stats?.availableVehicles || 0;
+
+  // Calculate trends (mock data - should come from backend)
+  const driversTrend = 12;
+  const revenueTrend = 8.5;
 
   return (
-    <div className="p-4">
-      <div className={`grid gap-3 ${isMobile ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2 lg:grid-cols-4'}`}>
-        {kpiItems.map((item, index) => (
-          <Card key={index} className="card-floating border-0 p-3 animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
-            <CardContent className="p-0">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`w-10 h-10 ${item.color} rounded-xl flex items-center justify-center`}>
-                  <item.icon className="h-5 w-5 text-white" />
-                </div>
-                <span className={`font-semibold text-card-foreground ${isMobile ? 'text-sm' : 'text-body-md'}`}>
-                  {item.label}
-                </span>
-              </div>
-              
-              <p className={`text-foreground font-bold mb-2 ${isMobile ? 'text-lg' : 'text-display-sm'}`}>
-                {item.value}{item.suffix}
-              </p>
-              
-              <p className={`font-medium px-2 py-1 rounded-md inline-flex items-center gap-1 ${isMobile ? 'text-xs' : 'text-caption'} ${item.badge.class}`}>
-                {item.badge.icon && <item.badge.icon className="w-3 h-3" />}
-                {item.badge.text}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+    <div className="p-4 space-y-4">
+      {/* Main KPIs Grid */}
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2 lg:grid-cols-4'}`}>
+        <StatCard
+          icon={Users}
+          label="Chauffeurs actifs"
+          value={activeDrivers}
+          badge={{
+            text: activeDrivers > 0 ? 'Actifs' : 'Aucun',
+            icon: CheckCircle,
+            variant: activeDrivers > 0 ? 'success' : 'info'
+          }}
+          trend={{
+            value: driversTrend,
+            isPositive: true
+          }}
+        />
+
+        <StatCard
+          icon={Car}
+          label="Courses en cours"
+          value={ongoingRides}
+          badge={{
+            text: ongoingRides > 0 ? 'En cours' : 'Aucune',
+            icon: TrendingUp,
+            variant: ongoingRides > 0 ? 'info' : 'warning'
+          }}
+        />
+
+        <StatCard
+          icon={Package}
+          label="Courses terminées"
+          value={completedRides}
+          badge={{
+            text: 'Ce mois',
+            variant: 'success'
+          }}
+        />
+
+        <StatCard
+          icon={DollarSign}
+          label="Revenus du jour"
+          value={todayRevenue.toLocaleString()}
+          suffix="CDF"
+          badge={{
+            text: 'Aujourd\'hui',
+            variant: 'success'
+          }}
+          trend={{
+            value: revenueTrend,
+            isPositive: true
+          }}
+        />
       </div>
 
+      {/* Revenue Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        <StatCard
+          icon={Wallet}
+          label="Revenus mensuels"
+          value={monthlyRevenue.toLocaleString()}
+          suffix="CDF"
+          badge={{
+            text: 'Ce mois',
+            icon: TrendingUp,
+            variant: 'success'
+          }}
+          className="w-full"
+        />
+      </motion.div>
+
       {/* Fleet Status Card */}
-      <Card className="card-floating border-0 mt-4">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Car className="h-5 w-5" />
-            <span className="font-semibold">État de la flotte</span>
-          </div>
-          
-          <div className={`flex items-center justify-between mb-4 ${isMobile ? 'flex-col gap-2' : ''}`}>
-            <div className={isMobile ? 'text-center' : ''}>
-              <p className="text-body-sm text-muted-foreground">Véhicules disponibles</p>
-              <p className="text-heading-md font-bold text-card-foreground">
-                {`${stats?.availableVehicles || 0} / ${stats?.totalFleet || 0}`}
-              </p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
+      >
+        <Card className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/30">
+                <Car className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
+                  État de la flotte
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Disponibilité en temps réel
+                </p>
+              </div>
             </div>
-            <div className={`${isMobile ? 'text-center' : 'text-right'}`}>
-              <p className="text-body-sm text-muted-foreground">Taux d'utilisation</p>
-              <p className="text-heading-md font-bold text-primary">
-                {(stats?.totalFleet || 0) > 0 ? Math.round((((stats?.totalFleet || 0) - (stats?.availableVehicles || 0)) / (stats?.totalFleet || 0)) * 100) : 0}%
-              </p>
+            
+            <div className={`grid gap-6 mb-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              <div className={isMobile ? 'text-center' : ''}>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  Véhicules disponibles
+                </p>
+                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {availableVehicles}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  sur {totalFleet} au total
+                </p>
+              </div>
+              
+              <div className={isMobile ? 'text-center' : 'text-right'}>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  Taux d'utilisation
+                </p>
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                  {totalFleet > 0 ? Math.round(((totalFleet - availableVehicles) / totalFleet) * 100) : 0}%
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {totalFleet - availableVehicles} véhicules en service
+                </p>
+              </div>
             </div>
-          </div>
-          
-          <Progress 
-            value={(stats?.totalFleet || 0) > 0 ? (((stats?.totalFleet || 0) - (stats?.availableVehicles || 0)) / (stats?.totalFleet || 0)) * 100 : 0} 
-            className="h-2"
-          />
-        </CardContent>
-      </Card>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                <span>Progression</span>
+                <span className="font-medium">
+                  {totalFleet > 0 ? Math.round(((totalFleet - availableVehicles) / totalFleet) * 100) : 0}%
+                </span>
+              </div>
+              <Progress 
+                value={totalFleet > 0 ? ((totalFleet - availableVehicles) / totalFleet) * 100 : 0} 
+                className="h-3"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 };
