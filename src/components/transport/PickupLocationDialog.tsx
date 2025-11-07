@@ -49,14 +49,15 @@ export default function PickupLocationDialog({
     }
   }, []);
 
-  // Recherche automatique
+  // Recherche automatique - Sans dépendances functions pour éviter la boucle infinie
   useEffect(() => {
     if (searchQuery.length >= 3) {
       search(searchQuery);
     } else {
       clearPredictions();
     }
-  }, [searchQuery, search, clearPredictions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const handleSelectPrediction = async (prediction: any) => {
     try {

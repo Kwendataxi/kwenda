@@ -46,8 +46,13 @@ export const HealthStatusBar: React.FC = () => {
     };
   }, []);
 
-  // Ne rien afficher si tout va bien
+  // Ne rien afficher si tout va bien OU si le score est bon (>= 80)
   if (!showIndicator && healthStatus === 'healthy') {
+    return null;
+  }
+  
+  // Ne jamais afficher si le score est >= 80 (tout va bien)
+  if (healthScore >= 80) {
     return null;
   }
 
