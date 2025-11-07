@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, memo, useEffect } from 'react';
 import { Bike, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { usePricingRules } from '@/hooks/usePricingRules';
+import { useAvailableTaxiServices } from '@/hooks/useAvailableTaxiServices';
 import { cn } from '@/lib/utils';
 
 interface YangoVehicle {
@@ -31,7 +31,7 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
   onVehicleSelect,
   city = 'Kinshasa'
 }) => {
-  const { rules } = usePricingRules(city);
+  const { availableServices, loading } = useAvailableTaxiServices(city);
 
   // Configuration visuelle des véhicules
   const getVehicleDisplayConfig = useCallback((vehicleClass: string) => {
@@ -76,22 +76,18 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
     return configs[vehicleClass] || configs.standard;
   }, []);
 
-  // Charger dynamiquement les véhicules depuis pricing_rules
+  // Charger dynamiquement les véhicules depuis availableServices
   const vehicles: YangoVehicle[] = useMemo(() => {
-    const activeRules = rules.filter(r => 
-      r.service_type === 'transport' && 
-      r.is_active === true
-    );
-
-    return activeRules.map(rule => {
-      const config = getVehicleDisplayConfig(rule.vehicle_class);
+    // Le filtrage is_active est déjà fait dans le hook useAvailableTaxiServices
+    return availableServices.map(service => {
+      const config = getVehicleDisplayConfig(service.vehicle_class);
       return {
-        id: rule.vehicle_class,
+        id: service.vehicle_class,
         name: config.name,
         icon: config.icon,
         estimatedTime: config.estimatedTime,
-        basePrice: Number(rule.base_price),
-        pricePerKm: Number(rule.price_per_km),
+        basePrice: Number(service.base_price),
+        pricePerKm: Number(service.price_per_km),
         available: true,
         gradient: config.gradient,
         borderColor: config.borderColor,
@@ -99,7 +95,7 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
         iconColor: config.iconColor
       };
     }).sort((a, b) => a.basePrice - b.basePrice);
-  }, [rules, getVehicleDisplayConfig]);
+  }, [availableServices, getVehicleDisplayConfig]);
 
   // Message si aucun véhicule disponible
   if (vehicles.length === 0) {

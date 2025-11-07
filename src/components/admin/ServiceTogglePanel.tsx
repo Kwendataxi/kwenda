@@ -5,6 +5,8 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
 import { supabase } from '@/integrations/supabase/client';
+import { SERVICE_TYPE_TO_VEHICLE_CLASS } from '@/utils/pricingMapper';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Car,
   Package,
@@ -21,6 +23,7 @@ const ServiceTogglePanel = () => {
   const { configurations, loading } = useServiceConfigurations();
   const [refreshKey, setRefreshKey] = useState(0);
   const [updating, setUpdating] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const serviceIcons: { [key: string]: any } = {
     'taxi': Car,
@@ -33,40 +36,72 @@ const ServiceTogglePanel = () => {
   const handleToggle = async (serviceType: string, serviceCategory: string, currentStatus: boolean) => {
     const key = `${serviceType}-${serviceCategory}`;
     setUpdating(key);
+    const newStatus = !currentStatus;
     
     try {
-      const { error } = await supabase
+      // 1. Mettre à jour service_configurations
+      const { error: configError } = await supabase
         .from('service_configurations')
         .update({ 
-          is_active: !currentStatus,
+          is_active: newStatus,
           updated_at: new Date().toISOString()
         })
         .eq('service_type', serviceType)
         .eq('service_category', serviceCategory);
 
-      if (error) throw error;
+      if (configError) throw configError;
 
-      // Log activity
+      // 2. Si c'est un service taxi, synchroniser pricing_rules
+      if (serviceCategory === 'taxi') {
+        const vehicleClass = SERVICE_TYPE_TO_VEHICLE_CLASS[serviceType];
+        
+        if (vehicleClass) {
+          console.log(`🔄 Syncing pricing_rules for ${vehicleClass}...`);
+          
+          const { error: pricingError } = await supabase
+            .from('pricing_rules')
+            .update({ 
+              is_active: newStatus,
+              updated_at: new Date().toISOString()
+            })
+            .eq('vehicle_class', vehicleClass)
+            .eq('service_type', 'transport');
+
+          if (pricingError) {
+            console.error('⚠️ Error syncing pricing_rules:', pricingError);
+            // Ne pas throw, juste logger
+          } else {
+            console.log(`✅ Pricing rules synced for ${vehicleClass}`);
+          }
+        }
+      }
+
+      // 3. Log activity
       await supabase.from('activity_logs').insert({
         activity_type: 'service_toggle',
-        description: `Service ${serviceType} ${!currentStatus ? 'activé' : 'désactivé'}`,
+        description: `Service ${serviceType} ${newStatus ? 'activé' : 'désactivé'}`,
         metadata: {
           service_type: serviceType,
           service_category: serviceCategory,
-          new_status: !currentStatus
+          new_status: newStatus
         }
       });
 
+      // 4. Invalider les caches
+      queryClient.invalidateQueries({ queryKey: ['service-configurations'] });
+      queryClient.invalidateQueries({ queryKey: ['pricing_rules'] });
+      queryClient.invalidateQueries({ queryKey: ['available-taxi-services'] });
+
       toast({
-        title: 'Service mis à jour',
-        description: `Le service ${serviceType} a été ${!currentStatus ? 'activé' : 'désactivé'} avec succès.`,
+        title: '✅ Service mis à jour',
+        description: `Le service ${serviceType} a été ${newStatus ? 'activé' : 'désactivé'} avec succès.`,
       });
 
       setRefreshKey(prev => prev + 1);
     } catch (error: any) {
-      console.error('Error toggling service:', error);
+      console.error('❌ Error toggling service:', error);
       toast({
-        title: 'Erreur',
+        title: '❌ Erreur',
         description: error.message || 'Impossible de modifier le service',
         variant: 'destructive',
       });
