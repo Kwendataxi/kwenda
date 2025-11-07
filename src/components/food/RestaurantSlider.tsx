@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { RestaurantCard } from './RestaurantCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import Autoplay from 'embla-carousel-autoplay';
 import type { Restaurant } from '@/types/food';
 
@@ -10,13 +11,15 @@ interface RestaurantSliderProps {
   loading: boolean;
   onSelectRestaurant: (restaurant: Restaurant) => void;
   title?: string;
+  onViewAll?: () => void;
 }
 
 export const RestaurantSlider = ({ 
   restaurants, 
   loading, 
   onSelectRestaurant,
-  title = "🍽️ Restaurants populaires"
+  title = "🍽️ Restaurants populaires",
+  onViewAll
 }: RestaurantSliderProps) => {
   const [autoplay] = useState(() => 
     Autoplay({ delay: 4000, stopOnInteraction: true })
@@ -40,13 +43,25 @@ export const RestaurantSlider = ({
   return (
     <div className="space-y-4 px-4 py-6">
       {/* Titre avec badge */}
-      <div className="flex items-center gap-3">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-          {title}
-        </h2>
-        <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-full text-sm font-semibold">
-          {restaurants.length}
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+            {title}
+          </h2>
+          <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-full text-sm font-semibold">
+            {restaurants.length}
+          </span>
+        </div>
+        {onViewAll && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={onViewAll}
+            className="text-primary hover:text-primary/80 font-semibold"
+          >
+            Voir tout →
+          </Button>
+        )}
       </div>
 
       {/* Slider avec autoplay */}

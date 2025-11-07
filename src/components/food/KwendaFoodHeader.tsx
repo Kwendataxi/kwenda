@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTheme } from 'next-themes';
 
 interface KwendaFoodHeaderProps {
-  step: 'restaurants' | 'menu' | 'checkout';
+  step: 'restaurants' | 'menu' | 'checkout' | 'all-dishes' | 'all-restaurants';
   selectedCity: string;
   onCityChange: (city: string) => void;
   selectedRestaurant?: { restaurant_name: string } | null;

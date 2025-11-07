@@ -6,13 +6,15 @@ import { RestaurantList } from './RestaurantList';
 import { RestaurantStoreView } from './RestaurantStoreView';
 import { FoodCheckout } from './FoodCheckout';
 import { KwendaFoodHeader } from './KwendaFoodHeader';
+import { AllDishesView } from './AllDishesView';
+import { AllRestaurantsView } from './AllRestaurantsView';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { AnimatePresence } from 'framer-motion';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-type Step = 'restaurants' | 'menu' | 'checkout';
+type Step = 'restaurants' | 'menu' | 'checkout' | 'all-dishes' | 'all-restaurants';
 
 interface FoodOrderInterfaceProps {
   onOrderComplete?: (orderId: string) => void;
@@ -123,6 +125,8 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
     } else if (step === 'menu') {
       setStep('restaurants');
       setSelectedRestaurant(null);
+    } else if (step === 'all-dishes' || step === 'all-restaurants') {
+      setStep('restaurants');
     } else if (onBack) {
       onBack();
     }
@@ -157,6 +161,26 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
               onForceRefresh={refetch}
               selectedCity={selectedCity}
               onAddToCart={(product) => handleAddToCart(product, 1)}
+              onViewAllDishes={() => setStep('all-dishes')}
+              onViewAllRestaurants={() => setStep('all-restaurants')}
+            />
+          )}
+
+          {step === 'all-dishes' && (
+            <AllDishesView
+              key="all-dishes"
+              city={selectedCity}
+              onBack={() => setStep('restaurants')}
+              onAddToCart={(product) => handleAddToCart(product, 1)}
+            />
+          )}
+
+          {step === 'all-restaurants' && (
+            <AllRestaurantsView
+              key="all-restaurants"
+              city={selectedCity}
+              onBack={() => setStep('restaurants')}
+              onSelectRestaurant={handleSelectRestaurant}
             />
           )}
 

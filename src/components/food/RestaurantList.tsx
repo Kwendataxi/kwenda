@@ -15,6 +15,8 @@ interface RestaurantListProps {
   onForceRefresh?: () => void;
   selectedCity: string;
   onAddToCart?: (product: FoodProduct) => void;
+  onViewAllDishes?: () => void;
+  onViewAllRestaurants?: () => void;
 }
 
 export const RestaurantList = ({ 
@@ -23,7 +25,9 @@ export const RestaurantList = ({
   onSelectRestaurant, 
   onForceRefresh,
   selectedCity,
-  onAddToCart 
+  onAddToCart,
+  onViewAllDishes,
+  onViewAllRestaurants
 }: RestaurantListProps) => {
   if (loading) {
     return (
@@ -73,6 +77,7 @@ export const RestaurantList = ({
         <PopularDishesSection 
           city={selectedCity}
           onAddToCart={onAddToCart}
+          onViewAll={onViewAllDishes}
         />
       )}
 
@@ -82,7 +87,8 @@ export const RestaurantList = ({
           restaurants={topRated}
           loading={false}
           onSelectRestaurant={onSelectRestaurant}
-          title="⭐ Les mieux notés"
+          title="⭐ Top Resto"
+          onViewAll={onViewAllRestaurants}
         />
       )}
 
@@ -91,12 +97,13 @@ export const RestaurantList = ({
         restaurants={newRestaurants}
         loading={false}
         onSelectRestaurant={onSelectRestaurant}
-        title="🆕 Nouveaux restaurants"
+        title="🆕 Nouveautés"
+        onViewAll={onViewAllRestaurants}
       />
 
       {/* Tabs par type de cuisine */}
       <div className="px-4">
-        <h2 className="text-xl font-bold mb-4 text-foreground">📂 Par catégorie</h2>
+        <h2 className="text-xl font-bold mb-4 text-foreground">📂 Catégories</h2>
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="w-full justify-start overflow-x-auto mb-4">
             <TabsTrigger value="all" className="flex items-center gap-2">

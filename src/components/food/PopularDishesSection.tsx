@@ -1,6 +1,7 @@
 import { usePopularDishes } from '@/hooks/usePopularDishes';
 import { QuickAddButton } from './QuickAddButton';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Flame } from 'lucide-react';
 import type { FoodProduct } from '@/types/food';
@@ -8,9 +9,10 @@ import type { FoodProduct } from '@/types/food';
 interface PopularDishesSectionProps {
   city: string;
   onAddToCart: (product: FoodProduct) => void;
+  onViewAll?: () => void;
 }
 
-export const PopularDishesSection = ({ city, onAddToCart }: PopularDishesSectionProps) => {
+export const PopularDishesSection = ({ city, onAddToCart, onViewAll }: PopularDishesSectionProps) => {
   const { data: dishes, isLoading } = usePopularDishes(city);
 
   if (isLoading) {
@@ -40,15 +42,27 @@ export const PopularDishesSection = ({ city, onAddToCart }: PopularDishesSection
   };
 
   return (
-    <div className="space-y-4 px-4">
-      {/* Titre de section */}
-      <div className="flex items-center gap-2">
-        <Flame className="h-5 w-5 text-orange-500" />
-        <h2 className="text-xl font-bold text-foreground">Plats Populaires</h2>
+    <section className="py-6 bg-gradient-to-b from-background to-background/50">
+      {/* Header avec icon */}
+      <div className="flex items-center justify-between px-4 mb-4">
+        <div className="flex items-center gap-2">
+          <Flame className="h-5 w-5 text-orange-500" />
+          <h2 className="text-xl font-bold text-foreground">Top Plats</h2>
+        </div>
+        {onViewAll && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={onViewAll}
+            className="text-primary hover:text-primary/80 font-semibold"
+          >
+            Voir tout →
+          </Button>
+        )}
       </div>
 
       {/* Carousel horizontal */}
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 px-4">
         {dishes.map((dish, index) => (
           <motion.div
             key={dish.id}
@@ -112,6 +126,6 @@ export const PopularDishesSection = ({ city, onAddToCart }: PopularDishesSection
           </motion.div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
