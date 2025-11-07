@@ -1,19 +1,30 @@
 import { RestaurantCard } from './RestaurantCard';
 import { RestaurantSlider } from './RestaurantSlider';
+import { FoodPromoBanner } from './FoodPromoBanner';
+import { PopularDishesSection } from './PopularDishesSection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw } from 'lucide-react';
-import type { Restaurant } from '@/types/food';
+import type { Restaurant, FoodProduct } from '@/types/food';
 
 interface RestaurantListProps {
   restaurants: Restaurant[];
   loading: boolean;
   onSelectRestaurant: (restaurant: Restaurant) => void;
   onForceRefresh?: () => void;
+  selectedCity: string;
+  onAddToCart?: (product: FoodProduct) => void;
 }
 
-export const RestaurantList = ({ restaurants, loading, onSelectRestaurant, onForceRefresh }: RestaurantListProps) => {
+export const RestaurantList = ({ 
+  restaurants, 
+  loading, 
+  onSelectRestaurant, 
+  onForceRefresh,
+  selectedCity,
+  onAddToCart 
+}: RestaurantListProps) => {
   if (loading) {
     return (
       <div className="space-y-6">
@@ -53,7 +64,18 @@ export const RestaurantList = ({ restaurants, loading, onSelectRestaurant, onFor
   const newRestaurants = restaurants.slice(0, 6);
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-8 pb-6">
+      {/* Bande publicitaire moderne */}
+      <FoodPromoBanner />
+
+      {/* Section Plats Populaires */}
+      {onAddToCart && (
+        <PopularDishesSection 
+          city={selectedCity}
+          onAddToCart={onAddToCart}
+        />
+      )}
+
       {/* Slider principal - Restaurants les mieux notés */}
       {topRated.length > 0 && (
         <RestaurantSlider

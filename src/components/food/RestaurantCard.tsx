@@ -17,82 +17,76 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
 
   return (
     <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -4, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 300 }}
     >
       <Card 
-        className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer bg-card"
+        className="overflow-hidden border border-border/50 hover:border-border transition-all duration-300 cursor-pointer bg-card hover:shadow-food-hover"
         onClick={onClick}
       >
         {/* Image avec overlay gradient */}
-        <div className="relative h-48 overflow-hidden group">
+        <div className="relative h-44 overflow-hidden group">
           <motion.img
             src={restaurant.banner_url || '/placeholder-food.jpg'}
             alt={restaurant.restaurant_name}
             className="w-full h-full object-cover"
-            whileHover={{ scale: 1.1 }}
-            transition={{ duration: 0.4 }}
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
           />
           
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          {/* Gradient overlay adaptatif pour meilleur contraste */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent dark:from-black/80 dark:via-black/30" />
           
-          {/* Badges flottants */}
-          <div className="absolute top-3 right-3 flex gap-2">
-            {restaurant.delivery_available && (
+          {/* Badge unique - Priorité à Top noté */}
+          <div className="absolute top-3 right-3">
+            {restaurant.rating_average >= 4.5 ? (
               <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <Badge className="bg-success text-white shadow-lg border-0">
-                  🚀 Livraison rapide
+                <Badge className="bg-warning text-warning-foreground shadow-lg border-0 font-semibold">
+                  ⭐ Top
                 </Badge>
               </motion.div>
-            )}
-            {restaurant.rating_average >= 4.5 && (
+            ) : restaurant.delivery_available && (
               <motion.div
-                initial={{ scale: 0, rotate: 180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.3 }}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 }}
               >
-                <Badge className="bg-[#FFD700] text-black shadow-lg border-0">
-                  ⭐ Top noté
+                <Badge className="bg-success text-success-foreground shadow-lg border-0 font-semibold">
+                  🚀 Rapide
                 </Badge>
               </motion.div>
             )}
           </div>
           
           {/* Info bottom overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+          <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold mb-1 truncate">{restaurant.restaurant_name}</h3>
-                <div className="flex items-center gap-3 text-sm flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-[#FFD700] text-[#FFD700]" />
+                <h3 className="text-2xl font-bold mb-1.5 truncate text-white drop-shadow-lg">{restaurant.restaurant_name}</h3>
+                <div className="flex items-center gap-2 text-base text-white/95 drop-shadow-md">
+                  <span className="flex items-center gap-1 font-semibold">
+                    <Star className="w-4 h-4 fill-warning text-warning" />
                     {restaurant.rating_average?.toFixed(1) || '4.0'}
                   </span>
-                  <span>•</span>
+                  <span>|</span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
                     {restaurant.average_preparation_time || 25}-{(restaurant.average_preparation_time || 25) + 10} min
                   </span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {restaurant.city}
-                  </span>
                 </div>
               </div>
               
-              {/* Logo circulaire avec animation */}
+              {/* Logo circulaire plus petit */}
               {restaurant.logo_url && (
                 <motion.div
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
-                  className="w-16 h-16 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white ml-3 flex-shrink-0"
+                  className="w-14 h-14 rounded-full border-3 border-white shadow-xl overflow-hidden bg-white ml-3 flex-shrink-0"
                 >
                   <img 
                     src={restaurant.logo_url} 
@@ -102,36 +96,15 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
                 </motion.div>
               )}
             </div>
-            
-            {/* Types de cuisine */}
-            {restaurant.cuisine_types && restaurant.cuisine_types.length > 0 && (
-              <div className="flex gap-2 mt-3 flex-wrap">
-                {restaurant.cuisine_types.slice(0, 3).map((type, index) => (
-                  <motion.div
-                    key={type}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                  >
-                    <Badge 
-                      variant="secondary" 
-                      className="bg-white/20 backdrop-blur-sm text-white border-0 hover:bg-white/30"
-                    >
-                      {type}
-                    </Badge>
-                  </motion.div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
         
         {/* Prix minimum & CTA */}
-        <div className="p-4 bg-gradient-to-br from-background to-muted/20">
+        <div className="p-4 bg-card">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Commande minimum</p>
-              <p className="text-lg font-bold text-[#FF6347]">
+              <p className="text-base font-bold text-primary">
                 {restaurant.minimum_order_amount 
                   ? formatPrice(restaurant.minimum_order_amount)
                   : '5 000 FC'
@@ -144,7 +117,7 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
             >
               <Button 
                 size="sm" 
-                className="shadow-md bg-gradient-to-r from-[#FF6347] to-[#FFA500] hover:from-[#FF4500] hover:to-[#FF8C00] text-white border-0"
+                className="shadow-md bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 font-semibold"
               >
                 Commander 🍽️
               </Button>

@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, ShoppingCart, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { useTheme } from 'next-themes';
 
 interface KwendaFoodHeaderProps {
   step: 'restaurants' | 'menu' | 'checkout';
@@ -21,6 +22,9 @@ export const KwendaFoodHeader = ({
   cartItemsCount,
   onBack
 }: KwendaFoodHeaderProps) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const getHeaderContent = () => {
     switch (step) {
       case 'menu':
@@ -48,11 +52,15 @@ export const KwendaFoodHeader = ({
 
   return (
     <header className="relative sticky top-0 z-50 overflow-hidden">
-      {/* Gradient moderne avec effet glassmorphism */}
-      <div className="relative bg-gradient-to-br from-[#FF6347] via-[#FFA500] to-[#FF4500] overflow-hidden">
+      {/* Gradient moderne avec effet glassmorphism - Adapté mode clair/sombre */}
+      <div className={`relative overflow-hidden ${
+        isDark 
+          ? 'bg-gradient-to-br from-orange-600 via-red-600 to-orange-700'
+          : 'bg-gradient-to-br from-orange-400 via-red-400 to-orange-500'
+      }`}>
         {/* Effet ondulé animé */}
         <motion.div 
-          className="absolute inset-0 opacity-20"
+          className={`absolute inset-0 ${isDark ? 'opacity-20' : 'opacity-30'}`}
           animate={{ 
             backgroundPosition: ['0% 0%', '100% 100%', '0% 0%']
           }}

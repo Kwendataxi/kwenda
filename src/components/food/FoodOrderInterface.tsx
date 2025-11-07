@@ -155,6 +155,8 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
               loading={loading}
               onSelectRestaurant={handleSelectRestaurant}
               onForceRefresh={refetch}
+              selectedCity={selectedCity}
+              onAddToCart={(product) => handleAddToCart(product, 1)}
             />
           )}
 
