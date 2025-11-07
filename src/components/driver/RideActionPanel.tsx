@@ -18,6 +18,7 @@ import {
   Star
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { NavigationModal } from './NavigationModal';
@@ -40,73 +41,102 @@ interface RideDetails {
   sender_name?: string;
   recipient_name?: string;
   distance_km?: number;
+  rideType?: 'transport' | 'delivery';
   [key: string]: any;
 }
 
-interface RideActionPanelProps {
-  rideId: string;
-  rideType: 'transport' | 'delivery';
-  onStatusChange?: (newStatus: string) => void;
-}
-
-export const RideActionPanel: React.FC<RideActionPanelProps> = ({
-  rideId,
-  rideType,
-  onStatusChange
-}) => {
+export const RideActionPanel: React.FC = () => {
+  const { user } = useAuth();
   const [ride, setRide] = useState<RideDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [showNavigation, setShowNavigation] = useState(false);
 
-  // Charger les détails de la course
+  // Charger automatiquement les courses/livraisons assignées
   useEffect(() => {
-    loadRideDetails();
+    if (!user?.id) return;
 
-    // S'abonner aux changements
-    const channel = supabase
-      .channel(`ride-status-${rideId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: rideType === 'transport' ? 'transport_bookings' : 'delivery_orders',
-          filter: `id=eq.${rideId}`
-        },
-        (payload) => {
-          console.log('🔄 Ride updated:', payload.new);
-          setRide(payload.new as RideDetails);
-          onStatusChange?.(payload.new.status);
+    loadActiveRide();
+
+    // S'abonner aux changements transport
+    const transportChannel = supabase
+      .channel(`transport-driver-${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'transport_bookings',
+        filter: `driver_id=eq.${user.id}`
+      }, (payload) => {
+        console.log('🔄 Transport updated:', payload.new);
+        if (['driver_assigned', 'driver_arrived', 'in_progress'].includes(payload.new.status)) {
+          setRide({ ...payload.new, rideType: 'transport' } as RideDetails);
+        } else if (payload.new.status === 'completed' || payload.new.status === 'cancelled') {
+          setRide(null);
         }
-      )
+      })
+      .subscribe();
+
+    // S'abonner aux changements delivery
+    const deliveryChannel = supabase
+      .channel(`delivery-driver-${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'delivery_orders',
+        filter: `driver_id=eq.${user.id}`
+      }, (payload) => {
+        console.log('🔄 Delivery updated:', payload.new);
+        if (['driver_assigned', 'picked_up', 'in_transit'].includes(payload.new.status)) {
+          setRide({ ...payload.new, rideType: 'delivery' } as RideDetails);
+        } else if (payload.new.status === 'delivered' || payload.new.status === 'cancelled') {
+          setRide(null);
+        }
+      })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(transportChannel);
+      supabase.removeChannel(deliveryChannel);
     };
-  }, [rideId, rideType]);
+  }, [user?.id]);
 
-  const loadRideDetails = async () => {
-    const table = rideType === 'transport' ? 'transport_bookings' : 'delivery_orders';
-    
-    const { data, error } = await supabase
-      .from(table)
+  const loadActiveRide = async () => {
+    if (!user?.id) return;
+
+    // Chercher transport actif
+    const { data: transportData } = await supabase
+      .from('transport_bookings')
       .select('*')
-      .eq('id', rideId)
-      .single();
+      .eq('driver_id', user.id)
+      .in('status', ['driver_assigned', 'driver_arrived', 'in_progress'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (error) {
-      console.error('❌ Erreur chargement course:', error);
-      toast.error('Impossible de charger les détails');
+    if (transportData) {
+      setRide({ ...transportData, rideType: 'transport' } as RideDetails);
       return;
     }
 
-    setRide(data as RideDetails);
+    // Sinon chercher delivery active
+    const { data: deliveryData } = await supabase
+      .from('delivery_orders')
+      .select('*')
+      .eq('driver_id', user.id)
+      .in('status', ['driver_assigned', 'picked_up', 'in_transit'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (deliveryData) {
+      setRide({ ...deliveryData, rideType: 'delivery' } as RideDetails);
+    }
   };
 
   const updateStatus = async (newStatus: string) => {
+    if (!ride?.id || !ride.rideType) return;
+
     setLoading(true);
-    const table = rideType === 'transport' ? 'transport_bookings' : 'delivery_orders';
+    const table = ride.rideType === 'transport' ? 'transport_bookings' : 'delivery_orders';
     
     const updates: any = {
       status: newStatus,
@@ -125,7 +155,7 @@ export const RideActionPanel: React.FC<RideActionPanelProps> = ({
     const { error } = await supabase
       .from(table)
       .update(updates)
-      .eq('id', rideId);
+      .eq('id', ride.id);
 
     setLoading(false);
 
@@ -147,10 +177,10 @@ export const RideActionPanel: React.FC<RideActionPanelProps> = ({
         spread: 70,
         origin: { y: 0.6 }
       });
+      setRide(null); // Masquer le panneau
     }
 
-    loadRideDetails();
-    onStatusChange?.(newStatus);
+    loadActiveRide();
   };
 
   const handleAccept = () => {
@@ -158,11 +188,13 @@ export const RideActionPanel: React.FC<RideActionPanelProps> = ({
   };
 
   const handleReject = async () => {
+    if (!ride?.id || !ride.rideType) return;
+    
     const confirmed = window.confirm('Êtes-vous sûr de refuser cette course ?');
     if (!confirmed) return;
 
     setLoading(true);
-    const table = rideType === 'transport' ? 'transport_bookings' : 'delivery_orders';
+    const table = ride.rideType === 'transport' ? 'transport_bookings' : 'delivery_orders';
 
     const { error } = await supabase
       .from(table)
@@ -171,33 +203,30 @@ export const RideActionPanel: React.FC<RideActionPanelProps> = ({
         cancelled_at: new Date().toISOString(),
         cancellation_reason: 'Refusée par le chauffeur'
       })
-      .eq('id', rideId);
+      .eq('id', ride.id);
 
     setLoading(false);
 
     if (!error) {
       toast.info('Course refusée');
+      setRide(null);
     }
   };
 
   const handleStartRide = () => {
-    const status = rideType === 'transport' ? 'in_progress' : 'picked_up';
+    if (!ride?.rideType) return;
+    const status = ride.rideType === 'transport' ? 'in_progress' : 'picked_up';
     updateStatus(status);
   };
 
   const handleCompleteRide = () => {
-    const status = rideType === 'transport' ? 'completed' : 'delivered';
+    if (!ride?.rideType) return;
+    const status = ride.rideType === 'transport' ? 'completed' : 'delivered';
     updateStatus(status);
   };
 
   if (!ride) {
-    return (
-      <Card className="animate-pulse">
-        <CardContent className="p-6">
-          <div className="h-20 bg-muted rounded" />
-        </CardContent>
-      </Card>
-    );
+    return null; // Ne rien afficher si pas de course active
   }
 
   // Déterminer les actions disponibles selon le statut
@@ -212,9 +241,9 @@ export const RideActionPanel: React.FC<RideActionPanelProps> = ({
         <CardContent className="p-4 space-y-4">
           {/* En-tête */}
           <div className="flex items-center justify-between">
-            <div>
+          <div>
               <h3 className="font-bold text-lg">
-                {rideType === 'transport' ? '🚗 Course' : '📦 Livraison'}
+                {ride.rideType === 'transport' ? '🚗 Course' : '📦 Livraison'}
               </h3>
               <Badge variant={
                 ride.status === 'completed' || ride.status === 'delivered' 
@@ -348,8 +377,8 @@ export const RideActionPanel: React.FC<RideActionPanelProps> = ({
         <NavigationModal
           open={showNavigation}
           onClose={() => setShowNavigation(false)}
-          orderId={rideId}
-          orderType={rideType}
+          orderId={ride.id}
+          orderType={ride.rideType || 'transport'}
           pickup={{
             lat: ride.pickup_coordinates?.lat || 0,
             lng: ride.pickup_coordinates?.lng || 0,

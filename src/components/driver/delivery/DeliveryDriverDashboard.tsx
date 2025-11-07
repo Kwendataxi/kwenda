@@ -6,8 +6,10 @@ import { useEffect, useState } from 'react';
 import { Package, MapPin, Clock, TrendingUp, Zap } from 'lucide-react';
 import { useDriverStatus } from '@/hooks/useDriverStatus';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
+import { useDriverNotifications } from '@/hooks/useDriverNotifications';
 import { ModernOnlineToggle } from '../shared/ModernOnlineToggle';
 import { DeliveryFloatingStats } from './DeliveryFloatingStats';
+import { RideActionPanel } from '@/components/driver/RideActionPanel';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
@@ -15,6 +17,7 @@ import { motion } from 'framer-motion';
 export const DeliveryDriverDashboard = () => {
   const { status, goOnline, goOffline } = useDriverStatus();
   const { pendingNotifications, activeOrders, acceptOrder, rejectOrder } = useDriverDispatch();
+  const { notifications, unreadCount } = useDriverNotifications();
   const [todayStats, setTodayStats] = useState({ deliveries: 0, earnings: 0, packages: 0 });
 
   const handleToggle = async () => {
@@ -45,6 +48,9 @@ export const DeliveryDriverDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background p-4 pb-24">
+      {/* 🔔 RideActionPanel - Gestion des livraisons assignées */}
+      <RideActionPanel />
+
       {/* Header avec toggle */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
