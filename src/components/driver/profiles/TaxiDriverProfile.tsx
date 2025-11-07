@@ -19,6 +19,7 @@ import { SupportModal } from '../support/SupportModal';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ServiceZonesDisplay } from '../zones/ServiceZonesDisplay';
 import { ServiceZoneSelector } from '../zones/ServiceZoneSelector';
+import { CityManagementPanel } from '../CityManagementPanel';
 
 export const TaxiDriverProfile = () => {
   const { user, signOut } = useAuth();
@@ -81,6 +82,9 @@ export const TaxiDriverProfile = () => {
         badgeIcon="🚗"
         serviceType="taxi"
       />
+
+      {/* Ville de service */}
+      <CityManagementPanel />
 
       {/* Véhicule actif */}
       <VehicleCard

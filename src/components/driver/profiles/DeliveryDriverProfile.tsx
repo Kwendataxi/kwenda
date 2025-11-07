@@ -20,6 +20,7 @@ import { SupportModal } from '../support/SupportModal';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ServiceZonesDisplay } from '../zones/ServiceZonesDisplay';
 import { ServiceZoneSelector } from '../zones/ServiceZoneSelector';
+import { CityManagementPanel } from '../CityManagementPanel';
 
 export const DeliveryDriverProfile = () => {
   const { user, signOut } = useAuth();
@@ -82,6 +83,9 @@ export const DeliveryDriverProfile = () => {
         badgeIcon="📦"
         serviceType="delivery"
       />
+
+      {/* Ville de service */}
+      <CityManagementPanel />
 
       {/* Véhicule de livraison */}
       <VehicleCard
