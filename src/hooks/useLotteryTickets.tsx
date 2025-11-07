@@ -46,6 +46,26 @@ export const useLotteryTickets = () => {
           description: `+${ticketCount} ticket${ticketCount > 1 ? 's' : ''} de tombola${bonusText}`,
           duration: 4000,
         });
+
+        // Générer automatiquement une carte à gratter (30% de chance)
+        if (Math.random() < 0.3) {
+          try {
+            await supabase.functions.invoke('lottery-system', {
+              body: {
+                action: 'generate_scratch_card',
+                userId: user.id
+              }
+            });
+            
+            toast({
+              title: "🎰 Nouvelle carte à gratter !",
+              description: "Rendez-vous dans la Tombola",
+              duration: 6000,
+            });
+          } catch (error) {
+            console.error('Erreur génération carte:', error);
+          }
+        }
       }
 
       return data?.tickets || [];

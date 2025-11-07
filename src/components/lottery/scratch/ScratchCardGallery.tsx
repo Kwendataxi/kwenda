@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScratchCard } from './ScratchCard';
 import { ScratchCardWin } from '@/types/scratch-card';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,10 +95,11 @@ export const ScratchCardGallery: React.FC = () => {
   const unscratched = wins.filter(w => !w.scratch_revealed_at && w.scratch_percentage < 70);
   const revealed = wins.filter(w => w.scratch_revealed_at || w.scratch_percentage >= 70);
 
-  if (loading) {
+  if (loading && wins.length === 0) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-col items-center justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-sm text-muted-foreground">Chargement des cartes...</p>
       </div>
     );
   }
@@ -211,9 +213,18 @@ export const ScratchCardGallery: React.FC = () => {
                   <Ticket className="h-16 w-16 mx-auto mb-4 text-primary/50" />
                 </motion.div>
                 <p className="text-base font-medium">Aucune carte à gratter</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Effectuez des courses pour gagner des tickets !
+                <p className="text-sm text-muted-foreground mt-2 mb-4">
+                  Effectuez des courses ou des achats pour gagner des cartes !
                 </p>
+                {import.meta.env.DEV && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.location.href = '/test-lottery'}
+                  >
+                    🎮 Mode test
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}

@@ -67,7 +67,82 @@ serve(async (req) => {
       );
     }
 
-    // ACTION 2: Effectuer un tirage
+    // ACTION 2: Générer une carte à gratter directement (pour test ou attribution immédiate)
+    if (action === 'generate_scratch_card') {
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'userId requis' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Système de rareté avec probabilités
+      const rarityRoll = Math.random();
+      let rarity: string;
+      let prizeValue: number;
+      let prizeName: string;
+
+      if (rarityRoll < 0.02) {
+        // 2% Légendaire
+        rarity = 'legendary';
+        prizeValue = 50000 + Math.floor(Math.random() * 150000); // 50k-200k CDF
+        prizeName = '🏆 Jackpot Légendaire';
+      } else if (rarityRoll < 0.10) {
+        // 8% Épique
+        rarity = 'epic';
+        prizeValue = 10000 + Math.floor(Math.random() * 40000); // 10k-50k CDF
+        prizeName = '💎 Gros Lot Épique';
+      } else if (rarityRoll < 0.30) {
+        // 20% Rare
+        rarity = 'rare';
+        prizeValue = 2000 + Math.floor(Math.random() * 8000); // 2k-10k CDF
+        prizeName = '✨ Lot Rare';
+      } else {
+        // 70% Commun
+        rarity = 'common';
+        prizeValue = 100 + Math.floor(Math.random() * 1900); // 100-2k CDF
+        prizeName = '🎁 Lot Commun';
+      }
+
+      // Créer la carte à gratter
+      const { data: scratchCard, error } = await supabase
+        .from('lottery_wins')
+        .insert({
+          user_id: userId,
+          prize_details: {
+            name: prizeName,
+            value: prizeValue,
+            currency: 'CDF',
+            prize_id: `PRIZE-${Date.now()}`
+          },
+          prize_value: prizeValue,
+          currency: 'CDF',
+          status: 'pending',
+          rarity: rarity,
+          reward_type: 'cash',
+          scratch_percentage: 0,
+          scratch_revealed_at: null
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erreur création carte à gratter:', error);
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`✅ Carte à gratter créée: ${rarity} - ${prizeValue} CDF`);
+
+      return new Response(
+        JSON.stringify({ success: true, scratchCard }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ACTION 3: Effectuer un tirage
     if (action === 'drawLottery') {
       if (!drawId) {
         return new Response(
