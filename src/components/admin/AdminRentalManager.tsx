@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { AdminRentalModeration } from './AdminRentalModeration';
+import AdminRentalModerationEnhanced from '@/pages/AdminRentalModerationEnhanced';
 import { RentalSubscriptionManager } from './RentalSubscriptionManager';
 import { VehicleCategoryManager } from './VehicleCategoryManager';
 import { RentalFinancialDashboard } from './RentalFinancialDashboard';
@@ -169,7 +169,7 @@ export const AdminRentalManager = () => {
         </TabsContent>
 
         <TabsContent value="moderation">
-          <AdminRentalModeration />
+          <AdminRentalModerationEnhanced />
         </TabsContent>
 
         <TabsContent value="subscriptions">

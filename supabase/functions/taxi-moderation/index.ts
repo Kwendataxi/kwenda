@@ -1,3 +1,4 @@
+// Version: 2025-11-07T14:30:00Z - Taxi moderation proxy deployment
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 

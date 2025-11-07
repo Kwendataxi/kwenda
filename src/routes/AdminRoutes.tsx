@@ -75,15 +75,7 @@ export const AdminRoutes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/admin/rental-moderation" 
-        element={
-          <ProtectedRoute>
-            <AdminRentalModerationEnhanced />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
+      <Route
         path="/admin/notification-test" 
         element={
           <ProtectedRoute>
