@@ -9,13 +9,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 import { ProductImageUpload } from '@/components/restaurant/ProductImageUpload';
 import { RestaurantLayout } from '@/components/restaurant/RestaurantLayout';
-
-const CATEGORIES = ['Entrées', 'Plats', 'Desserts', 'Boissons'];
+import { cn } from '@/lib/utils';
+import { FOOD_CATEGORIES } from '@/config/foodCategories';
 
 interface Product {
   id: string;
@@ -252,13 +253,15 @@ export default function RestaurantMenuManager() {
                 Nouveau plat
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
+            <DialogContent className="max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden flex flex-col p-0">
+              <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-2">
                 <DialogTitle>
                   {editingProduct ? 'Modifier le plat' : 'Nouveau plat'}
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              
+              <ScrollArea className="flex-1 px-6 pb-6">
+                <div className="space-y-4 pr-4">
                 <div>
                   <Label>Nom du plat *</Label>
                   <Input
@@ -278,33 +281,46 @@ export default function RestaurantMenuManager() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Catégorie *</Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) => setFormData({ ...formData, category: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div>
+                  <Label className="mb-3 block">Catégorie *</Label>
+                  <RadioGroup 
+                    value={formData.category} 
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    className="grid grid-cols-2 gap-3"
+                  >
+                    {FOOD_CATEGORIES.map((cat) => {
+                      const Icon = cat.icon;
+                      return (
+                        <div key={cat.id}>
+                          <RadioGroupItem
+                            value={cat.name}
+                            id={cat.id}
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor={cat.id}
+                            className={cn(
+                              "flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all",
+                              formData.category === cat.name && "border-primary bg-primary/10"
+                            )}
+                          >
+                            <Icon className="h-6 w-6 mb-2" />
+                            <span className="text-sm font-medium">{cat.name}</span>
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </RadioGroup>
+                </div>
 
-                  <div>
-                    <Label>Prix (CDF) *</Label>
-                    <Input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="5000"
-                    />
-                  </div>
+                <div>
+                  <Label>Prix (CDF) *</Label>
+                  <Input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="5000"
+                  />
                 </div>
 
                 <div>
@@ -335,15 +351,16 @@ export default function RestaurantMenuManager() {
                   />
                 </div>
 
-                <Button
-                  className="w-full"
-                  onClick={handleSaveProduct}
-                  disabled={saving || !formData.name || !formData.price}
-                >
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {editingProduct ? 'Mettre à jour' : 'Ajouter'}
-                </Button>
-              </div>
+                  <Button
+                    className="w-full"
+                    onClick={handleSaveProduct}
+                    disabled={saving || !formData.name || !formData.price}
+                  >
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {editingProduct ? 'Mettre à jour' : 'Ajouter'}
+                  </Button>
+                </div>
+              </ScrollArea>
             </DialogContent>
           </Dialog>
         </div>
