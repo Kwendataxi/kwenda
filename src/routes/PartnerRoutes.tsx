@@ -9,8 +9,9 @@ import MobileSplash from '@/pages/MobileSplash';
 import Install from '@/pages/Install';
 
 const PartnerApp = lazy(() => import('@/pages/PartnerApp'));
+const PartnerAuth = lazy(() => import('@/pages/PartnerAuth'));
 const PartnerVerifyEmail = lazy(() => import('@/pages/PartnerVerifyEmail'));
-const PartnerRegistrationForm = lazy(() => import('@/components/partner/registration/PartnerRegistrationForm').then(m => ({ default: m.PartnerRegistrationForm })));
+const ModernRegistrationWizard = lazy(() => import('@/components/partner/registration/ModernRegistrationWizard'));
 const PartnerDashboard = lazy(() => import('@/pages/partner/PartnerDashboard'));
 const PartnerRentalSubscriptionManagement = lazy(() => import('@/pages/partner/PartnerRentalSubscriptionManagement'));
 
@@ -21,8 +22,7 @@ export const PartnerRoutes = () => {
 
   return (
     <>
-      <Route 
-        path="/" 
+      <Route path="/" 
         element={
           isMobileApp() || (isSpecificBuild() && isPartnerApp()) 
             ? <MobileSplash /> 
@@ -30,6 +30,7 @@ export const PartnerRoutes = () => {
         } 
       />
       <Route path="/install" element={<Install />} />
+      <Route path="/partner/auth" element={<PartnerAuth />} />
       <Route path="/partner/verify-email" element={<PartnerVerifyEmail />} />
       <Route 
         path="/app/partenaire" 
@@ -51,7 +52,7 @@ export const PartnerRoutes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route path="/partner/register" element={<PartnerRegistrationForm />} />
+      <Route path="/partner/register" element={<ModernRegistrationWizard />} />
       <Route 
         path="/partner/dashboard" 
         element={
