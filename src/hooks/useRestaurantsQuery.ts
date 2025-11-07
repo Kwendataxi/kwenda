@@ -67,7 +67,25 @@ export const useRestaurantsQuery = (city: string) => {
         table: 'restaurant_profiles',
         filter: `city=eq.${city.trim()}`,
       }, (payload) => {
-        console.log('🔄 Restaurant data changed, refetching...', payload);
+        console.log('🔄 Restaurant data changed:', payload);
+        
+        // Force image cache bust on image updates
+        if (payload.new) {
+          const newData = payload.new as any;
+          if (newData.logo_url || newData.banner_url) {
+            console.log('📸 Image updated, forcing cache invalidation');
+            // Clear any cached images
+            if (newData.logo_url) {
+              const img = new Image();
+              img.src = `${newData.logo_url}?t=${Date.now()}`;
+            }
+            if (newData.banner_url) {
+              const img = new Image();
+              img.src = `${newData.banner_url}?t=${Date.now()}`;
+            }
+          }
+        }
+        
         forceRefresh();
       })
       .subscribe();

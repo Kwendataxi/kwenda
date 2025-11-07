@@ -193,10 +193,22 @@ export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettin
       
       console.log(`✅ [RestaurantImages] Upload ${type} terminé avec succès`);
 
+      // Force browser cache invalidation
+      const img = new Image();
+      img.src = `${publicUrl}?t=${Date.now()}`;
+
       // Callback pour rafraîchir le parent
       if (onImageUpdate) {
         onImageUpdate();
       }
+
+      // Notification de rafraîchissement
+      setTimeout(() => {
+        toast({
+          title: '🔄 Mise à jour complète',
+          description: 'Votre restaurant a été rafraîchi dans Kwenda Food'
+        });
+      }, 500);
     } catch (error: any) {
       console.error('❌ [RestaurantImages] Erreur upload complète:', {
         message: error.message,

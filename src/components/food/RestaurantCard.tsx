@@ -35,7 +35,10 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
         {/* Image avec overlay gradient */}
         <div className="relative h-44 overflow-hidden group">
           <motion.img
-            src={restaurant.banner_url || '/placeholder-food.jpg'}
+            src={restaurant.banner_url 
+              ? `${restaurant.banner_url}?t=${restaurant.updated_at || Date.now()}` 
+              : '/placeholder-food.jpg'
+            }
             alt={restaurant.restaurant_name}
             className="w-full h-full object-cover"
             whileHover={{ scale: 1.05 }}
@@ -96,7 +99,7 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
                   className="w-14 h-14 rounded-full border-3 border-white shadow-xl overflow-hidden bg-white ml-3 flex-shrink-0"
                 >
                   <img 
-                    src={restaurant.logo_url} 
+                    src={`${restaurant.logo_url}?t=${restaurant.updated_at || Date.now()}`}
                     alt={`${restaurant.restaurant_name} logo`}
                     className="w-full h-full object-cover"
                   />

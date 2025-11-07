@@ -17,6 +17,7 @@ export interface Restaurant {
   city: string;
   phone_number?: string;
   address: string;
+  updated_at?: string;
 }
 
 export interface FoodProduct {

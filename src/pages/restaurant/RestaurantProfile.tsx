@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Save, ArrowLeft, Store, MapPin } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, Store, MapPin, Sparkles, ExternalLink } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SUPPORTED_CITIES } from '@/constants/cities';
 import { RestaurantImageSettings } from '@/components/restaurant/RestaurantImageSettings';
@@ -233,7 +233,39 @@ export default function RestaurantProfile() {
         </Card>
 
         {/* Section Images */}
+        <Alert className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-sm">
+            💡 <strong>Conseil :</strong> Vos images (logo et bannière) apparaissent dans Kwenda Food. 
+            Modifiez-les ici pour mettre à jour votre vitrine instantanément !
+          </AlertDescription>
+        </Alert>
+        
         <RestaurantImageSettings onImageUpdate={loadProfile} />
+        
+        {/* Bouton Preview Kwenda Food */}
+        <Card className="bg-gradient-to-br from-orange-500/5 to-red-500/5 border-orange-500/20">
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  🍽️ Aperçu dans Kwenda Food
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Visualisez comment votre restaurant apparaît aux clients
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => window.open(`/food?restaurant=${profile.id}`, '_blank')}
+                className="w-full sm:w-auto shadow-sm hover:shadow-md transition-shadow"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Ouvrir ma vitrine
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Section Livraison */}
         <Card>

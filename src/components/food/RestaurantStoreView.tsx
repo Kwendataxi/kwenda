@@ -192,7 +192,7 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
       <div className="relative h-48 bg-gradient-to-b from-primary/20 to-background">
         {restaurant.banner_url && (
           <img
-            src={restaurant.banner_url}
+            src={`${restaurant.banner_url}?t=${restaurant.updated_at || Date.now()}`}
             alt={restaurant.restaurant_name}
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -267,7 +267,11 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
         >
           <div className="w-24 h-24 rounded-full border-4 border-background bg-background overflow-hidden shadow-xl">
             {restaurant.logo_url ? (
-              <img src={restaurant.logo_url} alt={restaurant.restaurant_name} className="w-full h-full object-cover" />
+              <img 
+                src={`${restaurant.logo_url}?t=${restaurant.updated_at || Date.now()}`} 
+                alt={restaurant.restaurant_name} 
+                className="w-full h-full object-cover" 
+              />
             ) : (
               <div className="w-full h-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
                 {restaurant.restaurant_name[0]}
