@@ -15221,6 +15221,18 @@ export type Database = {
       }
       monitor_security_events: { Args: never; Returns: undefined }
       process_escrow_release: { Args: { escrow_id: string }; Returns: boolean }
+      process_marketplace_payment: {
+        Args: {
+          p_cart_items: Json
+          p_delivery_address: string
+          p_delivery_fee?: number
+          p_delivery_zone?: string
+          p_phone_number?: string
+          p_total_price: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
       process_orange_money_payment: {
         Args: {
           p_amount: number

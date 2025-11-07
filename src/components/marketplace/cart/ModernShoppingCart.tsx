@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { secureLog } from '@/utils/secureLogger';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShoppingBag } from 'lucide-react';
@@ -63,13 +64,7 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
   };
 
   const handleCheckout = async () => {
-    console.log('🛒 [Checkout] Ouverture dialogue paiement:', {
-      totalPrice,
-      walletBalance: wallet?.balance || 0,
-      shouldShowTopUp: (wallet?.balance || 0) < totalPrice,
-      comparison: `${wallet?.balance || 0} < ${totalPrice}`,
-      timestamp: new Date().toISOString(),
-    });
+    secureLog.log('🛒 [Checkout] Opening payment dialog');
     
     // Forcer fermeture puis réouverture pour éviter cache
     setShowPaymentDialog(false);
@@ -82,11 +77,7 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
     setIsProcessing(true);
     let transaction = null;
     
-    console.log('💳 [Payment] Starting payment process', {
-      totalPrice,
-      walletBalance: wallet?.balance,
-      cartItemsCount: cartItems.length,
-    });
+    secureLog.log('💳 [Payment] Starting payment process');
     
     try {
       if (!wallet || wallet.balance < totalPrice) {
@@ -102,41 +93,37 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Utilisateur non authentifié");
 
-      const { data: txData, error } = await supabase
-        .from('wallet_transactions')
-        .insert([{
-          user_id: user.id,
-          wallet_id: wallet.id,
-          transaction_type: 'debit',
-          amount: totalPrice,
-          description: `Achat marketplace - ${cartItems.length} article(s)`,
-          reference_type: 'marketplace_order',
-          status: 'completed',
-          balance_before: wallet.balance,
-          balance_after: wallet.balance - totalPrice,
-          payment_method: 'kwenda_pay',
-          currency: 'CDF',
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      transaction = txData;
-      console.log('✅ [Payment] Transaction created', { transactionId: transaction.id });
-
-      const { error: updateError } = await supabase
-        .from('user_wallets')
-        .update({ 
-          balance: wallet.balance - totalPrice,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', wallet.id);
-
-      if (updateError) throw updateError;
-      console.log('✅ [Payment] Wallet updated', { 
-        oldBalance: wallet.balance, 
-        newBalance: wallet.balance - totalPrice 
+      // Call secure edge function for atomic payment processing
+      const { data, error } = await supabase.functions.invoke('process-marketplace-payment', {
+        body: {
+          cartItems: cartItems.map(item => ({
+            product_id: item.id,
+            quantity: item.quantity,
+            price_at_purchase: item.price,
+            vendor_id: item.seller_id
+          })),
+          totalPrice,
+          deliveryAddress: 'À définir par le client',
+          phoneNumber: user.phone || ''
+        }
       });
+
+      if (error) {
+        secureLog.error('❌ [Payment] Edge function error', error);
+        if (error.message?.includes('Solde insuffisant') || error.message?.includes('Insufficient balance')) {
+          toast({
+            title: "Solde insuffisant",
+            description: "Votre solde KwendaPay est insuffisant pour cette commande.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+        setIsProcessing(false);
+        return;
+      }
+
+      secureLog.log('✅ [Payment] Transaction completed successfully');
 
       // Créer les commandes marketplace par vendeur
       const vendorGroups = cartItems.reduce((groups, item) => {
@@ -164,9 +151,6 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
         }
       });
 
-      await Promise.all(orderPromises);
-      console.log('✅ [Payment] Orders created', { ordersCount: Object.keys(vendorGroups).length });
-
       setShowConfetti(true);
       setShowPaymentDialog(false);
       
@@ -183,7 +167,7 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
         }, 2000);
       }
     } catch (error: any) {
-      console.error('❌ [Payment] Error:', error);
+      secureLog.error('❌ [Payment] Error:', error);
       
       let errorMessage = "Une erreur est survenue lors du paiement";
       
@@ -293,12 +277,6 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
         </SheetContent>
       </Sheet>
 
-      {showPaymentDialog && console.log('📊 [Props KwendaPayCheckout]:', {
-        totalPrice,
-        walletBalance: wallet?.balance || 0,
-        key: `${totalPrice}-${wallet?.balance || 0}`,
-        isOpen: showPaymentDialog,
-      })}
       
       <KwendaPayCheckout
         key={`${totalPrice}-${wallet?.balance || 0}`}

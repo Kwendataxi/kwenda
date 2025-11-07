@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserRoleInfo, Permission, UserRole, AdminRole } from '@/types/roles';
 import { useSelectedRole } from './useSelectedRole';
 import { logger } from '@/utils/logger';
+import { secureLog } from '@/utils/secureLogger';
 
 interface UseUserRolesReturn {
   userRoles: UserRoleInfo[];
@@ -139,7 +140,7 @@ export const useUserRoles = (): UseUserRolesReturn => {
         return { roles: rolesWithTypedInfo, permissions: allPermissions };
       }
 
-      console.log('⚠️ [UserRoles] No roles found, defaulting to client');
+      secureLog.log('⚠️ [UserRoles] No roles found, defaulting to client');
       const defaultRole = {
         role: 'client' as UserRole,
         admin_role: undefined,
@@ -150,7 +151,7 @@ export const useUserRoles = (): UseUserRolesReturn => {
       return { roles: [defaultRole], permissions: ['transport_read', 'marketplace_read'] };
 
     } catch (err) {
-      console.error('❌ [UserRoles] Error in fetchUserRoles:', err);
+      secureLog.error('❌ [UserRoles] Error in fetchUserRoles:', err);
       
       // ✅ NOUVEAU : Détecter spécifiquement les erreurs de refresh token invalide
       const errorMessage = (err as any)?.message || '';
@@ -159,7 +160,7 @@ export const useUserRoles = (): UseUserRolesReturn => {
                            errorMessage.includes('Refresh Token Not Found');
       
       if (isTokenError) {
-        console.error('🔴 [UserRoles] REFRESH TOKEN INVALIDE - Forcer déconnexion');
+        secureLog.error('🔴 [UserRoles] REFRESH TOKEN INVALIDE - Forcer déconnexion');
         
         // Nettoyer tout le localStorage
         secureStorage.removeItem(CACHE_KEY);

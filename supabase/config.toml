@@ -199,3 +199,6 @@ verify_jwt = false  # ✅ PHASE 2: Détection annulations frauduleuses (appelé 
 
 [functions.notify-drivers-bidding]
 verify_jwt = true  # ✅ JWT requis pour notifications mode enchères
+
+[functions.process-marketplace-payment]
+verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: Traitement atomique paiements marketplace avec validation server-side
