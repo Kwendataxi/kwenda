@@ -8,8 +8,11 @@ import { DeliveryDriverDashboard } from '@/components/driver/delivery/DeliveryDr
 import { ModernDriverWallet } from '@/components/driver/wallet/ModernDriverWallet';
 import { TaxiDriverProfile } from '@/components/driver/profiles/TaxiDriverProfile';
 import { DeliveryDriverProfile } from '@/components/driver/profiles/DeliveryDriverProfile';
+import { TaxiSubscriptionPlans } from '@/components/driver/subscriptions/TaxiSubscriptionPlans';
+import { DeliverySubscriptionPlans } from '@/components/driver/subscriptions/DeliverySubscriptionPlans';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
-import { SubscriptionPlans } from '@/components/driver/SubscriptionPlans';
+import { ServiceMigrationModal } from '@/components/onboarding/ServiceMigrationModal';
+import { DriverServiceProvider } from '@/contexts/DriverServiceContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
@@ -17,6 +20,7 @@ import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 const DriverApp = () => {
   const { loading, serviceType } = useDriverServiceType();
   const [tab, setTab] = useState<'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile'>('orders');
+  const [showMigrationModal, setShowMigrationModal] = useState(false);
 
   // 🔔 Activer les notifications système temps réel
   useSystemNotifications();
@@ -31,6 +35,13 @@ const DriverApp = () => {
       navigate('/');
     }
   }, [user, primaryRole, roleLoading, navigate]);
+
+  // ✅ PHASE 9: Afficher le modal de migration si service_type unknown
+  useEffect(() => {
+    if (!loading && serviceType === 'unknown' && user) {
+      setShowMigrationModal(true);
+    }
+  }, [loading, serviceType, user]);
 
   if (loading || roleLoading) {
     return (
@@ -54,12 +65,21 @@ const DriverApp = () => {
 
 
   return (
-    <>
+    <DriverServiceProvider>
+      {/* Modal de migration */}
+      <ServiceMigrationModal
+        open={showMigrationModal}
+        onComplete={(newServiceType) => {
+          setShowMigrationModal(false);
+          window.location.reload(); // Recharger pour appliquer le nouveau service_type
+        }}
+      />
+
       <UniversalAppHeader title="Espace Chauffeur" />
 
       <div className="min-h-screen bg-background mobile-safe-layout pt-[60px]">
         <main className="flex-1 overflow-y-auto content-scrollable">
-          {/* ✅ PHASE 2: Interface séparée par type de service */}
+          {/* ✅ PHASE 3: Interface séparée par type de service */}
           {tab === 'orders' && renderServiceInterface()}
           
           {/* Autres onglets communs */}
@@ -68,7 +88,11 @@ const DriverApp = () => {
               <ModernDriverWallet serviceType={serviceType === 'unknown' ? 'taxi' : serviceType} />
             </div>
           )}
-          {tab === 'subscription' && <div className="responsive-padding"><SubscriptionPlans /></div>}
+          {tab === 'subscription' && (
+            <div className="responsive-padding">
+              {serviceType === 'delivery' ? <DeliverySubscriptionPlans /> : <TaxiSubscriptionPlans />}
+            </div>
+          )}
           {tab === 'challenges' && <div className="responsive-padding"><DriverChallenges /></div>}
           {tab === 'profile' && (
             <div className="responsive-padding">
@@ -87,7 +111,7 @@ const DriverApp = () => {
           }}
         />
       </div>
-    </>
+    </DriverServiceProvider>
   );
 };
 
