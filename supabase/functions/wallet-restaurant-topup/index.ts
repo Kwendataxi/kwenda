@@ -19,7 +19,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('💰 [wallet-restaurant-topup] Starting top-up process');
+    Deno.env.get('SUPABASE_URL') && console.log('💰 [wallet-restaurant-topup] Starting top-up process');
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -38,11 +38,11 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
-      console.error('❌ [wallet-restaurant-topup] Auth error:', authError);
+      Deno.env.get('SUPABASE_URL') && console.error('❌ [wallet-restaurant-topup] Auth error:', authError);
       throw new Error('Non authentifié');
     }
 
-    console.log('✅ [wallet-restaurant-topup] User authenticated:', user.id);
+    Deno.env.get('SUPABASE_URL') && console.log('✅ [wallet-restaurant-topup] User authenticated:', user.id);
 
     // Vérifier que l'utilisateur est un restaurant
     const { data: restaurant, error: restaurantError } = await supabaseClient
@@ -52,11 +52,11 @@ serve(async (req) => {
       .single();
 
     if (restaurantError || !restaurant) {
-      console.error('❌ [wallet-restaurant-topup] Not a restaurant:', restaurantError);
+      Deno.env.get('SUPABASE_URL') && console.error('❌ [wallet-restaurant-topup] Not a restaurant:', restaurantError);
       throw new Error('Profil restaurant non trouvé');
     }
 
-    console.log('✅ [wallet-restaurant-topup] Restaurant found:', restaurant.restaurant_name);
+    Deno.env.get('SUPABASE_URL') && console.log('✅ [wallet-restaurant-topup] Restaurant found:', restaurant.restaurant_name);
 
     const body: TopUpRequest = await req.json();
     const { amount, payment_method, phone_number, currency } = body;
@@ -70,7 +70,7 @@ serve(async (req) => {
       throw new Error('Numéro de téléphone invalide');
     }
 
-    console.log('💰 [wallet-restaurant-topup] Processing:', {
+    Deno.env.get('SUPABASE_URL') && console.log('💰 [wallet-restaurant-topup] Processing:', {
       amount,
       payment_method,
       phone_number,
@@ -93,7 +93,7 @@ serve(async (req) => {
       .single();
 
     if (walletError && walletError.code === 'PGRST116') {
-      console.log('💰 [wallet-restaurant-topup] Creating new wallet');
+      Deno.env.get('SUPABASE_URL') && console.log('💰 [wallet-restaurant-topup] Creating new wallet');
       const { data: newWallet, error: createError } = await supabaseClient
         .from('user_wallets')
         .insert({
@@ -111,11 +111,11 @@ serve(async (req) => {
       throw walletError;
     }
 
-    console.log('💰 [wallet-restaurant-topup] Wallet found:', wallet?.id);
+    Deno.env.get('SUPABASE_URL') && console.log('💰 [wallet-restaurant-topup] Wallet found:', wallet?.id);
 
     // Simulation du paiement Mobile Money
     // En production, appeler l'API réelle du provider
-    console.log(`📱 [wallet-restaurant-topup] Simulating ${payment_method} payment to ${phone_number}`);
+    Deno.env.get('SUPABASE_URL') && console.log(`📱 [wallet-restaurant-topup] Simulating ${payment_method} payment to ${phone_number}`);
 
     // Pour la démo, on approuve immédiatement
     const paymentSuccessful = true;
@@ -130,11 +130,11 @@ serve(async (req) => {
         .eq('id', wallet!.id);
 
       if (updateError) {
-        console.error('❌ [wallet-restaurant-topup] Update error:', updateError);
+        Deno.env.get('SUPABASE_URL') && console.error('❌ [wallet-restaurant-topup] Update error:', updateError);
         throw updateError;
       }
 
-      console.log('✅ [wallet-restaurant-topup] Wallet updated with:', netAmount);
+      Deno.env.get('SUPABASE_URL') && console.log('✅ [wallet-restaurant-topup] Wallet updated with:', netAmount);
 
       // Logger la transaction
       const { error: txError } = await supabaseClient.from('wallet_transactions').insert({
@@ -155,11 +155,11 @@ serve(async (req) => {
       });
 
       if (txError) {
-        console.error('⚠️ [wallet-restaurant-topup] Transaction log error:', txError);
+        Deno.env.get('SUPABASE_URL') && console.error('⚠️ [wallet-restaurant-topup] Transaction log error:', txError);
       }
 
       // Notification (optionnelle)
-      console.log('📧 [wallet-restaurant-topup] Sending notification to restaurant');
+      Deno.env.get('SUPABASE_URL') && console.log('📧 [wallet-restaurant-topup] Sending notification to restaurant');
 
       return new Response(
         JSON.stringify({
@@ -179,7 +179,7 @@ serve(async (req) => {
       throw new Error('Paiement Mobile Money échoué');
     }
   } catch (error: any) {
-    console.error('❌ [wallet-restaurant-topup] Error:', error);
+    Deno.env.get('SUPABASE_URL') && console.error('❌ [wallet-restaurant-topup] Error:', error);
     return new Response(
       JSON.stringify({
         success: false,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { secureLog } from '@/utils/secureLogger';
 
 interface RestaurantWallet {
   id: string;
@@ -44,7 +45,7 @@ export const useRestaurantWallet = () => {
       
       if (!user) return;
 
-      console.log('💰 [useRestaurantWallet] Fetching wallet for user:', user.id);
+      secureLog.log('💰 [useRestaurantWallet] Fetching wallet for user:', user.id);
 
       // Créer ou récupérer le wallet depuis user_wallets
       let { data: wallet, error } = await supabase
@@ -55,7 +56,7 @@ export const useRestaurantWallet = () => {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        console.log('💰 [useRestaurantWallet] Creating new wallet');
+        secureLog.log('💰 [useRestaurantWallet] Creating new wallet');
         // Créer le wallet s'il n'existe pas
         const { data: newWallet, error: createError } = await supabase
           .from('user_wallets')
@@ -74,10 +75,10 @@ export const useRestaurantWallet = () => {
         throw error;
       }
 
-      console.log('💰 [useRestaurantWallet] Wallet loaded:', wallet);
+      secureLog.log('💰 [useRestaurantWallet] Wallet loaded:', wallet);
       setWallet(wallet);
     } catch (error) {
-      console.error('❌ [useRestaurantWallet] Error fetching wallet:', error);
+      secureLog.error('❌ [useRestaurantWallet] Error fetching wallet:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger votre wallet restaurant",
@@ -102,10 +103,10 @@ export const useRestaurantWallet = () => {
 
       if (error) throw error;
       
-      console.log('💰 [useRestaurantWallet] Transactions loaded:', data?.length);
+      secureLog.log('💰 [useRestaurantWallet] Transactions loaded:', data?.length);
       setTransactions(data || []);
     } catch (error) {
-      console.error('❌ [useRestaurantWallet] Error fetching transactions:', error);
+      secureLog.error('❌ [useRestaurantWallet] Error fetching transactions:', error);
     }
   };
 
@@ -118,7 +119,7 @@ export const useRestaurantWallet = () => {
         throw new Error('Utilisateur non connecté ou wallet non trouvé');
       }
 
-      console.log('💰 [useRestaurantWallet] Initiating top-up:', request);
+      secureLog.log('💰 [useRestaurantWallet] Initiating top-up:', request);
 
       // Appeler l'edge function pour recharge
       const { data, error } = await supabase.functions.invoke('wallet-restaurant-topup', {
@@ -132,7 +133,7 @@ export const useRestaurantWallet = () => {
 
       if (error) throw error;
 
-      console.log('✅ [useRestaurantWallet] Top-up successful:', data);
+      secureLog.log('✅ [useRestaurantWallet] Top-up successful:', data);
 
       toast({
         title: "Recharge initiée",
@@ -145,7 +146,7 @@ export const useRestaurantWallet = () => {
 
       return data;
     } catch (error: any) {
-      console.error('❌ [useRestaurantWallet] Top-up error:', error);
+      secureLog.error('❌ [useRestaurantWallet] Top-up error:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de recharger votre wallet",
@@ -201,7 +202,7 @@ export const useRestaurantWallet = () => {
           table: 'user_wallets'
         },
         (payload) => {
-          console.log('💰 [useRestaurantWallet] Wallet updated:', payload);
+          secureLog.log('💰 [useRestaurantWallet] Wallet updated:', payload);
           setWallet(payload.new as RestaurantWallet);
           toast({
             title: "Wallet mis à jour",

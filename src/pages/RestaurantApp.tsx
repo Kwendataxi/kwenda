@@ -11,10 +11,10 @@ import RestaurantDashboard from '@/pages/restaurant/RestaurantDashboard';
 import RestaurantOrders from '@/pages/restaurant/RestaurantOrders';
 import RestaurantMenuManager from '@/pages/restaurant/RestaurantMenuManager';
 import { RestaurantAnalytics } from '@/components/restaurant/RestaurantAnalytics';
-import RestaurantPOS from '@/pages/restaurant/RestaurantPOS';
+import RestaurantWalletPage from '@/pages/restaurant/RestaurantWalletPage';
 import { RestaurantProfilePage } from '@/components/restaurant/RestaurantProfilePage';
 
-type RestaurantTab = 'dashboard' | 'orders' | 'menu' | 'analytics' | 'pos' | 'profile';
+type RestaurantTab = 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile';
 
 export default function RestaurantApp() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export default function RestaurantApp() {
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['dashboard', 'orders', 'menu', 'analytics', 'pos', 'profile'].includes(tab)) {
+    if (tab && ['dashboard', 'orders', 'menu', 'analytics', 'wallet', 'profile'].includes(tab)) {
       setCurrentTab(tab as RestaurantTab);
     }
   }, [searchParams]);
@@ -82,8 +82,8 @@ export default function RestaurantApp() {
         return <RestaurantMenuManager />;
       case 'analytics':
         return <RestaurantAnalytics restaurantId={restaurantId!} />;
-      case 'pos':
-        return <RestaurantPOS />;
+      case 'wallet':
+        return <RestaurantWalletPage />;
       case 'profile':
         return <RestaurantProfilePage />;
       default:

@@ -1,10 +1,10 @@
-import { LayoutDashboard, ShoppingBag, ChefHat, BarChart3, CreditCard, User } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ChefHat, BarChart3, Wallet, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 interface RestaurantMobileTabsProps {
-  currentTab: 'dashboard' | 'orders' | 'menu' | 'analytics' | 'pos' | 'profile';
-  onTabChange: (tab: 'dashboard' | 'orders' | 'menu' | 'analytics' | 'pos' | 'profile') => void;
+  currentTab: 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile';
+  onTabChange: (tab: 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile') => void;
 }
 
 export function RestaurantMobileTabs({ currentTab, onTabChange }: RestaurantMobileTabsProps) {
@@ -13,7 +13,7 @@ export function RestaurantMobileTabs({ currentTab, onTabChange }: RestaurantMobi
     { id: 'orders', label: 'Commandes', icon: ShoppingBag },
     { id: 'menu', label: 'Menu', icon: ChefHat },
     { id: 'analytics', label: 'Stats', icon: BarChart3 },
-    { id: 'pos', label: 'Caisse', icon: CreditCard },
+    { id: 'wallet', label: 'Wallet', icon: Wallet },
     { id: 'profile', label: 'Profil', icon: User },
   ] as const;
 
