@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface DriverRegistrationData {
   serviceCategory: 'taxi' | 'delivery';
   serviceType: string;
+  serviceSpecialization?: string; // ✅ PHASE 2: Spécialisation exacte (taxi_moto, flash, etc.)
   displayName: string;
   phoneNumber: string;
   email: string; // Ajouté pour Supabase Auth
@@ -266,7 +267,8 @@ export const useDriverRegistration = () => {
         license_expiry: data.licenseExpiry,
         bank_account_number: data.bankAccountNumber,
         emergency_contact_name: data.emergencyContactName,
-        emergency_contact_phone: data.emergencyContactPhone
+        emergency_contact_phone: data.emergencyContactPhone,
+        service_specialization: data.serviceSpecialization || null // ✅ PHASE 2: Ajouter la spécialisation
       };
 
       // Ajouter les infos véhicule seulement si le chauffeur a son propre véhicule

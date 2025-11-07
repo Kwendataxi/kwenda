@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SpecificServiceSelector } from './SpecificServiceSelector';
 import { VehicleTypeSelector } from './VehicleTypeSelector';
 import { VehicleOwnershipSelector } from '@/components/auth/VehicleOwnershipSelector';
+import { ServiceSpecializationSelector } from './ServiceSpecializationSelector';
 import { PersonalInfoStep } from './PersonalInfoStep';
 import { LicenseStep } from './LicenseStep';
 import { SubscriptionPlanStep } from './SubscriptionPlanStep';
@@ -20,7 +21,7 @@ interface StreamlinedDriverRegistrationProps {
   onSuccess: () => void;
 }
 
-type RegistrationStep = 'service' | 'vehicle' | 'personal' | 'license' | 'subscription' | 'summary';
+type RegistrationStep = 'service' | 'vehicle' | 'specialization' | 'personal' | 'license' | 'subscription' | 'summary';
 
 interface FormData {
   // Personal
@@ -33,6 +34,7 @@ interface FormData {
   // Service
   serviceCategory: 'taxi' | 'delivery';
   serviceType: string;
+  serviceSpecialization?: string; // Nouvelle spécialisation (taxi_moto, flash, etc.)
   deliveryCapacity?: string;
   
   // Vehicle
@@ -126,6 +128,15 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
       // Mode 'partner' valide sans vehicleType
       return true;
     }
+    
+    if (currentStep === 'specialization') {
+      // Spécialisation obligatoire si le chauffeur a son propre véhicule
+      if (vehicleMode === 'own' && !formData.serviceSpecialization) {
+        toast.error('Veuillez choisir votre spécialisation');
+        return false;
+      }
+      return true;
+    }
 
     if (currentStep === 'personal') {
       if (!formData.displayName || !formData.email || !formData.phoneNumber || !formData.password) {
@@ -154,7 +165,12 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
     if (!validateStep(step)) return;
     
     if (step === 'service') setStep('vehicle');
-    else if (step === 'vehicle') setStep('personal');
+    else if (step === 'vehicle') {
+      // Si le chauffeur a son propre véhicule, on demande sa spécialisation
+      if (vehicleMode === 'own') setStep('specialization');
+      else setStep('personal'); // Sinon, on passe directement aux infos personnelles
+    }
+    else if (step === 'specialization') setStep('personal');
     else if (step === 'personal') setStep('license');
     else if (step === 'license') setStep('subscription');
     else if (step === 'subscription') setStep('summary');
@@ -163,7 +179,12 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
   const handleBack = () => {
     if (step === 'service') onBack();
     else if (step === 'vehicle') setStep('service');
-    else if (step === 'personal') setStep('vehicle');
+    else if (step === 'specialization') setStep('vehicle');
+    else if (step === 'personal') {
+      // Revenir à spécialisation si mode 'own', sinon à vehicle
+      if (vehicleMode === 'own') setStep('specialization');
+      else setStep('vehicle');
+    }
     else if (step === 'license') setStep('personal');
     else if (step === 'subscription') setStep('license');
     else if (step === 'summary') setStep('subscription');
@@ -183,6 +204,7 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
         password: formData.password,
         serviceCategory,
         serviceType: formData.serviceType,
+        serviceSpecialization: formData.serviceSpecialization, // ✅ Nouvelle spécialisation
         deliveryCapacity: formData.deliveryCapacity,
         hasOwnVehicle: formData.hasOwnVehicle,
         vehicleType: formData.vehicleType,
@@ -231,6 +253,7 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
   const getStepTitle = () => {
     if (step === 'service') return 'Choisissez votre Service';
     if (step === 'vehicle') return 'Configuration du Véhicule';
+    if (step === 'specialization') return 'Votre Spécialisation';
     if (step === 'personal') return 'Informations Personnelles';
     if (step === 'license') return 'Permis de Conduire';
     if (step === 'subscription') return 'Plan d\'Abonnement';
@@ -240,6 +263,7 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
   const getStepSubtitle = () => {
     if (step === 'service') return 'Sélectionnez le service que vous souhaitez offrir';
     if (step === 'vehicle') return 'Configurez votre véhicule de travail';
+    if (step === 'specialization') return 'Choisissez le type exact de service que vous voulez offrir';
     if (step === 'personal') return 'Complétez vos informations personnelles';
     if (step === 'license') return 'Ajoutez vos informations de permis';
     if (step === 'subscription') return 'Découvrez notre modèle sans commission';
@@ -250,6 +274,7 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
     const stepMap: Record<RegistrationStep, number> = {
       service: 1,
       vehicle: 2,
+      specialization: 2.5, // Entre vehicle et personal
       personal: 3,
       license: 4,
       subscription: 5,
@@ -414,6 +439,23 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
               </motion.div>
             )}
 
+            {/* STEP 2.5: Service Specialization */}
+            {step === 'specialization' && (
+              <motion.div
+                key="specialization"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <ServiceSpecializationSelector
+                  serviceCategory={serviceCategory}
+                  vehicleType={formData.vehicleType || ''}
+                  selectedSpecialization={formData.serviceSpecialization || null}
+                  onSpecializationSelect={(spec) => handleFieldChange('serviceSpecialization', spec)}
+                />
+              </motion.div>
+            )}
+
             {/* STEP 3: Personal Info */}
             {step === 'personal' && (
               <PersonalInfoStep
@@ -466,7 +508,8 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
                 onClick={handleNext}
                 disabled={
                   (step === 'service' && !formData.serviceType) ||
-                  (step === 'vehicle' && (!vehicleMode || (vehicleMode === 'own' && !formData.vehicleType)))
+                  (step === 'vehicle' && (!vehicleMode || (vehicleMode === 'own' && !formData.vehicleType))) ||
+                  (step === 'specialization' && !formData.serviceSpecialization)
                 }
                 className="flex-1 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30 font-semibold"
               >

@@ -1,5 +1,5 @@
 /**
- * 🔀 PHASE 9: Modal de migration - Choix forcé taxi OU delivery
+ * 🔀 PHASE 2: Modal de migration - Choix taxi/delivery + spécialisation
  */
 
 import { useState } from 'react';
@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { ServiceSpecializationSelector } from '@/components/driver/registration/ServiceSpecializationSelector';
 
 interface ServiceMigrationModalProps {
   open: boolean;
@@ -19,7 +20,10 @@ interface ServiceMigrationModalProps {
 
 export const ServiceMigrationModal = ({ open, onComplete }: ServiceMigrationModalProps) => {
   const { user } = useAuth();
+  const [step, setStep] = useState<'category' | 'specialization'>('category');
   const [selected, setSelected] = useState<'taxi' | 'delivery' | null>(null);
+  const [selectedSpecialization, setSelectedSpecialization] = useState<string | null>(null);
+  const [vehicleType, setVehicleType] = useState<string>('voiture'); // Défaut voiture pour les options
   const [loading, setLoading] = useState(false);
 
   const services = [
@@ -56,14 +60,17 @@ export const ServiceMigrationModal = ({ open, onComplete }: ServiceMigrationModa
   ];
 
   const handleConfirm = async () => {
-    if (!selected || !user) return;
+    if (!selected || !selectedSpecialization || !user) return;
 
     setLoading(true);
     try {
-      // ✅ CORRECTION: Mettre à jour directement chauffeurs.service_type
+      // ✅ PHASE 2: Mettre à jour service_type ET service_specialization
       const { error: updateError } = await supabase
         .from('chauffeurs')
-        .update({ service_type: selected })
+        .update({ 
+          service_type: selected,
+          service_specialization: selectedSpecialization 
+        })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
@@ -81,17 +88,18 @@ export const ServiceMigrationModal = ({ open, onComplete }: ServiceMigrationModa
       await supabase.from('activity_logs').insert({
         user_id: user.id,
         activity_type: 'service_migration',
-        description: `Service type migrated to ${selected}`,
+        description: `Service migrated to ${selected} - ${selectedSpecialization}`,
         metadata: {
           service_type: selected,
+          service_specialization: selectedSpecialization,
           migration_date: new Date().toISOString()
         }
       });
 
       toast.success(
         selected === 'taxi' 
-          ? '🚗 Vous êtes maintenant chauffeur taxi !' 
-          : '📦 Vous êtes maintenant livreur express !'
+          ? `🚗 Vous êtes maintenant chauffeur ${selectedSpecialization.replace('taxi_', '')} !` 
+          : `📦 Vous êtes maintenant livreur ${selectedSpecialization} !`
       );
 
       onComplete(selected);
@@ -103,129 +111,204 @@ export const ServiceMigrationModal = ({ open, onComplete }: ServiceMigrationModa
     }
   };
 
+  const handleNextToSpecialization = () => {
+    if (!selected) return;
+    setStep('specialization');
+  };
+
+  const handleBackToCategory = () => {
+    setStep('category');
+    setSelectedSpecialization(null);
+  };
+
   return (
     <Dialog open={open}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">
-            Choisissez votre spécialité
+            {step === 'category' ? 'Choisissez votre spécialité' : 'Choisissez votre spécialisation'}
           </DialogTitle>
         </DialogHeader>
 
-        {/* Alerte */}
-        <Card className="p-4 bg-orange-500/10 border-orange-500/20">
-          <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-            <div className="flex-1 text-sm">
-              <p className="font-semibold text-foreground mb-1">Choix unique et définitif</p>
-              <p className="text-muted-foreground">
-                Vous devez choisir entre chauffeur taxi OU livreur. 
-                Ce choix est <strong>irrévocable</strong> et déterminera les types de commandes 
-                que vous recevrez.
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Options */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {services.map((service) => (
-            <motion.div
-              key={service.type}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Card
-                className={`p-6 cursor-pointer transition-all ${
-                  selected === service.type
-                    ? 'border-2 border-primary shadow-lg'
-                    : 'hover:shadow-md'
-                }`}
-                onClick={() => setSelected(service.type)}
-              >
-                {/* Header */}
-                <div className="text-center mb-4">
-                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center mx-auto mb-3`}>
-                    <span className="text-4xl">{service.emoji}</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-foreground mb-1">
-                    {service.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {service.description}
+        {step === 'category' ? (
+          <>
+            {/* Alerte */}
+            <Card className="p-4 bg-orange-500/10 border-orange-500/20">
+              <div className="flex gap-3">
+                <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 text-sm">
+                  <p className="font-semibold text-foreground mb-1">Choix unique et définitif</p>
+                  <p className="text-muted-foreground">
+                    Vous devez choisir entre chauffeur taxi OU livreur. 
+                    Ce choix déterminera les types de commandes que vous recevrez.
                   </p>
                 </div>
+              </div>
+            </Card>
 
-                {/* Features */}
-                <div className="space-y-2 mb-4">
-                  {service.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm text-foreground">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Ideal for */}
-                <div className={`p-3 rounded-lg bg-gradient-to-r ${service.gradient} bg-opacity-10`}>
-                  <p className="text-xs text-center text-foreground font-medium">
-                    {service.ideal}
-                  </p>
-                </div>
-
-                {/* Selection indicator */}
-                {selected === service.type && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-4 right-4 w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+            {/* Options */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {services.map((service) => (
+                <motion.div
+                  key={service.type}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Card
+                    className={`p-6 cursor-pointer transition-all ${
+                      selected === service.type
+                        ? 'border-2 border-primary shadow-lg'
+                        : 'hover:shadow-md'
+                    }`}
+                    onClick={() => setSelected(service.type)}
                   >
-                    <span className="text-white font-bold">✓</span>
-                  </motion.div>
-                )}
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                    {/* Header */}
+                    <div className="text-center mb-4">
+                      <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center mx-auto mb-3`}>
+                        <span className="text-4xl">{service.emoji}</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-foreground mb-1">
+                        {service.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {service.description}
+                      </p>
+                    </div>
 
-        {/* Confirmation */}
-        <div className="space-y-3">
-          {selected && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+                    {/* Features */}
+                    <div className="space-y-2 mb-4">
+                      {service.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm text-foreground">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                          <span>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Ideal for */}
+                    <div className={`p-3 rounded-lg bg-gradient-to-r ${service.gradient} bg-opacity-10`}>
+                      <p className="text-xs text-center text-foreground font-medium">
+                        {service.ideal}
+                      </p>
+                    </div>
+
+                    {/* Selection indicator */}
+                    {selected === service.type && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+                      >
+                        <span className="text-white font-bold">✓</span>
+                      </motion.div>
+                    )}
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Bouton Suivant */}
+            <Button
+              onClick={handleNextToSpecialization}
+              disabled={!selected}
+              className="w-full h-12 text-lg font-semibold"
             >
-              <Card className="p-4 bg-muted">
-                <p className="text-sm text-foreground text-center">
-                  Vous avez sélectionné:{' '}
-                  <strong className="text-primary">
-                    {selected === 'taxi' ? '🚗 Chauffeur Taxi' : '📦 Livreur Express'}
-                  </strong>
-                </p>
-              </Card>
-            </motion.div>
-          )}
+              Continuer
+            </Button>
+          </>
+        ) : (
+          <>
+            {/* Step 2: Specialization */}
+            <ServiceSpecializationSelector
+              serviceCategory={selected!}
+              vehicleType={vehicleType}
+              selectedSpecialization={selectedSpecialization}
+              onSpecializationSelect={setSelectedSpecialization}
+            />
 
-          <Button
-            onClick={handleConfirm}
-            disabled={!selected || loading}
-            className="w-full h-12 text-lg font-semibold"
-          >
-            {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                Confirmation en cours...
-              </>
-            ) : (
-              'Confirmer mon choix'
-            )}
-          </Button>
+            {/* Info véhicule pour adapter les choix */}
+            <Card className="p-4 bg-muted">
+              <p className="text-sm text-muted-foreground mb-2">
+                Type de véhicule :
+              </p>
+              <div className="flex gap-2">
+                {selected === 'taxi' && (
+                  <>
+                    <Button
+                      variant={vehicleType === 'moto' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setVehicleType('moto');
+                        setSelectedSpecialization(null);
+                      }}
+                    >
+                      Moto
+                    </Button>
+                    <Button
+                      variant={vehicleType === 'voiture' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setVehicleType('voiture');
+                        setSelectedSpecialization(null);
+                      }}
+                    >
+                      Voiture
+                    </Button>
+                  </>
+                )}
+                {selected === 'delivery' && (
+                  <>
+                    <Button
+                      variant={vehicleType === 'moto' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setVehicleType('moto');
+                        setSelectedSpecialization(null);
+                      }}
+                    >
+                      Moto
+                    </Button>
+                    <Button
+                      variant={vehicleType === 'camionnette' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setVehicleType('camionnette');
+                        setSelectedSpecialization(null);
+                      }}
+                    >
+                      Camionnette
+                    </Button>
+                  </>
+                )}
+              </div>
+            </Card>
 
-          <p className="text-xs text-center text-muted-foreground">
-            En confirmant, vous acceptez que ce choix soit définitif. 
-            Contactez le support pour toute modification ultérieure.
-          </p>
-        </div>
+            {/* Boutons navigation */}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={handleBackToCategory}
+                className="flex-1"
+              >
+                Retour
+              </Button>
+              <Button
+                onClick={handleConfirm}
+                disabled={!selectedSpecialization || loading}
+                className="flex-1 h-12 text-lg font-semibold"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                    Confirmation...
+                  </>
+                ) : (
+                  'Confirmer mon choix'
+                )}
+              </Button>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

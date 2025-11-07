@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useDriverServiceInfo } from '@/hooks/useDriverServiceInfo';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,11 +30,15 @@ interface WalletData {
 }
 
 interface ModernDriverWalletProps {
-  serviceType: 'taxi' | 'delivery';
+  serviceType?: 'taxi' | 'delivery'; // Optionnel maintenant, utilisera useDriverServiceInfo
 }
 
-export const ModernDriverWallet = ({ serviceType }: ModernDriverWalletProps) => {
+export const ModernDriverWallet = ({ serviceType: propServiceType }: ModernDriverWalletProps) => {
   const { user } = useAuth();
+  const { serviceType: hookServiceType, serviceSpecialization } = useDriverServiceInfo();
+  
+  // Utiliser propServiceType en priorité, sinon hookServiceType, défaut taxi si unknown
+  const serviceType = propServiceType || (hookServiceType === 'unknown' ? 'taxi' : hookServiceType);
   const [walletData, setWalletData] = useState<WalletData>({
     balance: 0,
     ecosystem_credits: 0,
@@ -116,6 +121,24 @@ export const ModernDriverWallet = ({ serviceType }: ModernDriverWalletProps) => 
   const ServiceIcon = serviceType === 'taxi' ? Car : Package;
   const serviceColor = serviceType === 'taxi' ? 'blue' : 'green';
 
+  // ✅ PHASE 2: Fonction pour obtenir le titre selon la spécialisation
+  const getServiceTitle = () => {
+    if (serviceSpecialization) {
+      const titles: Record<string, string> = {
+        taxi_moto: 'Chauffeur Moto-Taxi',
+        taxi_eco: 'Chauffeur Éco',
+        taxi_confort: 'Chauffeur Confort',
+        taxi_premium: 'Chauffeur Premium',
+        flash: 'Livreur Flash',
+        flex: 'Livreur Flex',
+        maxicharge: 'Livreur MaxiCharge'
+      };
+      return titles[serviceSpecialization] || 'Chauffeur';
+    }
+    // Fallback si pas de spécialisation
+    return serviceType === 'taxi' ? 'Chauffeur Taxi' : 'Livreur';
+  };
+
   return (
     <div className="space-y-6 pb-24">
       {/* Balance principale - Glassmorphism */}
@@ -136,7 +159,7 @@ export const ModernDriverWallet = ({ serviceType }: ModernDriverWalletProps) => 
               <div>
                 <p className="text-sm text-muted-foreground">KwendaPay</p>
                 <h3 className="text-xl font-bold text-foreground">
-                  {serviceType === 'taxi' ? 'Chauffeur Taxi' : 'Livreur'}
+                  {getServiceTitle()}
                 </h3>
               </div>
             </div>
