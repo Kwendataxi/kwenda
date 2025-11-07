@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { ArrowLeft } from 'lucide-react';
 
@@ -29,10 +28,9 @@ export const UniversalAppHeader = ({
           )}
         </div>
 
-        {/* Right: Theme toggle & Notifications */}
+        {/* Right: Theme toggle only */}
         <div className="flex items-center gap-2">
           <ThemeToggle variant="icon" />
-          <NotificationBell />
         </div>
       </div>
     </header>

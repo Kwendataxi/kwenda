@@ -62,7 +62,7 @@ export default function ModernRestaurantAnalytics() {
         .eq('restaurant_id', profile.id)
         .gte('created_at', startOfMonth.toISOString());
 
-      if (orders) {
+      if (orders && orders.length > 0) {
         const totalOrders = orders.length;
         const monthlyRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
         const avgOrderValue = totalOrders > 0 ? Math.round(monthlyRevenue / totalOrders) : 0;
@@ -112,6 +112,32 @@ export default function ModernRestaurantAnalytics() {
           revenueHistory,
           topDishes,
         });
+      } else {
+        // Données de démonstration
+        console.log('⚠️ Aucune commande trouvée, affichage de données de démo');
+        
+        setAnalytics({
+          totalOrders: 47,
+          monthlyRevenue: 285000, // 285 000 CDF
+          satisfactionRate: 92,
+          avgOrderValue: 6063, // 6 063 CDF
+          revenueHistory: [
+            { date: '2025-11-01', revenue: 38000, orders: 6 },
+            { date: '2025-11-02', revenue: 42000, orders: 7 },
+            { date: '2025-11-03', revenue: 35000, orders: 5 },
+            { date: '2025-11-04', revenue: 48000, orders: 8 },
+            { date: '2025-11-05', revenue: 51000, orders: 9 },
+            { date: '2025-11-06', revenue: 39000, orders: 6 },
+            { date: '2025-11-07', revenue: 32000, orders: 6 },
+          ],
+          topDishes: [
+            { name: 'Poulet Braisé + Fufu', orders: 23, revenue: 69000 },
+            { name: 'Tilapia Grillé', orders: 18, revenue: 54000 },
+            { name: 'Pondu + Chikwangue', orders: 15, revenue: 45000 },
+            { name: 'Saka-Saka', orders: 12, revenue: 36000 },
+            { name: 'Makayabu + Riz', orders: 9, revenue: 27000 },
+          ],
+        });
       }
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -151,7 +177,7 @@ export default function ModernRestaurantAnalytics() {
     },
     {
       title: 'Revenus du mois',
-      value: `${analytics.monthlyRevenue.toLocaleString()} FC`,
+      value: `${analytics.monthlyRevenue.toLocaleString()} CDF`,
       icon: DollarSign,
       color: 'from-green-500 to-emerald-500',
       iconBg: 'bg-green-100 dark:bg-green-900/20',
@@ -159,7 +185,7 @@ export default function ModernRestaurantAnalytics() {
     },
     {
       title: 'Panier moyen',
-      value: `${analytics.avgOrderValue.toLocaleString()} FC`,
+      value: `${analytics.avgOrderValue.toLocaleString()} CDF`,
       icon: TrendingUp,
       color: 'from-purple-500 to-pink-500',
       iconBg: 'bg-purple-100 dark:bg-purple-900/20',
@@ -184,7 +210,14 @@ export default function ModernRestaurantAnalytics() {
         className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 p-6 text-white"
       >
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold mb-2">Analytics</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold">Analytics</h1>
+            {analytics.totalOrders === 47 && (
+              <Badge variant="secondary" className="text-xs">
+                DONNÉES DE DÉMO
+              </Badge>
+            )}
+          </div>
           <p className="text-white/90">Insights détaillés de votre activité</p>
         </div>
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
