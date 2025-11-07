@@ -100,8 +100,14 @@ serve(async (req) => {
     const requiredVehicleClass = getVehicleClassForDelivery(deliveryType);
     const userCity = orderDetails.city || 'Kinshasa';
 
-    console.log(`🚗 Type de livraison: ${deliveryType} → Véhicule requis: ${requiredVehicleClass}`);
-    console.log(`🌍 Ville de commande: ${userCity}`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`🚗 VEHICLE MAPPING DEBUG`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`📦 Delivery Type: ${deliveryType}`);
+    console.log(`🚙 Required Vehicle Class: ${requiredVehicleClass}`);
+    console.log(`🗺️  Mapping Table:`, DELIVERY_TO_VEHICLE_MAPPING);
+    console.log(`🌍 User City: ${userCity}`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
     // Recherche en cascade avec filtres véhicule + ville (jusqu'à 50km max dans la même ville)
     const radiusLevels = [5, 10, 15, 20, 30, 50];
@@ -145,8 +151,20 @@ serve(async (req) => {
       if (data && data.length > 0) {
         drivers = data;
         finalRadius = radius;
-        console.log(`✅ MATCH! ${drivers.length} ${requiredVehicleClass} driver(s) found at ${radius}km in ${userCity}`);
-        console.log(`   Driver IDs:`, drivers.map(d => d.driver_id));
+        console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+        console.log(`✅ DRIVERS FOUND DETAILS`);
+        console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+        data.forEach((d: any, idx: number) => {
+          console.log(`Driver #${idx + 1}:`, {
+            id: d.driver_id,
+            vehicle_class: d.vehicle_class,
+            service_type: d.service_type || 'delivery',
+            distance: d.distance_km + 'km',
+            available: d.is_available,
+            rides_remaining: d.rides_remaining
+          });
+        });
+        console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
         break;
       } else {
         console.log(`   No ${requiredVehicleClass} drivers in ${userCity}, expanding to ${radiusLevels[radiusLevels.indexOf(radius) + 1] || 'max'}km...`);

@@ -14033,18 +14033,26 @@ export type Database = {
           }
       find_nearby_drivers_secure: {
         Args: {
-          pickup_lat: number
-          pickup_lng: number
-          radius_km?: number
-          service_type_param: string
+          max_distance_km?: number
+          service_type_filter?: string
+          user_lat: number
+          user_lng: number
           vehicle_class_filter?: string
         }
         Returns: {
+          current_lat: number
+          current_lng: number
+          display_name: string
           distance_km: number
           driver_id: string
           is_available: boolean
-          latitude: number
-          longitude: number
+          is_online: boolean
+          last_ping: string
+          phone_number: string
+          rating_average: number
+          rides_remaining: number
+          service_type: string
+          user_id: string
           vehicle_class: string
         }[]
       }
