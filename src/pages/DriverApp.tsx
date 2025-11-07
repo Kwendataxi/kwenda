@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDriverServiceType } from '@/hooks/useDriverServiceType';
+import { useDriverServiceInfo } from '@/hooks/useDriverServiceInfo';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import { TaxiDriverDashboard } from '@/components/driver/taxi/TaxiDriverDashboard';
@@ -12,6 +12,7 @@ import { TaxiSubscriptionPlans } from '@/components/driver/subscriptions/TaxiSub
 import { DeliverySubscriptionPlans } from '@/components/driver/subscriptions/DeliverySubscriptionPlans';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { ServiceMigrationModal } from '@/components/onboarding/ServiceMigrationModal';
+import { ServiceTypeValidator } from '@/components/driver/ServiceTypeValidator';
 import { DriverServiceProvider } from '@/contexts/DriverServiceContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -21,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
 
 const DriverApp = () => {
-  const { loading, serviceType } = useDriverServiceType();
+  const { loading, serviceType, serviceSpecialization } = useDriverServiceInfo();
   const [tab, setTab] = useState<'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile'>('orders');
   const [showMigrationModal, setShowMigrationModal] = useState(false);
 
@@ -98,6 +99,12 @@ const DriverApp = () => {
 
   return (
     <DriverServiceProvider>
+      {/* ✅ PHASE 2: Validateur automatique d'incohérences */}
+      <ServiceTypeValidator 
+        serviceType={serviceType}
+        serviceSpecialization={serviceSpecialization}
+      />
+
       {/* Modal de migration */}
       <ServiceMigrationModal
         open={showMigrationModal}
