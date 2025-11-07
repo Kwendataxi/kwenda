@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import imageCompression from 'browser-image-compression';
+import { motion } from 'framer-motion';
 
 interface RestaurantImages {
   logo_url: string | null;
@@ -21,10 +25,16 @@ export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettin
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState<'logo' | 'banner' | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [images, setImages] = useState<RestaurantImages>({
     logo_url: null,
     banner_url: null
   });
+  const [previewImage, setPreviewImage] = useState<{
+    url: string;
+    type: 'logo' | 'banner';
+    file: File;
+  } | null>(null);
 
   useEffect(() => {
     console.log('🎨 [RestaurantImages] Composant monté', { 
@@ -96,21 +106,50 @@ export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettin
     }
 
     setUploading(type);
+    setUploadProgress(0);
+    
     try {
+      // 🗜️ Compression automatique si > 500KB
+      let fileToUpload = file;
+      if (file.size > 500 * 1024) {
+        console.log('🗜️ Compression de l\'image...');
+        toast({
+          title: "Compression en cours...",
+          description: "Optimisation de l'image pour un upload plus rapide"
+        });
+        
+        fileToUpload = await imageCompression(file, {
+          maxSizeMB: 0.5,
+          maxWidthOrHeight: type === 'logo' ? 500 : 1920,
+          useWebWorker: true,
+          onProgress: (percent) => {
+            setUploadProgress(Math.round(percent / 2)); // 0-50% pour compression
+          }
+        });
+        
+        console.log('✅ Image compressée:', {
+          before: `${(file.size / 1024).toFixed(2)} KB`,
+          after: `${(fileToUpload.size / 1024).toFixed(2)} KB`,
+          reduction: `${(((file.size - fileToUpload.size) / file.size) * 100).toFixed(1)}%`
+        });
+      }
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
       
       console.log(`📤 [RestaurantImages] Upload vers Storage...`, { fileName });
 
-      // Upload vers le bucket 'restaurant-images'
+      // Upload vers le bucket 'restaurant-images' avec progression
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('restaurant-images')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, fileToUpload, { upsert: true });
 
       if (uploadError) {
         console.error('❌ [RestaurantImages] Erreur Storage upload:', uploadError);
         throw uploadError;
       }
+      
+      setUploadProgress(100);
       
       console.log('✅ [RestaurantImages] Upload Storage réussi:', uploadData);
 
@@ -171,7 +210,20 @@ export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettin
       });
     } finally {
       setUploading(null);
+      setUploadProgress(0);
     }
+  };
+
+  const handleFileSelect = (file: File, type: 'logo' | 'banner') => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage({
+        url: reader.result as string,
+        type,
+        file
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeImage = async (type: 'logo' | 'banner') => {
@@ -282,8 +334,8 @@ export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettin
                   const file = e.target.files?.[0];
                   console.log('📁 [RestaurantImages] Fichier logo sélectionné:', file?.name || 'AUCUN');
                   if (file) {
-                    console.log('✅ [RestaurantImages] Appel uploadImage pour logo...');
-                    uploadImage(file, 'logo');
+                    console.log('✅ [RestaurantImages] Affichage aperçu logo...');
+                    handleFileSelect(file, 'logo');
                   } else {
                     console.warn('⚠️ [RestaurantImages] Aucun fichier logo sélectionné');
                   }
@@ -293,6 +345,14 @@ export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettin
               <p className="text-xs text-muted-foreground">
                 Format carré recommandé • JPG, PNG ou WebP • Max 5MB
               </p>
+              {uploading === 'logo' && uploadProgress > 0 && (
+                <div className="space-y-1">
+                  <Progress value={uploadProgress} className="h-2" />
+                  <p className="text-xs text-muted-foreground text-center">
+                    {uploadProgress < 50 ? 'Compression...' : 'Upload...'} {uploadProgress}%
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -353,8 +413,8 @@ export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettin
                   const file = e.target.files?.[0];
                   console.log('📁 [RestaurantImages] Fichier bannière sélectionné:', file?.name || 'AUCUN');
                   if (file) {
-                    console.log('✅ [RestaurantImages] Appel uploadImage pour bannière...');
-                    uploadImage(file, 'banner');
+                    console.log('✅ [RestaurantImages] Affichage aperçu bannière...');
+                    handleFileSelect(file, 'banner');
                   } else {
                     console.warn('⚠️ [RestaurantImages] Aucun fichier bannière sélectionné');
                   }
@@ -364,10 +424,84 @@ export function RestaurantImageSettings({ onImageUpdate }: RestaurantImageSettin
               <p className="text-xs text-muted-foreground">
                 Format paysage 16:9 recommandé • JPG, PNG ou WebP • Max 5MB
               </p>
+              {uploading === 'banner' && uploadProgress > 0 && (
+                <div className="space-y-1">
+                  <Progress value={uploadProgress} className="h-2" />
+                  <p className="text-xs text-muted-foreground text-center">
+                    {uploadProgress < 50 ? 'Compression...' : 'Upload...'} {uploadProgress}%
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </CardContent>
+
+      {/* Dialog d'aperçu avant upload */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Prévisualisation</DialogTitle>
+            <DialogDescription>
+              Vérifiez votre image avant de l'uploader
+            </DialogDescription>
+          </DialogHeader>
+          
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex items-center justify-center p-4 bg-muted/30 rounded-lg">
+              {previewImage && (
+                <img 
+                  src={previewImage.url} 
+                  alt="Preview"
+                  className={
+                    previewImage.type === 'logo' 
+                      ? 'w-32 h-32 rounded-full mx-auto object-cover border-4 border-primary/20 shadow-lg'
+                      : 'w-full max-h-64 rounded-lg object-cover border-2 border-primary/20 shadow-lg'
+                  }
+                />
+              )}
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                onClick={() => {
+                  if (previewImage) {
+                    uploadImage(previewImage.file, previewImage.type);
+                    setPreviewImage(null);
+                  }
+                }}
+                className="flex-1"
+                disabled={uploading !== null}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Upload en cours...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Confirmer l'upload
+                  </>
+                )}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setPreviewImage(null)}
+                disabled={uploading !== null}
+                className="flex-1 sm:flex-none"
+              >
+                Annuler
+              </Button>
+            </div>
+          </motion.div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
