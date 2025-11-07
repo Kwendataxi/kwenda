@@ -52,10 +52,21 @@ export function RestaurantImageSettings() {
   };
 
   const uploadImage = async (file: File, type: 'logo' | 'banner') => {
-    if (!user) return;
+    if (!user) {
+      console.error('❌ [RestaurantImages] User non défini');
+      return;
+    }
+    
+    console.log(`🖼️ [RestaurantImages] Début upload ${type}:`, {
+      fileName: file.name,
+      fileSize: `${(file.size / 1024).toFixed(2)} KB`,
+      fileType: file.type,
+      userId: user.id
+    });
     
     // Validation de la taille (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
+      console.error('❌ Fichier trop volumineux:', file.size);
       toast({
         title: "Fichier trop volumineux",
         description: "La taille maximum est de 5MB",
@@ -66,6 +77,7 @@ export function RestaurantImageSettings() {
 
     // Validation du type de fichier
     if (!file.type.startsWith('image/')) {
+      console.error('❌ Format invalide:', file.type);
       toast({
         title: "Format invalide",
         description: "Veuillez sélectionner une image (JPG, PNG ou WebP)",
@@ -78,42 +90,66 @@ export function RestaurantImageSettings() {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
+      
+      console.log(`📤 [RestaurantImages] Upload vers Storage...`, { fileName });
 
       // Upload vers le bucket 'restaurant-images'
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('restaurant-images')
         .upload(fileName, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('❌ [RestaurantImages] Erreur Storage upload:', uploadError);
+        throw uploadError;
+      }
+      
+      console.log('✅ [RestaurantImages] Upload Storage réussi:', uploadData);
 
       // Récupérer l'URL publique
       const { data: { publicUrl } } = supabase.storage
         .from('restaurant-images')
         .getPublicUrl(fileName);
 
+      console.log(`🔗 [RestaurantImages] URL publique générée:`, publicUrl);
+      
       // Mettre à jour le profil restaurant
-      const { error: updateError } = await supabase
+      const updateField = type === 'logo' ? 'logo_url' : 'banner_url';
+      console.log(`💾 [RestaurantImages] Mise à jour de ${updateField}...`);
+      
+      const { data: updateData, error: updateError } = await supabase
         .from('restaurant_profiles')
         .update({ 
-          [type === 'logo' ? 'logo_url' : 'banner_url']: publicUrl,
+          [updateField]: publicUrl,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .select();
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('❌ [RestaurantImages] Erreur mise à jour profil:', updateError);
+        throw updateError;
+      }
+      
+      console.log('✅ [RestaurantImages] Profil mis à jour:', updateData);
 
       // Mettre à jour l'état local
       setImages(prev => ({
         ...prev,
-        [type === 'logo' ? 'logo_url' : 'banner_url']: publicUrl
+        [updateField]: publicUrl
       }));
 
       toast({
-        title: "Image uploadée",
+        title: "✅ Image uploadée",
         description: `${type === 'logo' ? 'Logo' : 'Bannière'} mis(e) à jour avec succès`
       });
+      
+      console.log(`✅ [RestaurantImages] Upload ${type} terminé avec succès`);
     } catch (error: any) {
-      console.error('Erreur upload:', error);
+      console.error('❌ [RestaurantImages] Erreur upload complète:', {
+        message: error.message,
+        details: error,
+        stack: error.stack
+      });
       toast({
         title: "Erreur d'upload",
         description: error.message || "Une erreur est survenue",
