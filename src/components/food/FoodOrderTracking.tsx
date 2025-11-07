@@ -6,6 +6,7 @@ import { ArrowLeft, Clock, Package, Truck, CheckCircle2, XCircle } from 'lucide-
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency } from '@/lib/utils';
+import { DownloadReceiptButton } from './DownloadReceiptButton';
 
 interface FoodOrderTrackingProps {
   orderId: string;
@@ -192,6 +193,17 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
                 {formatCurrency(order.total_amount, 'CDF')}
               </span>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Download Receipt */}
+        <Card>
+          <CardContent className="pt-6">
+            <DownloadReceiptButton 
+              orderId={orderId} 
+              variant="default"
+              className="w-full"
+            />
           </CardContent>
         </Card>
 
