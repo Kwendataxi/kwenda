@@ -23,6 +23,11 @@ export function RestaurantImageSettings() {
   });
 
   useEffect(() => {
+    console.log('🎨 [RestaurantImages] Composant monté', { 
+      user: user?.id, 
+      userExists: !!user 
+    });
+    
     if (user) {
       loadImages();
     }
@@ -238,7 +243,12 @@ export function RestaurantImageSettings() {
               <Button
                 variant="outline"
                 disabled={uploading === 'logo'}
-                onClick={() => document.getElementById('logo-upload')?.click()}
+                onClick={() => {
+                  console.log('🖱️ [RestaurantImages] Click bouton logo');
+                  const input = document.getElementById('logo-upload');
+                  console.log('📄 [RestaurantImages] Input logo trouvé:', !!input);
+                  input?.click();
+                }}
                 className="w-full sm:w-auto"
               >
                 {uploading === 'logo' ? (
@@ -254,8 +264,15 @@ export function RestaurantImageSettings() {
                 accept="image/jpeg,image/png,image/webp"
                 className="hidden"
                 onChange={(e) => {
+                  console.log('📁 [RestaurantImages] Input logo onChange déclenché');
                   const file = e.target.files?.[0];
-                  if (file) uploadImage(file, 'logo');
+                  console.log('📁 [RestaurantImages] Fichier logo sélectionné:', file?.name || 'AUCUN');
+                  if (file) {
+                    console.log('✅ [RestaurantImages] Appel uploadImage pour logo...');
+                    uploadImage(file, 'logo');
+                  } else {
+                    console.warn('⚠️ [RestaurantImages] Aucun fichier logo sélectionné');
+                  }
                   e.target.value = '';
                 }}
               />
@@ -297,7 +314,12 @@ export function RestaurantImageSettings() {
               <Button
                 variant="outline"
                 disabled={uploading === 'banner'}
-                onClick={() => document.getElementById('banner-upload')?.click()}
+                onClick={() => {
+                  console.log('🖱️ [RestaurantImages] Click bouton bannière');
+                  const input = document.getElementById('banner-upload');
+                  console.log('📄 [RestaurantImages] Input bannière trouvé:', !!input);
+                  input?.click();
+                }}
                 className="w-full sm:w-auto"
               >
                 {uploading === 'banner' ? (
@@ -313,8 +335,15 @@ export function RestaurantImageSettings() {
                 accept="image/jpeg,image/png,image/webp"
                 className="hidden"
                 onChange={(e) => {
+                  console.log('📁 [RestaurantImages] Input bannière onChange déclenché');
                   const file = e.target.files?.[0];
-                  if (file) uploadImage(file, 'banner');
+                  console.log('📁 [RestaurantImages] Fichier bannière sélectionné:', file?.name || 'AUCUN');
+                  if (file) {
+                    console.log('✅ [RestaurantImages] Appel uploadImage pour bannière...');
+                    uploadImage(file, 'banner');
+                  } else {
+                    console.warn('⚠️ [RestaurantImages] Aucun fichier bannière sélectionné');
+                  }
                   e.target.value = '';
                 }}
               />
