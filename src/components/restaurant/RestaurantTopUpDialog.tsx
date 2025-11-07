@@ -10,10 +10,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, CreditCard, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
+import { cn } from '@/lib/utils';
+import orangeMoneyLogo from '@/assets/orange-money-logo.webp';
+import airtelMoneyLogo from '@/assets/airtel-money-logo.png';
+import mpesaLogo from '@/assets/mpesa-logo.png';
 
 interface RestaurantTopUpDialogProps {
   open: boolean;
@@ -111,22 +116,23 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Recharger mon wallet</DialogTitle>
             <DialogDescription>
               Solde actuel: <span className="font-bold text-foreground">{currentBalance.toLocaleString()} CDF</span>
             </DialogDescription>
           </DialogHeader>
 
-          <AnimatePresence mode="wait">
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <AnimatePresence mode="wait">
             {step === 1 ? (
               <motion.div
                 key="step1"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
+                className="space-y-4 pb-4"
               >
                 {/* Montant */}
                 <div className="space-y-2">
@@ -145,7 +151,7 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
                 </div>
 
                 {/* Suggestions */}
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {SUGGESTED_AMOUNTS.map((suggested) => (
                     <Button
                       key={suggested.value}
@@ -169,7 +175,7 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
+                className="space-y-4 pb-4"
               >
                 {/* Récapitulatif */}
                 <div className="p-4 bg-muted rounded-lg space-y-2">
@@ -191,27 +197,60 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
                 <div className="space-y-2">
                   <Label>Méthode de paiement</Label>
                   <RadioGroup value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted">
+                    <div className={cn(
+                      "flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-all",
+                      paymentMethod === "orange_money" 
+                        ? "border-orange-500 bg-orange-50/50 shadow-sm dark:bg-orange-950/20" 
+                        : "border-border hover:bg-muted"
+                    )}>
                       <RadioGroupItem value="orange_money" id="orange" />
-                      <Label htmlFor="orange" className="flex items-center gap-2 cursor-pointer flex-1">
-                        <Smartphone className="h-4 w-4 text-orange-500" />
-                        <span>Orange Money</span>
+                      <Label htmlFor="orange" className="flex items-center gap-3 cursor-pointer flex-1">
+                        <div className="w-8 h-8 flex items-center justify-center bg-orange-50 rounded-lg dark:bg-orange-950/50">
+                          <img 
+                            src={orangeMoneyLogo} 
+                            alt="Orange Money"
+                            className="w-6 h-6 object-contain"
+                          />
+                        </div>
+                        <span className="font-medium">Orange Money</span>
                       </Label>
                     </div>
                     
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted">
+                    <div className={cn(
+                      "flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-all",
+                      paymentMethod === "m_pesa" 
+                        ? "border-green-500 bg-green-50/50 shadow-sm dark:bg-green-950/20" 
+                        : "border-border hover:bg-muted"
+                    )}>
                       <RadioGroupItem value="m_pesa" id="mpesa" />
-                      <Label htmlFor="mpesa" className="flex items-center gap-2 cursor-pointer flex-1">
-                        <Smartphone className="h-4 w-4 text-green-500" />
-                        <span>M-Pesa</span>
+                      <Label htmlFor="mpesa" className="flex items-center gap-3 cursor-pointer flex-1">
+                        <div className="w-8 h-8 flex items-center justify-center bg-green-50 rounded-lg dark:bg-green-950/50">
+                          <img 
+                            src={mpesaLogo} 
+                            alt="M-Pesa"
+                            className="w-6 h-6 object-contain"
+                          />
+                        </div>
+                        <span className="font-medium">M-Pesa</span>
                       </Label>
                     </div>
                     
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg cursor-pointer hover:bg-muted">
+                    <div className={cn(
+                      "flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-all",
+                      paymentMethod === "airtel_money" 
+                        ? "border-red-500 bg-red-50/50 shadow-sm dark:bg-red-950/20" 
+                        : "border-border hover:bg-muted"
+                    )}>
                       <RadioGroupItem value="airtel_money" id="airtel" />
-                      <Label htmlFor="airtel" className="flex items-center gap-2 cursor-pointer flex-1">
-                        <Smartphone className="h-4 w-4 text-red-500" />
-                        <span>Airtel Money</span>
+                      <Label htmlFor="airtel" className="flex items-center gap-3 cursor-pointer flex-1">
+                        <div className="w-8 h-8 flex items-center justify-center bg-red-50 rounded-lg dark:bg-red-950/50">
+                          <img 
+                            src={airtelMoneyLogo} 
+                            alt="Airtel Money"
+                            className="w-6 h-6 object-contain"
+                          />
+                        </div>
+                        <span className="font-medium">Airtel Money</span>
                       </Label>
                     </div>
                   </RadioGroup>
@@ -231,18 +270,29 @@ export const RestaurantTopUpDialog: React.FC<RestaurantTopUpDialogProps> = ({
                   </p>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                <div className="flex flex-col sm:flex-row gap-3 pt-2 sticky bottom-0 bg-background pb-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setStep(1)} 
+                    className="w-full sm:flex-1"
+                    size="lg"
+                  >
                     Retour
                   </Button>
-                  <Button onClick={handleSubmit} disabled={loading} className="flex-1">
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={loading} 
+                    className="w-full sm:flex-1"
+                    size="lg"
+                  >
                     {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Confirmer le paiement
+                    Confirmer
                   </Button>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
