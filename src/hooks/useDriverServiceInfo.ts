@@ -29,37 +29,95 @@ export const useDriverServiceInfo = () => {
       }
 
       try {
-        // ✅ Utiliser la nouvelle fonction RPC get_driver_service_info
+        // ✅ Utiliser la fonction RPC get_driver_service_info
         const { data, error } = await (supabase as any)
           .rpc('get_driver_service_info', { driver_user_id: user.id });
 
         if (error) {
-          console.error('❌ RPC Error fetching service info:', error);
+          console.warn('⚠️ RPC error, using direct query fallback:', error.message);
+          
+          // FALLBACK: Requête directe à la table chauffeurs
+          const { data: directData, error: directError } = await supabase
+            .from('chauffeurs')
+            .select('service_type, service_specialization')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!directError && directData) {
+            setServiceInfo({
+              serviceType: directData.service_type as any || 'unknown',
+              serviceSpecialization: directData.service_specialization || null
+            });
+            console.log('✅ Fallback successful:', directData);
+            setLoading(false);
+            return;
+          }
+          
+          console.error('❌ Fallback also failed:', directError);
           setServiceInfo({ serviceType: 'unknown', serviceSpecialization: null });
           setLoading(false);
           return;
         }
 
+        // RPC réussie - traiter les données
         if (Array.isArray(data) && data.length > 0) {
           const info = data[0];
           setServiceInfo({
             serviceType: info.service_type || 'unknown',
             serviceSpecialization: info.service_specialization || null
           });
-          console.log(`✅ Driver service info:`, info);
+          console.log('✅ Driver service info (RPC):', info);
         } else if (data && typeof data === 'object') {
-          // Si la RPC retourne un objet unique au lieu d'un array
           setServiceInfo({
             serviceType: (data as any).service_type || 'unknown',
             serviceSpecialization: (data as any).service_specialization || null
           });
+          console.log('✅ Driver service info (RPC object):', data);
         } else {
-          setServiceInfo({ serviceType: 'unknown', serviceSpecialization: null });
+          console.warn('⚠️ RPC returned empty data, using fallback');
+          
+          // FALLBACK si RPC retourne des données vides
+          const { data: directData, error: directError } = await supabase
+            .from('chauffeurs')
+            .select('service_type, service_specialization')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!directError && directData) {
+            setServiceInfo({
+              serviceType: directData.service_type as any || 'unknown',
+              serviceSpecialization: directData.service_specialization || null
+            });
+            console.log('✅ Fallback successful (empty RPC):', directData);
+          } else {
+            setServiceInfo({ serviceType: 'unknown', serviceSpecialization: null });
+          }
         }
 
       } catch (err) {
-        console.error('💥 Failed to load driver service info:', err);
-        setServiceInfo({ serviceType: 'unknown', serviceSpecialization: null });
+        console.error('💥 Exception in fetchServiceInfo:', err);
+        
+        // FALLBACK final en cas d'exception
+        try {
+          const { data: directData, error: directError } = await supabase
+            .from('chauffeurs')
+            .select('service_type, service_specialization')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!directError && directData) {
+            setServiceInfo({
+              serviceType: directData.service_type as any || 'unknown',
+              serviceSpecialization: directData.service_specialization || null
+            });
+            console.log('✅ Emergency fallback successful:', directData);
+          } else {
+            setServiceInfo({ serviceType: 'unknown', serviceSpecialization: null });
+          }
+        } catch (fallbackErr) {
+          console.error('💥 Emergency fallback also failed:', fallbackErr);
+          setServiceInfo({ serviceType: 'unknown', serviceSpecialization: null });
+        }
       } finally {
         setLoading(false);
       }
