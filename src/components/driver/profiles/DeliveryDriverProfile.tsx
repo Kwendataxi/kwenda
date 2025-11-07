@@ -139,14 +139,7 @@ export const DeliveryDriverProfile = () => {
       </Card>
 
       {/* Documents */}
-      <DocumentsSection
-        documents={[
-          { type: 'license', label: 'Permis de conduire', verified: true },
-          { type: 'transport', label: 'Autorisation transport', verified: true },
-          { type: 'insurance', label: 'Assurance marchandises', verified: false }
-        ]}
-        serviceType="delivery"
-      />
+      <DocumentsSection serviceType="delivery" />
 
       {/* Zones de livraison */}
       <Card className="p-6">

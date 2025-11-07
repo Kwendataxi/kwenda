@@ -4,9 +4,9 @@
  */
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Car, FileText, Shield } from 'lucide-react';
+import { Car } from 'lucide-react';
 import { VehicleManagementPanel } from './management/VehicleManagementPanel';
+import { DriverDocumentUploader } from './documents/DriverDocumentUploader';
 
 export const VTCProfileManager: React.FC = () => {
   return (
@@ -19,21 +19,8 @@ export const VTCProfileManager: React.FC = () => {
       {/* Gestion du véhicule VTC */}
       <VehicleManagementPanel />
 
-      {/* Documents VTC */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Documents VTC
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            📄 Permis de conduire, assurance, carte grise à jour
-          </p>
-          {/* TODO: Ajouter composant upload documents */}
-        </CardContent>
-      </Card>
+      {/* Documents VTC - Fonctionnel */}
+      <DriverDocumentUploader serviceType="taxi" />
     </div>
   );
 };

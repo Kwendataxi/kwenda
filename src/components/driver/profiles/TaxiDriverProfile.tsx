@@ -96,15 +96,7 @@ export const TaxiDriverProfile = () => {
       />
 
       {/* Documents */}
-      <DocumentsSection
-        documents={[
-          { type: 'license', label: 'Permis de conduire', verified: true },
-          { type: 'insurance', label: 'Assurance', verified: true },
-          { type: 'registration', label: 'Carte grise', verified: true },
-          { type: 'technical', label: 'Contrôle technique', verified: false }
-        ]}
-        serviceType="taxi"
-      />
+      <DocumentsSection serviceType="taxi" />
 
       {/* Zones de service */}
       <Card className="p-6">

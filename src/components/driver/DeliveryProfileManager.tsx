@@ -5,8 +5,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, FileText, Bike } from 'lucide-react';
+import { Package, Bike } from 'lucide-react';
 import { VehicleManagementPanel } from './management/VehicleManagementPanel';
+import { DriverDocumentUploader } from './documents/DriverDocumentUploader';
 
 export const DeliveryProfileManager: React.FC = () => {
   return (
@@ -35,21 +36,8 @@ export const DeliveryProfileManager: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Documents livraison */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Documents Livraison
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            📄 Autorisation transport de marchandises
-          </p>
-          {/* TODO: Ajouter composant upload documents */}
-        </CardContent>
-      </Card>
+      {/* Documents livraison - Fonctionnel */}
+      <DriverDocumentUploader serviceType="delivery" />
     </div>
   );
 };
