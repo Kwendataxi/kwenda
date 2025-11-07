@@ -53,8 +53,8 @@ export default function RestaurantWalletPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Wallet Restaurant</h1>
-            <p className="text-muted-foreground">Gérez vos finances Kwenda Food</p>
+            <h1 className="text-3xl font-bold">KwendaPay</h1>
+            <p className="text-muted-foreground">Gérez vos finances restaurant</p>
           </div>
         </div>
 
