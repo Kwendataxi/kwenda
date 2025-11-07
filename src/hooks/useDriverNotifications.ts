@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { notificationSoundService } from '@/services/notificationSound';
 
 interface DriverNotification {
   id: string;
@@ -84,13 +85,10 @@ export const useDriverNotifications = () => {
               icon: isDelivery ? '📦' : '🚗'
             });
 
-            // Jouer un son
-            playNotificationSound();
-
-            // Vibration mobile
-            if ('vibrate' in navigator) {
-              navigator.vibrate([200, 100, 200, 100, 400]);
-            }
+            // Jouer un son + vibration
+            notificationSoundService.playNotificationSound(
+              isDelivery ? 'deliveryPicked' : 'driverAssigned'
+            );
 
             // Notification native si permission accordée
             if ('Notification' in window && Notification.permission === 'granted') {
@@ -115,16 +113,6 @@ export const useDriverNotifications = () => {
     };
   }, [user]);
 
-  // Fonction pour jouer un son
-  const playNotificationSound = () => {
-    try {
-      const audio = new Audio('/notification-sound.mp3');
-      audio.volume = 0.5;
-      audio.play().catch(err => console.log('🔇 Son bloqué:', err));
-    } catch (error) {
-      console.log('🔇 Impossible de jouer le son');
-    }
-  };
 
   // Marquer une notification comme lue
   const markAsRead = async (notificationId: string) => {

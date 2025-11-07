@@ -66,7 +66,7 @@ class NotificationSoundService {
   private audioContext: AudioContext | null = null;
   private audioBuffers: Map<string, AudioBuffer> = new Map();
   private soundEnabled: boolean = true;
-  private volume: number = 0.7;
+  private volume: number = 0.9; // 90% volume par défaut
 
   private async initAudioContext() {
     if (!this.audioContext) {
@@ -130,43 +130,91 @@ class NotificationSoundService {
 
   getVolume(): number {
     const stored = localStorage.getItem('kwenda_sounds_volume');
-    return stored ? parseFloat(stored) : 0.7;
+    return stored ? parseFloat(stored) : 0.9; // 90% par défaut
   }
 
   async playNotificationSound(type: keyof NotificationSounds = 'general') {
+    console.log(`🔊 [NotifSound] Tentative lecture: ${type}`);
+    
     // Charger préférences
     this.soundEnabled = this.getSoundEnabled();
     this.volume = this.getVolume();
 
-    if (!this.soundEnabled) return;
+    if (!this.soundEnabled) {
+      console.log('🔇 [NotifSound] Sons désactivés');
+      return;
+    }
 
     try {
       const soundUrl = this.sounds[type];
+      console.log(`📁 [NotifSound] Chargement: ${soundUrl}`);
+      
       const audioBuffer = await this.loadSound(soundUrl);
       
       if (audioBuffer) {
+        console.log(`✅ [NotifSound] Lecture OK: ${type}`);
         await this.playBuffer(audioBuffer);
       } else {
-        // Fallback to browser notification sound
-        this.playFallbackSound();
+        console.warn(`⚠️ [NotifSound] Fallback beep pour: ${type}`);
+        this.playFallbackSound(type);
       }
+      
+      // 📳 VIBRATION couplée sur mobile
+      this.triggerVibration(type);
     } catch (error) {
-      console.warn('Failed to play notification sound:', error);
-      this.playFallbackSound();
+      console.error(`❌ [NotifSound] Erreur: ${type}`, error);
+      this.playFallbackSound(type);
+      this.triggerVibration(type);
     }
   }
 
-  private playFallbackSound() {
-    // Create a simple beep sound as fallback
+  private playFallbackSound(type: keyof NotificationSounds = 'general') {
+    // Create distinctive beep sounds by category
     if (!this.audioContext) return;
 
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
     
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
+    // Fréquences distinctives par catégorie
+    const frequencies: Record<keyof NotificationSounds, number> = {
+      // Marketplace - aigus (effet "ka-ching")
+      newOrder: 1000,
+      orderConfirmed: 900,
+      paymentReceived: 1100,
+      productApproved: 950,
+      productRejected: 400,
+      productFlagged: 700,
+      lowStockAlert: 650,
+      reviewReceived: 850,
+      
+      // Transport - médiums
+      driverAssigned: 700,
+      driverArrived: 650,
+      rideStarted: 750,
+      
+      // Livraison - rythmés
+      deliveryPicked: 800,
+      deliveryCompleted: 850,
+      
+      // Admin - alertes
+      urgentAlert: 1200,
+      error: 400,
+      warning: 600,
+      success: 900,
+      
+      // Chat
+      message: 800,
+      
+      // Défaut
+      general: 800,
+      info: 750
+    };
     
-    gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+    oscillator.frequency.value = frequencies[type] || 800;
+    oscillator.type = type.includes('urgent') || type === 'error' ? 'sawtooth' : 
+                      type.includes('payment') || type.includes('order') ? 'triangle' : 'sine';
+    
+    gainNode.gain.setValueAtTime(this.volume * 0.3, this.audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
     
     oscillator.connect(gainNode);
@@ -174,6 +222,43 @@ class NotificationSoundService {
     
     oscillator.start(this.audioContext.currentTime);
     oscillator.stop(this.audioContext.currentTime + 0.2);
+  }
+
+  private triggerVibration(type: keyof NotificationSounds) {
+    if (!('vibrate' in navigator)) return;
+
+    // Patterns de vibration distinctifs par catégorie
+    const vibrationPatterns: Record<string, number | number[]> = {
+      // Marketplace - doubles vibrations
+      newOrder: [100, 50, 100],
+      orderConfirmed: [100, 50, 100],
+      paymentReceived: [50, 30, 50, 30, 50], // Triple beep
+      
+      // Transport - vibrations moyennes
+      driverAssigned: [100, 50, 100],
+      driverArrived: [200],
+      rideStarted: [100],
+      
+      // Livraison - courtes et rythmées
+      deliveryPicked: [50, 30, 50],
+      deliveryCompleted: [100, 50, 100, 50, 200],
+      
+      // Admin - urgentes et longues
+      urgentAlert: [200, 100, 200, 100, 200],
+      error: [200, 100, 200],
+      warning: [150],
+      success: [50, 30, 50],
+      
+      // Chat - légère
+      message: [50],
+      
+      // Défaut
+      general: [100],
+      info: [50]
+    };
+
+    const pattern = vibrationPatterns[type] || 100;
+    navigator.vibrate(pattern);
   }
 
   // Preload sounds for better performance
