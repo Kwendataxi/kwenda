@@ -17,6 +17,8 @@ import { useNavigate } from 'react-router-dom';
 import { ReferralDashboard } from '../referral/ReferralDashboard';
 import { SupportModal } from '../support/SupportModal';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ServiceZonesDisplay } from '../zones/ServiceZonesDisplay';
+import { ServiceZoneSelector } from '../zones/ServiceZoneSelector';
 
 export const TaxiDriverProfile = () => {
   const { user, signOut } = useAuth();
@@ -25,6 +27,7 @@ export const TaxiDriverProfile = () => {
   const [loading, setLoading] = useState(true);
   const [showReferralDialog, setShowReferralDialog] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showZonesModal, setShowZonesModal] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -105,20 +108,20 @@ export const TaxiDriverProfile = () => {
 
       {/* Zones de service */}
       <Card className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="w-5 h-5 text-blue-500" />
-          <h3 className="font-semibold text-foreground">Zones de service</h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-blue-500" />
+            <h3 className="font-semibold text-foreground">Zones de service</h3>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowZonesModal(true)}
+          >
+            Gérer mes zones
+          </Button>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {['Kinshasa Centre', 'Gombe', 'Limete', 'Ngaliema', 'Kalamu'].map((zone) => (
-            <span 
-              key={zone}
-              className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-sm font-medium"
-            >
-              {zone}
-            </span>
-          ))}
-        </div>
+        <ServiceZonesDisplay />
       </Card>
 
       {/* Abonnement */}
@@ -181,6 +184,13 @@ export const TaxiDriverProfile = () => {
         open={showSupportModal}
         onOpenChange={setShowSupportModal}
       />
+
+      {/* Dialog Zones */}
+      <Dialog open={showZonesModal} onOpenChange={setShowZonesModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <ServiceZoneSelector />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
