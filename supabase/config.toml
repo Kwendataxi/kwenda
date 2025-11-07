@@ -190,3 +190,9 @@ verify_jwt = true  # ✅ PHASE 1: Validation stricte du type de service chauffeu
 
 [functions.driver-notification-router]
 verify_jwt = false  # ✅ PHASE 2: Routage intelligent des notifications par type de service (appelé par triggers)
+
+[functions.complete-ride-with-commission]
+verify_jwt = true  # ✅ PHASE 2: Finalisation course avec prélèvement commission automatique
+
+[functions.detect-cancellation-fraud]
+verify_jwt = false  # ✅ PHASE 2: Détection annulations frauduleuses (appelé automatiquement)

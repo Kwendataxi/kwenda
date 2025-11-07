@@ -56,6 +56,8 @@ serve(async (req) => {
         is_online_filter: true
       });
 
+    console.log(`🔍 RPC returned ${eligibleDrivers?.length || 0} ${requiredServiceType} drivers`);
+
     if (driversError) {
       console.error('❌ Error fetching drivers:', driversError);
       return new Response(
@@ -80,11 +82,80 @@ serve(async (req) => {
       );
     }
 
-    // 3. Filtrer par distance si coordonnées fournies
-    let targetDrivers = eligibleDrivers;
+    // 3. ✅ PHASE 2: Filtrer les chauffeurs suspendus et avec wallet vide
+    const MIN_WALLET_BALANCE = 1000; // 1000 CDF minimum
+    let validDrivers = [];
+
+    for (const driver of eligibleDrivers || []) {
+      // 3.1 Vérifier statut fraude
+      const { data: fraudStatus } = await supabase
+        .from('driver_fraud_tracking')
+        .select('is_suspended, unpaid_commissions_count, suspension_reason')
+        .eq('driver_id', driver.driver_id)
+        .single();
+
+      if (fraudStatus?.is_suspended) {
+        console.log(`🚫 Driver ${driver.driver_id} is SUSPENDED: ${fraudStatus.suspension_reason}`);
+        
+        // Envoyer rappel de suspension
+        await supabase.from('push_notifications').insert({
+          user_id: driver.driver_id,
+          title: '🚫 Compte Suspendu',
+          message: fraudStatus.suspension_reason || 'Rechargez votre wallet pour débloquer votre compte',
+          notification_type: 'suspension_reminder',
+          priority: 'urgent'
+        });
+        
+        continue; // Skip ce chauffeur
+      }
+
+      // 3.2 Vérifier commissions impayées
+      if (fraudStatus?.unpaid_commissions_count > 1) {
+        console.log(`⚠️ Driver ${driver.driver_id} has ${fraudStatus.unpaid_commissions_count} unpaid commissions`);
+        
+        await supabase.from('push_notifications').insert({
+          user_id: driver.driver_id,
+          title: '⚠️ Commissions Impayées',
+          message: `Vous avez ${fraudStatus.unpaid_commissions_count} commissions impayées. Rechargez votre wallet maintenant.`,
+          notification_type: 'commission_reminder',
+          priority: 'high'
+        });
+        
+        continue; // Skip ce chauffeur
+      }
+
+      // 3.3 Vérifier wallet minimum
+      const { data: wallet } = await supabase
+        .from('user_wallets')
+        .select('balance')
+        .eq('user_id', driver.driver_id)
+        .single();
+
+      if (wallet && wallet.balance < MIN_WALLET_BALANCE) {
+        console.log(`💰 Driver ${driver.driver_id} wallet too low: ${wallet.balance} CDF`);
+        
+        await supabase.from('push_notifications').insert({
+          user_id: driver.driver_id,
+          title: '💰 Rechargez Votre Wallet',
+          message: `Solde insuffisant (${wallet.balance} CDF). Minimum ${MIN_WALLET_BALANCE} CDF requis pour recevoir des courses.`,
+          notification_type: 'wallet_low',
+          priority: 'high'
+        });
+        
+        continue; // Skip ce chauffeur
+      }
+
+      // 3.4 Ce chauffeur est valide
+      validDrivers.push(driver);
+    }
+
+    console.log(`✅ ${validDrivers.length}/${eligibleDrivers?.length || 0} drivers passed fraud/wallet checks`);
+
+    // 4. Filtrer par distance si coordonnées fournies
+    let targetDrivers = validDrivers;
     
     if (pickupLat && pickupLng) {
-      targetDrivers = eligibleDrivers.filter(driver => {
+      targetDrivers = validDrivers.filter(driver => {
         if (!driver.current_location?.lat || !driver.current_location?.lng) {
           return false;
         }
@@ -102,7 +173,7 @@ serve(async (req) => {
       console.log(`📍 ${targetDrivers.length} drivers within ${targetRadius}km radius`);
     }
 
-    // 4. Créer les notifications selon le type de commande
+    // 5. Créer les notifications selon le type de commande
     const notifications = [];
     
     for (const driver of targetDrivers) {
@@ -144,7 +215,7 @@ serve(async (req) => {
       notifications.push(notificationData);
     }
 
-    // 5. Insérer les notifications dans la bonne table
+    // 6. Insérer les notifications dans la bonne table
     let insertResult;
     
     if (orderType === 'taxi') {
@@ -168,7 +239,7 @@ serve(async (req) => {
       );
     }
 
-    // 6. Log l'activité
+    // 7. Log l'activité
     await supabase.from('activity_logs').insert({
       user_id: '00000000-0000-0000-0000-000000000000',
       activity_type: 'dispatch',
