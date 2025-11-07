@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Smartphone, Car, Users, CreditCard, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ecoCarIcon from "@/assets/eco-car-icon.png";
-const appIcon = "/lovable-uploads/e5018ec7-a9e4-44b2-ad57-174b4cb5891b.png";
+const appIcon = "/kwenda-logo.png";
 import driverIcon from "@/assets/driver-icon.png";
 
 const Features = () => {
