@@ -17,18 +17,19 @@ const KwendaMapControls = React.memo(({
   bottomSheetHeight = 450,
   className
 }: KwendaMapControlsProps) => {
-  // Position dynamique : hauteur du sheet + 16px de marge
-  const buttonBottom = bottomSheetHeight + 16;
+  // Position dynamique : hauteur du sheet + 24px de marge
+  const buttonBottom = bottomSheetHeight + 24;
 
   return (
     <div 
       className={cn("absolute right-4 z-[100]", className)}
       style={{ bottom: `${buttonBottom}px` }}
     >
-      {/* Location Button - Toujours visible */}
+      {/* Location Button - Style moderne translucide */}
       <motion.div 
-        whileTap={{ scale: 0.95 }}
-        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.97 }}
+        whileHover={{ scale: 1.03 }}
+        transition={{ duration: 0.2 }}
       >
         <Button
           size="lg"
@@ -36,16 +37,17 @@ const KwendaMapControls = React.memo(({
           onClick={onLocate}
           disabled={isLocating}
           className={cn(
-            "h-16 w-16 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700",
-            "backdrop-blur-md rounded-full shadow-2xl",
-            "border-2 border-white dark:border-gray-900",
-            "transition-all duration-300",
-            isLocating && "animate-pulse"
+            "h-12 w-12 md:h-12 md:w-12",
+            "bg-white/95 dark:bg-gray-800/95",
+            "hover:bg-white dark:hover:bg-gray-700",
+            "backdrop-blur-sm rounded-full shadow-lg",
+            "border border-gray-200 dark:border-gray-700",
+            "transition-all duration-300"
           )}
-          aria-label="Ma position"
+          aria-label="Recentrer sur ma position"
         >
           <Navigation className={cn(
-            "h-7 w-7 text-white",
+            "h-5 w-5 text-gray-700 dark:text-gray-200",
             isLocating && "animate-spin"
           )} />
         </Button>
