@@ -4,9 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { UtensilsCrossed, ChefHat, ArrowLeft, Phone, CheckCircle2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { SUPPORTED_CITIES } from '@/constants/cities';
 
 export default function RestaurantAuth() {
   const navigate = useNavigate();
@@ -17,7 +20,8 @@ export default function RestaurantAuth() {
     email: '',
     password: '',
     restaurantName: '',
-    phone: ''
+    phone: '',
+    city: ''
   });
 
   const validatePhoneNumber = (phone: string): boolean => {
@@ -48,6 +52,12 @@ export default function RestaurantAuth() {
           return;
         }
 
+        // Validation ville
+        if (!formData.city) {
+          toast.error('Veuillez sélectionner votre ville d\'opération');
+          return;
+        }
+
         // Inscription - Le trigger gère automatiquement la création du profil et du rôle
         const { error } = await supabase.auth.signUp({
           email: formData.email,
@@ -57,6 +67,7 @@ export default function RestaurantAuth() {
             data: {
               restaurant_name: formData.restaurantName,
               phone: formData.phone,
+              city: formData.city,
               user_type: 'restaurant'
             }
           }
@@ -192,6 +203,25 @@ export default function RestaurantAuth() {
                     <Info className="w-3 h-3" />
                     Format: 0XXXXXXXXX (10 chiffres)
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ville d'opération *</Label>
+                  <Select 
+                    value={formData.city} 
+                    onValueChange={(value) => setFormData({ ...formData, city: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez votre ville" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORTED_CITIES.map(city => (
+                        <SelectItem key={city.value} value={city.value}>
+                          {city.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </>
             )}

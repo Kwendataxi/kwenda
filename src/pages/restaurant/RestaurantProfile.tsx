@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Save, ArrowLeft, Store, MapPin } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { SUPPORTED_CITIES } from '@/constants/cities';
 
 interface RestaurantProfile {
   id: string;
@@ -232,12 +234,21 @@ export default function RestaurantProfile() {
 
               <div className="space-y-2">
                 <Label htmlFor="city">Ville *</Label>
-                <Input
-                  id="city"
-                  value={profile.city}
-                  onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-                  placeholder="Kinshasa"
-                />
+                <Select 
+                  value={profile.city} 
+                  onValueChange={(value) => setProfile({ ...profile, city: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionnez une ville" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_CITIES.map(city => (
+                      <SelectItem key={city.value} value={city.value}>
+                        {city.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

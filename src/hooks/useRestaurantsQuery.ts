@@ -16,7 +16,7 @@ export const useRestaurantsQuery = (city: string) => {
       const { data, error } = await supabase
         .from('restaurant_profiles')
         .select('*')
-        .eq('city', city.trim())
+        .ilike('city', city.trim())
         .eq('is_active', true)
         .order('created_at', { ascending: false });
       
