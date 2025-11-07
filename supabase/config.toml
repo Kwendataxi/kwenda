@@ -184,3 +184,9 @@ verify_jwt = true  # ✅ Approbation individuelle véhicule par admin
 
 [functions.admin-reject-vehicle]
 verify_jwt = true  # ✅ Rejet individuel véhicule par admin avec raison
+
+[functions.validate-driver-service-type]
+verify_jwt = true  # ✅ PHASE 1: Validation stricte du type de service chauffeur
+
+[functions.driver-notification-router]
+verify_jwt = false  # ✅ PHASE 2: Routage intelligent des notifications par type de service (appelé par triggers)

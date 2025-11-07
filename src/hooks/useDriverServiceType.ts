@@ -21,86 +21,24 @@ export const useDriverServiceType = () => {
       }
 
       try {
-        // First, check driver service preferences
-        const { data: prefData, error: prefError } = await supabase
-          .from('driver_service_preferences')
-          .select('service_types, is_active')
-          .eq('driver_id', user.id)
-          .eq('is_active', true)
-          .maybeSingle();
+        // ✅ PHASE 1: Utiliser la fonction RPC sécurisée pour récupérer le service_type
+        const { data: serviceTypeData, error: rpcError } = await (supabase as any)
+          .rpc('get_driver_service_type', { driver_user_id: user.id });
 
-        if (!prefError && prefData && prefData.service_types?.length > 0) {
-          const serviceTypes = prefData.service_types;
-          
-          // Check if any delivery services are included
-          if (serviceTypes.some(type => type.includes('delivery'))) {
-            setServiceType('delivery');
-            setLoading(false);
-            return;
-          }
-          
-          // Check if any taxi services are included
-          if (serviceTypes.some(type => type.includes('taxi') || type === 'moto_transport')) {
-            setServiceType('taxi');
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Fallback to driver_profiles table
-        const { data: profileData, error: profileError } = await supabase
-          .from('driver_profiles')
-          .select('service_type, is_active')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (!profileError && profileData) {
-          const type = profileData.service_type || 'taxi';
-          
-          if (type === 'delivery' || type === 'delivery_flex' || type === 'delivery_flash') {
-            setServiceType('delivery');
-          } else {
-            setServiceType('taxi');
-          }
+        if (rpcError) {
+          console.error('❌ RPC Error fetching service type:', rpcError);
+          setServiceType('unknown');
           setLoading(false);
           return;
         }
 
-        // Final fallback: check chauffeurs table for legacy data
-        const { data: chauffeurData, error: chauffeurError } = await supabase
-          .from('chauffeurs')
-          .select('vehicle_type, delivery_capacity, migrated_service_type')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (!chauffeurError && chauffeurData) {
-          // Use migrated service type if available
-          if (chauffeurData.migrated_service_type) {
-            if (chauffeurData.migrated_service_type.includes('delivery')) {
-              setServiceType('delivery');
-            } else {
-              setServiceType('taxi');
-            }
-            setLoading(false);
-            return;
-          }
-
-          // Map legacy data based on delivery capacity
-          if (chauffeurData.delivery_capacity) {
-            setServiceType('delivery');
-          } else {
-            setServiceType('taxi');
-          }
-          setLoading(false);
-          return;
-        }
-
-        // Default fallback
-        setServiceType('taxi');
+        // Le résultat est directement 'taxi' ou 'delivery'
+        setServiceType(serviceTypeData as 'taxi' | 'delivery');
+        console.log(`✅ Driver service type: ${serviceTypeData}`);
 
       } catch (err) {
-        console.warn('Failed to load driver service type:', err);
-        setServiceType('taxi'); // Default to taxi on error
+        console.error('💥 Failed to load driver service type:', err);
+        setServiceType('unknown');
       } finally {
         setLoading(false);
       }

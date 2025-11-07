@@ -97,6 +97,21 @@ export const useDriverDispatch = () => {
 
     setLoading(true);
     try {
+      // ✅ PHASE 2: Validation côté serveur avant acceptation
+      const { validateDriverServiceType } = await import('@/services/driverNotificationRouter');
+      
+      const validation = await validateDriverServiceType(user.id, notification.type, notification.orderId);
+      
+      if (!validation.valid) {
+        toast.error(`❌ ${validation.reason}`);
+        console.warn('⚠️ Service type mismatch:', validation);
+        setPendingNotifications(prev => prev.filter(n => n.id !== notification.id));
+        setLoading(false);
+        return false;
+      }
+
+      console.log(`✅ Validation passed: ${validation.driverServiceType} driver accepting ${notification.type} order`);
+
       let success = false;
 
       switch (notification.type) {
