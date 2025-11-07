@@ -2,10 +2,13 @@
  * 👤 Header de profil réutilisable
  */
 
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
-import { Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Star, Camera } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { PhotoUploadModal } from './PhotoUploadModal';
 
 interface ProfileHeaderProps {
   name: string;
@@ -25,21 +28,46 @@ export const ProfileHeader = ({
   serviceType 
 }: ProfileHeaderProps) => {
   const serviceColor = serviceType === 'taxi' ? 'blue' : 'green';
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [currentPhoto, setCurrentPhoto] = useState(photo);
+
+  const handlePhotoUploadSuccess = (url: string) => {
+    setCurrentPhoto(url);
+  };
 
   return (
+    <>
+      <PhotoUploadModal
+        open={showPhotoModal}
+        onOpenChange={setShowPhotoModal}
+        currentPhoto={currentPhoto}
+        onUploadSuccess={handlePhotoUploadSuccess}
+      />
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
       <Card className="p-6 service-card">
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <div className="relative group">
             <Avatar className="w-20 h-20 border-4 border-primary/20">
-              <AvatarImage src={photo} alt={name} />
+              <AvatarImage src={currentPhoto} alt={name} />
               <AvatarFallback className="text-2xl">
                 {name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
+            
+            {/* Bouton modifier photo - apparaît au hover */}
+            <Button
+              size="icon"
+              variant="secondary"
+              className="absolute inset-0 m-auto w-10 h-10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => setShowPhotoModal(true)}
+            >
+              <Camera className="w-5 h-5" />
+            </Button>
+
+            {/* Badge vérifié */}
             <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center border-2 border-background">
               <span className="text-xs">✓</span>
             </div>
@@ -74,5 +102,6 @@ export const ProfileHeader = ({
         </div>
       </Card>
     </motion.div>
+    </>
   );
 };
