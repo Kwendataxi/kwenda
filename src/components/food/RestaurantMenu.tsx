@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShoppingCart } from 'lucide-react';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
+import { formatCurrency } from '@/lib/utils';
 
 interface RestaurantMenuProps {
   restaurant: Restaurant;
@@ -107,7 +108,7 @@ export const RestaurantMenu = ({
             <ShoppingCart className="h-5 w-5 mr-2" />
             Voir le panier ({cart.length})
             <span className="ml-auto font-bold">
-              {subtotal.toLocaleString()} FC
+              {formatCurrency(subtotal, 'CDF')}
             </span>
           </Button>
         </div>

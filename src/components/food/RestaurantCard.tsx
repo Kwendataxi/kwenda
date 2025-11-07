@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import type { Restaurant } from '@/types/food';
+import { formatCurrency } from '@/lib/utils';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
@@ -11,9 +12,7 @@ interface RestaurantCardProps {
 }
 
 export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => {
-  const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} FC`;
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const handleClick = () => {
     // Haptic feedback
@@ -115,7 +114,7 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
               <p className="text-base font-bold text-primary dark:text-primary-glow">
                 {restaurant.minimum_order_amount 
                   ? formatPrice(restaurant.minimum_order_amount)
-                  : '5 000 FC'
+                  : formatCurrency(5000, 'CDF')
                 }
               </p>
             </div>

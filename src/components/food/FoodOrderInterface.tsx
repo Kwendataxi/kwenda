@@ -15,6 +15,7 @@ import confetti from 'canvas-confetti';
 import { AnimatePresence } from 'framer-motion';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatCurrency } from '@/lib/utils';
 
 type Step = 'restaurants' | 'menu' | 'checkout' | 'all-dishes' | 'all-restaurants';
 
@@ -101,7 +102,21 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         body: orderData
       });
 
-      if (error) throw error;
+      if (error) {
+        // Parse error pour afficher les détails du solde
+        const errorData = error.context?.body;
+        
+        if (errorData?.error === 'insufficient_funds') {
+          toast.error('Solde insuffisant', {
+            description: `Requis: ${formatCurrency(errorData.required, 'CDF')} | Disponible: ${formatCurrency(errorData.available, 'CDF')} (Bonus: ${formatCurrency(errorData.bonus, 'CDF')} | Principal: ${formatCurrency(errorData.main, 'CDF')})`
+          });
+        } else {
+          toast.error('Erreur de paiement', {
+            description: error.message || 'Veuillez réessayer'
+          });
+        }
+        throw error;
+      }
 
       toast.success(t('food.order_success'), {
         description: t('food.order_number', { number: data.order_number })

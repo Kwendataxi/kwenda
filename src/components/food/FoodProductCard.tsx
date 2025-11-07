@@ -5,6 +5,7 @@ import { Plus, Minus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { FoodProduct } from '@/types/food';
+import { formatCurrency } from '@/lib/utils';
 
 interface FoodProductCardProps {
   product: FoodProduct;
@@ -20,9 +21,7 @@ export const FoodProductCard = ({ product, cartQuantity, onAddToCart }: FoodProd
     setQuantity(1);
   };
 
-  const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} FC`;
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   return (
     <motion.div

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '@/hooks/useDebounce';
+import { formatCurrency } from '@/lib/utils';
 
 interface SearchResult {
   type: 'dish' | 'restaurant';
@@ -204,7 +205,7 @@ export const FoodSearchBar: React.FC<FoodSearchBarProps> = ({ city }) => {
                           </div>
                           {result.price && (
                             <div className="text-primary font-semibold whitespace-nowrap">
-                              {result.price.toLocaleString()} FC
+                              {formatCurrency(result.price, 'CDF')}
                             </div>
                           )}
                         </button>

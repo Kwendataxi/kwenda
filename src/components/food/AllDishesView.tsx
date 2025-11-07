@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAllDishes } from '@/hooks/useAllDishes';
 import { PaginationControls } from '@/components/common/PaginationControls';
 import type { FoodProduct } from '@/types/food';
+import { formatCurrency } from '@/lib/utils';
 
 interface AllDishesViewProps {
   city: string;
@@ -47,7 +48,7 @@ export const AllDishesView = ({ city, onBack, onAddToCart }: AllDishesViewProps)
     return () => clearTimeout(timeoutId);
   };
 
-  const formatPrice = (price: number) => `${price.toLocaleString()} FC`;
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const activeFiltersCount = 
     filters.categories.length +

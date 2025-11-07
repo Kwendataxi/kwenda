@@ -90,34 +90,94 @@ serve(async (req) => {
     if (orderData.payment_method === 'kwenda_pay') {
       const { data: wallet } = await supabase
         .from('user_wallets')
-        .select('balance, id')
+        .select('id, balance, bonus_balance')
         .eq('user_id', user.id)
         .single();
 
-      if (!wallet || wallet.balance < totalAmount) {
+      if (!wallet) {
+        return new Response(
+          JSON.stringify({ error: 'wallet_not_found', message: 'Portefeuille introuvable' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
+        );
+      }
+
+      const bonusBalance = Number(wallet.bonus_balance || 0);
+      const mainBalance = Number(wallet.balance || 0);
+      const totalAvailable = bonusBalance + mainBalance;
+
+      if (totalAvailable < totalAmount) {
         return new Response(
           JSON.stringify({ 
             error: 'insufficient_funds',
             message: 'Solde insuffisant',
             required: totalAmount,
-            available: wallet?.balance || 0
+            available: totalAvailable,
+            bonus: bonusBalance,
+            main: mainBalance
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
         );
       }
 
-      await supabase
-        .from('user_wallets')
-        .update({ balance: wallet.balance - totalAmount })
-        .eq('user_id', user.id);
+      // ✅ RÈGLE : Bonus utilisable UNIQUEMENT si couvre 100% du montant
+      let transactionType: string;
+      let transactionDescription: string;
 
+      if (bonusBalance >= totalAmount) {
+        // Payer avec bonus uniquement
+        await supabase
+          .from('user_wallets')
+          .update({ 
+            bonus_balance: bonusBalance - totalAmount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        transactionType = 'food_order_bonus';
+        transactionDescription = `Commande Food (BONUS) - ${restaurant.restaurant_name}`;
+
+        console.log(`💰 Paiement avec BONUS : ${totalAmount} CDF (reste bonus: ${bonusBalance - totalAmount})`);
+      } else {
+        // Payer avec solde principal
+        await supabase
+          .from('user_wallets')
+          .update({ 
+            balance: mainBalance - totalAmount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        transactionType = 'food_order';
+        transactionDescription = `Commande Food - ${restaurant.restaurant_name}`;
+
+        console.log(`💰 Paiement avec BALANCE : ${totalAmount} CDF (reste: ${mainBalance - totalAmount})`);
+      }
+
+      // Logger transaction
       await supabase.from('wallet_transactions').insert({
         wallet_id: wallet.id,
-        transaction_type: 'food_order',
+        transaction_type: transactionType,
         amount: -totalAmount,
         currency: 'CDF',
-        description: `Commande ${restaurant.restaurant_name}`,
-        status: 'completed'
+        description: transactionDescription,
+        status: 'completed',
+        metadata: {
+          order_type: 'food',
+          restaurant_id: orderData.restaurant_id,
+          restaurant_name: restaurant.restaurant_name,
+          paid_with: bonusBalance >= totalAmount ? 'bonus' : 'main_balance'
+        }
+      });
+
+      // Logger activity
+      await supabase.from('activity_logs').insert({
+        user_id: user.id,
+        activity_type: bonusBalance >= totalAmount ? 'bonus_payment' : 'wallet_payment',
+        description: transactionDescription,
+        amount: -totalAmount,
+        currency: 'CDF',
+        reference_type: 'food_order',
+        reference_id: orderData.restaurant_id
       });
     }
 

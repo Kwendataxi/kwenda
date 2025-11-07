@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Clock, Package, Truck, CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { formatCurrency } from '@/lib/utils';
 
 interface FoodOrderTrackingProps {
   orderId: string;
@@ -188,7 +189,7 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
             <div className="flex justify-between text-lg">
               <span className="font-bold">Total</span>
               <span className="font-bold text-orange-600">
-                {order.total_amount.toLocaleString()} FC
+                {formatCurrency(order.total_amount, 'CDF')}
               </span>
             </div>
           </CardContent>

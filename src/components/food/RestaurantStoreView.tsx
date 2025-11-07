@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRestaurantFollow } from '@/hooks/useRestaurantFollow';
 import { toast } from 'sonner';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
+import { formatCurrency } from '@/lib/utils';
 
 interface RestaurantStoreViewProps {
   restaurant: Restaurant;
@@ -374,7 +375,7 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
                 </div>
                 
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-primary">{totalAmount.toLocaleString()} FC</div>
+                  <div className="text-2xl font-bold text-primary">{formatCurrency(totalAmount, 'CDF')}</div>
                   <Button
                     size="sm"
                     onClick={() => document.getElementById('checkout-section')?.scrollIntoView({ behavior: 'smooth' })}

@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { FoodOrder, FoodOrderStatus } from '@/hooks/useFoodClientOrders';
+import { formatCurrency } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,9 +39,7 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
   const statusConfig = STATUS_CONFIG[order.status];
   const canCancel = ['pending', 'confirmed'].includes(order.status);
 
-  const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} FC`;
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   return (
     <motion.div
