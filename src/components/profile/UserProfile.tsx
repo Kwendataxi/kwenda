@@ -21,7 +21,7 @@ import { UserRatings } from './UserRatings';
 import { UserStatistics } from './UserStatistics';
 import { ActivityHistory } from './ActivityHistory';
 import { KwendaPayWallet } from '../wallet/KwendaPayWallet';
-import { ReferralPanel } from './ReferralPanel';
+// import { ReferralPanel } from './ReferralPanel'; // Supprimé - voir ReferralDashboard
 import { useOptimizedProfile } from '@/hooks/useOptimizedProfile';
 import { PromoCodePanel } from './PromoCodePanel';
 import { UserAddressesManager } from './UserAddressesManager';
@@ -289,7 +289,7 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
         case 'wallet':
           return <KwendaPayWallet />;
         case 'referral':
-          return <ReferralPanel open={true} onClose={() => setActiveOption(null)} />;
+          return <div className="p-6 text-center text-muted-foreground">Parrainage temporairement indisponible</div>;
         case 'promocode':
           return <PromoCodePanel open={true} onClose={() => {
             setActiveOption(null);

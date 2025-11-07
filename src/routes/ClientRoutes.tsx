@@ -23,7 +23,7 @@ const RentalVehicleDetails = lazy(() => import('@/pages/RentalVehicleDetails'));
 const ModernRentalBooking = lazy(() => import('@/components/rental/ModernRentalBooking'));
 const ClientRentalBookings = lazy(() => import('@/pages/rental/ClientRentalBookings'));
 const PartnerRentalStoreView = lazy(() => import('@/components/rental/PartnerRentalStoreView'));
-const ClientReferralPage = lazy(() => import('@/pages/ClientReferralPage'));
+// const ClientReferralPage = lazy(() => import('@/pages/ClientReferralPage')); // Supprimé
 const PromosPage = lazy(() => import('@/pages/PromosPage'));
 const MesAdresses = lazy(() => import('@/pages/address/MesAdresses'));
 const ClientVerifyEmail = lazy(() => import('@/pages/ClientVerifyEmail'));
@@ -192,14 +192,7 @@ export const ClientRoutes = () => {
 
       {/* Autres pages client */}
       <Route path="/mes-adresses" element={<MesAdresses />} />
-      <Route 
-        path="/referral" 
-        element={
-          <ProtectedRoute>
-            <ClientReferralPage />
-          </ProtectedRoute>
-        } 
-      />
+      {/* Route /referral temporairement désactivée */}
       <Route path="/promos" element={<PromosPage />} />
     </>
   );

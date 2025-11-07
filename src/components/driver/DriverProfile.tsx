@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DriverChallenges } from './DriverChallenges';
-import { DriverReferrals } from './DriverReferrals';
+import { ReferralDashboard } from './referral/ReferralDashboard';
 import { DriverTransactionHistory } from './DriverTransactionHistory';
 import { DriverProfileEditor } from './DriverProfileEditor';
 
@@ -407,7 +407,7 @@ export const DriverProfile = () => {
         </TabsContent>
 
         <TabsContent value="referrals">
-          <DriverReferrals />
+          <ReferralDashboard />
         </TabsContent>
       </Tabs>
 

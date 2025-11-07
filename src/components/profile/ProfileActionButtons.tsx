@@ -7,7 +7,7 @@ import { useVIPStatus } from '@/hooks/useVIPStatus';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationPanel } from '@/components/notifications/NotificationPanel';
 import NotificationBadge from '@/components/notifications/NotificationBadge';
-import { ReferralPanel } from './ReferralPanel';
+// import { ReferralPanel } from './ReferralPanel'; // Supprimé - voir ReferralDashboard
 import { PromoCodePanel } from './PromoCodePanel';
 
 
@@ -280,14 +280,11 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
         onClose={() => setShowNotifications(false)} 
       />
       
-      <ReferralPanel 
-        open={showReferral} 
-        onClose={() => setShowReferral(false)} 
-      />
+      {/* ReferralPanel temporairement désactivé - utiliser ReferralDashboard */}
       
       <PromoCodePanel 
         open={showPromoCode} 
-        onClose={() => setShowPromoCode(false)} 
+        onClose={() => setShowPromoCode(false)}
       />
       
     </div>

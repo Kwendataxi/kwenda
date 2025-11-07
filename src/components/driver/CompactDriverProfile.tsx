@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { DriverCodeManager } from './DriverCodeManager';
 import { DriverChallenges } from './DriverChallenges';
-import { DriverReferrals } from './DriverReferrals';
+import { ReferralDashboard } from './referral/ReferralDashboard';
 
 interface DriverProfile {
   id: string;
@@ -177,7 +177,7 @@ export const CompactDriverProfile = () => {
 
         <TabsContent value="referrals" className="mt-4">
           <div className="bg-card rounded-xl border border-border/50 p-4">
-            <DriverReferrals />
+            <ReferralDashboard />
           </div>
         </TabsContent>
       </Tabs>

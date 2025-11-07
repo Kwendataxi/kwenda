@@ -13,7 +13,7 @@ import { ConnectionIndicator, OptimizedImage, ProgressiveLoader, useDataCompress
 import CongoVehicleSelection from '@/components/transport/CongoVehicleSelection';
 import SimplifiedInterface from '@/components/ui/SimplifiedInterface';
 import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
-import { ReferralPanel } from '@/components/profile/ReferralPanel';
+// import { ReferralPanel } from '@/components/profile/ReferralPanel'; // Supprimé
 import NotificationCenter from '@/components/advanced/NotificationCenter';
 import SimpleTaxiBooking from '@/components/transport/SimpleTaxiBooking';
 import OfflineMode from '@/components/advanced/OfflineMode';

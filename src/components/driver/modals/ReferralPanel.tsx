@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Users, Share2, Copy, Check, Gift, QrCode, Info } from 'lucide-react';
-import { useReferrals } from '@/hooks/useReferrals';
+import { useReferralSystem } from '@/hooks/useReferralSystem';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -15,15 +15,15 @@ import { fr } from 'date-fns/locale';
 import { QRCodeDialog } from './QRCodeDialog';
 
 export const ReferralPanel: React.FC = () => {
-  const { referralCode, referrals, totalEarnings, isLoading } = useReferrals();
+  const { referralCode, referrals, stats, loading } = useReferralSystem();
   const { triggerHaptic, triggerSuccess } = useHapticFeedback();
   const [copied, setCopied] = React.useState(false);
   const [qrModalOpen, setQrModalOpen] = React.useState(false);
   const [showAll, setShowAll] = React.useState(false);
 
   const handleCopy = () => {
-    if (referralCode) {
-      navigator.clipboard.writeText(referralCode);
+    if (referralCode?.code) {
+      navigator.clipboard.writeText(referralCode.code);
       setCopied(true);
       triggerSuccess();
       toast.success('Code copié !');
@@ -32,13 +32,13 @@ export const ReferralPanel: React.FC = () => {
   };
 
   const handleShare = async () => {
-    if (!referralCode) return;
+    if (!referralCode?.code) return;
     triggerHaptic();
 
     const shareData = {
       title: 'Rejoignez Kwenda',
-      text: `Utilisez mon code de parrainage ${referralCode} et gagnez 500 CDF !`,
-      url: `https://kwenda.app/register?ref=${referralCode}`
+      text: `Utilisez mon code de parrainage ${referralCode.code} et gagnez 500 CDF !`,
+      url: `https://kwenda.app/register?ref=${referralCode.code}`
     };
 
     if (navigator.share) {
@@ -52,23 +52,23 @@ export const ReferralPanel: React.FC = () => {
     }
   };
 
-  const displayedReferrals = showAll ? referrals : referrals.slice(0, 3);
+  const displayedReferrals = showAll ? (referrals || []) : (referrals || []).slice(0, 3);
 
   return (
     <div className="space-y-4 p-4">
       {/* Code de parrainage compact */}
       <Card className="border-0 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
         <CardContent className="p-4">
-          {referralCode || isLoading ? (
+          {referralCode || loading ? (
             <>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1">
                   <p className="text-xs text-muted-foreground mb-1">Votre code</p>
                   <p className="text-2xl font-bold tracking-wider">
-                    {isLoading ? (
+                    {loading ? (
                       <span className="text-muted-foreground animate-pulse">•••••</span>
                     ) : (
-                      referralCode
+                      referralCode?.code
                     )}
                   </p>
                 </div>
@@ -109,12 +109,12 @@ export const ReferralPanel: React.FC = () => {
       {/* Stats inline */}
       <div className="flex gap-4 text-center">
         <div className="flex-1 py-3 px-4 rounded-lg bg-muted/50">
-          <p className="text-2xl font-bold">{referrals.length}</p>
+          <p className="text-2xl font-bold">{referrals?.length || 0}</p>
           <p className="text-xs text-muted-foreground">Filleuls</p>
         </div>
         <Separator orientation="vertical" className="h-auto" />
         <div className="flex-1 py-3 px-4 rounded-lg bg-muted/50">
-          <p className="text-2xl font-bold text-green-600">{totalEarnings.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-green-600">{stats.totalEarned.toLocaleString()}</p>
           <p className="text-xs text-muted-foreground">CDF gagnés</p>
         </div>
       </div>
@@ -128,18 +128,18 @@ export const ReferralPanel: React.FC = () => {
       </Alert>
 
       {/* Liste simplifiée */}
-      {referrals.length > 0 ? (
+      {(referrals?.length || 0) > 0 ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium">Derniers filleuls</h3>
-            {referrals.length > 3 && (
+            {(referrals?.length || 0) > 3 && (
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setShowAll(!showAll)}
                 className="h-7 text-xs"
               >
-                {showAll ? 'Voir moins' : `Voir tout (${referrals.length})`}
+                {showAll ? 'Voir moins' : `Voir tout (${referrals?.length})`}
               </Button>
             )}
           </div>
@@ -157,7 +157,7 @@ export const ReferralPanel: React.FC = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-medium">{referral.referee_name}</p>
+                    <p className="text-sm font-medium">{referral.referred_user?.full_name || 'Nouveau chauffeur'}</p>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(referral.created_at), 'dd MMM yyyy', { locale: fr })}
                     </p>
@@ -167,7 +167,7 @@ export const ReferralPanel: React.FC = () => {
                   variant={referral.status === 'completed' ? 'default' : 'secondary'}
                   className="font-semibold"
                 >
-                  {referral.reward_amount} CDF
+                  {referral.referrer_bonus_amount} CDF
                 </Badge>
               </div>
             ))}
@@ -187,11 +187,11 @@ export const ReferralPanel: React.FC = () => {
       )}
 
       {/* QR Code Modal */}
-      {referralCode && (
+      {referralCode?.code && (
         <QRCodeDialog 
           open={qrModalOpen}
           onOpenChange={setQrModalOpen}
-          referralCode={referralCode}
+          referralCode={referralCode.code}
         />
       )}
     </div>
