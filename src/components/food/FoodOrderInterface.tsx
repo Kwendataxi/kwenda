@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useRestaurants } from '@/hooks/useRestaurants';
+import { useRestaurantsQuery } from '@/hooks/useRestaurantsQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { RestaurantList } from './RestaurantList';
 import { RestaurantStoreView } from './RestaurantStoreView';
 import { FoodCheckout } from './FoodCheckout';
 import { KwendaFoodHeader } from './KwendaFoodHeader';
+import { RestaurantDebugPanel } from './RestaurantDebugPanel';
 import { toast } from 'sonner';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -24,11 +25,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [cart, setCart] = useState<FoodCartItem[]>([]);
   const [step, setStep] = useState<Step>('restaurants');
-  const { restaurants, loading, fetchRestaurants } = useRestaurants();
-
-  useEffect(() => {
-    fetchRestaurants(selectedCity);
-  }, [selectedCity]);
+  const { restaurants, loading, refetch } = useRestaurantsQuery(selectedCity);
 
   const handleSelectRestaurant = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
@@ -142,11 +139,15 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       {/* Content */}
       <div className="flex-1 overflow-auto">
         {step === 'restaurants' && (
-          <RestaurantList
-            restaurants={restaurants}
-            loading={loading}
-            onSelectRestaurant={handleSelectRestaurant}
-          />
+          <>
+            <RestaurantDebugPanel selectedCity={selectedCity} />
+            <RestaurantList
+              restaurants={restaurants}
+              loading={loading}
+              onSelectRestaurant={handleSelectRestaurant}
+              onForceRefresh={refetch}
+            />
+          </>
         )}
 
         {step === 'menu' && selectedRestaurant && (

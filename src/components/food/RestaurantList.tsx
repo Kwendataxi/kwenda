@@ -1,16 +1,19 @@
 import { RestaurantCard } from './RestaurantCard';
 import { RestaurantSlider } from './RestaurantSlider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RefreshCw } from 'lucide-react';
 import type { Restaurant } from '@/types/food';
 
 interface RestaurantListProps {
   restaurants: Restaurant[];
   loading: boolean;
   onSelectRestaurant: (restaurant: Restaurant) => void;
+  onForceRefresh?: () => void;
 }
 
-export const RestaurantList = ({ restaurants, loading, onSelectRestaurant }: RestaurantListProps) => {
+export const RestaurantList = ({ restaurants, loading, onSelectRestaurant, onForceRefresh }: RestaurantListProps) => {
   if (loading) {
     return (
       <div className="space-y-6">
@@ -33,6 +36,13 @@ export const RestaurantList = ({ restaurants, loading, onSelectRestaurant }: Res
         <div className="text-6xl mb-4">🍽️</div>
         <p className="text-muted-foreground text-lg font-semibold">Aucun restaurant disponible dans cette ville</p>
         <p className="text-sm text-muted-foreground mt-2">Revenez bientôt pour découvrir de nouveaux restaurants !</p>
+        
+        {onForceRefresh && (
+          <Button onClick={onForceRefresh} className="mt-4" variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Actualiser
+          </Button>
+        )}
       </div>
     );
   }

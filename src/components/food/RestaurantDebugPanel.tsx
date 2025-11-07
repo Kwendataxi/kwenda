@@ -1,180 +1,131 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Bug } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { RefreshCw, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface RestaurantDebugPanelProps {
-  city: string;
-  onRefresh: () => void;
+  selectedCity: string;
 }
 
-export const RestaurantDebugPanel: React.FC<RestaurantDebugPanelProps> = ({
-  city,
-  onRefresh
-}) => {
-  const [open, setOpen] = useState(false);
-  const [debugData, setDebugData] = useState<any>(null);
+interface DebugData {
+  restaurants: any[];
+  products: any[];
+}
+
+export const RestaurantDebugPanel = ({ selectedCity }: RestaurantDebugPanelProps) => {
+  const [debugData, setDebugData] = useState<DebugData | null>(null);
   const [loading, setLoading] = useState(false);
-
-  // Only show in development
-  if (import.meta.env.PROD) return null;
-
+  
   const fetchDebugData = async () => {
     setLoading(true);
     try {
-      // Fetch all restaurants
-      const { data: restaurants, error: restaurantsError } = await supabase
+      // Requête directe sans cache
+      const { data: restaurants, error: restError } = await supabase
         .from('restaurant_profiles')
-        .select('*')
-        .eq('city', city);
-
-      console.log('🐛 [Debug] Restaurants:', restaurants);
-
-      if (restaurantsError) throw restaurantsError;
-
-      // For each active restaurant, fetch products
-      const restaurantDetails = await Promise.all(
-        (restaurants || []).map(async (restaurant) => {
-          const { data: products } = await supabase
-            .from('food_products')
-            .select('*')
-            .eq('restaurant_id', restaurant.id);
-
-          return {
-            ...restaurant,
-            products: products || [],
-            approvedProducts: products?.filter(p => p.moderation_status === 'approved') || []
-          };
-        })
-      );
-
-      setDebugData({
-        city,
-        totalRestaurants: restaurants?.length || 0,
-        activeRestaurants: restaurants?.filter(r => r.is_active).length || 0,
-        restaurants: restaurantDetails
+        .select('id, restaurant_name, city, is_active, verification_status')
+        .eq('city', selectedCity.trim())
+        .eq('is_active', true);
+      
+      if (restError) throw restError;
+      
+      const { data: products, error: prodError } = await supabase
+        .from('food_products')
+        .select('id, name, restaurant_id, moderation_status, is_available')
+        .eq('moderation_status', 'approved')
+        .eq('is_available', true);
+      
+      if (prodError) throw prodError;
+      
+      setDebugData({ 
+        restaurants: restaurants || [], 
+        products: products || [] 
       });
     } catch (error) {
-      console.error('🐛 [Debug] Error:', error);
+      console.error('Debug fetch error:', error);
     } finally {
       setLoading(false);
     }
   };
-
+  
+  useEffect(() => {
+    fetchDebugData();
+  }, [selectedCity]);
+  
+  // Only show in development mode
+  if (!import.meta.env.DEV) return null;
+  
+  const totalProducts = debugData?.products?.length || 0;
+  const restaurantCount = debugData?.restaurants?.length || 0;
+  
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => {
-          setOpen(!open);
-          if (!open && !debugData) fetchDebugData();
-        }}
-        className="bg-yellow-500 hover:bg-yellow-600 text-black"
-      >
-        <Bug className="h-4 w-4 mr-2" />
-        Debug Panel
-      </Button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="absolute bottom-12 right-0 w-96 max-h-[600px] overflow-auto"
-          >
-            <Card className="shadow-2xl border-yellow-500">
-              <CardHeader className="bg-yellow-500 text-black">
-                <CardTitle className="flex items-center justify-between text-lg">
-                  <span>🐛 Debug: {city}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      fetchDebugData();
-                      onRefresh();
-                    }}
-                    disabled={loading}
-                  >
-                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 space-y-3">
-                {debugData && (
-                  <>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Total Restaurants</p>
-                        <p className="font-bold">{debugData.totalRestaurants}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Actifs</p>
-                        <p className="font-bold text-green-600">{debugData.activeRestaurants}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      {debugData.restaurants.map((restaurant: any) => (
-                        <Card key={restaurant.id} className="p-3">
-                          <div className="space-y-2">
-                            <div className="flex items-start justify-between">
-                              <p className="font-semibold text-sm">{restaurant.restaurant_name}</p>
-                              <div className="flex gap-1">
-                                <Badge variant={restaurant.is_active ? "default" : "secondary"} className="text-xs">
-                                  {restaurant.is_active ? '✓ Active' : '✗ Inactive'}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  {restaurant.verification_status}
-                                </Badge>
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-3 gap-2 text-xs">
-                              <div>
-                                <p className="text-muted-foreground">Produits</p>
-                                <p className="font-bold">{restaurant.products.length}</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Approuvés</p>
-                                <p className="font-bold text-green-600">{restaurant.approvedProducts.length}</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Disponibles</p>
-                                <p className="font-bold">
-                                  {restaurant.products.filter((p: any) => p.is_available).length}
-                                </p>
-                              </div>
-                            </div>
-
-                            {restaurant.approvedProducts.length > 0 && (
-                              <div className="text-xs space-y-1">
-                                <p className="text-muted-foreground">Produits approuvés:</p>
-                                {restaurant.approvedProducts.map((product: any) => (
-                                  <div key={product.id} className="flex justify-between">
-                                    <span>{product.name}</span>
-                                    <span className="text-muted-foreground">
-                                      {product.price.toLocaleString()} FC
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+    <Card className="m-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+          <h3 className="font-bold text-yellow-900 dark:text-yellow-200">🐛 Debug Panel</h3>
+        </div>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          onClick={fetchDebugData}
+          disabled={loading}
+          className="border-yellow-300 dark:border-yellow-700"
+        >
+          <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
+      
+      <div className="text-sm space-y-3 text-yellow-900 dark:text-yellow-100">
+        <div className="flex items-center gap-2">
+          <strong>Ville:</strong> 
+          <Badge variant="secondary">{selectedCity}</Badge>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-2 bg-white dark:bg-yellow-900/30 rounded border border-yellow-200 dark:border-yellow-800">
+            <div className="text-xs text-muted-foreground">Restaurants actifs</div>
+            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{restaurantCount}</div>
+          </div>
+          <div className="p-2 bg-white dark:bg-yellow-900/30 rounded border border-yellow-200 dark:border-yellow-800">
+            <div className="text-xs text-muted-foreground">Produits approuvés</div>
+            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{totalProducts}</div>
+          </div>
+        </div>
+        
+        {debugData && restaurantCount > 0 && (
+          <div className="space-y-2 mt-4">
+            <strong className="text-xs uppercase tracking-wide">Détails restaurants:</strong>
+            {debugData.restaurants.map((r) => {
+              const productCount = debugData.products.filter(p => p.restaurant_id === r.id).length;
+              return (
+                <div 
+                  key={r.id} 
+                  className="pl-3 py-2 border-l-2 border-yellow-400 dark:border-yellow-600 bg-white dark:bg-yellow-900/20 rounded-r"
+                >
+                  <div className="font-semibold">{r.restaurant_name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Ville: {r.city} | Status: {r.verification_status}
+                  </div>
+                  <div className="text-xs mt-1">
+                    <Badge variant={productCount > 0 ? "default" : "secondary"}>
+                      {productCount} produit{productCount > 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </AnimatePresence>
-    </div>
+        
+        {debugData && restaurantCount === 0 && (
+          <div className="text-center py-4 text-yellow-700 dark:text-yellow-300">
+            ⚠️ Aucun restaurant actif trouvé pour {selectedCity}
+          </div>
+        )}
+      </div>
+    </Card>
   );
 };
