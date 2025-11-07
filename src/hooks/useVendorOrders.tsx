@@ -164,8 +164,11 @@ export const useVendorOrders = () => {
         });
 
       if (escrowError) {
-        console.error('Erreur création escrow:', escrowError);
-        // Ne pas bloquer la confirmation si l'escrow échoue
+        console.error('⚠️ Erreur création escrow:', escrowError);
+        toast.error('Attention: La transaction escrow n\'a pas pu être créée. Contactez le support.');
+        // Ne pas bloquer la confirmation mais avertir
+      } else {
+        console.log('✅ Transaction escrow créée avec succès');
       }
 
       // ✅ PHASE 2.2: Notification au client

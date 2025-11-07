@@ -312,10 +312,24 @@ export const useMarketplaceOrders = () => {
 
   // Complete order (buyer confirms receipt)
   const completeOrder = async (orderId: string, rating?: number, feedback?: string) => {
-    return updateOrderStatus(orderId, 'completed', { 
-      customer_rating: rating,
-      customer_feedback: feedback 
-    });
+    try {
+      // Appeler la nouvelle Edge Function qui gère tout le processus
+      const { data, error } = await supabase.functions.invoke('complete-marketplace-order', {
+        body: { 
+          orderId, 
+          rating,
+          feedback 
+        }
+      });
+
+      if (error) throw error;
+
+      fetchOrders();
+      return data;
+    } catch (error) {
+      console.error('Error completing order:', error);
+      throw error;
+    }
   };
 
   // Cancel order

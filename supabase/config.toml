@@ -202,3 +202,9 @@ verify_jwt = true  # ✅ JWT requis pour notifications mode enchères
 
 [functions.process-marketplace-payment]
 verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: Traitement atomique paiements marketplace avec validation server-side
+
+[functions.complete-marketplace-order]
+verify_jwt = true  # ✅ PHASE 2: Finalisation commande marketplace avec libération automatique des fonds
+
+[functions.auto-release-escrow]
+verify_jwt = false  # ✅ PHASE 4: Libération automatique après 7 jours (appelé par CRON)

@@ -31,8 +31,7 @@ serve(async (req) => {
       .from('marketplace_orders')
       .select(`
         *,
-        marketplace_products!inner(seller_id, price),
-        escrow_payments(id, amount, status)
+        marketplace_products!inner(seller_id, price)
       `)
       .eq('id', orderId)
       .single();
@@ -46,27 +45,33 @@ serve(async (req) => {
       throw new Error('La commande doit être complétée avant de libérer les fonds');
     }
 
-    // Récupérer le paiement escrow
-    const escrowPayment = order.escrow_payments?.[0];
-    if (!escrowPayment || escrowPayment.status !== 'held') {
+    // Récupérer le paiement escrow depuis escrow_transactions
+    const { data: escrowTransaction, error: escrowError } = await supabaseClient
+      .from('escrow_transactions')
+      .select('*')
+      .eq('order_id', orderId)
+      .eq('status', 'held')
+      .single();
+
+    if (escrowError || !escrowTransaction) {
       throw new Error('Aucun paiement escrow en attente trouvé');
     }
 
-    // Calculer commission plateforme (5%)
-    const platformCommission = order.total_amount * 0.05;
-    const sellerAmount = order.total_amount - platformCommission;
+    // Utiliser les montants pré-calculés dans escrow_transactions
+    const platformCommission = escrowTransaction.platform_fee || (order.total_amount * 0.05);
+    const sellerAmount = escrowTransaction.seller_amount || (order.total_amount - platformCommission);
 
     // Mettre à jour le paiement escrow
-    const { error: escrowError } = await supabaseClient
-      .from('escrow_payments')
+    const { error: escrowUpdateError } = await supabaseClient
+      .from('escrow_transactions')
       .update({
         status: 'released',
         released_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      .eq('id', escrowPayment.id);
+      .eq('id', escrowTransaction.id);
 
-    if (escrowError) throw escrowError;
+    if (escrowUpdateError) throw escrowUpdateError;
 
     // Récupérer ou créer le wallet vendeur
     let { data: wallet } = await supabaseClient

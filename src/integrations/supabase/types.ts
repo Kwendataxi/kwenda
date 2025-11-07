@@ -3288,6 +3288,7 @@ export type Database = {
       }
       escrow_transactions: {
         Row: {
+          auto_release_at: string | null
           buyer_id: string
           completed_at: string | null
           created_at: string
@@ -3307,6 +3308,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_release_at?: string | null
           buyer_id: string
           completed_at?: string | null
           created_at?: string
@@ -3326,6 +3328,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_release_at?: string | null
           buyer_id?: string
           completed_at?: string | null
           created_at?: string
@@ -14772,6 +14775,15 @@ export type Database = {
           pending_amount: number
           total_earnings: number
           total_orders: number
+        }[]
+      }
+      get_vendor_escrow_stats: {
+        Args: { vendor_uuid: string }
+        Returns: {
+          auto_release_soon_count: number
+          pending_orders_count: number
+          total_held: number
+          total_released: number
         }[]
       }
       get_vendor_follower_count: {

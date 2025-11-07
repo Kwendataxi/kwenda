@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useVendorOrders } from '@/hooks/useVendorOrders';
 import { VendorOrderValidationPanel } from '@/components/marketplace/VendorOrderValidationPanel';
 import { VendorOrderManagementInterface } from '@/components/marketplace/VendorOrderManagementInterface';
+import { VendorEscrowSummary } from '@/components/vendor/VendorEscrowSummary';
 import { Package, CheckCircle, Clock, Truck, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -314,6 +315,9 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Résumé financier escrow */}
+      {totalOrders > 0 && <VendorEscrowSummary />}
+      
       {/* Export Button */}
       {totalOrders > 0 && (
         <div className="flex justify-end">

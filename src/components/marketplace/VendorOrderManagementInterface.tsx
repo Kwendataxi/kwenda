@@ -286,10 +286,15 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
           {order.status === 'delivered' && (
             <div className="text-center py-4 bg-green-500/10 rounded-lg">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
-              <p className="font-medium text-green-700">Livraison terminée</p>
+              <p className="font-medium text-green-700">✅ Livraison terminée !</p>
               <p className="text-sm text-muted-foreground mt-1">
-                En attente de confirmation du client pour libérer les fonds
+                Le client a 7 jours pour confirmer. Passé ce délai, les fonds seront automatiquement libérés.
               </p>
+              <div className="mt-3 p-3 bg-blue-500/10 rounded-lg">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  💡 <span className="font-medium">Astuce:</span> Vous serez notifié dès que le client confirme ou après 7 jours.
+                </p>
+              </div>
             </div>
           )}
         </div>
