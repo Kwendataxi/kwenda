@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Save, ArrowLeft, Store, MapPin } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SUPPORTED_CITIES } from '@/constants/cities';
+import { RestaurantImageSettings } from '@/components/restaurant/RestaurantImageSettings';
 
 interface RestaurantProfile {
   id: string;
@@ -34,7 +35,6 @@ export default function RestaurantProfile() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<RestaurantProfile | null>(null);
 
   useEffect(() => {
@@ -109,50 +109,6 @@ export default function RestaurantProfile() {
     }
   };
 
-  const handleImageUpload = async (file: File, type: 'logo' | 'banner') => {
-    if (!profile) return;
-
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${profile.id}_${type}.${fileExt}`;
-      const filePath = `${profile.user_id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('restaurant-images')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('restaurant-images')
-        .getPublicUrl(filePath);
-
-      const updateField = type === 'logo' ? 'logo_url' : 'banner_url';
-      const { error: updateError } = await supabase
-        .from('restaurant_profiles')
-        .update({ [updateField]: publicUrl })
-        .eq('id', profile.id);
-
-      if (updateError) throw updateError;
-
-      setProfile({ ...profile, [updateField]: publicUrl });
-
-      toast({
-        title: '✅ Image uploadée',
-        description: `${type === 'logo' ? 'Logo' : 'Bannière'} mise à jour avec succès`,
-      });
-    } catch (error: any) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -277,63 +233,7 @@ export default function RestaurantProfile() {
         </Card>
 
         {/* Section Images */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Images du restaurant</CardTitle>
-            <CardDescription>
-              Logo (carré 200x200) et bannière (16:9, 1200x400)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Logo */}
-            <div className="space-y-3">
-              <Label>Logo du restaurant</Label>
-              <div className="flex items-center gap-4">
-                {profile.logo_url && (
-                  <img
-                    src={profile.logo_url}
-                    alt="Logo"
-                    className="w-20 h-20 object-cover rounded-lg border"
-                  />
-                )}
-                <div className="flex-1">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageUpload(file, 'logo');
-                    }}
-                    disabled={uploading}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Bannière */}
-            <div className="space-y-3">
-              <Label>Bannière du restaurant</Label>
-              <div className="space-y-3">
-                {profile.banner_url && (
-                  <img
-                    src={profile.banner_url}
-                    alt="Bannière"
-                    className="w-full h-32 object-cover rounded-lg border"
-                  />
-                )}
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleImageUpload(file, 'banner');
-                  }}
-                  disabled={uploading}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <RestaurantImageSettings onImageUpdate={loadProfile} />
 
         {/* Section Livraison */}
         <Card>
@@ -363,7 +263,7 @@ export default function RestaurantProfile() {
         <div className="flex gap-4">
           <Button
             onClick={handleSave}
-            disabled={saving || uploading}
+            disabled={saving}
             className="flex-1"
             size="lg"
           >
