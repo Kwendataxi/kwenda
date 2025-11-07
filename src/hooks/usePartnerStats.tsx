@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-interface PartnerStats {
+export interface PartnerStats {
   activeDrivers: number;
   ongoingRides: number;
   todayRevenue: number;
@@ -25,13 +25,18 @@ export const usePartnerStats = () => {
     completedRides: 0,
     pendingRides: 0,
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   const fetchStats = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
+      setError(null);
 
       // Get partner drivers
       const { data: partnerDrivers, error: driversError } = await supabase
@@ -157,6 +162,7 @@ export const usePartnerStats = () => {
 
     } catch (error) {
       console.error('Error fetching partner stats:', error);
+      setError(error as Error);
     } finally {
       setLoading(false);
     }
@@ -175,6 +181,7 @@ export const usePartnerStats = () => {
   return {
     stats,
     loading,
+    error,
     refreshStats: fetchStats
   };
 };

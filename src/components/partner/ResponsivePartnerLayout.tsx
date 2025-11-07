@@ -5,10 +5,11 @@ import { MobilePartnerTabs } from './MobilePartnerTabs';
 import { PartnerKPIGrid } from './PartnerKPIGrid';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import PartnerHeader from './PartnerHeader';
+import type { PartnerStats } from '@/hooks/usePartnerStats';
 
 interface ResponsivePartnerLayoutProps {
   children: React.ReactNode;
-  stats: any;
+  stats: PartnerStats;
   currentView: 'dashboard' | 'vehicles' | 'drivers' | 'deliveries' | 'subscription-earnings' | 'subscriptions' | 'analytics' | 'notifications' | 'profile';
   onViewChange: (view: string) => void;
   title?: string;

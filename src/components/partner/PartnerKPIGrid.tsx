@@ -12,38 +12,51 @@ interface PartnerKPIGridProps {
 export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
   const isMobile = useIsMobile();
 
+  // 🛡️ Protection contre stats null/undefined
+  if (!stats) {
+    return (
+      <div className="p-4">
+        <Card className="card-floating border-0 p-6 animate-pulse">
+          <CardContent className="text-center">
+            <p className="text-muted-foreground">Chargement des statistiques...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const kpiItems = [
     {
       icon: Users,
       label: "Chauffeurs actifs",
-      value: stats.activeDrivers || 0,
+      value: stats?.activeDrivers || 0,
       suffix: "",
       color: "bg-accent",
-      badge: { text: stats.activeDrivers > 0 ? "Actifs" : "Aucun", icon: Activity, class: stats.activeDrivers > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
+      badge: { text: (stats?.activeDrivers || 0) > 0 ? "Actifs" : "Aucun", icon: Activity, class: (stats?.activeDrivers || 0) > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
     },
     {
       icon: Car,
       label: "Courses en cours",
-      value: stats.ongoingRides || 0,
+      value: stats?.ongoingRides || 0,
       suffix: "",
       color: "bg-primary",
-      badge: { text: stats.ongoingRides > 0 ? "En cours" : "Aucune", icon: stats.ongoingRides > 0 ? TrendingUp : Clock, class: stats.ongoingRides > 0 ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-600" }
+      badge: { text: (stats?.ongoingRides || 0) > 0 ? "En cours" : "Aucune", icon: (stats?.ongoingRides || 0) > 0 ? TrendingUp : Clock, class: (stats?.ongoingRides || 0) > 0 ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-600" }
     },
     {
       icon: DollarSign,
       label: "Commissions gagnées",
-      value: Math.round(stats.totalCommissions || 0).toLocaleString(),
+      value: Math.round(stats?.totalCommissions || 0).toLocaleString(),
       suffix: " CDF",
       color: "bg-secondary",
-      badge: { text: stats.totalCommissions > 0 ? "Gains réels" : "Aucun", icon: DollarSign, class: stats.totalCommissions > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
+      badge: { text: (stats?.totalCommissions || 0) > 0 ? "Gains réels" : "Aucun", icon: DollarSign, class: (stats?.totalCommissions || 0) > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
     },
     {
       icon: Wallet,
       label: "Montant rechargé",
-      value: Math.round(stats.totalTopups || 0).toLocaleString(),
+      value: Math.round(stats?.totalTopups || 0).toLocaleString(),
       suffix: " CDF",
       color: "bg-orange-500",
-      badge: { text: stats.totalTopups > 0 ? "Investissement" : "Aucun", icon: Wallet, class: stats.totalTopups > 0 ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-600" }
+      badge: { text: (stats?.totalTopups || 0) > 0 ? "Investissement" : "Aucun", icon: Wallet, class: (stats?.totalTopups || 0) > 0 ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-600" }
     },
   ];
 
@@ -87,19 +100,19 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
             <div className={isMobile ? 'text-center' : ''}>
               <p className="text-body-sm text-muted-foreground">Véhicules disponibles</p>
               <p className="text-heading-md font-bold text-card-foreground">
-                {`${stats.availableVehicles || 0} / ${stats.totalFleet || 0}`}
+                {`${stats?.availableVehicles || 0} / ${stats?.totalFleet || 0}`}
               </p>
             </div>
             <div className={`${isMobile ? 'text-center' : 'text-right'}`}>
               <p className="text-body-sm text-muted-foreground">Taux d'utilisation</p>
               <p className="text-heading-md font-bold text-primary">
-                {stats.totalFleet > 0 ? Math.round(((stats.totalFleet - stats.availableVehicles) / stats.totalFleet) * 100) : 0}%
+                {(stats?.totalFleet || 0) > 0 ? Math.round((((stats?.totalFleet || 0) - (stats?.availableVehicles || 0)) / (stats?.totalFleet || 0)) * 100) : 0}%
               </p>
             </div>
           </div>
           
           <Progress 
-            value={stats.totalFleet > 0 ? ((stats.totalFleet - stats.availableVehicles) / stats.totalFleet) * 100 : 0} 
+            value={(stats?.totalFleet || 0) > 0 ? (((stats?.totalFleet || 0) - (stats?.availableVehicles || 0)) / (stats?.totalFleet || 0)) * 100 : 0} 
             className="h-2"
           />
         </CardContent>
