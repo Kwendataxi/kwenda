@@ -30,7 +30,7 @@ const ProgrammePartenaire = lazy(() => import('@/pages/partner/ProgrammePartenai
 const CarteCouverture = lazy(() => import('@/pages/locations/CarteCouverture'));
 const UnifiedTracking = lazy(() => import('@/pages/UnifiedTracking'));
 const VendorShop = lazy(() => import('@/pages/VendorShop'));
-const RestaurantPublicPage = lazy(() => import('@/pages/RestaurantPublicPage'));
+const RestaurantPublicPage = lazy(() => import('@/pages/PublicRestaurantPage'));
 
 // Test pages
 const AuthSystemTest = lazy(() => import('@/pages/test/AuthSystemTest'));

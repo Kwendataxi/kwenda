@@ -16,7 +16,6 @@ export const useRestaurants = () => {
         .select('*')
         .eq('city', city)
         .eq('is_active', true)
-        .eq('verification_status', 'approved')
         .order('rating_average', { ascending: false });
       
       console.log('🍽️ Restaurants data:', { data, error, count: data?.length });
