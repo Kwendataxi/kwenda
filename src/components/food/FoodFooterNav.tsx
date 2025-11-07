@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Search, ShoppingBag, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 interface NavItem {
   id: string;
@@ -20,9 +21,16 @@ const NAV_ITEMS: NavItem[] = [
 export const FoodFooterNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const scrollDirection = useScrollDirection();
+  const isHidden = scrollDirection === 'down';
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-40 md:hidden safe-area-inset-bottom">
+    <motion.footer
+      initial={{ y: 0 }}
+      animate={{ y: isHidden ? 100 : 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-40 md:hidden safe-area-inset-bottom"
+    >
       <nav className="flex justify-around items-center h-16 px-2">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -51,6 +59,6 @@ export const FoodFooterNav: React.FC = () => {
           );
         })}
       </nav>
-    </footer>
+    </motion.footer>
   );
 };

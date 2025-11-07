@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { RestaurantCard } from './RestaurantCard';
 import { RestaurantSlider } from './RestaurantSlider';
-import { FoodPromoBanner } from './FoodPromoBanner';
+import { ModernFoodPromoBanner } from './ModernFoodPromoBanner';
 import { PopularDishesSection } from './PopularDishesSection';
 import { CategoryIconsSection } from './CategoryIconsSection';
 import { Skeleton } from '@/components/ui/skeleton';
+import { motion, useInView } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw } from 'lucide-react';
@@ -20,6 +21,44 @@ interface RestaurantListProps {
   onViewAllDishes?: () => void;
   onViewAllRestaurants?: () => void;
 }
+
+// Animation variants pour apparition progressive
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring' as const, stiffness: 100, damping: 15 }
+  }
+};
+
+// Composant wrapper pour sections avec parallax
+const SectionWithParallax = ({ children }: { children: React.ReactNode }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ y: 50, opacity: 0 }}
+      animate={isInView ? { y: 0, opacity: 1 } : {}}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 export const RestaurantList = ({ 
   restaurants, 
@@ -77,54 +116,71 @@ export const RestaurantList = ({
     : restaurants;
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6">
-      {/* 1. Promo Banner avec slide accueil */}
-      <FoodPromoBanner />
+    <motion.div 
+      className="space-y-6 pb-24 md:pb-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* 1. Promo Banner moderne avec animations */}
+      <motion.div variants={itemVariants}>
+        <ModernFoodPromoBanner />
+      </motion.div>
 
       {/* 2. Catégories avec icônes */}
-      <CategoryIconsSection 
-        activeCategory={categoryFilter}
-        onCategorySelect={setCategoryFilter}
-      />
+      <motion.div variants={itemVariants}>
+        <CategoryIconsSection 
+          activeCategory={categoryFilter}
+          onCategorySelect={setCategoryFilter}
+        />
+      </motion.div>
 
       {/* 3. Popular Dishes Section */}
       {onAddToCart && (
-        <PopularDishesSection 
-          city={selectedCity}
-          onAddToCart={onAddToCart}
-          onViewAll={onViewAllDishes}
-        />
+        <SectionWithParallax>
+          <PopularDishesSection 
+            city={selectedCity}
+            onAddToCart={onAddToCart}
+            onViewAll={onViewAllDishes}
+          />
+        </SectionWithParallax>
       )}
 
       {/* 4. New Restaurants */}
-      <RestaurantSlider
-        restaurants={newRestaurants}
-        loading={false}
-        onSelectRestaurant={onSelectRestaurant}
-        title="🆕 Nouveautés"
-        onViewAll={onViewAllRestaurants}
-      />
+      <SectionWithParallax>
+        <RestaurantSlider
+          restaurants={newRestaurants}
+          loading={false}
+          onSelectRestaurant={onSelectRestaurant}
+          title="🆕 Nouveautés"
+          onViewAll={onViewAllRestaurants}
+        />
+      </SectionWithParallax>
 
       {/* 5. Fast Delivery (< 30 min) */}
       {fastDelivery.length > 0 && (
-        <RestaurantSlider
-          restaurants={fastDelivery}
-          loading={false}
-          onSelectRestaurant={onSelectRestaurant}
-          title="⏱️ Livrés en -30 min"
-          onViewAll={onViewAllRestaurants}
-        />
+        <SectionWithParallax>
+          <RestaurantSlider
+            restaurants={fastDelivery}
+            loading={false}
+            onSelectRestaurant={onSelectRestaurant}
+            title="⏱️ Livrés en -30 min"
+            onViewAll={onViewAllRestaurants}
+          />
+        </SectionWithParallax>
       )}
 
       {/* 6. Top Rated Restaurants */}
       {topRated.length > 0 && (
-        <RestaurantSlider
-          restaurants={topRated}
-          loading={false}
-          onSelectRestaurant={onSelectRestaurant}
-          title="⭐ Top Resto"
-          onViewAll={onViewAllRestaurants}
-        />
+        <SectionWithParallax>
+          <RestaurantSlider
+            restaurants={topRated}
+            loading={false}
+            onSelectRestaurant={onSelectRestaurant}
+            title="⭐ Top Resto"
+            onViewAll={onViewAllRestaurants}
+          />
+        </SectionWithParallax>
       )}
 
       {/* 7. Restaurants by Category (tabs - option avancée) */}
@@ -200,6 +256,6 @@ export const RestaurantList = ({
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

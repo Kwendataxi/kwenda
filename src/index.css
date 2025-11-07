@@ -39,6 +39,11 @@ All colors MUST be HSL.
     font-family: 'Montserrat', sans-serif;
   }
 
+  /* Smooth scroll global pour toute l'app */
+  html {
+    scroll-behavior: smooth;
+  }
+
   :root {
     /* Kwenda Taxi Congo Design System - Couleurs Congo vibrantes */
     

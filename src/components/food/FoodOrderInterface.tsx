@@ -9,6 +9,7 @@ import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { AllDishesView } from './AllDishesView';
 import { AllRestaurantsView } from './AllRestaurantsView';
 import { FoodFooterNav } from './FoodFooterNav';
+import { BackToHomeButton } from './BackToHomeButton';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { AnimatePresence } from 'framer-motion';
@@ -215,6 +216,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       </div>
 
       <FoodFooterNav />
+      <BackToHomeButton />
     </div>
   );
 };

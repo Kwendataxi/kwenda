@@ -15,15 +15,23 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
     return `${price.toLocaleString()} FC`;
   };
 
+  const handleClick = () => {
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+    onClick();
+  };
+
   return (
     <motion.div
-      whileHover={{ y: -4, scale: 1.01 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 300 }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
       <Card 
-        className="overflow-hidden border border-border/50 hover:border-border transition-all duration-300 cursor-pointer bg-card hover:shadow-food-hover"
-        onClick={onClick}
+        className="overflow-hidden border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer bg-card hover:shadow-2xl hover:shadow-primary/20"
+        onClick={handleClick}
       >
         {/* Image avec overlay gradient */}
         <div className="relative h-44 overflow-hidden group">
