@@ -46,12 +46,12 @@ export const CategoryIconsSection: React.FC<CategoryIconsSectionProps> = ({
               whileTap={{ scale: 0.95 }}
               className={`flex flex-col items-center gap-1.5 min-w-[70px] p-3 rounded-2xl transition-all ${
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                  ? 'bg-primary dark:bg-primary/90 text-primary-foreground shadow-lg scale-105 border-2 border-primary-glow'
+                  : 'bg-muted dark:bg-muted/80 text-muted-foreground dark:text-muted-foreground/90 hover:bg-muted/80 dark:hover:bg-muted border-2 border-transparent'
               }`}
             >
-              <div className="text-3xl">{category.icon}</div>
-              <span className="text-xs font-medium whitespace-nowrap">
+              <div className="text-3xl filter drop-shadow-md">{category.icon}</div>
+              <span className={`text-xs font-medium whitespace-nowrap ${isActive ? 'text-white dark:text-white' : 'text-foreground/80 dark:text-foreground/85'}`}>
                 {category.name}
               </span>
             </motion.button>

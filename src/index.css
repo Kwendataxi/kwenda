@@ -163,40 +163,31 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 10% 7%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 240 10% 10%;
     --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 7%;
+    --popover: 240 10% 12%;
     --popover-foreground: 0 0% 98%;
-
-    /* Primary: Rouge Congo vibrant en dark */
-    --primary: 357 85% 60%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 357 85% 70%;
-    --primary-light: 357 85% 75%;
-
-    /* Secondary: Or Congo en dark */
-    --secondary: 42 90% 60%;
-    --secondary-foreground: 220 25% 5%;
-    --secondary-light: 42 90% 70%;
-
-    --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 64.9%;
-
-    /* Accent: Or Congo adapté pour dark */
-    --accent: 42 90% 60%;
-    --accent-foreground: 220 25% 5%;
-    --accent-light: 42 90% 70%;
-
+    --primary: 22.38 91.89% 55.1%;
+    --primary-foreground: 210 40% 98%;
+    --primary-glow: 22.38 91.89% 65%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 8% 20%;
+    --muted-foreground: 240 5% 75%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 357 79% 64%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 240 8% 20%;
+    --input: 240 8% 20%;
+    --ring: 22.38 91.89% 55.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 

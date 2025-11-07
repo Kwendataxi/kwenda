@@ -104,9 +104,9 @@ export default function FoodExplore() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-primary/5 dark:from-primary/10 to-background dark:to-background pb-24">
       {/* Header with Search */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/98 dark:bg-background/95 backdrop-blur-md border-b border-border/60 dark:border-border/80 shadow-sm dark:shadow-lg">
         <div className="container max-w-2xl mx-auto px-4 py-4 space-y-4">
           <div className="flex items-center gap-3">
             <Button
@@ -128,7 +128,7 @@ export default function FoodExplore() {
                 placeholder="Rechercher un restaurant ou un plat..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10"
+                className="pl-10 pr-10 bg-background dark:bg-card border-border/60 dark:border-border/80 text-foreground dark:text-foreground/95 placeholder:text-muted-foreground/60 dark:placeholder:text-muted-foreground/80"
               />
               {searchQuery && (
                 <Button
@@ -152,7 +152,7 @@ export default function FoodExplore() {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
+              <SheetContent side="bottom" className="h-[80vh] overflow-y-auto bg-card dark:bg-card/98 border-t-2 border-border/60 dark:border-border/80">
                 <SheetHeader>
                   <SheetTitle>Filtres</SheetTitle>
                   <SheetDescription>

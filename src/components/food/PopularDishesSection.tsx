@@ -71,9 +71,9 @@ export const PopularDishesSection = ({ city, onAddToCart, onViewAll }: PopularDi
             transition={{ delay: index * 0.05, duration: 0.3 }}
             className="flex-shrink-0 w-36"
           >
-            <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-food-card hover:shadow-food-hover transition-all duration-300">
+            <div className="bg-card dark:bg-card/98 border-2 border-border/50 dark:border-border/80 rounded-xl overflow-hidden shadow-md dark:shadow-xl dark:shadow-primary/10 hover:shadow-lg dark:hover:shadow-primary/20 hover:border-primary/50 dark:hover:border-primary/70 transition-all cursor-pointer h-full flex flex-col">
               {/* Image du plat */}
-              <div className="relative h-24 bg-muted">
+              <div className="relative h-28 bg-muted dark:bg-muted/80">
                 {dish.main_image_url ? (
                   <img
                     src={dish.main_image_url}
@@ -82,7 +82,7 @@ export const PopularDishesSection = ({ city, onAddToCart, onViewAll }: PopularDi
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl">
+                  <div className="w-full h-full flex items-center justify-center text-4xl filter drop-shadow-md">
                     🍽️
                   </div>
                 )}
@@ -90,7 +90,7 @@ export const PopularDishesSection = ({ city, onAddToCart, onViewAll }: PopularDi
                 {/* Badge promo si pertinent */}
                 {index < 3 && (
                   <div className="absolute top-2 left-2">
-                    <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-semibold">
+                    <span className="text-xs bg-orange-500 dark:bg-orange-600 text-white px-2 py-0.5 rounded-full font-semibold shadow-md">
                       Top
                     </span>
                   </div>
@@ -99,17 +99,17 @@ export const PopularDishesSection = ({ city, onAddToCart, onViewAll }: PopularDi
 
               {/* Infos du plat */}
               <div className="p-3 space-y-2">
-                <h3 className="font-semibold text-sm text-foreground line-clamp-2 leading-tight">
+                <h3 className="font-semibold text-sm text-foreground dark:text-foreground/95 line-clamp-2 leading-tight">
                   {dish.name}
                 </h3>
 
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-bold text-primary">
+                    <p className="text-base font-bold text-primary dark:text-primary-glow">
                       {formatPrice(dish.price)}
                     </p>
                     {dish.restaurant_name && (
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground/90 truncate">
                         @{dish.restaurant_name}
                       </p>
                     )}

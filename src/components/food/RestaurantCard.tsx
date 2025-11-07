@@ -30,7 +30,7 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
       <Card 
-        className="overflow-hidden border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer bg-card hover:shadow-2xl hover:shadow-primary/20"
+        className="overflow-hidden border-2 border-border/40 dark:border-border/80 hover:border-primary/30 dark:hover:border-primary/50 transition-all duration-300 cursor-pointer bg-card dark:bg-card/95 hover:shadow-2xl hover:shadow-primary/20 dark:hover:shadow-primary/30 shadow-lg dark:shadow-2xl dark:shadow-primary/20"
         onClick={handleClick}
       >
         {/* Image avec overlay gradient */}
@@ -54,7 +54,7 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <Badge className="bg-warning text-warning-foreground shadow-lg border-0 font-semibold">
+                <Badge className="bg-warning/95 dark:bg-warning text-warning-foreground dark:text-black shadow-lg border-2 border-white/50 backdrop-blur-sm font-semibold">
                   ⭐ Top
                 </Badge>
               </motion.div>
@@ -64,7 +64,7 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <Badge className="bg-success text-success-foreground shadow-lg border-0 font-semibold">
+                <Badge className="bg-success/95 dark:bg-success text-success-foreground dark:text-black shadow-lg border-2 border-white/50 backdrop-blur-sm font-semibold">
                   🚀 Rapide
                 </Badge>
               </motion.div>
@@ -75,8 +75,8 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
-                <h3 className="text-2xl font-bold mb-1.5 truncate text-white drop-shadow-lg">{restaurant.restaurant_name}</h3>
-                <div className="flex items-center gap-2 text-base text-white/95 drop-shadow-md">
+                <h3 className="text-2xl font-bold mb-1.5 truncate text-white dark:text-white drop-shadow-lg">{restaurant.restaurant_name}</h3>
+                <div className="flex items-center gap-2 text-base text-white/95 dark:text-white drop-shadow-md">
                   <span className="flex items-center gap-1 font-semibold">
                     <Star className="w-4 h-4 fill-warning text-warning" />
                     {restaurant.rating_average?.toFixed(1) || '4.0'}
@@ -108,11 +108,11 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
         </div>
         
         {/* Prix minimum & CTA */}
-        <div className="p-4 bg-card">
+        <div className="p-4 bg-card dark:bg-card/95">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Commande minimum</p>
-              <p className="text-base font-bold text-primary">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground/90">Commande minimum</p>
+              <p className="text-base font-bold text-primary dark:text-primary-glow">
                 {restaurant.minimum_order_amount 
                   ? formatPrice(restaurant.minimum_order_amount)
                   : '5 000 FC'

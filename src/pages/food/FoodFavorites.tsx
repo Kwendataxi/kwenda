@@ -68,9 +68,9 @@ export default function FoodFavorites() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-primary/5 dark:from-primary/10 to-background dark:to-background pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/98 dark:bg-background/95 backdrop-blur-md border-b border-border/60 dark:border-border/80 shadow-sm dark:shadow-lg">
         <div className="container max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-4">
             <Button
@@ -122,7 +122,7 @@ export default function FoodFavorites() {
                     transition={{ duration: 0.2 }}
                   >
                     <Card 
-                      className="overflow-hidden border border-border/50 hover:border-border transition-all cursor-pointer"
+                      className="overflow-hidden border-2 border-border/50 dark:border-border/80 hover:border-primary/50 dark:hover:border-primary/70 transition-all cursor-pointer bg-card dark:bg-card/95 shadow-md dark:shadow-xl dark:shadow-primary/10"
                       onClick={() => navigate(`/food?restaurant=${restaurant.id}`)}
                     >
                       <div className="flex gap-4 p-4">
@@ -193,7 +193,7 @@ export default function FoodFavorites() {
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Card className="overflow-hidden border border-border/50 hover:border-border transition-all">
+                    <Card className="overflow-hidden border-2 border-border/50 dark:border-border/80 hover:border-primary/50 dark:hover:border-primary/70 transition-all bg-card dark:bg-card/95 shadow-md dark:shadow-xl dark:shadow-primary/10">
                       <div className="flex gap-4 p-4">
                         {/* Image */}
                         <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">

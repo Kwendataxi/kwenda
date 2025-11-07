@@ -48,9 +48,9 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-hidden border border-border/50 hover:border-border transition-all">
+      <Card className="overflow-hidden border-2 border-border/50 dark:border-border/80 hover:border-border transition-all bg-card dark:bg-card/98 shadow-lg dark:shadow-2xl dark:shadow-primary/10 hover:shadow-xl dark:hover:shadow-primary/20">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 border-b border-border/50">
+        <div className="bg-gradient-to-r from-primary/10 to-secondary/10 dark:from-primary/20 dark:to-secondary/20 p-4 border-b-2 border-border/50 dark:border-border/80">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               {order.restaurant_logo && (
@@ -68,7 +68,7 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
               </div>
             </div>
             
-            <Badge className={`${statusConfig.color} text-white border-0 font-semibold`}>
+            <Badge className={`${statusConfig.color} dark:${statusConfig.color} text-white shadow-md font-semibold px-3 py-1`}>
               {statusConfig.icon} {statusConfig.label}
             </Badge>
           </div>
@@ -101,27 +101,27 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
         </div>
 
         {/* Delivery Info */}
-        <div className="p-4 bg-muted/30 space-y-2 text-sm">
-          <div className="flex items-start gap-2 text-muted-foreground">
+        <div className="p-4 bg-muted/30 dark:bg-muted/50 space-y-2 text-sm">
+          <div className="flex items-start gap-2 text-muted-foreground dark:text-muted-foreground/90">
             <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <p className="flex-1">{order.delivery_address}</p>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-muted-foreground/90">
             <Phone className="w-4 h-4" />
             <p>{order.delivery_phone}</p>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-muted-foreground/90">
             <Clock className="w-4 h-4" />
             <p>{format(new Date(order.created_at), 'PPp', { locale: fr })}</p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-card border-t border-border/50">
+        <div className="p-4 bg-card dark:bg-card/95 border-t-2 border-border/50 dark:border-border/80">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-sm text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold text-primary">
+              <p className="text-2xl font-bold text-primary dark:text-primary-glow">
                 {formatPrice(order.total_amount + order.delivery_fee)}
               </p>
             </div>

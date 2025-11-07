@@ -148,3 +148,61 @@
 .dark .popover-content {
   @apply bg-card/95 border-border/60 backdrop-blur-xl text-foreground/95;
 }
+
+/* Kwenda Food - Dark Mode Enhancements */
+.food-card-modern {
+  @apply bg-card dark:bg-card/95 border-2 border-border/50 dark:border-border/80;
+  @apply shadow-md dark:shadow-xl dark:shadow-primary/10;
+  @apply hover:border-primary/50 dark:hover:border-primary/70;
+  @apply transition-all duration-300;
+}
+
+.food-text-primary {
+  @apply text-foreground dark:text-foreground/95;
+}
+
+.food-text-secondary {
+  @apply text-muted-foreground dark:text-muted-foreground/90;
+}
+
+.food-price {
+  @apply text-primary dark:text-primary-glow font-bold;
+}
+
+.food-badge {
+  @apply shadow-md backdrop-blur-sm border-2 border-white/50;
+}
+
+.food-section-bg {
+  @apply bg-gradient-to-b from-primary/5 dark:from-primary/10 to-background dark:to-background;
+}
+
+.food-header-sticky {
+  @apply sticky top-0 z-10 bg-background dark:bg-background backdrop-blur-md;
+  @apply border-b border-border/60 dark:border-border/80 shadow-sm dark:shadow-lg;
+}
+
+.food-input {
+  @apply bg-background dark:bg-card;
+  @apply border-border/60 dark:border-border/80;
+  @apply text-foreground dark:text-foreground/95;
+  @apply placeholder:text-muted-foreground/60 dark:placeholder:text-muted-foreground/80;
+}
+
+/* Enhanced skeleton for food components */
+.dark .food-skeleton {
+  @apply bg-muted/80;
+}
+
+.dark .food-skeleton-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+}
+
+/* Category pills improvements */
+.dark .category-pill-active {
+  @apply bg-primary/90 border-2 border-primary-glow;
+}
+
+.dark .category-pill-inactive {
+  @apply bg-muted/80 text-muted-foreground/90 border-2 border-transparent;
+}
