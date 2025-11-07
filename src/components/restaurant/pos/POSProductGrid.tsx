@@ -71,29 +71,32 @@ export const POSProductGrid = ({ restaurantId, onAddToCart }: POSProductGridProp
       </div>
 
       {/* Product Grid - Responsive optimisé */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
         {filteredProducts.map(product => (
           <Card
             key={product.id}
-            className="cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+            className="cursor-pointer hover:shadow-xl hover:scale-[1.03] transition-all duration-200 group"
             onClick={() => onAddToCart(product)}
           >
             <CardContent className="p-3">
               {product.main_image_url ? (
-                <img
-                  src={product.main_image_url}
-                  alt={product.name}
-                  className="w-full h-24 sm:h-28 md:h-32 object-cover rounded-lg mb-2"
-                />
+                <div className="relative overflow-hidden rounded-lg mb-2">
+                  <img
+                    src={product.main_image_url}
+                    alt={product.name}
+                    className="w-full h-24 sm:h-28 md:h-32 object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               ) : (
-                <div className="w-full h-24 sm:h-28 md:h-32 bg-muted rounded-lg mb-2 flex items-center justify-center">
+                <div className="w-full h-24 sm:h-28 md:h-32 bg-gradient-to-br from-muted to-muted/50 rounded-lg mb-2 flex items-center justify-center">
                   <Package className="h-12 w-12 text-muted-foreground" />
                 </div>
               )}
-              <h3 className="font-semibold text-sm mb-1 line-clamp-1">{product.name}</h3>
-              <p className="text-xs text-muted-foreground mb-2">{product.category}</p>
+              <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
+              <p className="text-xs text-muted-foreground mb-2 line-clamp-1">{product.category}</p>
               <div className="flex items-center justify-between">
-                <span className="font-bold text-lg text-primary">
+                <span className="font-bold text-base md:text-lg text-primary">
                   {product.price.toLocaleString()} FC
                 </span>
               </div>

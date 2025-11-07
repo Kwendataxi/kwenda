@@ -102,13 +102,13 @@ export default function RestaurantApp() {
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header - Fixe en haut */}
-      <header className="flex-shrink-0">
+      <header className="flex-shrink-0 border-b">
         <UniversalAppHeader title="Restaurant Kwenda" />
       </header>
       
       {/* Contenu scrollable - Prend tout l'espace restant */}
-      <main className="flex-1 overflow-y-auto smooth-scroll">
-        <div className="container mx-auto p-4 md:p-6">
+      <main className="flex-1 overflow-y-auto smooth-scroll pb-20 md:pb-0">
+        <div className="container mx-auto p-4 md:p-6 max-w-7xl">
           {renderContent()}
         </div>
       </main>
