@@ -59,32 +59,51 @@ export default function YangoBottomSheet({
 
   // Notifier hauteur au montage
   useEffect(() => {
-    onSheetPositionChange?.(500);
+    onSheetPositionChange?.(420);
   }, [onSheetPositionChange]);
+
+  // Bloquer le scroll du body quand le drawer est ouvert
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
 
   return (
     <Drawer 
       open={true} 
-      dismissible={true}
-      snapPoints={[0.3, 0.6, 0.85]}
-      activeSnapPoint={0.6}
+      dismissible={false}
+      modal={false}
+      snapPoints={[0.35, 0.65, 0.9]}
+      activeSnapPoint={bookingStep === 'vehicle' ? 0.65 : 0.9}
+      fadeFromIndex={2}
+      handleOnly={false}
     >
-      <DrawerContent className="max-h-[75vh]">
-        {/* Handle bar interactif */}
-        <div className="flex items-center justify-center py-2">
-          <div className="w-16 h-1.5 bg-muted rounded-full" />
-        </div>
-        
-        {/* Indicateur de drag */}
-        <div className="absolute top-2 right-4 text-xs text-muted-foreground">
-          Glissez pour ajuster
+      <DrawerContent className="max-h-[85vh] border-t-4 border-muted/20">
+        {/* Handle bar VISIBLE et tactile */}
+        <div className="flex items-center justify-center py-3 cursor-grab active:cursor-grabbing">
+          <div className="w-12 h-1.5 bg-gradient-to-r from-muted/40 via-muted to-muted/40 rounded-full shadow-sm" />
         </div>
 
         {/* Contenu scrollable */}
-        <div className="px-5 pb-6 overflow-y-auto font-montserrat" style={{ maxHeight: 'calc(75vh - 64px)' }}>
+        <div 
+          className="px-5 pb-safe-area-inset-bottom overflow-y-auto font-montserrat overscroll-contain"
+          style={{ 
+            maxHeight: 'calc(85vh - 60px)',
+            scrollBehavior: 'smooth',
+            WebkitOverflowScrolling: 'touch'
+          }}
+        >
         {/* ÉTAPE 1 : Sélection du véhicule */}
         {bookingStep === 'vehicle' && (
-          <div className="space-y-5">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="space-y-5"
+          >
             {/* Cartes véhicules verticales style Yango */}
             <YangoVerticalVehicleCards
               distance={distance}
@@ -107,8 +126,8 @@ export default function YangoBottomSheet({
 
             {/* Bouton Continuer rouge style Yango */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => {
                 onContinue?.();
                 triggerHaptic('medium');
@@ -116,14 +135,21 @@ export default function YangoBottomSheet({
               disabled={!selectedVehicle}
               className={cn(
                 "w-full py-4 rounded-2xl font-montserrat font-bold text-base",
-                "bg-gradient-to-r from-congo-red to-congo-red-electric shadow-lg",
-                "hover:shadow-xl transition-all duration-300",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "flex items-center justify-center gap-2 text-white"
+                "bg-gradient-to-r from-congo-red to-congo-red-electric shadow-xl",
+                "hover:shadow-2xl hover:from-congo-red-electric hover:to-congo-red",
+                "transition-all duration-300 transform",
+                "disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-95",
+                "flex items-center justify-center gap-2 text-white",
+                "active:shadow-inner"
               )}
             >
               Continuer
-              <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
+              <motion.div
+                animate={{ x: [0, 4, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+              >
+                <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
+              </motion.div>
             </motion.button>
 
             {/* Carte Réserver pour quelqu'un d'autre */}
@@ -167,7 +193,7 @@ export default function YangoBottomSheet({
                 )}
               </motion.div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* ÉTAPE 2 : Sélection de la destination */}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import OptimizedMapView from './map/OptimizedMapView';
 import PickupLocationCard from './PickupLocationCard';
 import PickupLocationDialog from './PickupLocationDialog';
@@ -9,6 +10,7 @@ import PriceConfirmationModal from './PriceConfirmationModal';
 import DriverSearchProgressModal from './DriverSearchProgressModal';
 import BeneficiarySelector from './BeneficiarySelector';
 import { NearbyDriversIndicator } from '@/components/maps/NearbyDriversIndicator';
+import { FloatingHomeButton } from '@/components/driver/FloatingHomeButton';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { useRideDispatch } from '@/hooks/useRideDispatch';
 import { useLiveDrivers } from '@/hooks/useLiveDrivers';
@@ -37,7 +39,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [calculatingRoute, setCalculatingRoute] = useState(false);
   const [manualPosition, setManualPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [persistedUserLocation, setPersistedUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [bottomSheetHeight, setBottomSheetHeight] = useState(450);
+  const [bottomSheetHeight, setBottomSheetHeight] = useState(420);
   
   // États pour réservation pour autrui
   const [isForSomeoneElse, setIsForSomeoneElse] = useState(false);
@@ -335,6 +337,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
   return (
     <div className="relative h-screen bg-background">
+      {/* Bouton retour accueil - toujours visible */}
+      <FloatingHomeButton 
+        onClick={() => window.location.href = '/'}
+        serviceType="taxi"
+        variant="circle"
+      />
+
       {/* Carte plein écran optimisée */}
       <OptimizedMapView
         pickup={pickupLocation}
