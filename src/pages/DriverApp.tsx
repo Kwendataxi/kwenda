@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDriverServiceInfo } from '@/hooks/useDriverServiceInfo';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
+import { useTabScrollReset } from '@/hooks/useTabScrollReset';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import { TaxiDriverDashboard } from '@/components/driver/taxi/TaxiDriverDashboard';
 import { DeliveryDriverDashboard } from '@/components/driver/delivery/DeliveryDriverDashboard';
@@ -28,6 +29,12 @@ const DriverApp = () => {
 
   // 🔔 Activer les notifications système temps réel
   useSystemNotifications();
+
+  // ✅ Scroll automatique au changement d'onglet
+  useTabScrollReset(tab, { 
+    behavior: 'smooth',
+    delay: 50 
+  });
 
   // Sécurité : Vérifier que l'utilisateur est un chauffeur
   const { user } = useAuth();

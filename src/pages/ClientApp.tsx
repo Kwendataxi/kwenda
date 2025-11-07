@@ -97,6 +97,7 @@ import { useViewTransition } from '@/hooks/useViewTransition';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
+import { useTabScrollReset } from '@/hooks/useTabScrollReset';
 import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
 import { useLotteryTickets } from '@/hooks/useLotteryTickets';
 import { UnifiedActivityScreen } from '@/components/activity/UnifiedActivityScreen';
@@ -148,6 +149,18 @@ const ClientApp = () => {
   
   // Bottom navigation state
   const [activeTab, setActiveTab] = useState('home');
+  
+  // ✅ Scroll automatique au changement d'onglet
+  useTabScrollReset(activeTab, { 
+    behavior: 'smooth',
+    delay: 50
+  });
+
+  // ✅ Scroll aussi au changement de vue (service, profil, etc.)
+  useTabScrollReset(currentView, { 
+    behavior: 'smooth',
+    delay: 50
+  });
   
   // Wallet top-up modal control
   const [shouldOpenWalletTopUp, setShouldOpenWalletTopUp] = useState(false);

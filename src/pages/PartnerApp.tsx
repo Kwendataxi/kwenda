@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTabScrollReset } from '@/hooks/useTabScrollReset';
 import { ModernPartnerHeader } from '@/components/partner/navigation/ModernPartnerHeader';
 import { PartnerBottomNav, PartnerNavTab } from '@/components/partner/navigation/PartnerBottomNav';
 import { PartnerDesktopNav } from '@/components/partner/navigation/PartnerDesktopNav';
@@ -25,6 +26,12 @@ const PartnerApp = () => {
   const [loading, setLoading] = useState(true);
   
   const { stats, loading: statsLoading } = usePartnerStats();
+
+  // ✅ Scroll automatique au changement d'onglet
+  useTabScrollReset(activeTab, { 
+    behavior: 'smooth',
+    delay: 50
+  });
 
   // Fetch partner profile
   useEffect(() => {
