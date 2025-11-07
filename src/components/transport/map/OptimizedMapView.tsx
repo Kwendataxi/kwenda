@@ -186,13 +186,11 @@ const OptimizedMapView = React.memo(({
       
       
       {/* Contrôles carte - Toujours visible */}
-      {isMapReady && (
-        <KwendaMapControls
-          onLocate={handleLocate}
-          isLocating={isLocating}
-          bottomSheetHeight={bottomSheetHeight}
-        />
-      )}
+      <KwendaMapControls
+        onLocate={handleLocate}
+        isLocating={isLocating}
+        bottomSheetHeight={bottomSheetHeight}
+      />
     </div>
   );
 });
