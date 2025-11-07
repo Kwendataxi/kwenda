@@ -75,11 +75,11 @@ export const useRideBidding = ({ bookingId, estimatedPrice, enabled = false }: U
 
     try {
       const { data: offersData, error } = await supabase
-        .from('ride_offers')
+        .from('ride_offers' as any)
         .select('*')
         .eq('booking_id', bookingId)
         .in('status', ['pending', 'accepted'])
-        .order('offered_price', { ascending: true });
+        .order('offered_price', { ascending: true }) as any;
 
       if (error) throw error;
 
@@ -109,14 +109,14 @@ export const useRideBidding = ({ bookingId, estimatedPrice, enabled = false }: U
           return acc;
         }, {} as Record<string, number>) || {};
 
-        const offersWithDrivers = offersData.map(offer => {
-          const driverProfile = driversData?.find(d => d.user_id === offer.driver_id);
-          const profile = profilesData?.find(p => p.id === offer.driver_id);
+        const offersWithDrivers = offersData.map((offer: any) => {
+          const driverProfile = (driversData as any)?.find((d: any) => d.user_id === offer.driver_id);
+          const profile = (profilesData as any)?.find((p: any) => p.id === offer.driver_id);
           
           return {
             ...offer,
             driver: driverProfile ? {
-              display_name: (profile as any)?.display_name || 'Chauffeur',
+              display_name: profile?.display_name || 'Chauffeur',
               rating_average: driverProfile.rating_average || 0,
               vehicle_model: driverProfile.vehicle_model,
               vehicle_plate_number: driverProfile.vehicle_plate,
@@ -163,7 +163,7 @@ export const useRideBidding = ({ bookingId, estimatedPrice, enabled = false }: U
             .from('profiles' as any)
             .select('display_name')
             .eq('id', newOffer.driver_id)
-            .single();
+            .maybeSingle();
 
           // Compter courses complétées
           const { count } = await supabase
