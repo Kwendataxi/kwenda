@@ -10,9 +10,10 @@ import { VehicleCard } from './shared/VehicleCard';
 import { PerformanceStats } from './shared/PerformanceStats';
 import { DocumentsSection } from './shared/DocumentsSection';
 import { SubscriptionCard } from './shared/SubscriptionCard';
+import { DeliveryServiceToggle } from '../delivery/DeliveryServiceToggle';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Wallet, Percent, LogOut, Shield, Package } from 'lucide-react';
+import { MapPin, Wallet, Percent, LogOut, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const DeliveryDriverProfile = () => {
@@ -96,47 +97,8 @@ export const DeliveryDriverProfile = () => {
         serviceType="delivery"
       />
 
-      {/* Types de service activés */}
-      <Card className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Package className="w-5 h-5 text-green-500" />
-          <h3 className="font-semibold text-foreground">Services activés</h3>
-        </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-red-500/10 rounded-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">⚡</span>
-              <div>
-                <p className="font-medium text-foreground">Flash</p>
-                <p className="text-xs text-muted-foreground">Livraison express</p>
-              </div>
-            </div>
-            <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">Actif</span>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">📦</span>
-              <div>
-                <p className="font-medium text-foreground">Flex</p>
-                <p className="text-xs text-muted-foreground">Livraison standard</p>
-              </div>
-            </div>
-            <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">Actif</span>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-purple-500/10 rounded-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🚚</span>
-              <div>
-                <p className="font-medium text-foreground">Maxicharge</p>
-                <p className="text-xs text-muted-foreground">Gros colis</p>
-              </div>
-            </div>
-            <span className="text-xs bg-gray-400 text-white px-2 py-1 rounded-full">Inactif</span>
-          </div>
-        </div>
-      </Card>
+      {/* Services de livraison - Fonctionnel */}
+      <DeliveryServiceToggle />
 
       {/* Documents */}
       <DocumentsSection serviceType="delivery" />
@@ -180,7 +142,7 @@ export const DeliveryDriverProfile = () => {
         <Button 
           variant="outline" 
           className="w-full justify-start gap-3"
-          onClick={() => {/* TODO: Codes promo */}}
+          onClick={() => navigate('/app/chauffeur?tab=profile&section=referral')}
         >
           <Percent className="w-5 h-5" />
           Codes promo livreur

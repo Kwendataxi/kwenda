@@ -7909,6 +7909,54 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_codes: {
+        Row: {
+          bonus_per_referral: number | null
+          code: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          referred_bonus: number | null
+          service_type: string
+          successful_referrals: number | null
+          total_earnings: number | null
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          bonus_per_referral?: number | null
+          code: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          referred_bonus?: number | null
+          service_type: string
+          successful_referrals?: number | null
+          total_earnings?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          bonus_per_referral?: number | null
+          code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          referred_bonus?: number | null
+          service_type?: string
+          successful_referrals?: number | null
+          total_earnings?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       referral_rewards: {
         Row: {
           created_at: string
@@ -7991,6 +8039,65 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      referral_tracking: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          referral_code_id: string
+          referred_bonus_amount: number | null
+          referred_bonus_paid: boolean | null
+          referred_completed_rides: number | null
+          referred_id: string
+          referrer_bonus_amount: number | null
+          referrer_bonus_paid: boolean | null
+          referrer_id: string
+          status: string
+          validation_threshold: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          referral_code_id: string
+          referred_bonus_amount?: number | null
+          referred_bonus_paid?: boolean | null
+          referred_completed_rides?: number | null
+          referred_id: string
+          referrer_bonus_amount?: number | null
+          referrer_bonus_paid?: boolean | null
+          referrer_id: string
+          status?: string
+          validation_threshold?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          referral_code_id?: string
+          referred_bonus_amount?: number | null
+          referred_bonus_paid?: boolean | null
+          referred_completed_rides?: number | null
+          referred_id?: string
+          referrer_bonus_amount?: number | null
+          referrer_bonus_paid?: boolean | null
+          referrer_id?: string
+          status?: string
+          validation_threshold?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_tracking_referral_code_id_fkey"
+            columns: ["referral_code_id"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referrals: {
         Row: {
@@ -14063,6 +14170,10 @@ export type Database = {
       }
       generate_driver_code: { Args: never; Returns: string }
       generate_driver_code_secure: { Args: never; Returns: string }
+      generate_driver_referral_code: {
+        Args: { p_service_type: string; p_user_id: string }
+        Returns: string
+      }
       generate_food_order_number: { Args: never; Returns: string }
       generate_lottery_ticket_number: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
@@ -15310,6 +15421,10 @@ export type Database = {
       upsert_push_token: {
         Args: { p_platform: string; p_token: string; p_user_id: string }
         Returns: undefined
+      }
+      use_referral_code: {
+        Args: { p_code: string; p_referred_id: string }
+        Returns: Json
       }
       user_exists: { Args: { user_id_param: string }; Returns: boolean }
       validate_and_fix_delivery_coordinates: { Args: never; Returns: number }
