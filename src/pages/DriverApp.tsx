@@ -5,10 +5,11 @@ import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import { TaxiDriverDashboard } from '@/components/driver/taxi/TaxiDriverDashboard';
 import { DeliveryDriverDashboard } from '@/components/driver/delivery/DeliveryDriverDashboard';
-import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
+import { ModernDriverWallet } from '@/components/driver/wallet/ModernDriverWallet';
+import { TaxiDriverProfile } from '@/components/driver/profiles/TaxiDriverProfile';
+import { DeliveryDriverProfile } from '@/components/driver/profiles/DeliveryDriverProfile';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { SubscriptionPlans } from '@/components/driver/SubscriptionPlans';
-import { DriverProfilePage } from '@/components/driver/DriverProfilePage';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
@@ -62,10 +63,18 @@ const DriverApp = () => {
           {tab === 'orders' && renderServiceInterface()}
           
           {/* Autres onglets communs */}
-          {tab === 'earnings' && <div className="responsive-padding"><DriverWalletPanel /></div>}
+          {tab === 'earnings' && (
+            <div className="responsive-padding">
+              <ModernDriverWallet serviceType={serviceType === 'unknown' ? 'taxi' : serviceType} />
+            </div>
+          )}
           {tab === 'subscription' && <div className="responsive-padding"><SubscriptionPlans /></div>}
           {tab === 'challenges' && <div className="responsive-padding"><DriverChallenges /></div>}
-          {tab === 'profile' && <div className="responsive-padding"><DriverProfilePage /></div>}
+          {tab === 'profile' && (
+            <div className="responsive-padding">
+              {serviceType === 'delivery' ? <DeliveryDriverProfile /> : <TaxiDriverProfile />}
+            </div>
+          )}
         </main>
 
         <UniversalBottomNavigation 
