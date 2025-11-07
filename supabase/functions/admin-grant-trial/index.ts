@@ -1,3 +1,4 @@
+// Version: 2025-11-07T12:00:00Z - Admin functions deployment
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
