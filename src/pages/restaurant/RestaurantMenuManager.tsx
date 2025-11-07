@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 import { ProductImageUpload } from '@/components/restaurant/ProductImageUpload';
+import { RestaurantLayout } from '@/components/restaurant/RestaurantLayout';
 
 const CATEGORIES = ['Entrées', 'Plats', 'Desserts', 'Boissons'];
 
@@ -236,8 +237,9 @@ export default function RestaurantMenuManager() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <RestaurantLayout>
+      <div className="container mx-auto px-4">
+        <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Gestion du Menu</h1>
@@ -407,7 +409,8 @@ export default function RestaurantMenuManager() {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
-    </div>
+    </RestaurantLayout>
   );
 }

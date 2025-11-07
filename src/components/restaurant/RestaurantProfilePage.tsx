@@ -14,6 +14,7 @@ import { RestaurantSettings } from './RestaurantSettings';
 import { ImageOnboardingBanner } from './ImageOnboardingBanner';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState as useStateForProfile } from 'react';
+import { RestaurantLayout } from './RestaurantLayout';
 
 export function RestaurantProfilePage() {
   const navigate = useNavigate();
@@ -117,8 +118,9 @@ export function RestaurantProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <RestaurantLayout>
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto space-y-6">
         <RestaurantProfileHeader />
         
         {/* Banner d'onboarding pour les nouveaux restaurants */}
@@ -218,6 +220,7 @@ export function RestaurantProfilePage() {
           <RestaurantSettings />
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </RestaurantLayout>
   );
 }

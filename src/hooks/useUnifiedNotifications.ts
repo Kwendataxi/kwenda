@@ -35,7 +35,7 @@ const TABLE_MAPPING: Record<UserType, string> = {
   'vendor': 'vendor_product_notifications',
   'driver': 'delivery_driver_alerts',
   'client': 'delivery_notifications',
-  'restaurant': 'delivery_notifications',
+  'restaurant': 'food_notifications',
   'partner': 'delivery_notifications'
 };
 
@@ -43,7 +43,8 @@ const FIELD_MAPPING: Record<string, { isRead: string; userId: string }> = {
   'admin_notifications': { isRead: 'is_read', userId: 'none' },
   'vendor_product_notifications': { isRead: 'is_read', userId: 'vendor_id' },
   'delivery_driver_alerts': { isRead: 'seen_at', userId: 'driver_id' },
-  'delivery_notifications': { isRead: 'read', userId: 'user_id' }
+  'delivery_notifications': { isRead: 'read', userId: 'user_id' },
+  'food_notifications': { isRead: 'is_read', userId: 'restaurant_id' }
 };
 
 export const useUnifiedNotifications = (userType: UserType) => {

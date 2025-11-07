@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, DollarSign, ShoppingBag, Star, Clock } from 'lucide-react';
 import { RevenueChart, TopDishesChart } from '@/components/restaurant/analytics/RevenueChart';
 import { motion } from 'framer-motion';
+import { RestaurantLayout } from '@/components/restaurant/RestaurantLayout';
 
 interface AnalyticsData {
   totalOrders: number;
@@ -202,8 +203,9 @@ export default function ModernRestaurantAnalytics() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <RestaurantLayout>
+      <div className="container mx-auto px-4 space-y-6">
+        {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -300,6 +302,7 @@ export default function ModernRestaurantAnalytics() {
           </CardContent>
         </Card>
       </motion.div>
-    </div>
+      </div>
+    </RestaurantLayout>
   );
 }

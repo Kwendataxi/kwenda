@@ -41,7 +41,6 @@ import { ThemeNotification } from "@/components/theme/ThemeNotification";
 import { useOrderCleanup } from "@/hooks/useOrderCleanup";
 import { DebugHelper } from "@/utils/debugHelper";
 import { useServiceRealtime } from "./hooks/useServiceRealtime";
-import { FloatingNotificationButton } from "@/components/notifications/FloatingNotificationButton";
 
 // Critical imports
 import Index from "./pages/Index";
@@ -140,7 +139,6 @@ const AppContent = () => {
                       </OnboardingRedirect>
                     </BrowserRouter>
                   </PerformanceOptimizer>
-                  <FloatingNotificationButton />
                   <OfflineIndicator />
                   <ClickTracker />
                 </DynamicTheme>

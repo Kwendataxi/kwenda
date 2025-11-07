@@ -9,6 +9,7 @@ import { Loader2, LayoutGrid, List } from 'lucide-react';
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { OrderKanbanBoard } from '@/components/restaurant/orders/OrderKanbanBoard';
 import { motion } from 'framer-motion';
+import { RestaurantLayout } from '@/components/restaurant/RestaurantLayout';
 
 export default function ModernRestaurantOrders() {
   const navigate = useNavigate();
@@ -118,8 +119,9 @@ export default function ModernRestaurantOrders() {
   const completedOrders = orders.filter(o => ['delivered', 'cancelled'].includes(o.status));
 
   return (
-    <div className="space-y-6">
-      {/* Header avec gradient */}
+    <RestaurantLayout>
+      <div className="container mx-auto px-4 space-y-6">
+        {/* Header avec gradient */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -235,6 +237,7 @@ export default function ModernRestaurantOrders() {
           ))}
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </RestaurantLayout>
   );
 }

@@ -14,6 +14,7 @@ import { RestaurantShareButtons } from '@/components/food/RestaurantShareButtons
 import { RestaurantWalletCard } from '@/components/restaurant/RestaurantWalletCard';
 import { useRestaurantWallet } from '@/hooks/useRestaurantWallet';
 import { motion } from 'framer-motion';
+import { RestaurantLayout } from '@/components/restaurant/RestaurantLayout';
 
 interface RestaurantStats {
   todayOrders: number;
@@ -189,8 +190,9 @@ export default function ModernRestaurantDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header avec gradient */}
+    <RestaurantLayout>
+      <div className="container mx-auto px-4 space-y-6">
+        {/* Header avec gradient */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -481,6 +483,7 @@ export default function ModernRestaurantDashboard() {
           </CardContent>
         </Card>
       </motion.div>
-    </div>
+      </div>
+    </RestaurantLayout>
   );
 }
