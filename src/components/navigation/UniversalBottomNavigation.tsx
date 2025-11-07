@@ -30,6 +30,8 @@ interface UniversalBottomNavigationProps {
   onMoreAction?: () => void;
   badges?: Partial<Record<UniversalTabType, number>>;
   className?: string;
+  variant?: 'default' | 'enhanced';
+  showLabels?: boolean;
 }
 
 const navigationConfigs = {
@@ -76,7 +78,9 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
   onTabChange,
   onMoreAction,
   badges = {},
-  className
+  className,
+  variant = 'default',
+  showLabels = true
 }) => {
   const config = navigationConfigs[userType];
   
@@ -88,29 +92,52 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
     onTabChange(tab);
   };
 
-  const getItemClasses = (isActive: boolean) =>
-    cn(
+  const getItemClasses = (isActive: boolean) => {
+    if (variant === 'enhanced') {
+      return cn(
+        'relative flex-1 flex flex-col items-center justify-center gap-2',
+        'py-3 px-2 transition-all duration-300',
+        'rounded-2xl cursor-pointer min-touch-target touch-manipulation',
+        isActive && 'bg-primary/10',
+        !isActive && 'hover:bg-accent/30'
+      );
+    }
+    
+    return cn(
       'flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl transition-all duration-200',
       'min-touch-target touch-manipulation',
       isActive 
         ? 'text-primary bg-primary/10 scale-105' 
         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
     );
+  };
 
   return (
     <nav className={cn(
       'fixed bottom-0 left-0 right-0 z-[100]',
+      variant === 'enhanced' && 'pb-6',
       className
     )}>
-      <div className="mx-auto max-w-screen-sm px-4 pb-[env(safe-area-inset-bottom)]">
+      <div className={cn(
+        'mx-auto max-w-screen-sm px-4 pb-[env(safe-area-inset-bottom)]',
+        variant === 'enhanced' && 'px-6'
+      )}>
         <motion.div 
-          className="bg-background/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lg grid transition-all duration-300"
+          className={cn(
+            'grid transition-all duration-300',
+            variant === 'default' && 'bg-background/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lg',
+            variant === 'enhanced' && 'bg-background/98 backdrop-blur-2xl border-2 border-primary/20 rounded-3xl shadow-2xl p-1'
+          )}
           style={{ gridTemplateColumns: `repeat(${config.length}, minmax(0, 1fr))` }}
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          transition={{ 
+            type: 'spring', 
+            stiffness: variant === 'enhanced' ? 260 : 300, 
+            damping: variant === 'enhanced' ? 20 : 25 
+          }}
         >
-          {config.map((item) => {
+          {config.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             const badge = badges[item.id];
@@ -121,28 +148,69 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
                 className={getItemClasses(isActive)}
                 onClick={() => handleTabPress(item.id, item.isMore)}
                 aria-label={item.label}
-                whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.02 }}
+                initial={variant === 'enhanced' ? { opacity: 0, y: 20 } : undefined}
+                animate={variant === 'enhanced' ? { opacity: 1, y: 0 } : undefined}
+                transition={variant === 'enhanced' ? { delay: index * 0.1 } : undefined}
+                whileTap={{ scale: 0.9 }}
+                whileHover={variant === 'enhanced' ? { scale: 1.1, rotate: 3 } : { scale: 1.02 }}
               >
+                {/* Indicateur actif en haut (enhanced only) */}
+                {variant === 'enhanced' && isActive && (
+                  <motion.div 
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-full"
+                    layoutId={`activeIndicator-${userType}`}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  />
+                )}
+
                 <div className="relative">
-                  <Icon className="h-5 w-5" />
+                  <Icon className={cn(
+                    'transition-colors duration-200',
+                    variant === 'default' && 'h-5 w-5',
+                    variant === 'enhanced' && 'h-6 w-6',
+                    isActive && 'text-primary',
+                    !isActive && 'text-muted-foreground'
+                  )} />
+                  
+                  {/* Effet de brillance pour icône active (enhanced only) */}
+                  {variant === 'enhanced' && isActive && (
+                    <motion.div 
+                      className="absolute inset-0 bg-primary/20 rounded-full blur-lg -z-10"
+                      animate={{ 
+                        scale: [1, 1.2, 1], 
+                        opacity: [0.5, 0.8, 0.5] 
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                  )}
+                  
                   {badge && badge > 0 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs flex items-center justify-center min-w-4 bg-primary text-primary-foreground border-0"
+                    <motion.div
+                      className="absolute -top-2 -right-2"
+                      animate={variant === 'enhanced' ? { scale: [1, 1.2, 1] } : undefined}
+                      transition={variant === 'enhanced' ? { duration: 2, repeat: Infinity } : undefined}
                     >
-                      {badge > 99 ? '99+' : badge}
-                    </Badge>
+                      <Badge 
+                        variant="destructive" 
+                        className="h-4 w-4 p-0 text-xs flex items-center justify-center min-w-4 bg-primary text-primary-foreground border-0"
+                      >
+                        {badge > 99 ? '99+' : badge}
+                      </Badge>
+                    </motion.div>
                   )}
                 </div>
-                <span className={cn(
-                  'text-xs font-medium transition-colors',
-                  // Responsive text - hide on very small screens
-                  'hidden xs:block',
-                  isActive ? 'text-primary' : ''
-                )}>
-                  {item.label}
-                </span>
+
+                {showLabels && (
+                  <span className={cn(
+                    'font-medium transition-colors',
+                    variant === 'default' && 'text-xs hidden xs:block',
+                    variant === 'enhanced' && 'text-xs font-semibold',
+                    isActive && 'text-primary',
+                    !isActive && 'text-muted-foreground'
+                  )}>
+                    {item.label}
+                  </span>
+                )}
               </motion.button>
             );
           })}

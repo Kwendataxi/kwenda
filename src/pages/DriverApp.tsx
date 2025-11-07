@@ -17,7 +17,7 @@ import { ServiceTypeValidator } from '@/components/driver/ServiceTypeValidator';
 import { DriverServiceProvider } from '@/contexts/DriverServiceContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
+import { ModernDriverHeader } from '@/components/driver/ModernDriverHeader';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
@@ -121,9 +121,10 @@ const DriverApp = () => {
         }}
       />
 
-      <UniversalAppHeader title="Espace Chauffeur" />
+      {/* Header moderne avec ThemeToggle et stats */}
+      <ModernDriverHeader serviceType={serviceType} />
 
-      <div className="min-h-screen bg-background mobile-safe-layout pt-[60px]">
+      <div className="min-h-screen bg-background mobile-safe-layout pt-[140px]">
         <main className="flex-1 overflow-y-auto content-scrollable">
           {/* ✅ PHASE 3: Interface séparée par type de service */}
           {tab === 'orders' && renderServiceInterface()}
@@ -155,6 +156,8 @@ const DriverApp = () => {
               setTab(newTab);
             }
           }}
+          variant="enhanced"
+          showLabels={true}
         />
       </div>
     </DriverServiceProvider>

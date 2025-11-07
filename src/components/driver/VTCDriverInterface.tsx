@@ -11,7 +11,6 @@ import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { useDriverStatus } from '@/hooks/useDriverStatus';
 import { useDriverEarnings } from '@/hooks/useDriverEarnings';
 import { useAuth } from '@/hooks/useAuth';
-import { ModernDriverHeader } from './ModernDriverHeader';
 import { ModernOrderCard } from './ModernOrderCard';
 import { DriverStatsPanel } from './DriverStatsPanel';
 import DriverStatusToggle from './DriverStatusToggle';
@@ -105,12 +104,6 @@ export const VTCDriverInterface: React.FC = () => {
 
   return (
     <div className="space-y-4 pb-24">
-      <ModernDriverHeader
-        serviceType="taxi"
-        driverName={user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Chauffeur'}
-        notificationCount={vtcNotifications.length}
-      />
-
       <div className="px-4 space-y-4">
         {/* Status Toggle */}
         <DriverStatusToggle />

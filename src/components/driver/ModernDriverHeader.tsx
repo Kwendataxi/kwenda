@@ -1,27 +1,52 @@
-import React from 'react';
-import { Car, Package, Bell } from 'lucide-react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { Car, Package, TrendingUp, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { useDriverDailyStats } from '@/hooks/useDriverDailyStats';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ModernDriverHeaderProps {
-  serviceType: 'taxi' | 'delivery';
-  driverName?: string;
-  notificationCount?: number;
+  serviceType: 'taxi' | 'delivery' | 'unknown';
   className?: string;
 }
 
 export const ModernDriverHeader: React.FC<ModernDriverHeaderProps> = ({
   serviceType,
-  driverName = 'Chauffeur',
-  notificationCount = 0,
   className
 }) => {
-  const Icon = serviceType === 'taxi' ? Car : Package;
+  const { user } = useAuth();
+  const { stats, loading } = useDriverDailyStats();
+
+  // Extraire prénom depuis email ou metadata
+  const driverFirstName = useMemo(() => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name.split(' ')[0];
+    }
+    if (user?.email) {
+      return user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1);
+    }
+    return 'Chauffeur';
+  }, [user]);
+
+  // Salutation selon l'heure
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Bonjour';
+    if (hour < 18) return 'Bon après-midi';
+    return 'Bonsoir';
+  }, []);
+
+  // Gradient selon service
   const gradientClass = serviceType === 'taxi' 
-    ? 'from-orange-600 to-orange-500' 
-    : 'from-blue-600 to-blue-500';
+    ? 'from-orange-500/10 to-orange-600/5' 
+    : serviceType === 'delivery'
+    ? 'from-blue-500/10 to-blue-600/5'
+    : 'from-primary/10 to-primary/5';
+
+  const ServiceIcon = serviceType === 'taxi' ? Car : Package;
 
   return (
     <motion.header
@@ -29,61 +54,104 @@ export const ModernDriverHeader: React.FC<ModernDriverHeaderProps> = ({
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        "bg-gradient-to-r",
+        'fixed top-0 left-0 right-0 z-[150]',
+        'bg-gradient-to-r backdrop-blur-md border-b border-border/50',
         gradientClass,
-        "text-white shadow-lg",
         className
       )}
     >
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          {/* Left: Service Icon & Title */}
-          <div className="flex items-center gap-3">
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              className="p-2 bg-white/20 rounded-xl backdrop-blur-sm"
-            >
-              <Icon className="h-6 w-6" />
-            </motion.div>
-            
-            <div>
-              <h1 className="font-bold text-lg leading-tight">
-                {serviceType === 'taxi' ? 'VTC Kwenda' : 'Livraison Kwenda'}
-              </h1>
-              <p className="text-sm opacity-90">
-                {driverName}
-              </p>
-            </div>
-          </div>
-
-          {/* Right: Notification Bell */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative text-white hover:bg-white/20"
+      <div className="container mx-auto px-4 py-3 pt-safe">
+        {/* Row 1: Greeting + Actions */}
+        <div className="flex items-center justify-between mb-2">
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
           >
-            <Bell className="h-5 w-5" />
-            {notificationCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-              >
-                {notificationCount > 9 ? '9+' : notificationCount}
-              </Badge>
-            )}
-          </Button>
+            <p className="text-sm font-medium text-muted-foreground">
+              {greeting} 👋
+            </p>
+            <h1 className="text-xl font-bold text-foreground">
+              {driverFirstName}
+            </h1>
+          </motion.div>
+          
+          <motion.div 
+            className="flex items-center gap-2"
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            <NotificationBell />
+            <ThemeToggle variant="icon" size="md" />
+          </motion.div>
         </div>
 
-        {/* Service Type Badge */}
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+        {/* Row 2: Service Badge + Quick Stats */}
+        <motion.div 
+          className="flex items-center justify-between gap-3"
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="mt-3"
         >
-          <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-            {serviceType === 'taxi' ? '🚗 Service VTC' : '📦 Service Livraison'}
+          {/* Service Badge */}
+          <Badge 
+            variant="secondary" 
+            className={cn(
+              "gap-1.5 text-xs font-semibold",
+              serviceType === 'taxi' && "bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30",
+              serviceType === 'delivery' && "bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30",
+              serviceType === 'unknown' && "bg-muted"
+            )}
+          >
+            <ServiceIcon className="h-3.5 w-3.5" />
+            {serviceType === 'taxi' ? 'VTC' : serviceType === 'delivery' ? 'Livraison' : 'Service'}
           </Badge>
+          
+          {/* Quick Stats */}
+          {!loading && (
+            <div className="flex items-center gap-3 text-xs">
+              {/* Courses du jour */}
+              <motion.div 
+                className="flex items-center gap-1.5 text-muted-foreground"
+                whileHover={{ scale: 1.05 }}
+              >
+                <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                <span className="font-semibold text-foreground">{stats.todayCourses}</span>
+                <span className="hidden sm:inline">courses</span>
+              </motion.div>
+
+              {/* Gains du jour */}
+              <motion.div 
+                className="flex items-center gap-1.5 text-muted-foreground"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-sm">💰</span>
+                <span className="font-semibold text-foreground">
+                  {stats.todayEarnings.toLocaleString()}
+                </span>
+                <span className="hidden sm:inline">CDF</span>
+              </motion.div>
+
+              {/* Note moyenne (si disponible) */}
+              {stats.rating > 0 && (
+                <motion.div 
+                  className="flex items-center gap-1 text-muted-foreground"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                  <span className="font-semibold text-foreground">{stats.rating}</span>
+                </motion.div>
+              )}
+            </div>
+          )}
+
+          {loading && (
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+            </div>
+          )}
         </motion.div>
       </div>
     </motion.header>
