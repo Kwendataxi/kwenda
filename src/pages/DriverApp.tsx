@@ -16,6 +16,9 @@ import { DriverServiceProvider } from '@/contexts/DriverServiceContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AlertCircle } from 'lucide-react';
 
 const DriverApp = () => {
   const { loading, serviceType } = useDriverServiceType();
@@ -53,11 +56,40 @@ const DriverApp = () => {
 
   // ✅ PHASE 3: Router vers le bon dashboard selon le service_type
   const renderServiceInterface = () => {
+    // Si service_type inconnu, afficher un message explicite
+    if (serviceType === 'unknown') {
+      return (
+        <div className="p-4">
+          <Card className="p-8 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-orange-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">
+                Service non configuré
+              </h2>
+              <p className="text-muted-foreground max-w-md">
+                Veuillez choisir votre spécialité (Taxi ou Livraison) pour accéder à votre espace professionnel et recevoir des commandes.
+              </p>
+              <Button 
+                onClick={() => setShowMigrationModal(true)}
+                className="mt-2"
+                size="lg"
+              >
+                Choisir ma spécialité
+              </Button>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+    
     if (serviceType === 'taxi') {
       return <TaxiDriverDashboard />;
     } else if (serviceType === 'delivery') {
       return <DeliveryDriverDashboard />;
     }
+    
     // Fallback : afficher taxi par défaut
     return <TaxiDriverDashboard />;
   };

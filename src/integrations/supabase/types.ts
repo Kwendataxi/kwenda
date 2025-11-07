@@ -14235,6 +14235,10 @@ export type Database = {
           vehicle_class: string
         }[]
       }
+      get_driver_service_type: {
+        Args: { driver_user_id: string }
+        Returns: string
+      }
       get_driver_zones: {
         Args: { zone_radius_km?: number }
         Returns: {

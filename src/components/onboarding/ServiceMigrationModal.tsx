@@ -60,21 +60,24 @@ export const ServiceMigrationModal = ({ open, onComplete }: ServiceMigrationModa
 
     setLoading(true);
     try {
-      // 1. Mettre à jour driver_service_preferences
-      const { error: prefError } = await supabase
+      // ✅ CORRECTION: Mettre à jour directement chauffeurs.service_type
+      const { error: updateError } = await supabase
+        .from('chauffeurs')
+        .update({ service_type: selected })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Également mettre à jour driver_service_preferences pour cohérence
+      await supabase
         .from('driver_service_preferences')
         .upsert({
           driver_id: user.id,
           service_type: selected,
           is_active: true
         });
-
-      if (prefError) throw prefError;
-
-      // 2. Verrouiller dans chauffeurs (via fonction RPC ou laisser le trigger)
-      // Note: locked_service_type sera synchronisé automatiquement par trigger DB
       
-      // 3. Log l'activité
+      // Log l'activité
       await supabase.from('activity_logs').insert({
         user_id: user.id,
         activity_type: 'service_migration',

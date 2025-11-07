@@ -215,8 +215,12 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
           }
         }
 
+        // ✅ CORRECTION: Stocker temporairement le service_type et rediriger vers l'espace chauffeur
+        localStorage.setItem('kwenda_driver_service_type', serviceCategory);
         toast.success('Inscription réussie ! Bienvenue sur Kwenda 🎉');
-        onSuccess();
+        
+        // Rediriger vers l'espace chauffeur au lieu de onSuccess()
+        window.location.href = '/app/chauffeur';
       }
     } catch (error: any) {
       console.error('❌ Registration Error:', error);
