@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Star, Bell, Share2, ShoppingCart, Search, MapPin, Clock, Phone } from 'lucide-react';
+import { ArrowLeft, Star, Bell, Share2, ShoppingCart, Search, MapPin, Clock, Phone, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -60,10 +60,18 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
   }, [restaurant.id, user]);
 
   const loadRestaurantData = async () => {
+    const timestamp = Date.now();
+    console.log(`[${timestamp}] 🍽️ Loading restaurant data for:`, {
+      id: restaurant.id,
+      name: restaurant.restaurant_name,
+      city: restaurant.city
+    });
+    
     try {
       setLoading(true);
 
       // Load products
+      console.log(`[${timestamp}] 📦 Fetching products...`);
       const { data: productsData, error: productsError } = await supabase
         .from('food_products')
         .select('*')
@@ -72,8 +80,26 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
         .eq('is_available', true)
         .order('category', { ascending: true });
 
+      console.log(`[${timestamp}] ✅ Products fetched:`, {
+        restaurantId: restaurant.id,
+        count: productsData?.length,
+        products: productsData?.map(p => ({
+          id: p.id,
+          name: p.name,
+          category: p.category,
+          price: p.price,
+          moderation_status: p.moderation_status,
+          is_available: p.is_available
+        })),
+        error: productsError
+      });
+
       if (productsError) throw productsError;
       setProducts(productsData || []);
+      
+      if (productsData && productsData.length === 0) {
+        console.warn(`[${timestamp}] ⚠️ No products found for restaurant ${restaurant.id}`);
+      }
 
       // Load stats
       const { count: productCount } = await supabase
@@ -381,10 +407,34 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+            <p className="mt-4 text-sm text-muted-foreground">Chargement du menu...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Aucun plat trouvé</p>
+          <div className="text-center py-12 space-y-4">
+            <div className="text-6xl">🍽️</div>
+            <div>
+              <p className="text-muted-foreground text-lg font-semibold">
+                {searchQuery ? 'Aucun plat trouvé' : 'Menu temporairement indisponible'}
+              </p>
+              {!searchQuery && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Ce restaurant n'a pas encore ajouté de plats
+                </p>
+              )}
+            </div>
+            {!searchQuery && (
+              <div className="space-y-2">
+                <Button onClick={loadRestaurantData} variant="outline" size="lg">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Recharger le menu
+                </Button>
+                {import.meta.env.DEV && (
+                  <p className="text-xs text-muted-foreground">
+                    Debug: Restaurant ID = {restaurant.id}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           filteredProducts.map((product) => (

@@ -17,10 +17,16 @@ interface DebugData {
 export const RestaurantDebugPanel = ({ selectedCity }: RestaurantDebugPanelProps) => {
   const [debugData, setDebugData] = useState<DebugData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [testRestaurantId, setTestRestaurantId] = useState<string | null>(null);
+  const [testProducts, setTestProducts] = useState<any[]>([]);
+  const [testLoading, setTestLoading] = useState(false);
   
   const fetchDebugData = async () => {
     setLoading(true);
     try {
+      const timestamp = Date.now();
+      console.log(`[${timestamp}] 🐛 Debug Panel: Fetching data for city:`, selectedCity);
+      
       // Requête directe sans cache
       const { data: restaurants, error: restError } = await supabase
         .from('restaurant_profiles')
@@ -32,11 +38,16 @@ export const RestaurantDebugPanel = ({ selectedCity }: RestaurantDebugPanelProps
       
       const { data: products, error: prodError } = await supabase
         .from('food_products')
-        .select('id, name, restaurant_id, moderation_status, is_available')
+        .select('id, name, restaurant_id, moderation_status, is_available, price, category')
         .eq('moderation_status', 'approved')
         .eq('is_available', true);
       
       if (prodError) throw prodError;
+      
+      console.log(`[${timestamp}] 🐛 Debug Panel: Data fetched:`, {
+        restaurants: restaurants?.length,
+        products: products?.length
+      });
       
       setDebugData({ 
         restaurants: restaurants || [], 
@@ -46,6 +57,37 @@ export const RestaurantDebugPanel = ({ selectedCity }: RestaurantDebugPanelProps
       console.error('Debug fetch error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const testFetchProducts = async (restaurantId: string) => {
+    setTestRestaurantId(restaurantId);
+    setTestLoading(true);
+    const timestamp = Date.now();
+    
+    console.log(`[${timestamp}] 🧪 Testing product fetch for restaurant:`, restaurantId);
+    
+    try {
+      const { data, error } = await supabase
+        .from('food_products')
+        .select('*')
+        .eq('restaurant_id', restaurantId)
+        .eq('moderation_status', 'approved')
+        .eq('is_available', true);
+      
+      console.log(`[${timestamp}] 🧪 Test result:`, {
+        restaurantId,
+        count: data?.length,
+        products: data,
+        error
+      });
+      
+      setTestProducts(data || []);
+    } catch (error) {
+      console.error('Test fetch error:', error);
+      setTestProducts([]);
+    } finally {
+      setTestLoading(false);
     }
   };
   
@@ -99,21 +141,86 @@ export const RestaurantDebugPanel = ({ selectedCity }: RestaurantDebugPanelProps
           <div className="space-y-2 mt-4">
             <strong className="text-xs uppercase tracking-wide">Détails restaurants:</strong>
             {debugData.restaurants.map((r) => {
-              const productCount = debugData.products.filter(p => p.restaurant_id === r.id).length;
+              const restaurantProducts = debugData.products.filter(p => p.restaurant_id === r.id);
+              const productCount = restaurantProducts.length;
+              const isTestingThis = testRestaurantId === r.id;
+              
               return (
                 <div 
                   key={r.id} 
                   className="pl-3 py-2 border-l-2 border-yellow-400 dark:border-yellow-600 bg-white dark:bg-yellow-900/20 rounded-r"
                 >
-                  <div className="font-semibold">{r.restaurant_name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Ville: {r.city} | Status: {r.verification_status}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="font-semibold">{r.restaurant_name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        ID: {r.id}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Ville: {r.city} | Status: {r.verification_status}
+                      </div>
+                      <div className="text-xs mt-1">
+                        <Badge variant={productCount > 0 ? "default" : "secondary"}>
+                          {productCount} produit{productCount > 1 ? 's' : ''}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => testFetchProducts(r.id)}
+                      disabled={testLoading}
+                      className="ml-2"
+                    >
+                      {testLoading && isTestingThis ? (
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                      ) : (
+                        '🧪 Test'
+                      )}
+                    </Button>
                   </div>
-                  <div className="text-xs mt-1">
-                    <Badge variant={productCount > 0 ? "default" : "secondary"}>
-                      {productCount} produit{productCount > 1 ? 's' : ''}
-                    </Badge>
-                  </div>
+                  
+                  {/* Show test results */}
+                  {isTestingThis && testProducts.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-yellow-300 dark:border-yellow-700 space-y-1">
+                      <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-300">
+                        Produits chargés ({testProducts.length}):
+                      </div>
+                      {testProducts.map((p) => (
+                        <div key={p.id} className="text-xs pl-2 border-l border-yellow-300 dark:border-yellow-700">
+                          <strong>{p.name}</strong> - {p.price.toLocaleString()} FC
+                          <div className="text-muted-foreground">
+                            Cat: {p.category} | ID: {p.id}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {isTestingThis && testProducts.length === 0 && !testLoading && (
+                    <div className="mt-2 pt-2 border-t border-yellow-300 dark:border-yellow-700 text-xs text-red-600 dark:text-red-400">
+                      ⚠️ Aucun produit chargé !
+                    </div>
+                  )}
+                  
+                  {/* Show products from global fetch */}
+                  {restaurantProducts.length > 0 && !isTestingThis && (
+                    <div className="mt-2 pt-2 border-t border-yellow-300 dark:border-yellow-700 space-y-1">
+                      <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-300">
+                        Produits globaux:
+                      </div>
+                      {restaurantProducts.slice(0, 3).map((p) => (
+                        <div key={p.id} className="text-xs pl-2">
+                          {p.name} - {p.price?.toLocaleString() || 'N/A'} FC
+                        </div>
+                      ))}
+                      {restaurantProducts.length > 3 && (
+                        <div className="text-xs text-muted-foreground pl-2">
+                          ... et {restaurantProducts.length - 3} autre(s)
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

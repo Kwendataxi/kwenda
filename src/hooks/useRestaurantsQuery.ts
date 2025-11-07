@@ -45,7 +45,8 @@ export const useRestaurantsQuery = (city: string) => {
       
       return (data || []) as Restaurant[];
     },
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 0, // Force refresh - no cache
+    gcTime: 0, // No cache time (replaces cacheTime in v5)
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
@@ -91,6 +92,7 @@ export const useRestaurantsQuery = (city: string) => {
     
     if (error) {
       console.error('❌ Error fetching menu:', error);
+      toast.error('Erreur de chargement du menu');
       throw error;
     }
     
@@ -106,6 +108,12 @@ export const useRestaurantsQuery = (city: string) => {
         is_available: p.is_available
       }))
     });
+    
+    if (data && data.length === 0) {
+      toast.info('Aucun plat disponible pour le moment');
+    } else if (data) {
+      toast.success(`${data.length} plat(s) disponible(s)`);
+    }
     
     return (data || []) as FoodProduct[];
   };
