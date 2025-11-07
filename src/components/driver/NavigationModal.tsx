@@ -30,14 +30,18 @@ export const NavigationModal: React.FC<NavigationModalProps> = ({
       <DialogContent className="max-w-full max-h-full h-screen w-screen p-0 gap-0">
         <DriverNavigationHub
           orderId={orderId}
+          orderType={orderType as 'taxi' | 'delivery' | 'marketplace'}
           pickup={pickup}
           destination={destination}
-          customerPhone={customerPhone}
-          onArrival={() => {
-            console.log('🎯 Driver arrived at destination');
+          customerPhone={customerPhone || ''}
+          onConfirmArrival={() => {
+            console.log('🎯 Driver arrived at pickup');
+          }}
+          onComplete={() => {
+            console.log('✅ Navigation completed');
             onClose();
           }}
-          onClose={onClose}
+          onCancel={onClose}
         />
       </DialogContent>
     </Dialog>
