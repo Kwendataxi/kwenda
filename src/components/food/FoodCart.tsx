@@ -36,7 +36,7 @@ export const FoodCart = ({
   const canCheckout = subtotal >= (restaurant.minimum_order_amount || 0);
 
   const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} FC`;
+    return `${price.toLocaleString()} CDF`;
   };
 
   return (

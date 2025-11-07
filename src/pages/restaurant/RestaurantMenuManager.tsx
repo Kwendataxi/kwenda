@@ -389,7 +389,7 @@ export default function RestaurantMenuManager() {
                   {product.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold">{product.price.toLocaleString()} FC</span>
+                  <span className="text-lg font-bold">{product.price.toLocaleString()} CDF</span>
                   <Badge variant={product.is_available ? 'default' : 'secondary'}>
                     {product.is_available ? 'Disponible' : 'Indisponible'}
                   </Badge>

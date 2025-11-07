@@ -40,7 +40,7 @@ export const FoodCheckout = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} FC`;
+    return `${price.toLocaleString()} CDF`;
   };
 
   const handleConfirmOrder = async () => {
