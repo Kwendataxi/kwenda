@@ -240,6 +240,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     }
   };
 
+  const [tempBookingId, setTempBookingId] = useState<string | null>(null);
+
   const handleSearchDriver = async () => {
     if (!pickupLocation || !destinationLocation || !selectedVehicle) {
       toast.error('Veuillez compléter tous les champs');
@@ -266,6 +268,11 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       console.log('🚗 [ModernTaxiInterface] Starting ride dispatch...', bookingData);
 
       const result = await createAndDispatchRide(bookingData);
+
+      // Stocker l'ID de la réservation pour le bidding
+      if (result.booking?.id) {
+        setTempBookingId(result.booking.id);
+      }
 
       if (result.success && result.driver) {
         console.log('✅ [ModernTaxiInterface] Driver assigned successfully');
@@ -407,6 +414,11 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             name: selectedBeneficiary.name,
             phone: selectedBeneficiary.phone
           } : null}
+          bookingId={tempBookingId || undefined}
+          onOfferAccepted={(driverId) => {
+            console.log('Offer accepted from driver:', driverId);
+            onSubmit?.({ driver: { id: driverId }, bookingId: tempBookingId });
+          }}
         />
       )}
       

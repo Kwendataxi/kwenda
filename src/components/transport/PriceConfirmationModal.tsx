@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, Loader2, Users } from 'lucide-react';
 import { Car, Bike, Crown } from 'lucide-react';
 import { useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { RideBiddingModal } from './RideBiddingModal';
 
 interface PriceConfirmationModalProps {
   open: boolean;
@@ -18,6 +21,8 @@ interface PriceConfirmationModalProps {
   onConfirm: () => void;
   onBack: () => void;
   beneficiary?: { name: string; phone: string } | null;
+  bookingId?: string;
+  onOfferAccepted?: (driverId: string) => void;
 }
 
 const VEHICLE_CONFIG: Record<string, { name: string; icon: any; gradient: string }> = {
@@ -38,19 +43,29 @@ export default function PriceConfirmationModal({
   calculatedPrice,
   onConfirm,
   onBack,
-  beneficiary
+  beneficiary,
+  bookingId,
+  onOfferAccepted
 }: PriceConfirmationModalProps) {
   const [isSearching, setIsSearching] = useState(false);
+  const [biddingEnabled, setBiddingEnabled] = useState(false);
+  const [showBiddingModal, setShowBiddingModal] = useState(false);
 
   const vehicle = VEHICLE_CONFIG[vehicleType] || VEHICLE_CONFIG['taxi_eco'];
   const VehicleIcon = vehicle.icon;
 
   const handleConfirm = async () => {
-    setIsSearching(true);
-    try {
-      await onConfirm();
-    } finally {
-      setIsSearching(false);
+    if (biddingEnabled && bookingId) {
+      // Ouvrir le modal de bidding
+      setShowBiddingModal(true);
+    } else {
+      // Recherche classique
+      setIsSearching(true);
+      try {
+        await onConfirm();
+      } finally {
+        setIsSearching(false);
+      }
     }
   };
 
@@ -190,6 +205,29 @@ export default function PriceConfirmationModal({
             </div>
           </motion.div>
 
+          {/* Toggle mode bidding */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.75 }}
+            className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20"
+          >
+            <div className="flex-1">
+              <Label htmlFor="bidding-toggle" className="text-sm font-semibold cursor-pointer">
+                🎯 Mode enchères
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Recevoir plusieurs offres et choisir le meilleur prix
+              </p>
+            </div>
+            <Switch
+              id="bidding-toggle"
+              checked={biddingEnabled}
+              onCheckedChange={setBiddingEnabled}
+              disabled={isSearching}
+            />
+          </motion.div>
+
           {/* CTA - Bouton principal */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -207,6 +245,12 @@ export default function PriceConfirmationModal({
                   <Loader2 className="w-5 sm:w-6 h-5 sm:h-6 animate-spin" />
                   <span className="hidden sm:inline">Recherche en cours...</span>
                   <span className="sm:hidden">Recherche...</span>
+                </span>
+              ) : biddingEnabled ? (
+                <span className="flex items-center gap-2">
+                  <Zap className="w-5 sm:w-6 h-5 sm:h-6" />
+                  <span className="hidden sm:inline">Recevoir des offres</span>
+                  <span className="sm:hidden">Offres</span>
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -234,6 +278,20 @@ export default function PriceConfirmationModal({
           </button>
         </motion.div>
       </DialogContent>
+
+      {/* Modal de bidding */}
+      {bookingId && showBiddingModal && (
+        <RideBiddingModal
+          open={showBiddingModal}
+          onClose={() => setShowBiddingModal(false)}
+          bookingId={bookingId}
+          estimatedPrice={calculatedPrice}
+          onOfferAccepted={(driverId) => {
+            setShowBiddingModal(false);
+            onOfferAccepted?.(driverId);
+          }}
+        />
+      )}
     </Dialog>
   );
 }

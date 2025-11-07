@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { DriverArrivalButton } from './DriverArrivalButton';
 import { useDriverSubscriptions } from '@/hooks/useDriverSubscriptions';
+import { DriverOfferSheet } from './DriverOfferSheet';
 
 interface RideNotification {
   id: string;
@@ -23,6 +24,8 @@ interface RideNotification {
   estimatedPrice?: number;
   vehicleClass?: string;
   ridesRemaining?: number;
+  biddingMode?: boolean;
+  offerCount?: number;
 }
 
 export default function DriverRideNotifications() {
@@ -32,6 +35,8 @@ export default function DriverRideNotifications() {
   const [acceptedRides, setAcceptedRides] = useState<Map<string, boolean>>(new Map());
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [showOfferSheet, setShowOfferSheet] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState<RideNotification | null>(null);
 
   // Load real-time notifications from Supabase
   useEffect(() => {
@@ -62,18 +67,20 @@ export default function DriverRideNotifications() {
           id: notif.reference_id || notif.id,
           title: notif.title,
           message: notif.message,
-              distance: (notif as any).metadata?.distance || 0,
-              estimatedTime: Math.ceil(((notif as any).metadata?.distance || 0) * 3), // 3 min per km
-              expiresIn: 120, // 2 minutes
-              pickupAddress: (notif as any).metadata?.pickupLocation?.address,
-              destinationAddress: (notif as any).metadata?.destinationLocation?.address,
-              estimatedPrice: (notif as any).metadata?.estimatedPrice,
-              vehicleClass: (notif as any).metadata?.vehicleClass,
-              ridesRemaining: (notif as any).metadata?.rides_remaining,
-              status: 'pending',
-              bookedForOther: (notif as any).metadata?.bookedForOther,
-              beneficiaryName: (notif as any).metadata?.beneficiaryName,
-              beneficiaryPhone: (notif as any).metadata?.beneficiaryPhone
+          distance: (notif as any).metadata?.distance || 0,
+          estimatedTime: Math.ceil(((notif as any).metadata?.distance || 0) * 3), // 3 min per km
+          expiresIn: 120, // 2 minutes
+          pickupAddress: (notif as any).metadata?.pickupLocation?.address,
+          destinationAddress: (notif as any).metadata?.destinationLocation?.address,
+          estimatedPrice: (notif as any).metadata?.estimatedPrice,
+          vehicleClass: (notif as any).metadata?.vehicleClass,
+          ridesRemaining: (notif as any).metadata?.rides_remaining,
+          status: 'pending',
+          bookedForOther: (notif as any).metadata?.bookedForOther,
+          beneficiaryName: (notif as any).metadata?.beneficiaryName,
+          beneficiaryPhone: (notif as any).metadata?.beneficiaryPhone,
+          biddingMode: (notif as any).metadata?.biddingMode || false,
+          offerCount: (notif as any).metadata?.offerCount || 0
         }));
 
         setNotifications(mappedNotifications);
@@ -243,6 +250,11 @@ export default function DriverRideNotifications() {
     });
   };
 
+  const handleMakeOffer = (notification: RideNotification) => {
+    setSelectedOffer(notification);
+    setShowOfferSheet(true);
+  };
+
   if (notifications.length === 0 && acceptedRides.size === 0) {
     return (
       <div className="text-center p-6 text-muted-foreground">
@@ -345,6 +357,13 @@ export default function DriverRideNotifications() {
               </div>
             )}
 
+            {/* Badge mode bidding */}
+            {notification.biddingMode && !isAccepted && (
+              <Badge variant="outline" className="mb-3 bg-primary/10 border-primary/30">
+                🎯 Mode enchères • {notification.offerCount || 0} offre{(notification.offerCount || 0) > 1 ? 's' : ''}
+              </Badge>
+            )}
+
             {!isAccepted ? (
               <>
                 {/* Timer */}
@@ -359,25 +378,47 @@ export default function DriverRideNotifications() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="flex-1"
-                    onClick={() => handleReject(notification.id)}
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Refuser
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleAccept(notification.id)}
-                  >
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Accepter
-                  </Button>
-                </div>
+                {notification.biddingMode ? (
+                  <div className="space-y-2">
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleMakeOffer(notification)}
+                    >
+                      <DollarSign className="h-3 w-3 mr-1" />
+                      💰 Faire une offre
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => handleReject(notification.id)}
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Ignorer
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="flex-1"
+                      onClick={() => handleReject(notification.id)}
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Refuser
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleAccept(notification.id)}
+                    >
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Accepter
+                    </Button>
+                  </div>
+                )}
               </>
             ) : (
               <>
@@ -415,6 +456,20 @@ export default function DriverRideNotifications() {
         userType="driver"
         bookingType="transport"
       />
+
+      {/* Sheet pour faire une offre */}
+      {selectedOffer && (
+        <DriverOfferSheet
+          open={showOfferSheet}
+          onOpenChange={setShowOfferSheet}
+          bookingId={selectedOffer.id}
+          estimatedPrice={selectedOffer.estimatedPrice || 0}
+          distance={selectedOffer.distance}
+          pickupAddress={selectedOffer.pickupAddress || 'Adresse de départ'}
+          destinationAddress={selectedOffer.destinationAddress || 'Adresse d\'arrivée'}
+          offerCount={selectedOffer.offerCount}
+        />
+      )}
     </div>
   );
 }
