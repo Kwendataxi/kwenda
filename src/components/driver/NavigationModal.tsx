@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import DriverNavigationHub from './DriverNavigationHub';
+import { DriverNavigationHub } from './DriverNavigationHub';
 
 interface NavigationModalProps {
   open: boolean;

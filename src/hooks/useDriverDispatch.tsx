@@ -349,14 +349,45 @@ export const useDriverDispatch = () => {
     }
   };
 
-  // ✅ Écoute temps réel des nouvelles commandes
+  // ✅ PHASE 7: Utiliser le service de notifications robuste
   useEffect(() => {
     if (!user || !driverStatus.isOnline) return;
 
-    console.log('🎧 Écoute unifiée des commandes pour:', user.id);
+    console.log('🎧 Écoute unifiée via notification service:', user.id);
 
-    // Channel unique pour toutes les notifications
-    const driverChannel = supabase
+    const { driverNotificationService } = require('@/services/driverNotificationService');
+    
+    driverNotificationService.start(user.id);
+
+    const unsubscribe = driverNotificationService.subscribe((notification: any) => {
+      const unifiedNotif: UnifiedOrderNotification = {
+        id: notification.id,
+        type: notification.type,
+        orderId: notification.orderId,
+        title: notification.title,
+        message: notification.message,
+        location: notification.data?.pickup_location || '',
+        estimatedPrice: notification.data?.estimated_price || 0,
+        urgency: 'medium',
+        data: notification.data,
+        created_at: new Date().toISOString()
+      };
+      
+      setPendingNotifications(prev => [unifiedNotif, ...prev]);
+    });
+
+    return () => {
+      unsubscribe();
+      driverNotificationService.stop();
+    };
+  }, [user, driverStatus.isOnline]);
+
+  // ✅ Charger les commandes actives au montage
+  useEffect(() => {
+    if (user) {
+      loadActiveOrders();
+    }
+  }, [user, loadActiveOrders]);
       .channel(`unified-driver-notifications-${user.id}`)
       // Taxi bookings
       .on('postgres_changes', {

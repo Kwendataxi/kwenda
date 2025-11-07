@@ -169,13 +169,60 @@ class NavigationService {
   private checkIfOffRoute(currentLocation: { lat: number; lng: number }) {
     if (!this.currentRoute) return;
 
-    // Logique simplifiée : vérifier la distance au prochain point
-    // En production, utiliser une vérification plus précise avec le polyline
     const currentStep = this.currentRoute.steps[this.currentStepIndex];
     if (!currentStep) return;
 
-    // Si distance trop grande, recalculer l'itinéraire
-    // TODO: Implémenter vérification précise avec polyline
+    // Calculer distance à la route (simplifié)
+    // En production: utiliser polyline decoding + distance au segment
+    const distanceThreshold = 100; // 100 mètres
+    
+    // Si trop loin, déclencher recalcul
+    if (this.lastPosition) {
+      const distance = this.calculateDistance(
+        currentLocation.lat,
+        currentLocation.lng,
+        this.lastPosition.lat,
+        this.lastPosition.lng
+      );
+      
+      if (distance > distanceThreshold) {
+        if (this.options.onOffRoute) {
+          this.options.onOffRoute();
+        }
+        // Auto-recalcul
+        this.recalculateRoute(currentLocation);
+      }
+    }
+  }
+
+  /**
+   * Recalculer l'itinéraire automatiquement
+   */
+  private async recalculateRoute(currentLocation: { lat: number; lng: number }): Promise<void> {
+    if (!this.currentRoute) return;
+
+    // Déterminer la destination actuelle (pickup ou destination finale)
+    const targetLocation = this.lastPosition; // À adapter selon la logique métier
+
+    try {
+      const newRoute = await this.calculateRoute(currentLocation, targetLocation!);
+      
+      if (newRoute) {
+        this.currentRoute = newRoute;
+        this.currentStepIndex = 0;
+        
+        if (this.options.onRouteRecalculated) {
+          this.options.onRouteRecalculated();
+        }
+        
+        // Annoncer nouvelle instruction
+        if (newRoute.steps[0]) {
+          this.announceInstruction(newRoute.steps[0].instruction);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur recalcul itinéraire:', error);
+    }
   }
 
   /**
@@ -186,12 +233,24 @@ class NavigationService {
 
     const currentStep = this.currentRoute.steps[this.currentStepIndex];
     
-    // Si on a parcouru la distance de l'étape actuelle, passer à la suivante
-    // TODO: Calculer la distance parcourue précisément
-    
-    // Pour l'instant, logique simplifiée
-    if (this.currentStepIndex < this.currentRoute.steps.length - 1) {
-      // Passer à l'instruction suivante après un certain temps/distance
+    // Calculer distance restante approximative
+    if (this.lastPosition) {
+      const movedDistance = this.calculateDistance(
+        this.lastPosition.lat,
+        this.lastPosition.lng,
+        currentLocation.lat,
+        currentLocation.lng
+      );
+      
+      // Si on a parcouru plus de 80% de l'étape, passer à la suivante
+      if (movedDistance > currentStep.distance * 0.8) {
+        this.currentStepIndex++;
+        
+        if (this.currentStepIndex < this.currentRoute.steps.length) {
+          const nextStep = this.currentRoute.steps[this.currentStepIndex];
+          this.announceInstruction(nextStep.instruction);
+        }
+      }
     }
   }
 
