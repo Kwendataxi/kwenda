@@ -15,10 +15,10 @@ interface PromoSlide {
 const promoSlides: PromoSlide[] = [
   {
     id: 'welcome',
-    title: '🔥 Bienvenue chez Kwenda Food',
+    title: '🎉 Bienvenue chez Kwenda Food',
     description: 'Livraison gratuite sur votre 1ère commande',
     cta: 'Commencer',
-    gradient: 'from-orange-500 via-red-500 to-pink-500',
+    gradient: 'from-violet-500 via-purple-500 to-indigo-600',
     icon: <Sparkles className="w-8 h-8" />
   },
   {
@@ -26,7 +26,7 @@ const promoSlides: PromoSlide[] = [
     title: '⚡ Livraison Express',
     description: 'Vos plats en moins de 30 minutes',
     cta: 'Commander',
-    gradient: 'from-yellow-500 via-orange-500 to-red-500',
+    gradient: 'from-blue-500 via-cyan-500 to-teal-500',
     icon: <Zap className="w-8 h-8" />
   },
   {
@@ -34,7 +34,7 @@ const promoSlides: PromoSlide[] = [
     title: '💰 -20% cette semaine',
     description: 'Sur tous les restaurants partenaires',
     cta: 'Profiter',
-    gradient: 'from-green-500 via-teal-500 to-cyan-500',
+    gradient: 'from-pink-500 via-rose-500 to-red-500',
     icon: <Percent className="w-8 h-8" />
   }
 ];

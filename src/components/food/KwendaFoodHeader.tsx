@@ -1,10 +1,8 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, ShoppingCart, Sparkles, Home } from 'lucide-react';
+import { ArrowLeft, MapPin, ShoppingCart, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { useTheme } from 'next-themes';
 import { FoodSearchBar } from './FoodSearchBar';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 interface KwendaFoodHeaderProps {
   step: 'restaurants' | 'menu' | 'checkout' | 'all-dishes' | 'all-restaurants';
@@ -25,192 +23,102 @@ export const KwendaFoodHeader = ({
   onBack,
   onBackToHome
 }: KwendaFoodHeaderProps) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
-  const getHeaderContent = () => {
+  const getBreadcrumb = () => {
     switch (step) {
       case 'menu':
-        return {
-          title: 'Kwenda Food',
-          subtitle: selectedRestaurant?.restaurant_name || '',
-          showCitySelector: false
-        };
+        return selectedRestaurant?.restaurant_name || 'Menu';
       case 'checkout':
-        return {
-          title: 'Kwenda Food',
-          subtitle: 'Finaliser la commande',
-          showCitySelector: false
-        };
+        return 'Finaliser la commande';
+      case 'all-dishes':
+        return 'Tous les plats';
+      case 'all-restaurants':
+        return 'Tous les restaurants';
       default:
-        return {
-          title: 'Kwenda Food',
-          subtitle: 'Vos restaurants préférés',
-          showCitySelector: true
-        };
+        return 'Vos restaurants préférés';
     }
   };
 
-  const { title, subtitle, showCitySelector } = getHeaderContent();
+  const breadcrumb = getBreadcrumb();
 
   return (
-    <header className="relative sticky top-0 z-50 overflow-hidden">
-      {/* Gradient moderne avec effet glassmorphism - Adapté mode clair/sombre */}
-      <div className={`relative overflow-hidden ${
-        isDark 
-          ? 'bg-gradient-to-br from-orange-600 via-red-600 to-orange-700'
-          : 'bg-gradient-to-br from-orange-400 via-red-400 to-orange-500'
-      }`}>
-        {/* Effet ondulé animé */}
-        <motion.div 
-          className={`absolute inset-0 ${isDark ? 'opacity-20' : 'opacity-30'}`}
-          animate={{ 
-            backgroundPosition: ['0% 0%', '100% 100%', '0% 0%']
-          }}
-          transition={{ 
-            duration: 20, 
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          style={{
-            backgroundImage: 'radial-gradient(circle, white 2px, transparent 2px)',
-            backgroundSize: '40px 40px'
-          }}
-        />
-        
-        {/* Contenu */}
-        <div className="relative z-10 px-4 py-4">
-          <motion.div 
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              {step !== 'restaurants' ? (
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Button 
-                    onClick={onBack} 
-                    variant="ghost" 
-                    size="icon" 
-                    className="text-white hover:bg-white/20 flex-shrink-0"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                  </Button>
-                </motion.div>
-              ) : onBackToHome && (
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Button 
-                    onClick={onBackToHome} 
-                    variant="ghost" 
-                    size="icon" 
-                    className="text-white hover:bg-white/20 flex-shrink-0"
-                    title="Retour à l'accueil"
-                  >
-                    <Home className="w-5 h-5" />
-                  </Button>
-                </motion.div>
-              )}
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl md:text-2xl font-bold text-white truncate flex items-center gap-2">
-                  {title}
-                  <motion.span
-                    animate={{ rotate: [0, 15, -15, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    🍽️
-                  </motion.span>
-                </h1>
-                <p className="text-sm text-white/90 truncate">
-                  {subtitle}
-                </p>
-              </div>
-            </div>
-
-            {/* SearchBar desktop */}
-            {step === 'restaurants' && (
-              <div className="hidden md:block flex-1 max-w-md mx-4">
-                <FoodSearchBar city={selectedCity} />
-              </div>
-            )}
-
-            {/* Sélecteur de ville mobile - à la place de la recherche */}
-            {showCitySelector && (
-              <div className="md:hidden">
-                <Select value={selectedCity} onValueChange={onCityChange}>
-                  <SelectTrigger className="w-auto h-10 bg-white/20 backdrop-blur-md border-white/30 text-white hover:bg-white/30 transition-colors">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Kinshasa">🏙️ Kinshasa</SelectItem>
-                    <SelectItem value="Lubumbashi">⚙️ Lubumbashi</SelectItem>
-                    <SelectItem value="Kolwezi">💎 Kolwezi</SelectItem>
-                    <SelectItem value="Abidjan">🌴 Abidjan</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            {/* Panier flottant avec animation */}
-            {cartItemsCount > 0 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="relative flex-shrink-0"
-              >
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-white hover:bg-white/20 relative"
-                >
-                  <ShoppingCart className="w-6 h-6" />
-                  <motion.span
-                    key={cartItemsCount}
-                    initial={{ scale: 1.5 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 bg-white text-[#FF6347] rounded-full w-6 h-6 text-xs font-bold flex items-center justify-center shadow-lg"
-                  >
-                    {cartItemsCount}
-                  </motion.span>
-                </Button>
-              </motion.div>
-            )}
-          </motion.div>
-          
-          {/* Sélecteur de ville desktop uniquement - masqué sur mobile */}
-          {showCitySelector && (
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="mt-4 hidden md:block"
+    <header className="sticky top-0 z-50 bg-background border-b shadow-sm">
+      {/* Ligne principale */}
+      <div className="h-14 px-4 flex items-center justify-between gap-3">
+        {/* Gauche : Navigation + Logo + Titre */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {step !== 'restaurants' ? (
+            <Button 
+              onClick={onBack} 
+              variant="ghost" 
+              size="icon"
+              className="h-9 w-9"
             >
-              <Select value={selectedCity} onValueChange={onCityChange}>
-                <SelectTrigger className="w-fit bg-white/20 backdrop-blur-md border-white/30 text-white hover:bg-white/30 transition-colors">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Kinshasa">🏙️ Kinshasa</SelectItem>
-                  <SelectItem value="Lubumbashi">⚙️ Lubumbashi</SelectItem>
-                  <SelectItem value="Kolwezi">💎 Kolwezi</SelectItem>
-                  <SelectItem value="Abidjan">🌴 Abidjan</SelectItem>
-                </SelectContent>
-              </Select>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          ) : onBackToHome && (
+            <Button 
+              onClick={onBackToHome} 
+              variant="ghost" 
+              size="icon"
+              className="h-9 w-9"
+              title="Retour à l'accueil"
+            >
+              <Home className="w-5 h-5" />
+            </Button>
+          )}
+          
+          <BrandLogo size={32} className="hidden sm:block" />
+          
+          <div className="hidden sm:block">
+            <h1 className="text-lg font-bold leading-none">KWENDA</h1>
+            <p className="text-xs text-muted-foreground leading-none">Food</p>
+          </div>
+          <h1 className="text-lg font-bold sm:hidden">KWENDA Food</h1>
+        </div>
+
+        {/* Centre : Recherche (desktop uniquement) */}
+        {step === 'restaurants' && (
+          <div className="hidden md:block flex-1 max-w-xl">
+            <FoodSearchBar city={selectedCity} />
+          </div>
+        )}
+
+        {/* Droite : Panier */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {cartItemsCount > 0 && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative"
+            >
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-9 w-9 relative"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                <motion.span
+                  key={cartItemsCount}
+                  initial={{ scale: 1.5 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs font-bold flex items-center justify-center shadow-sm"
+                >
+                  {cartItemsCount}
+                </motion.span>
+              </Button>
             </motion.div>
           )}
         </div>
+      </div>
 
-        {/* Vague décorative en bas */}
-        <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-background/20 to-transparent" />
+      {/* Ligne secondaire : Contexte */}
+      <div className="h-10 px-4 bg-muted/30 flex items-center gap-3 text-sm border-t">
+        <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <span className="font-medium">{selectedCity}</span>
+        <span className="text-muted-foreground hidden sm:inline">·</span>
+        <span className="text-muted-foreground truncate hidden sm:inline">{breadcrumb}</span>
       </div>
     </header>
   );
