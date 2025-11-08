@@ -25,7 +25,7 @@ export const QuickTransferPopup: React.FC<QuickTransferPopupProps> = ({
 }) => {
   const { toast } = useToast();
   const { wallet, transferFunds } = useWallet();
-  const { contacts, loading: loadingContacts } = useRecentContacts();
+  const { contacts, loading: loadingContacts, refreshContacts } = useRecentContacts();
   const isMobile = useMediaQuery('(max-width: 768px)');
   
   const [selectedContact, setSelectedContact] = useState<string | null>(null);
@@ -33,6 +33,14 @@ export const QuickTransferPopup: React.FC<QuickTransferPopupProps> = ({
   const [customAmount, setCustomAmount] = useState('');
   const [isTransferring, setIsTransferring] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Debug: Log contacts state
+  React.useEffect(() => {
+    if (open) {
+      console.log('🔥 QuickTransferPopup ouvert - Contacts:', contacts.length, contacts);
+      console.log('🔥 Loading:', loadingContacts);
+    }
+  }, [open, contacts, loadingContacts]);
 
   const handleTransfer = async () => {
     if (!selectedContact || (!selectedAmount && !customAmount)) {
@@ -124,8 +132,17 @@ export const QuickTransferPopup: React.FC<QuickTransferPopupProps> = ({
             ))}
           </div>
         ) : contacts.length === 0 ? (
-          <div className="text-center py-6 md:py-8 text-muted-foreground text-sm">
-            Aucun contact récent
+          <div className="text-center py-6 md:py-8 space-y-2">
+            <p className="text-muted-foreground text-sm">Aucun contact récent</p>
+            <button 
+              onClick={() => {
+                console.log('🔄 Rafraîchissement manuel des contacts');
+                refreshContacts();
+              }}
+              className="text-xs text-purple-500 hover:text-purple-600 underline"
+            >
+              Actualiser
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2 md:gap-3">

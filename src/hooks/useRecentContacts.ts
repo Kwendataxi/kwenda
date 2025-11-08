@@ -130,7 +130,9 @@ export const useRecentContacts = () => {
   };
 
   useEffect(() => {
+    console.log('🚀 useRecentContacts - Hook déclenché pour user:', user?.id);
     fetchContacts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const refreshContacts = () => {
