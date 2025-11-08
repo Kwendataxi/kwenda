@@ -275,7 +275,7 @@ export const RentalSubscriptionAdmin = () => {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">
-                          {subscription.rental_subscription_plans?.monthly_price?.toLocaleString()} {subscription.rental_subscription_plans?.currency}
+                          {subscription.rental_subscription_plans?.monthly_price?.toLocaleString()} CDF
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Mensuel

@@ -112,7 +112,7 @@ export const SubscriptionActionModal = ({
           <div>
             <span className="font-medium">Prix :</span>
             <span className="ml-2">
-              {subscription.rental_subscription_plans?.monthly_price?.toLocaleString()} {subscription.rental_subscription_plans?.currency}
+              {subscription.rental_subscription_plans?.monthly_price?.toLocaleString()} CDF
             </span>
           </div>
         </div>

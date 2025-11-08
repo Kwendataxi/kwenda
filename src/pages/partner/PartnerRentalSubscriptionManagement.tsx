@@ -115,7 +115,7 @@ export const PartnerRentalSubscriptionManagement = () => {
       const history: PaymentHistory[] = (data || []).map((sub: any) => ({
         id: sub.id,
         amount: sub.plan?.monthly_price || 0,
-        currency: sub.plan?.currency || 'CDF',
+        currency: 'CDF',
         payment_date: sub.start_date,
         payment_method: 'KwendaPay',
         status: 'completed'
@@ -209,7 +209,7 @@ export const PartnerRentalSubscriptionManagement = () => {
                       <PartnerTierBadge tier={currentSubscription.plan.tier} />
                     </CardTitle>
                     <p className="text-muted-foreground mt-1">
-                      {currentSubscription.plan.monthly_price.toLocaleString()} {currentSubscription.plan.currency}/mois
+                      {currentSubscription.plan.monthly_price.toLocaleString()} CDF/mois
                     </p>
                   </div>
                   <Badge variant={currentSubscription.status === 'active' ? 'default' : 'outline'}>
@@ -313,7 +313,7 @@ export const PartnerRentalSubscriptionManagement = () => {
                         </div>
                         <div>
                           <div className="font-semibold">
-                            {payment.amount.toLocaleString()} {payment.currency}
+                            {payment.amount.toLocaleString()} CDF
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {format(new Date(payment.payment_date), 'dd MMMM yyyy', { locale: fr })}

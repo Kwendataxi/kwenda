@@ -44,7 +44,6 @@ export const RentalSubscriptionManager = () => {
       planId,
       vehicleId,
       amount: plan?.monthly_price || 0,
-      currency: plan?.currency || 'CDF',
       planName: plan?.name || ''
     });
     setShowPayment(true);
@@ -91,12 +90,8 @@ export const RentalSubscriptionManager = () => {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'CDF') => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0
-    }).format(amount);
+  const formatCurrency = (amount: number) => {
+    return `${amount.toLocaleString()} CDF`;
   };
 
   if (loading) {
@@ -187,7 +182,7 @@ export const RentalSubscriptionManager = () => {
                             <div className="p-3 bg-muted rounded-lg">
                               <div className="text-sm font-medium">{plan.name}</div>
                               <div className="text-lg font-bold text-primary">
-                                {formatCurrency(plan.monthly_price, plan.currency)}/mois
+                                {formatCurrency(plan.monthly_price)}/mois
                               </div>
                             </div>
                             <Button
@@ -253,10 +248,7 @@ export const RentalSubscriptionManager = () => {
                     <div>
                       <span className="text-muted-foreground">Prix</span>
                       <div className="font-medium">
-                        {formatCurrency(
-                          subscription.rental_subscription_plans?.monthly_price || 0,
-                          subscription.rental_subscription_plans?.currency
-                        )}
+                        {formatCurrency(subscription.rental_subscription_plans?.monthly_price || 0)}
                       </div>
                     </div>
                   </div>
@@ -291,7 +283,7 @@ export const RentalSubscriptionManager = () => {
                     </div>
                     <div className="text-right">
                       <div className="font-bold">
-                        {formatCurrency(payment.amount, payment.currency)}
+                        {formatCurrency(payment.amount)}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {payment.provider} • {payment.phone_number}
@@ -312,7 +304,7 @@ export const RentalSubscriptionManager = () => {
                   <CardTitle className="text-lg">{plan.name}</CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="text-2xl font-bold text-primary">
-                    {formatCurrency(plan.monthly_price, plan.currency)}
+                    {formatCurrency(plan.monthly_price)}
                     <span className="text-sm font-normal text-muted-foreground">/mois</span>
                   </div>
                 </CardHeader>
@@ -343,7 +335,7 @@ export const RentalSubscriptionManager = () => {
           onClose={handlePaymentClose}
           planName={paymentData.planName}
           amount={paymentData.amount}
-          currency={paymentData.currency}
+          currency="CDF"
           onPayment={handlePayment}
           isProcessing={isSubscribing}
         />

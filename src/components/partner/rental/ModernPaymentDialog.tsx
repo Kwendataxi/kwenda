@@ -257,7 +257,7 @@ export const ModernPaymentDialog = ({
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Montant total</p>
                   <p className="text-3xl font-bold text-primary">
-                    {formatCurrency(amount, currency)}
+                    {amount.toLocaleString()} CDF
                   </p>
                   <p className="text-sm text-muted-foreground">Par mois</p>
                 </div>

@@ -66,7 +66,7 @@ export const VehicleModerationModal = ({ vehicle, open, onClose }: VehicleModera
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Tarif journalier</p>
-                    <p className="font-semibold">{vehicle.daily_rate} {vehicle.currency}</p>
+                    <p className="font-semibold">{vehicle.daily_rate} CDF</p>
                   </div>
                 </div>
 
@@ -74,7 +74,7 @@ export const VehicleModerationModal = ({ vehicle, open, onClose }: VehicleModera
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Tarif hebdomadaire</p>
-                    <p className="font-semibold">{vehicle.weekly_rate} {vehicle.currency}</p>
+                    <p className="font-semibold">{vehicle.weekly_rate} CDF</p>
                   </div>
                 </div>
 
@@ -82,7 +82,7 @@ export const VehicleModerationModal = ({ vehicle, open, onClose }: VehicleModera
                   <Shield className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Caution</p>
-                    <p className="font-semibold">{vehicle.security_deposit} {vehicle.currency}</p>
+                    <p className="font-semibold">{vehicle.security_deposit} CDF</p>
                   </div>
                 </div>
 

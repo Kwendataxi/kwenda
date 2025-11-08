@@ -67,7 +67,7 @@ export const PendingVehicleCard = ({
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="flex items-center gap-1 text-muted-foreground">
               <DollarSign className="h-4 w-4" />
-              <span>{vehicle.daily_rate} {vehicle.currency}/jour</span>
+              <span>{vehicle.daily_rate} CDF/jour</span>
             </div>
             {vehicle.city && (
               <div className="flex items-center gap-1 text-muted-foreground">

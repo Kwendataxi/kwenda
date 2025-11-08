@@ -262,7 +262,7 @@ export const AdminSubscriptionManager = () => {
                       <div className="flex items-center gap-4 text-sm">
                         <span><strong>Véhicule:</strong> {subscription.rental_vehicles?.name || 'Véhicule inconnu'} {subscription.rental_vehicles?.license_plate ? `(${subscription.rental_vehicles.license_plate})` : ''}</span>
                         <span><strong>Plan:</strong> {subscription.rental_subscription_plans?.name || 'Plan non trouvé'}</span>
-                        <span><strong>Prix:</strong> {subscription.rental_subscription_plans?.monthly_price?.toLocaleString() || '0'} {subscription.rental_subscription_plans?.currency || 'CDF'}/mois</span>
+                        <span><strong>Prix:</strong> {subscription.rental_subscription_plans?.monthly_price?.toLocaleString() || '0'} CDF/mois</span>
                         <span><strong>Début:</strong> {new Date(subscription.start_date).toLocaleDateString()}</span>
                         <span><strong>Fin:</strong> {new Date(subscription.end_date).toLocaleDateString()}</span>
                       </div>

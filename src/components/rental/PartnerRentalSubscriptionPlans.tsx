@@ -179,7 +179,7 @@ export const PartnerRentalSubscriptionPlans = () => {
                 <span className="text-4xl font-bold">
                   {(plan.monthly_price / 1000).toFixed(0)}K
                 </span>
-                <span className="text-muted-foreground"> {plan.currency}/mois</span>
+                <span className="text-muted-foreground"> CDF/mois</span>
               </div>
             </CardHeader>
 

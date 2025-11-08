@@ -563,7 +563,7 @@ const ClientApp = () => {
                 
                 <div>
                   <p className="text-muted-foreground text-sm">Prix total</p>
-                  <p className="text-2xl font-bold text-primary">{rentalBooking.totalPrice.toLocaleString()} FC</p>
+                  <p className="text-2xl font-bold text-primary">{rentalBooking.totalPrice.toLocaleString()} CDF</p>
                 </div>
               </div>
               
