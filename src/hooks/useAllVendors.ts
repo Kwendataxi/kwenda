@@ -34,16 +34,28 @@ export const useAllVendors = () => {
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
 
-      const { data: vendors, error, count } = await supabase
-        .from('vendor_profiles')
-        .select('*', { count: 'exact' })
-        .eq('status', 'active')
-        .ilike('shop_name', filters.search ? `%${filters.search}%` : '%')
-        .gte('average_rating', filters.minRating)
-        .gte('total_sales', filters.minSales)
-        .order(sort.field, { ascending: sort.direction === 'asc' })
-        .range(from, to);
+      // Construction conditionnelle avec typage any pour éviter l'inférence TypeScript profonde
+      let query: any = supabase.from('vendor_profiles').select('*', { count: 'exact' });
+      
+      query = query.eq('status', 'active');
+      
+      if (filters.search) {
+        query = query.ilike('shop_name', `%${filters.search}%`);
+      }
+      if (filters.minRating > 0) {
+        query = query.gte('average_rating', filters.minRating);
+      }
+      if (filters.minSales > 0) {
+        query = query.gte('total_sales', filters.minSales);
+      }
+      if (filters.verifiedOnly) {
+        query = query.eq('is_verified', true);
+      }
+      
+      query = query.order(sort.field, { ascending: sort.direction === 'asc' });
+      query = query.range(from, to);
 
+      const { data: vendors, error, count } = await query;
       if (error) throw error;
 
       const vendorIds = (vendors || []).map(v => v.user_id);
