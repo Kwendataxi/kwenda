@@ -186,6 +186,12 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
               onAddToCart={(product) => handleAddToCart(product, 1)}
               onViewAllDishes={() => setStep('all-dishes')}
               onViewAllRestaurants={() => setStep('all-restaurants')}
+              onRestaurantClick={(restaurantId) => {
+                const restaurant = restaurants.find(r => r.id === restaurantId);
+                if (restaurant) {
+                  handleSelectRestaurant(restaurant);
+                }
+              }}
             />
           )}
 

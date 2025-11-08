@@ -22,6 +22,7 @@ interface RestaurantListProps {
   onAddToCart?: (product: FoodProduct) => void;
   onViewAllDishes?: () => void;
   onViewAllRestaurants?: () => void;
+  onRestaurantClick?: (restaurantId: string) => void;
 }
 
 // Animation variants pour apparition progressive
@@ -70,8 +71,10 @@ export const RestaurantList = ({
   selectedCity,
   onAddToCart,
   onViewAllDishes,
-  onViewAllRestaurants
+  onViewAllRestaurants,
+  onRestaurantClick
 }: RestaurantListProps) => {
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   if (loading) {
