@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { Route } from 'react-router-dom';
+import { Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { ServiceGuard } from '@/components/guards/ServiceGuard';
 import { VendorGuard } from '@/components/guards/VendorGuard';
@@ -91,7 +91,17 @@ export const ClientRoutes = () => {
         } 
       />
 
-      {/* Food - Orders */}
+      {/* Food - Orders (avec redirection ancienne route) */}
+      <Route 
+        path="/app/client/food-orders" 
+        element={
+          <ServiceGuard serviceCategory="food">
+            <ProtectedRoute>
+              <Navigate to="/food/orders" replace />
+            </ProtectedRoute>
+          </ServiceGuard>
+        } 
+      />
       <Route 
         path="/food/orders" 
         element={

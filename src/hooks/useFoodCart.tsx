@@ -48,18 +48,24 @@ export const useFoodCart = (restaurantId?: string) => {
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (!restaurantId) return;
-
     try {
       if (cart.length === 0) {
         localStorage.removeItem(STORAGE_KEY);
         return;
       }
 
+      // Déterminer le restaurantId à sauvegarder
+      const cartRestaurantId = restaurantId || cart[0]?.restaurant_id;
+      
+      if (!cartRestaurantId) {
+        console.warn('Cannot save cart: no restaurant ID');
+        return;
+      }
+
       const expiresAt = Date.now() + (CART_EXPIRY_HOURS * 60 * 60 * 1000);
       const storedCart: StoredCart = {
         items: cart,
-        restaurantId,
+        restaurantId: cartRestaurantId,
         expiresAt
       };
 
