@@ -464,7 +464,7 @@ export const RestaurantStoreView: React.FC<RestaurantStoreViewProps> = ({
 
       {/* Checkout Bar */}
       {totalItems > 0 && (
-        <div id="checkout-section">
+        <div id="checkout-section" className="pb-32 md:pb-6">
           <RestaurantCheckoutBar
             cart={cart}
             restaurantName={restaurant.restaurant_name}
