@@ -98,7 +98,7 @@ export default defineConfig(({ mode }) => {
                 cacheName: 'images-cache',
                 expiration: {
                   maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 an
+                  maxAgeSeconds: 60 * 60 * 24 * 7 // 7 jours (au lieu de 1 an)
                 },
                 cacheableResponse: {
                   statuses: [0, 200]
@@ -113,7 +113,7 @@ export default defineConfig(({ mode }) => {
                 cacheName: 'static-resources',
                 expiration: {
                   maxEntries: 60,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 an
+                  maxAgeSeconds: 60 * 60 * 24 // 1 jour (au lieu de 1 an)
                 },
                 cacheableResponse: {
                   statuses: [0, 200]
@@ -128,7 +128,7 @@ export default defineConfig(({ mode }) => {
                 cacheName: 'fonts-cache',
                 expiration: {
                   maxEntries: 30,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 an
+                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 jours (OK pour fonts)
                 },
                 cacheableResponse: {
                   statuses: [0, 200]
@@ -143,7 +143,7 @@ export default defineConfig(({ mode }) => {
                 cacheName: 'google-fonts-cache',
                 expiration: {
                   maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 an
+                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 jours (OK pour fonts)
                 },
                 cacheableResponse: {
                   statuses: [0, 200]

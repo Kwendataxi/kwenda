@@ -32,10 +32,12 @@ self.addEventListener('install', (event) => {
 
 // Activation du service worker
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  console.log('Service Worker: Activating...', APP_VERSION);
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    (async () => {
+      // 1. Supprimer tous les anciens caches
+      const cacheNames = await caches.keys();
+      await Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
             console.log('Service Worker: Deleting old cache:', cacheName);
@@ -43,10 +45,20 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => {
-      console.log('Service Worker: Active');
+      
+      // 2. Broadcaster la nouvelle version à tous les clients
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'NEW_VERSION_ACTIVATED',
+          version: APP_VERSION,
+          buildDate: BUILD_DATE
+        });
+      });
+      
+      console.log('Service Worker: Active', APP_VERSION);
       return self.clients.claim();
-    })
+    })()
   );
 });
 

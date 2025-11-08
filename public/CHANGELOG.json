@@ -1,6 +1,19 @@
 {
   "versions": [
     {
+      "version": "2.0.0",
+      "date": "2025-11-08",
+      "severity": "major",
+      "changes": [
+        { "type": "feature", "icon": "🚀", "text": "Système de mise à jour automatique intelligent" },
+        { "type": "feature", "icon": "🗑️", "text": "Vidage automatique de tous les caches" },
+        { "type": "feature", "icon": "⚡", "text": "Détection instantanée des nouvelles versions" },
+        { "type": "feature", "icon": "🔄", "text": "Rechargement transparent sans intervention" },
+        { "type": "performance", "icon": "⚡", "text": "Durées de cache optimisées (7 jours max)" },
+        { "type": "feature", "icon": "🔧", "text": "Outils de debug pour développeurs (window.kwenda)" }
+      ]
+    },
+    {
       "version": "1.2.0",
       "date": "2025-11-03",
       "severity": "major",

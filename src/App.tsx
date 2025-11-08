@@ -42,6 +42,8 @@ import { ThemeNotification } from "@/components/theme/ThemeNotification";
 import { useOrderCleanup } from "@/hooks/useOrderCleanup";
 import { DebugHelper } from "@/utils/debugHelper";
 import { useServiceRealtime } from "./hooks/useServiceRealtime";
+import { autoUpdateService } from "@/services/AutoUpdateService";
+import { initVersionDebug } from "@/utils/versionDebug";
 
 // Critical imports
 import Index from "./pages/Index";
@@ -80,6 +82,32 @@ const AppContent = () => {
     if (import.meta.env.DEV) {
       setTimeout(() => DebugHelper.runFullDiagnostic(), 2000);
     }
+  }, []);
+  
+  // Système de mise à jour automatique
+  useEffect(() => {
+    // Initialiser le service de mise à jour automatique
+    autoUpdateService.initialize();
+    
+    // Initialiser les outils de debug
+    if (import.meta.env.DEV) {
+      initVersionDebug();
+    }
+    
+    // Écouter les messages du Service Worker
+    const handleSWMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NEW_VERSION_ACTIVATED') {
+        console.log('🎉 New version activated:', event.data.version);
+        // Le rechargement se fait automatiquement via AutoUpdateService
+      }
+    };
+    
+    navigator.serviceWorker?.addEventListener('message', handleSWMessage);
+    
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', handleSWMessage);
+      autoUpdateService.destroy();
+    };
   }, []);
   
   const handleSplashComplete = (session?: any, userRole?: string | null) => {
