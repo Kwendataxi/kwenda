@@ -164,9 +164,6 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
             </button>
           )}
 
-          {/* Quantity Info */}
-          <p className="text-xs text-muted-foreground">1 piece</p>
-
           {/* Price Section */}
           <div className="flex items-center gap-2 pt-1">
             {/* Current Price */}
