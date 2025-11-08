@@ -200,11 +200,29 @@ export const useWallet = () => {
 
     setLoading(true);
     try {
+      // 🔐 PHASE 1: Récupérer la session avec token JWT
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error('Session expirée. Veuillez vous reconnecter.');
+      }
+
+      console.log('💸 Transfert wallet:', {
+        recipientIdentifier: recipientPhoneOrId,
+        amount,
+        hasSession: !!session,
+        userId: user?.id,
+        tokenLength: session?.access_token?.length
+      });
+
       const { data, error } = await supabase.functions.invoke('wallet-transfer', {
         body: {
           recipientIdentifier: recipientPhoneOrId,
           amount,
           description
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
         }
       });
 

@@ -35,10 +35,31 @@ export const useRecipientValidation = () => {
     // Debounce: valide après 800ms
     const timeout = setTimeout(async () => {
       try {
+        // 🔐 PHASE 1: Récupérer la session avec token JWT
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.access_token) {
+          console.error('❌ Session expirée ou manquante');
+          setError('Session expirée. Veuillez vous reconnecter.');
+          setRecipientInfo({ valid: false, error: 'Session expirée' });
+          setIsValidating(false);
+          return;
+        }
+
+        console.log('🔍 Validation destinataire:', {
+          identifier: input,
+          hasSession: !!session,
+          tokenLength: session?.access_token?.length,
+          expiresAt: new Date((session?.expires_at || 0) * 1000).toISOString()
+        });
+
         const { data, error: funcError } = await supabase.functions.invoke(
           'validate-transfer-recipient',
           {
-            body: { identifier: input.trim() }
+            body: { identifier: input.trim() },
+            headers: {
+              Authorization: `Bearer ${session.access_token}`
+            }
           }
         );
 

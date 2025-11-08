@@ -22,6 +22,7 @@ import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
 import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
 import { PointsConversionDialog } from '@/components/loyalty/PointsConversionDialog';
 import { TopUpModal } from '@/components/wallet/TopUpModal';
+import { SessionStatusIndicator } from '@/components/SessionStatusIndicator';
 import { Send, Gift, Zap } from 'lucide-react';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
@@ -113,6 +114,11 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-b from-congo-blue/5 to-white dark:from-congo-blue/10 dark:to-background pb-24">
       <SuccessConfetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
+
+      {/* Indicateur de session */}
+      <div className="fixed top-4 right-4 z-50">
+        <SessionStatusIndicator />
+      </div>
 
       {/* Hero moderne et épuré */}
       <WalletHero
