@@ -743,8 +743,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                     seller: product.seller,
                     seller_id: product.seller_id,
                     inStock: product.inStock,
-                    stockCount: product.stockCount
+                    stockCount: product.stockCount,
+                    rating: product.rating,
+                    reviews: product.reviews,
+                    created_at: product.created_at
                   }}
+                  cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
                   onAddToCart={() => addToCart(product, 1)}
                   onQuickView={() => {
                     setQuickViewProduct(product);
@@ -848,8 +852,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                         seller: product.seller,
                         seller_id: product.seller_id,
                         inStock: product.inStock,
-                        stockCount: product.stockCount
+                        stockCount: product.stockCount,
+                        rating: product.rating,
+                        reviews: product.reviews,
+                        created_at: product.created_at
                       }}
+                      cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
                       onAddToCart={() => addToCart(product, 1)}
                       onQuickView={() => {
                         setQuickViewProduct(product);
@@ -889,8 +897,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                         seller: product.seller,
                         seller_id: product.seller_id,
                         inStock: product.inStock,
-                        stockCount: product.stockCount
+                        stockCount: product.stockCount,
+                        rating: product.rating,
+                        reviews: product.reviews,
+                        created_at: product.created_at
                       }}
+                      cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
                       onAddToCart={() => addToCart(product, 1)}
                       onQuickView={() => {
                         setQuickViewProduct(product);
@@ -932,8 +944,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                             seller: product.seller,
                             seller_id: product.seller_id,
                             inStock: product.inStock,
-                            stockCount: product.stockCount
+                            stockCount: product.stockCount,
+                            rating: product.rating,
+                            reviews: product.reviews,
+                            created_at: product.created_at
                           }}
+                          cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
                           onAddToCart={() => addToCart(product, 1)}
                           onQuickView={() => {
                             setQuickViewProduct(product);

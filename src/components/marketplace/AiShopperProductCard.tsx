@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Plus, Eye, Store, Package } from 'lucide-react';
+import { Heart, Plus, Eye, Store, Package, Sparkles, Star, ShoppingCart } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useProductPromotions } from '@/hooks/useProductPromotions';
 import { cn } from '@/lib/utils';
 
 interface AiShopperProductCardProps {
@@ -20,7 +21,11 @@ interface AiShopperProductCardProps {
     seller_id: string;
     inStock: boolean;
     stockCount: number;
+    rating?: number;
+    reviews?: number;
+    created_at?: string;
   };
+  cartQuantity?: number;
   onAddToCart: () => void;
   onQuickView: () => void;
   onToggleFavorite: () => void;
@@ -31,6 +36,7 @@ interface AiShopperProductCardProps {
 
 export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
   product,
+  cartQuantity = 0,
   onAddToCart,
   onQuickView,
   onToggleFavorite,
@@ -40,8 +46,19 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
 }) => {
   const { triggerHaptic } = useHapticFeedback();
   const { formatCurrency } = useLanguage();
+  const { calculateDiscount, getOriginalPrice, getPromotionLabel } = useProductPromotions();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  // Calculer les promos dynamiques si pas fournies
+  const actualDiscount = product.discount || calculateDiscount({
+    stockCount: product.stockCount,
+    created_at: product.created_at,
+    rating: product.rating || 0,
+  } as any);
+
+  const actualOriginalPrice = product.originalPrice || (actualDiscount > 0 ? getOriginalPrice(product.price, actualDiscount) : undefined);
+  const promoLabel = getPromotionLabel(actualDiscount);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -81,16 +98,23 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
       <Card className="overflow-hidden border-border/40 bg-card hover:shadow-lg transition-all duration-300 relative group">
         {/* Image Container avec ratio 3/4 */}
         <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-          {/* Discount Badge - En haut à gauche */}
-          {product.discount && product.discount > 0 && (
+          {/* Discount Badge - En haut à gauche avec label promo */}
+          {actualDiscount > 0 && (
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 0, rotate: -45 }}
+              animate={{ scale: 1, rotate: 0 }}
               className="absolute top-2 left-2 z-10"
             >
-              <Badge className="bg-gradient-to-r from-primary to-blue-600 text-white font-bold text-xs px-2 py-1 shadow-lg">
-                -{product.discount}%
-              </Badge>
+              <div className="relative">
+                <Badge className="bg-gradient-to-r from-red-500 to-yellow-500 text-white font-black text-xs px-3 py-1.5 shadow-lg">
+                  -{actualDiscount}%
+                </Badge>
+                {promoLabel && (
+                  <div className="absolute -bottom-6 left-0 text-[10px] font-bold text-white bg-black/70 px-2 py-0.5 rounded-full whitespace-nowrap">
+                    {promoLabel}
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
 
@@ -108,12 +132,12 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
             />
           </motion.button>
 
-          {/* Quick View Button - En bas à droite sur l'image */}
+          {/* Quick View Button - En bas à gauche sur l'image */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={handleQuickView}
-            className="absolute bottom-2 right-2 z-10 w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors"
+            className="absolute bottom-2 left-2 z-10 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border-2 border-blue-500 text-blue-500 flex items-center justify-center shadow-md hover:bg-blue-50 transition-colors"
           >
             <Eye className="h-4 w-4" />
           </motion.button>
@@ -153,6 +177,22 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
             {product.title}
           </h3>
 
+          {/* Rating ou Nouveau Produit */}
+          {product.rating && product.rating > 0 ? (
+            <div className="flex items-center gap-1">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs font-semibold">{product.rating.toFixed(1)}</span>
+              {product.reviews && product.reviews > 0 && (
+                <span className="text-xs text-muted-foreground">({product.reviews})</span>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground/60">
+              <Sparkles className="h-3 w-3" />
+              <span>Nouveau produit</span>
+            </div>
+          )}
+
           {/* Seller Info - Cliquable */}
           {onVisitShop && (
             <button
@@ -172,24 +212,40 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
             </span>
 
             {/* Original Price (barré) */}
-            {product.originalPrice && product.originalPrice > product.price && (
+            {actualOriginalPrice && actualOriginalPrice > product.price && (
               <span className="text-xs text-muted-foreground line-through">
-                {formatCurrency(product.originalPrice)}
+                {formatCurrency(actualOriginalPrice)}
               </span>
             )}
           </div>
 
-          {/* Add to Cart Button */}
-          <Button
-            variant="outline"
-            size="sm"
+          {/* Bouton FAB moderne - Positionné sur l'image */}
+          <motion.button
             disabled={!product.inStock}
             onClick={handleAddToCart}
-            className="w-full bg-white hover:bg-muted border-border text-foreground font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute bottom-2 right-2 w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-yellow-500 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10"
+            whileHover={{ 
+              scale: 1.15,
+              rotate: [0, -5, 5, 0],
+              transition: { rotate: { duration: 0.5 } }
+            }}
+            whileTap={{ scale: 0.9 }}
           >
-            <Plus className="h-4 w-4 mr-1" />
-            Ajouter au panier
-          </Button>
+            <ShoppingCart className="h-5 w-5" />
+            
+            {/* Badge quantité au panier */}
+            {cartQuantity > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-md border-2 border-white"
+              >
+                <span className="text-[10px] font-bold text-white">
+                  {cartQuantity}
+                </span>
+              </motion.div>
+            )}
+          </motion.button>
         </div>
       </Card>
     </motion.div>
