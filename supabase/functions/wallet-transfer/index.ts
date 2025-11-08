@@ -62,7 +62,7 @@ serve(async (req) => {
       throw new Error('Limite de 10 transferts/heure atteinte. Réessayez plus tard.');
     }
 
-    // 4. Identifier le destinataire (avec backup dans user_wallets)
+    // 4. Identifier le destinataire (approche simplifiée)
     let recipientId: string;
     
     // Si c'est un UUID direct
@@ -80,18 +80,8 @@ serve(async (req) => {
         recipientId = client.user_id;
         console.log('✅ Destinataire trouvé dans clients:', client.display_name);
       } else {
-        // Backup: recherche dans user_wallets en joignant avec auth.users via email
-        console.log('🔍 Backup: recherche dans user_wallets...');
-        
-        // On suppose que l'input est un email, cherchons tous les wallets
-        const { data: wallets, error: walletError } = await supabaseClient
-          .from('user_wallets')
-          .select('user_id');
-        
-        if (walletError || !wallets || wallets.length === 0) {
-          console.error('❌ Erreur recherche wallets:', walletError);
-          throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
-        }
+        // Backup: utiliser directement auth.admin pour chercher par email
+        console.log('🔍 Backup: recherche directe dans auth.users...');
         
         // Utiliser le service role key pour accéder à auth.users
         const supabaseAdmin = createClient(
@@ -99,6 +89,7 @@ serve(async (req) => {
           Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         );
         
+        // Chercher l'utilisateur par email directement
         const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
         
         if (usersError || !users) {
@@ -113,14 +104,19 @@ serve(async (req) => {
           throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
         }
         
-        // Vérifier que cet utilisateur a un wallet actif
-        const hasWallet = wallets.some(w => w.user_id === matchingUser.id);
+        // Vérifier que cet utilisateur a un wallet
+        const { data: wallet, error: walletCheckError } = await supabaseClient
+          .from('user_wallets')
+          .select('user_id')
+          .eq('user_id', matchingUser.id)
+          .maybeSingle();
         
-        if (!hasWallet) {
+        if (walletCheckError || !wallet) {
+          console.error('❌ Pas de wallet pour cet utilisateur:', walletCheckError);
           throw new Error('Le destinataire n\'a pas de wallet actif');
         }
         
-        console.log('✅ Destinataire trouvé via user_wallets:', matchingUser.email);
+        console.log('✅ Destinataire trouvé:', matchingUser.email);
         recipientId = matchingUser.id;
       }
     }
