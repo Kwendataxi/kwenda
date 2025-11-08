@@ -23,10 +23,10 @@ export const useRestaurantDelivery = () => {
   const requestDelivery = async (orderId: string) => {
     setLoading(true);
     try {
-      console.log('🍽️ Requesting delivery for order:', orderId);
+      console.log('🍽️ Requesting Kwenda delivery for order:', orderId);
 
-      // Appeler l'edge function pour assigner un driver
-      const { data, error } = await supabase.functions.invoke('assign-food-delivery', {
+      // ✅ Nouvelle edge function qui gère paiement séparé
+      const { data, error } = await supabase.functions.invoke('request-food-delivery', {
         body: { orderId }
       });
 
@@ -35,27 +35,26 @@ export const useRestaurantDelivery = () => {
         throw new Error(error.message);
       }
 
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
       if (data.success) {
-        toast.success('✅ Livreur assigné', {
-          description: `${data.driver.name} va récupérer la commande`,
+        toast.success('🚚 Livreur Kwenda recherché', {
+          description: `Frais estimés: ${data.estimatedDeliveryFee?.toLocaleString()} CDF`,
         });
         return { 
           success: true, 
-          driver: data.driver,
-          assignment: data.assignment
+          estimatedFee: data.estimatedDeliveryFee,
+          distance: data.distance
         };
-      } else if (data.needsManualAssignment) {
-        toast.error('⚠️ Aucun livreur disponible', {
-          description: 'Vous pouvez livrer vous-même ou réessayer plus tard',
-        });
-        return { success: false, needsManual: true };
       } else {
-        throw new Error(data.error || 'Erreur inconnue');
+        throw new Error('Erreur inconnue');
       }
     } catch (error: any) {
       console.error('Error requesting delivery:', error);
       toast.error('Erreur', {
-        description: error.message || 'Impossible d\'assigner un livreur',
+        description: error.message || 'Impossible de demander un livreur',
       });
       return { success: false };
     } finally {

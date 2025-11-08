@@ -3450,6 +3450,9 @@ export type Database = {
           delivery_coordinates: Json
           delivery_fee: number
           delivery_instructions: string | null
+          delivery_paid_at: string | null
+          delivery_payment_method: string | null
+          delivery_payment_status: string | null
           delivery_phone: string
           driver_id: string | null
           estimated_delivery_time: number | null
@@ -3483,6 +3486,9 @@ export type Database = {
           delivery_coordinates: Json
           delivery_fee?: number
           delivery_instructions?: string | null
+          delivery_paid_at?: string | null
+          delivery_payment_method?: string | null
+          delivery_payment_status?: string | null
           delivery_phone: string
           driver_id?: string | null
           estimated_delivery_time?: number | null
@@ -3516,6 +3522,9 @@ export type Database = {
           delivery_coordinates?: Json
           delivery_fee?: number
           delivery_instructions?: string | null
+          delivery_paid_at?: string | null
+          delivery_payment_method?: string | null
+          delivery_payment_status?: string | null
           delivery_phone?: string
           driver_id?: string | null
           estimated_delivery_time?: number | null
@@ -4956,6 +4965,8 @@ export type Database = {
           delivery_fee_approved_by_buyer: boolean | null
           delivery_fee_payment_method: string | null
           delivery_method: string
+          delivery_paid_at: string | null
+          delivery_payment_status: string | null
           driver_notes: string | null
           estimated_delivery_time: string | null
           id: string
@@ -4998,6 +5009,8 @@ export type Database = {
           delivery_fee_approved_by_buyer?: boolean | null
           delivery_fee_payment_method?: string | null
           delivery_method?: string
+          delivery_paid_at?: string | null
+          delivery_payment_status?: string | null
           driver_notes?: string | null
           estimated_delivery_time?: string | null
           id?: string
@@ -5040,6 +5053,8 @@ export type Database = {
           delivery_fee_approved_by_buyer?: boolean | null
           delivery_fee_payment_method?: string | null
           delivery_method?: string
+          delivery_paid_at?: string | null
+          delivery_payment_status?: string | null
           driver_notes?: string | null
           estimated_delivery_time?: string | null
           id?: string

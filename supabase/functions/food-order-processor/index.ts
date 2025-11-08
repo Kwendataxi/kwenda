@@ -83,9 +83,9 @@ serve(async (req) => {
       return sum + ((product?.price || 0) * item.quantity);
     }, 0);
 
-    const deliveryFee = 2000;
+    // ✅ SÉPARATION COMMANDE/LIVRAISON : Livraison payée séparément
     const serviceFee = Math.round(subtotal * 0.05);
-    const totalAmount = subtotal + deliveryFee + serviceFee;
+    const totalAmount = subtotal + serviceFee; // ❌ PLUS de delivery_fee inclus
 
     if (orderData.payment_method === 'kwenda_pay') {
       const { data: wallet } = await supabase
@@ -134,9 +134,9 @@ serve(async (req) => {
           .eq('user_id', user.id);
 
         transactionType = 'food_order_bonus';
-        transactionDescription = `Commande Food (BONUS) - ${restaurant.restaurant_name}`;
+        transactionDescription = `Commande Food (BONUS) - ${restaurant.restaurant_name} (PRODUIT uniquement)`;
 
-        console.log(`💰 Paiement avec BONUS : ${totalAmount} CDF (reste bonus: ${bonusBalance - totalAmount})`);
+        console.log(`💰 Paiement avec BONUS : ${totalAmount} CDF (produit + service, sans livraison)`);
       } else {
         // Payer avec solde principal
         await supabase
@@ -148,7 +148,7 @@ serve(async (req) => {
           .eq('user_id', user.id);
 
         transactionType = 'food_order';
-        transactionDescription = `Commande Food - ${restaurant.restaurant_name}`;
+        transactionDescription = `Commande Food - ${restaurant.restaurant_name} (PRODUIT uniquement)`;
 
         console.log(`💰 Paiement avec BALANCE : ${totalAmount} CDF (reste: ${mainBalance - totalAmount})`);
       }
@@ -200,9 +200,10 @@ serve(async (req) => {
           };
         }),
         subtotal,
-        delivery_fee: deliveryFee,
+        delivery_fee: 0, // ⚠️ Sera défini quand restaurant demandera livreur
         service_fee: serviceFee,
-        total_amount: totalAmount,
+        total_amount: totalAmount, // Produit + service uniquement
+        delivery_payment_status: 'not_required', // Pas encore de livreur demandé
         currency: 'CDF',
         delivery_address: orderData.delivery_address,
         delivery_coordinates: orderData.delivery_coordinates || {},
@@ -234,21 +235,8 @@ serve(async (req) => {
 
     console.log('✅ Commande créée:', order.id);
 
-    // 🚚 PHASE 1: Dispatcher les livreurs disponibles
-    try {
-      const driversNotified = await dispatchFoodDelivery({
-        orderId: order.id,
-        restaurantId: orderData.restaurant_id,
-        restaurantName: restaurant.restaurant_name,
-        deliveryAddress: orderData.delivery_address,
-        deliveryCoords: orderData.delivery_coordinates,
-        estimatedPrice: deliveryFee
-      });
-      
-      console.log(`📡 ${driversNotified} chauffeurs notifiés pour commande ${order.id}`);
-    } catch (dispatchError) {
-      console.error('⚠️ Erreur dispatch livreurs (non bloquant):', dispatchError);
-    }
+    // ✅ NOUVEAU FLUX : Le restaurant demandera un livreur manuellement
+    console.log('ℹ️ Livraison sera demandée par le restaurant via request-food-delivery');
 
     return new Response(
       JSON.stringify({

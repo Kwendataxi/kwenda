@@ -88,11 +88,12 @@ serve(async (req) => {
           seller_id: item.seller_id,
           quantity: item.quantity,
           unit_price: item.price,
-          total_amount: orderTotal,
+          total_amount: orderTotal, // ❌ Produit uniquement, sans delivery_fee
           status: 'pending',
           payment_status: 'paid',
           delivery_coordinates: userCoordinates,
-          vendor_confirmation_status: 'awaiting_confirmation'
+          vendor_confirmation_status: 'awaiting_confirmation',
+          delivery_payment_status: 'pending' // 🆕 Livraison sera payée séparément
         })
         .select()
         .single();
@@ -105,7 +106,7 @@ serve(async (req) => {
       orderIds.push(order.id);
       console.log(`✅ Order created: ${order.id}`);
 
-      // Créer la transaction escrow
+      // Créer la transaction escrow (UNIQUEMENT produit)
       const platformFee = orderTotal * 0.05;
       const sellerAmount = orderTotal - platformFee;
 
@@ -115,7 +116,7 @@ serve(async (req) => {
           order_id: order.id,
           buyer_id: userId,
           seller_id: item.seller_id,
-          amount: orderTotal,
+          amount: orderTotal, // ⚠️ Produit uniquement, pas la livraison
           platform_fee: platformFee,
           seller_amount: sellerAmount,
           status: 'held',

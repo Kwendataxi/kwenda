@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Package, Truck, DollarSign, MessageSquare } from 'lucide-react';
+import { DeliverySeparatePaymentDialog } from './DeliverySeparatePaymentDialog';
 
 interface DeliveryFeeApprovalDialogProps {
   order: any;
@@ -25,12 +26,12 @@ export const DeliveryFeeApprovalDialog = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const [accepting, setAccepting] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   if (!order || order.status !== 'pending_buyer_approval') return null;
 
   const subtotal = order.unit_price * order.quantity;
   const deliveryFee = order.delivery_fee || 0;
-  const total = subtotal + deliveryFee;
 
   const handleAcceptFees = async () => {
     if (!user) return;
@@ -49,11 +50,11 @@ export const DeliveryFeeApprovalDialog = ({
 
       toast({ 
         title: "✅ Frais acceptés", 
-        description: "Votre paiement a été traité. La livraison sera bientôt organisée." 
+        description: "Ouvrez le dialogue de paiement pour la livraison" 
       });
       
       onOpenChange(false);
-      onApproved?.();
+      setShowPaymentDialog(true); // Ouvrir dialogue paiement séparé
     } catch (error: any) {
       console.error('Error accepting fees:', error);
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -104,20 +105,15 @@ export const DeliveryFeeApprovalDialog = ({
               <span className="font-medium">{subtotal} CDF</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Frais de livraison</span>
-              <span className="font-semibold text-primary">{deliveryFee} CDF</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between">
-              <span className="font-semibold">Total à payer</span>
-              <span className="text-xl font-bold">{total} CDF</span>
+              <span className="text-muted-foreground">Frais de livraison (à payer séparément)</span>
+              <span className="font-semibold text-orange-600">{deliveryFee} CDF</span>
             </div>
           </div>
 
           {/* Message informatif */}
           <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              Le vendeur a validé votre commande et fixé les frais de livraison. 
-              Acceptez pour procéder au paiement et à la livraison.
+              ℹ️ Vous payerez la livraison séparément après validation des frais.
             </p>
           </div>
 
@@ -139,11 +135,28 @@ export const DeliveryFeeApprovalDialog = ({
               onClick={handleAcceptFees}
               disabled={accepting}
             >
-              {accepting ? 'Traitement...' : 'Accepter et payer'}
+              {accepting ? 'Traitement...' : 'Accepter les frais'}
             </Button>
           </div>
         </div>
       </DialogContent>
+
+      {/* Dialogue de paiement séparé */}
+      <DeliverySeparatePaymentDialog
+        orderId={order.id}
+        orderType="marketplace"
+        productAmount={subtotal}
+        deliveryFee={deliveryFee}
+        open={showPaymentDialog}
+        onClose={() => {
+          setShowPaymentDialog(false);
+          onApproved?.();
+        }}
+        onSuccess={() => {
+          setShowPaymentDialog(false);
+          onApproved?.();
+        }}
+      />
     </Dialog>
   );
 };
