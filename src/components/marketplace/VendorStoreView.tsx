@@ -290,6 +290,8 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
           vendor_id: vendorId,
           user_id: user.id,
           is_active: newState
+        }, {
+          onConflict: 'vendor_id,user_id'
         });
       
       setIsSubscribed(newState);

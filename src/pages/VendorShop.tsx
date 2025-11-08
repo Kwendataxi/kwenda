@@ -300,6 +300,8 @@ const VendorShop: React.FC = () => {
             subscriber_id: authUser.id,
             vendor_id: profile.user_id,
             is_active: true
+          }, { 
+            onConflict: 'customer_id,vendor_id'
           });
 
         if (subError) throw subError;

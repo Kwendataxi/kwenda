@@ -68,6 +68,8 @@ export const FollowButton: React.FC<FollowButtonProps> = ({ vendorId, className 
           vendor_id: vendorId,
           user_id: user.id,
           is_active: newFollowState
+        }, {
+          onConflict: 'vendor_id,user_id'
         });
 
       if (error) throw error;
