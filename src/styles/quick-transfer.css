@@ -96,3 +96,8 @@
 .quick-transfer-popup * {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Safe area padding for mobile devices (iPhone notch, etc.) */
+.pb-safe-or-4 {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
