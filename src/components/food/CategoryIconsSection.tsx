@@ -40,14 +40,14 @@ export const CategoryIconsSection = ({
               onClick={() => onCategorySelect(category.categoryId)}
               whileTap={{ scale: 0.95 }}
               className={cn(
-                "flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[70px] transition-all",
+                "flex flex-col items-center gap-1 px-2.5 py-2 rounded-lg w-[75px] transition-all",
                 isActive 
                   ? "bg-primary text-primary-foreground shadow-md" 
                   : "bg-muted/50 hover:bg-muted"
               )}
             >
               <span className="text-2xl">{category.emoji}</span>
-              <span className="text-xs font-medium whitespace-nowrap">
+              <span className="text-[10px] font-medium text-center leading-tight line-clamp-2">
                 {category.name}
               </span>
             </motion.button>
