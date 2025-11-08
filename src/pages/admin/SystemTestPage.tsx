@@ -202,6 +202,7 @@ export default function SystemTestPage() {
 
     try {
       // Chauffeurs actifs
+      // @ts-ignore - Type inference too deep for complex Supabase query
       const { data: drivers, error: driverError } = await supabase
         .from('chauffeurs')
         .select('id, nom, prenom, is_online, ville')
