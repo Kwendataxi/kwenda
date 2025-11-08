@@ -29,16 +29,14 @@ export const FollowButton: React.FC<FollowButtonProps> = ({ vendorId, className 
     }
 
     try {
-      const { data, error } = await supabase
-        .from('vendor_followers')
-        .select('id, is_active')
+      const { data } = await supabase
+        .from('vendor_subscriptions')
+        .select('is_active')
         .eq('vendor_id', vendorId)
-        .eq('user_id', user.id)
-        .single();
+        .eq('subscriber_id', user.id)
+        .maybeSingle();
 
-      if (!error && data) {
-        setIsFollowing(data.is_active);
-      }
+      setIsFollowing(data?.is_active || false);
     } catch (error) {
       console.error('Error checking follow status:', error);
     } finally {
@@ -63,13 +61,14 @@ export const FollowButton: React.FC<FollowButtonProps> = ({ vendorId, className 
 
     try {
       const { error } = await supabase
-        .from('vendor_followers')
+        .from('vendor_subscriptions')
         .upsert({
+          customer_id: user.id,
+          subscriber_id: user.id,
           vendor_id: vendorId,
-          user_id: user.id,
           is_active: newFollowState
         }, {
-          onConflict: 'vendor_id,user_id'
+          onConflict: 'customer_id,vendor_id'
         });
 
       if (error) throw error;

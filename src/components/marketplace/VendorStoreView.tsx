@@ -154,13 +154,13 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
         avatar_url: vendorData?.shop_logo_url || null
       });
 
-      // Check subscription status
+      // ✅ CORRECTION : Utiliser vendor_subscriptions au lieu de vendor_followers
       if (user) {
         const { data: subData } = await supabase
-          .from('vendor_followers')
+          .from('vendor_subscriptions')
           .select('is_active')
+          .eq('subscriber_id', user.id)
           .eq('vendor_id', vendorId)
-          .eq('user_id', user.id)
           .maybeSingle();
         
         setIsSubscribed(subData?.is_active || false);
@@ -284,15 +284,28 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
     try {
       const newState = !isSubscribed;
       
-      await supabase
-        .from('vendor_followers')
+      // ✅ CORRECTION : Migrer vers vendor_subscriptions
+      const { error } = await supabase
+        .from('vendor_subscriptions')
         .upsert({
+          customer_id: user.id,
+          subscriber_id: user.id,
           vendor_id: vendorId,
-          user_id: user.id,
           is_active: newState
         }, {
-          onConflict: 'vendor_id,user_id'
+          onConflict: 'customer_id,vendor_id'
         });
+      
+      if (error) {
+        console.error('[VendorStoreView] Subscribe error:', {
+          error,
+          code: error?.code,
+          message: error?.message,
+          details: error?.details,
+          hint: error?.hint
+        });
+        throw error;
+      }
       
       setIsSubscribed(newState);
       
@@ -304,12 +317,11 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
       });
       
       loadVendorData();
-    } catch (error) {
-      console.error('Subscribe error:', error);
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: 'Impossible de modifier l\'abonnement.'
+        description: error?.message || 'Impossible de modifier l\'abonnement.'
       });
     }
   };

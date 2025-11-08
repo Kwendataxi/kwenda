@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MessageCircle, Send, Copy, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MessageCircle, Send, Copy, Check, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getVendorShopUrl } from '@/config/appUrl';
 
@@ -20,7 +20,6 @@ export const VendorSimpleShareButtons: React.FC<VendorSimpleShareButtonsProps> =
 }) => {
   const { toast } = useToast();
   const [copied, setCopied] = React.useState(false);
-  const [linkGenerated, setLinkGenerated] = React.useState(false);
 
   // ✅ Validation UUID côté client
   React.useEffect(() => {
@@ -36,15 +35,6 @@ export const VendorSimpleShareButtons: React.FC<VendorSimpleShareButtonsProps> =
 
   const shopUrl = getVendorShopUrl(vendorId);
   
-  // Debug log pour vérifier l'UUID et le lien généré
-  console.log('[VendorShare] Current state:', {
-    vendorId,
-    length: vendorId?.length,
-    isValid: vendorId?.length === 36,
-    shopUrl,
-    timestamp: new Date().toISOString()
-  });
-  
   // Message enrichi avec emojis
   const shareMessage = `💥 ${vendorName} est en ligne sur Kwenda Shop !
 
@@ -59,18 +49,20 @@ Découvre nos produits, passe ta commande et fais-toi livrer où que tu sois �
   const handleWhatsAppShare = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
     window.open(url, '_blank');
+    
+    toast({
+      title: '✅ Partagé sur WhatsApp',
+      description: 'Votre lien a été ouvert dans WhatsApp',
+    });
   };
 
   const handleTelegram = () => {
     const url = `https://t.me/share/url?url=${encodeURIComponent(shopUrl)}&text=${encodeURIComponent(shareMessage)}`;
     window.open(url, '_blank');
-  };
-
-  const handleGenerateNewLink = () => {
-    setLinkGenerated(true);
+    
     toast({
-      title: '✅ Nouveau lien généré',
-      description: 'Ce lien est maintenant prêt à être partagé.',
+      title: '✅ Partagé sur Telegram',
+      description: 'Votre lien a été ouvert dans Telegram',
     });
   };
 
@@ -80,7 +72,7 @@ Découvre nos produits, passe ta commande et fais-toi livrer où que tu sois �
       setCopied(true);
       toast({
         title: '✅ Lien copié !',
-        description: 'Le lien de votre boutique a été copié.'
+        description: 'Le lien de votre boutique a été copié dans le presse-papier.'
       });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -93,77 +85,87 @@ Découvre nos produits, passe ta commande et fais-toi livrer où que tu sois �
   };
 
   return (
-    <div className="space-y-3">
-      <div className="text-center mb-4">
-        <h3 className="font-semibold text-sm">Partager ma boutique</h3>
-        <p className="text-xs text-muted-foreground mt-1">
-          {!linkGenerated ? 'Générez votre lien de partage' : 'Choisis comment partager ton lien'}
+    <div className="space-y-4">
+      {/* ✅ MODERNE : Header avec icon animé */}
+      <motion.div 
+        className="text-center"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-3">
+          <Share2 className="h-6 w-6 text-primary" />
+        </div>
+        <h3 className="font-bold text-lg">Partager ma boutique</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Partagez votre lien pour attirer plus de clients
         </p>
-      </div>
+      </motion.div>
       
-      {/* Bouton de génération de lien */}
-      {!linkGenerated && (
-        <Alert>
-          <AlertDescription className="space-y-3">
-            <p className="text-sm">Cliquez pour préparer votre lien de partage unique</p>
-            <Button 
-              onClick={handleGenerateNewLink}
-              className="w-full"
-              variant="default"
-            >
-              🔄 Générer un nouveau lien
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* ✅ MODERNE : Affichage du lien avec glassmorphism */}
+      <motion.div 
+        className="p-4 rounded-xl bg-gradient-to-br from-primary/5 via-purple-500/5 to-pink-500/5 border border-primary/10 backdrop-blur-sm"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <p className="text-xs font-semibold text-muted-foreground mb-2">Votre lien unique :</p>
+        <p className="text-sm font-mono break-all text-foreground/80 bg-background/50 p-2 rounded-lg">
+          {shopUrl}
+        </p>
+      </motion.div>
       
-      {/* Options de partage (visibles après génération) */}
-      {linkGenerated && (
-        <>
-          {/* Affichage du lien généré */}
-          <div className="p-3 bg-muted rounded-lg space-y-2">
-            <p className="text-xs font-semibold">Votre lien unique :</p>
-            <p className="text-xs font-mono break-all">{shopUrl}</p>
-            <p className="text-xs text-muted-foreground">
-              ✅ UUID : {vendorId.slice(0, 8)}...{vendorId.slice(-8)} ({vendorId.length} car.)
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 justify-start gap-3 bg-green-50 hover:bg-green-100 border-green-200 text-green-700 dark:bg-green-950 dark:hover:bg-green-900 dark:border-green-800 dark:text-green-300"
-              onClick={handleWhatsAppShare}
-            >
-              <MessageCircle className="h-5 w-5" />
-              <span className="font-medium">Partager sur WhatsApp</span>
-            </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 justify-start gap-3 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 dark:bg-blue-950 dark:hover:bg-blue-900 dark:border-blue-800 dark:text-blue-300"
-              onClick={handleTelegram}
-            >
-              <Send className="h-5 w-5" />
-              <span className="font-medium">Partager sur Telegram</span>
-            </Button>
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 justify-start gap-3"
-              onClick={handleCopyLink}
-            >
-              {copied ? <Check className="h-5 w-5 text-green-600" /> : <Copy className="h-5 w-5" />}
-              <span className="font-medium">
-                {copied ? 'Lien copié !' : 'Copier le lien'}
-              </span>
-            </Button>
-          </div>
-        </>
-      )}
+      {/* ✅ MODERNE : Boutons de partage avec animations */}
+      <motion.div 
+        className="space-y-3"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-14 justify-start gap-3 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-green-300 text-green-700 dark:from-green-950 dark:to-green-900 dark:hover:from-green-900 dark:hover:to-green-800 dark:border-green-700 dark:text-green-300 font-semibold shadow-sm"
+            onClick={handleWhatsAppShare}
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span>Partager sur WhatsApp</span>
+          </Button>
+        </motion.div>
+        
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-14 justify-start gap-3 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-blue-300 text-blue-700 dark:from-blue-950 dark:to-blue-900 dark:hover:from-blue-900 dark:hover:to-blue-800 dark:border-blue-700 dark:text-blue-300 font-semibold shadow-sm"
+            onClick={handleTelegram}
+          >
+            <Send className="h-5 w-5" />
+            <span>Partager sur Telegram</span>
+          </Button>
+        </motion.div>
+        
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-14 justify-start gap-3 font-semibold shadow-sm"
+            onClick={handleCopyLink}
+          >
+            {copied ? (
+              <>
+                <Check className="h-5 w-5 text-green-600" />
+                <span className="text-green-600">Lien copié !</span>
+              </>
+            ) : (
+              <>
+                <Copy className="h-5 w-5" />
+                <span>Copier le lien</span>
+              </>
+            )}
+          </Button>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
