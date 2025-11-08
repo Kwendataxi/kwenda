@@ -2,10 +2,11 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, ShoppingCart, Heart, Star, MapPin, Store } from 'lucide-react';
+import { Eye, ShoppingCart, Heart, Star, MapPin, Store, Sparkles, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { MarketplaceProduct } from '@/types/marketplace';
+import { useProductPromotions } from '@/hooks/useProductPromotions';
 
 type Product = MarketplaceProduct;
 
@@ -33,6 +34,12 @@ export const OptimizedProductCard = ({
   userLocation
 }: OptimizedProductCardProps) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const { calculateDiscount, getOriginalPrice, getPromotionLabel } = useProductPromotions();
+  
+  // Calculer la réduction pour ce produit
+  const discount = calculateDiscount(product);
+  const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : 0;
+  const promoLabel = getPromotionLabel(discount);
   
   const mainImage = product.image || '/placeholder.svg';
   const inStock = product.inStock;
@@ -132,9 +139,9 @@ export const OptimizedProductCard = ({
                   onBuyNow?.(product);
                 }}
                 disabled={!inStock}
-                className="min-w-[100px]"
+                className="min-w-[120px] bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white font-bold shadow-congo transition-all duration-300 hover:scale-105"
               >
-                <ShoppingCart className="h-4 w-4 mr-1" />
+                <ShoppingCart className="h-4 w-4 mr-2" />
                 Acheter
               </Button>
               {onViewDetails && (
@@ -254,8 +261,30 @@ export const OptimizedProductCard = ({
             )} />
           </motion.button>
 
-          {/* Badge Nouveau (si produit récent) */}
-          {product.created_at && new Date(product.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+          {/* Badge Réduction Dynamique - Position top-left */}
+          {discount > 0 && (
+            <motion.div
+              initial={{ scale: 0, rotate: -45 }}
+              animate={{ scale: 1, rotate: 0 }}
+              className="absolute top-3 left-3 z-20"
+            >
+              <div className="relative">
+                {/* Badge avec effet glow pulsé */}
+                <Badge className="discount-badge shadow-congo text-sm font-black px-3 py-1.5 glow-congo-pulse">
+                  -{discount}%
+                </Badge>
+                {/* Label promo (Méga Promo, Super Deal, etc.) */}
+                {promoLabel && (
+                  <div className="absolute -bottom-6 left-0 text-[10px] font-bold text-white bg-black/70 px-2 py-0.5 rounded-full whitespace-nowrap">
+                    {promoLabel}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Badge Nouveau (si produit récent ET pas de promo) */}
+          {discount === 0 && product.created_at && new Date(product.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
             <motion.div
               initial={{ scale: 0, rotate: -45 }}
               animate={{ scale: 1, rotate: 0 }}
@@ -287,18 +316,54 @@ export const OptimizedProductCard = ({
             </motion.div>
           )}
 
-          {/* FAB Add to Cart - Bottom right */}
+          {/* FAB Add to Cart - Ultra moderne et soft */}
           <motion.button
-            className="fab-cart absolute bottom-3 right-3 z-20"
+            className="fab-cart-modern absolute bottom-3 right-3 z-20 group/fab"
             onClick={(e) => {
               e.stopPropagation();
               onBuyNow?.(product);
             }}
             disabled={!inStock}
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            whileTap={{ scale: 0.95 }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 260, 
+              damping: 20,
+              delay: 0.1 
+            }}
+            whileHover={{ 
+              scale: 1.15,
+              rotate: [0, -5, 5, 0],
+              transition: { 
+                rotate: { duration: 0.5, repeat: Infinity, repeatDelay: 2 }
+              }
+            }}
+            whileTap={{ 
+              scale: 0.9,
+              rotate: 0
+            }}
           >
-            <ShoppingCart className="h-5 w-5 text-white" />
+            {/* Icône panier avec animation */}
+            <motion.div
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              <ShoppingCart className="h-5 w-5 text-white drop-shadow-lg" />
+            </motion.div>
+            
+            {/* Badge quantité au panier */}
+            {cartQuantity > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+              >
+                <span className="text-[10px] font-bold text-white">
+                  {cartQuantity}
+                </span>
+              </motion.div>
+            )}
           </motion.button>
         </div>
         
@@ -307,19 +372,25 @@ export const OptimizedProductCard = ({
           {/* Store Badge */}
           {showSeller && product.seller && (
             <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="store-badge flex items-center gap-2 p-2 rounded-lg cursor-pointer"
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              className="store-badge-modern flex items-center gap-2 p-2.5 rounded-xl cursor-pointer group"
               onClick={(e) => {
                 e.stopPropagation();
                 // Handle vendor click
               }}
             >
               <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <Store className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                <span className="text-xs font-semibold text-primary truncate">
-                  {product.seller.display_name}
-                </span>
+                <Store className="h-4 w-4 text-blue-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-blue-600 truncate">
+                    {product.seller.display_name}
+                  </span>
+                </div>
               </div>
+              
+              {/* Icône flèche */}
+              <ChevronRight className="h-3.5 w-3.5 text-blue-400 group-hover:translate-x-0.5 transition-transform" />
             </motion.div>
           )}
 
@@ -328,27 +399,50 @@ export const OptimizedProductCard = ({
             {product.title}
           </h3>
           
-          {/* Rating avec étoiles dorées */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={cn(
-                    "h-4 w-4 transition-all",
-                    i < Math.floor(product.rating)
-                      ? "star-filled"
-                      : "star-empty"
-                  )}
-                />
-              ))}
+          {/* Rating - Afficher seulement si > 0 */}
+          {product.rating > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "h-4 w-4 transition-all",
+                      i < Math.floor(product.rating)
+                        ? "star-filled"
+                        : "star-empty"
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-bold">{product.rating.toFixed(1)}</span>
+              <span className="text-xs text-muted-foreground">({product.reviews})</span>
             </div>
-            <span className="text-sm font-bold">{product.rating > 0 ? product.rating.toFixed(1) : '0.0'}</span>
-            <span className="text-xs text-muted-foreground">({product.reviews})</span>
-          </div>
+          )}
+
+          {/* Afficher un placeholder élégant si pas de rating */}
+          {product.rating === 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Nouveau produit</span>
+            </div>
+          )}
           
-          {/* Prix Badge Congo - Effet glow */}
-          <div className="relative w-full">
+          {/* Prix Badge Congo - Effet glow avec promo */}
+          <div className="relative w-full space-y-2">
+            {/* Prix barré si promo */}
+            {discount > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground line-through">
+                  {formatPrice(originalPrice)}
+                </span>
+                <Badge variant="destructive" className="text-[10px] py-0.5 px-2">
+                  -{discount}%
+                </Badge>
+              </div>
+            )}
+            
+            {/* Prix actuel avec effet glow */}
             <Badge className="price-badge-congo w-full text-white text-lg font-black py-3 justify-center shadow-congo badge-congo-primary">
               {formatPrice(product.price)}
             </Badge>
