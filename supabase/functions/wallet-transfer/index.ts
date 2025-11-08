@@ -70,73 +70,127 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('💸 [3/7] Transfert initié:', { sender: user.id, recipient: recipientIdentifier, amount });
+    console.log('💸 [3/7] Transfert initié:', { 
+      sender: user.id, 
+      recipient: recipientIdentifier, 
+      amount, 
+      timestamp: new Date().toISOString() 
+    });
 
-    // Trouver le destinataire
+    // Trouver le destinataire via la vue unifiée ou RPC
     const isEmail = recipientIdentifier.includes('@');
     let recipientUserId: string | null = null;
 
     if (isEmail) {
-      // Recherche par email
-      const { data: clientData } = await supabaseClient
+      console.log('🔍 [3.1/7] Recherche par email:', recipientIdentifier.toLowerCase());
+      
+      // ÉTAPE 1 : Recherche dans clients
+      const { data: clientData, error: clientError } = await supabaseClient
         .from('clients')
         .select('user_id')
         .eq('email', recipientIdentifier.toLowerCase())
         .maybeSingle();
 
-      if (clientData) {
+      if (clientError) {
+        console.warn('⚠️ Erreur recherche clients:', clientError.message);
+      }
+
+      if (clientData?.user_id) {
         recipientUserId = clientData.user_id;
+        console.log('✅ [3.2/7] Trouvé dans clients:', recipientUserId);
       } else {
-        // Recherche dans partner_profiles
-        const { data: partnerData } = await supabaseClient
+        console.log('ℹ️ [3.2/7] Pas trouvé dans clients, recherche partner_profiles...');
+        
+        // ÉTAPE 2 : Recherche dans partner_profiles
+        const { data: partnerData, error: partnerError } = await supabaseClient
           .from('partner_profiles')
           .select('user_id')
           .eq('company_email', recipientIdentifier.toLowerCase())
           .maybeSingle();
 
-        if (partnerData) {
+        if (partnerError) {
+          console.warn('⚠️ Erreur recherche partners:', partnerError.message);
+        }
+
+        if (partnerData?.user_id) {
           recipientUserId = partnerData.user_id;
+          console.log('✅ [3.3/7] Trouvé dans partner_profiles:', recipientUserId);
         } else {
-          // Recherche dans auth.users via RPC
-          const { data: authData } = await supabaseClient.rpc(
+          console.log('ℹ️ [3.3/7] Pas trouvé dans partners, recherche auth.users via RPC...');
+          
+          // ÉTAPE 3 : Recherche directe dans auth.users via RPC
+          const { data: authData, error: authError } = await supabaseClient.rpc(
             'get_user_by_email',
             { p_email: recipientIdentifier.toLowerCase() }
           );
 
-          if (authData && authData.length > 0) {
+          console.log('🔎 DEBUG RPC Response:', { 
+            hasData: !!authData, 
+            isArray: Array.isArray(authData),
+            length: authData?.length,
+            error: authError?.message 
+          });
+
+          if (authError) {
+            console.error('❌ Erreur RPC get_user_by_email:', authError);
+          }
+
+          if (authData && Array.isArray(authData) && authData.length > 0) {
             recipientUserId = authData[0].id;
+            console.log('✅ [3.4/7] Trouvé via RPC auth.users:', recipientUserId);
+          } else {
+            console.error('❌ [3.4/7] Aucun résultat de RPC get_user_by_email');
           }
         }
       }
     } else {
-      // Recherche par téléphone
-      const { data: clientData } = await supabaseClient
+      console.log('🔍 [3.1/7] Recherche par téléphone:', recipientIdentifier);
+      
+      // ÉTAPE 1 : Recherche par téléphone dans clients
+      const { data: clientData, error: clientError } = await supabaseClient
         .from('clients')
         .select('user_id')
         .eq('phone_number', recipientIdentifier)
         .maybeSingle();
 
-      if (clientData) {
+      if (clientError) {
+        console.warn('⚠️ Erreur recherche clients par téléphone:', clientError.message);
+      }
+
+      if (clientData?.user_id) {
         recipientUserId = clientData.user_id;
+        console.log('✅ [3.2/7] Trouvé dans clients:', recipientUserId);
       } else {
-        // Recherche dans partner_profiles
-        const { data: partnerData } = await supabaseClient
+        console.log('ℹ️ [3.2/7] Pas trouvé dans clients, recherche partner_profiles...');
+        
+        // ÉTAPE 2 : Recherche dans partner_profiles
+        const { data: partnerData, error: partnerError } = await supabaseClient
           .from('partner_profiles')
           .select('user_id')
           .eq('company_phone', recipientIdentifier)
           .maybeSingle();
 
-        if (partnerData) {
+        if (partnerError) {
+          console.warn('⚠️ Erreur recherche partners par téléphone:', partnerError.message);
+        }
+
+        if (partnerData?.user_id) {
           recipientUserId = partnerData.user_id;
+          console.log('✅ [3.3/7] Trouvé dans partner_profiles:', recipientUserId);
+        } else {
+          console.log('❌ [3.3/7] Téléphone introuvable dans toutes les tables');
         }
       }
     }
 
     if (!recipientUserId) {
-      console.error('❌ [4/7] Destinataire introuvable');
+      console.error('❌ [4/7] Destinataire introuvable après toutes recherches');
       return new Response(
-        JSON.stringify({ success: false, error: 'Destinataire introuvable' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: false, 
+          error: 'Destinataire introuvable. Vérifiez le numéro ou l\'email.' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
