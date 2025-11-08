@@ -104,19 +104,29 @@ serve(async (req) => {
           throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
         }
         
+        console.log('🔍 Utilisateur trouvé, ID:', matchingUser.id, 'Email:', matchingUser.email);
+        
         // Vérifier que cet utilisateur a un wallet (avec client admin pour bypass RLS)
+        console.log('🔍 Recherche du wallet pour user_id:', matchingUser.id);
         const { data: wallet, error: walletCheckError } = await supabaseAdmin
           .from('user_wallets')
-          .select('user_id')
+          .select('user_id, balance')
           .eq('user_id', matchingUser.id)
           .maybeSingle();
         
-        if (walletCheckError || !wallet) {
-          console.error('❌ Pas de wallet pour cet utilisateur:', walletCheckError);
+        console.log('🔍 Résultat wallet:', { wallet, walletCheckError });
+        
+        if (walletCheckError) {
+          console.error('❌ Erreur lors de la recherche du wallet:', walletCheckError);
+          throw new Error('Erreur lors de la vérification du wallet');
+        }
+        
+        if (!wallet) {
+          console.error('❌ Aucun wallet trouvé pour cet utilisateur');
           throw new Error('Le destinataire n\'a pas de wallet actif');
         }
         
-        console.log('✅ Destinataire trouvé:', matchingUser.email);
+        console.log('✅ Destinataire trouvé avec wallet:', matchingUser.email, 'Balance:', wallet.balance);
         recipientId = matchingUser.id;
       }
     }
