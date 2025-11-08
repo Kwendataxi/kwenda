@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRestaurantsQuery } from '@/hooks/useRestaurantsQuery';
+import { useFoodCart } from '@/hooks/useFoodCart';
 import { supabase } from '@/integrations/supabase/client';
 import { RestaurantList } from './RestaurantList';
 import { RestaurantStoreView } from './RestaurantStoreView';
 import { FoodCheckout } from './FoodCheckout';
+import { OrderSuccessModal } from './OrderSuccessModal';
 import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { AllDishesView } from './AllDishesView';
 import { AllRestaurantsView } from './AllRestaurantsView';
@@ -30,9 +32,11 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const { t } = useLanguage();
   const [selectedCity, setSelectedCity] = useState('Kinshasa');
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [cart, setCart] = useState<FoodCartItem[]>([]);
   const [step, setStep] = useState<Step>('restaurants');
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [lastOrderNumber, setLastOrderNumber] = useState('');
   const { restaurants, loading, refetch } = useRestaurantsQuery(selectedCity);
+  const { cart, setCart, clearCart } = useFoodCart(selectedRestaurant?.id);
 
   const handleSelectRestaurant = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
@@ -122,9 +126,9 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         description: t('food.order_number', { number: data.order_number })
       });
 
-      setCart([]);
-      setStep('restaurants');
-      setSelectedRestaurant(null);
+      setLastOrderNumber(data.order_number);
+      setSuccessModalOpen(true);
+      clearCart();
       
       if (onOrderComplete && data.order_id) {
         onOrderComplete(data.order_id);
@@ -243,6 +247,28 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       </div>
 
       <FoodFooterNav />
+
+      {/* Success Modal */}
+      {selectedRestaurant && (
+        <OrderSuccessModal
+          open={successModalOpen}
+          onOpenChange={(open) => {
+            setSuccessModalOpen(open);
+            if (!open) {
+              setStep('restaurants');
+              setSelectedRestaurant(null);
+            }
+          }}
+          orderNumber={lastOrderNumber}
+          restaurant={selectedRestaurant}
+          deliveryAddress={user?.phone || ''}
+          estimatedTime={selectedRestaurant.average_preparation_time || 30}
+          onTrackOrder={() => {
+            setSuccessModalOpen(false);
+            navigate('/app/client/food-orders');
+          }}
+        />
+      )}
     </div>
   );
 };
