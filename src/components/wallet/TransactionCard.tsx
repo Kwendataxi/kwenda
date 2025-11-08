@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, ArrowDownLeft, Clock } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Clock, Send, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TransactionCardProps {
@@ -26,6 +26,18 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
   compact = false
 }) => {
   const isCredit = type === 'credit';
+
+  // Détection des transferts pour icônes personnalisées
+  const isTransferSent = description.toLowerCase().includes('transfert envoyé');
+  const isTransferReceived = description.toLowerCase().includes('transfert reçu');
+  
+  const Icon = isTransferSent 
+    ? Send 
+    : isTransferReceived 
+    ? Download 
+    : isCredit 
+    ? ArrowDownLeft 
+    : ArrowUpRight;
 
   return (
     <motion.div
@@ -53,11 +65,7 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
               : "bg-congo-red/10 text-congo-red dark:bg-congo-red/20 dark:text-congo-red-electric"
           )}
         >
-          {isCredit ? (
-            <ArrowDownLeft className={compact ? "w-4 h-4" : "w-5 h-5"} />
-          ) : (
-            <ArrowUpRight className={compact ? "w-4 h-4" : "w-5 h-5"} />
-          )}
+          <Icon className={compact ? "w-4 h-4" : "w-5 h-5"} />
         </motion.div>
 
         {/* Content */}

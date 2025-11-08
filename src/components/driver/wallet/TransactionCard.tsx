@@ -3,7 +3,7 @@
  */
 
 import { Card } from '@/components/ui/card';
-import { ArrowUpRight, ArrowDownLeft, Car, Package, ShoppingBag } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Car, Package, ShoppingBag, Send, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -24,6 +24,16 @@ export const TransactionCard = ({ transaction, serviceType }: TransactionCardPro
     } else if (transaction.reference_type === 'marketplace') {
       return <ShoppingBag className="w-4 h-4" />;
     }
+    
+    // Détection des transferts pour icônes personnalisées
+    const description = transaction.description?.toLowerCase() || '';
+    if (description.includes('transfert envoyé')) {
+      return <Send className="w-4 h-4" />;
+    }
+    if (description.includes('transfert reçu')) {
+      return <Download className="w-4 h-4" />;
+    }
+    
     return isCredit ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />;
   };
 
