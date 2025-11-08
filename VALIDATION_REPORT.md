@@ -399,14 +399,56 @@ LIMIT 1;
 
 ---
 
-## 🐛 BUGS DÉTECTÉS
+## 🐛 BUGS DÉTECTÉS ET CORRIGÉS
 
-### ❌ Aucun bug bloquant
+### ✅ Bug Self-Rating Corrigé (2025-11-08)
+**Problème critique** : RLS policy permettait à un vendeur de se noter lui-même
+- **Impact** : Données biaisées, inflation artificielle des notes
+- **Fichier source** : Migration `20251108131905_*.sql` (première version)
+- **Détection** : Aucune vérification `auth.uid() != seller_id` dans la RLS policy
+
+**Solution appliquée**:
+1. ✅ **Migration `[timestamp]_fix_self_rating_bug.sql`**:
+   ```sql
+   CREATE POLICY "Users can rate vendors directly" ON marketplace_ratings
+   WITH CHECK (
+     auth.uid() = buyer_id 
+     AND auth.uid() != seller_id  -- ✅ Protection anti-self-rating
+     AND seller_id IS NOT NULL
+     ...
+   )
+   ```
+
+2. ✅ **Hook `useVendorRating` ligne 30-33**:
+   ```typescript
+   // Protection frontend avant insertion
+   if (user.id === vendorId) {
+     toast.error('Vous ne pouvez pas noter votre propre boutique 😅');
+     return false;
+   }
+   ```
+
+**Tests de validation requis**:
+- [ ] Un vendeur tente de se noter → Doit recevoir toast d'erreur
+- [ ] Vérifier logs console : `[useVendorRating] Cannot rate own shop`
+
+### ⚠️ Utilisateur actuel EST le vendeur ICON STORE
+**Impact** : Tests impossibles avec le compte actuellement connecté
+- **User actuel** : `iouantchi@gmail.com` (ID: `c9ee2b59-2c9b-4bf5-833d-3473cc1aba71`)
+- **Problème** : Ce compte possède `vendor_profiles.shop_name = "ICON STORE"`
+- **Conséquence** : Tentative de self-rating bloquée par la nouvelle protection
+
+**Comptes clients disponibles pour test**:
+1. `info@icon.com` (Icon)
+2. `gextel@gmail.com` (Gextel ci)
+3. `tanzalov.app@gmail.com` (Tanzalo)
+
+### ❌ Aucun autre bug bloquant
 - Tous les systèmes sont correctement implémentés
-- Les RLS policies sont actives
+- Les RLS policies sont actives et sécurisées
 - Les triggers sont créés et déployés
 
-### ⚠️ À surveiller
+### ⚠️ À surveiller (non-bloquant)
 1. **CPU bloqué** : HealthMonitor signale CPU bloqué ~1000ms (normal en dev)
 2. **Traductions manquantes** : Warning détecté mais non bloquant
 

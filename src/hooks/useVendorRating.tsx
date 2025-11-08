@@ -27,6 +27,12 @@ export const useVendorRating = () => {
       return false;
     }
 
+    // ✅ PROTECTION: Empêcher un vendeur de se noter lui-même
+    if (user.id === vendorId) {
+      toast.error('Vous ne pouvez pas noter votre propre boutique 😅');
+      return false;
+    }
+
     try {
       setLoading(true);
 
