@@ -71,7 +71,10 @@ class CacheWiper {
         'supabase.auth.token',
         'sb-',
         'kwenda_user_session',
-        'kwenda_auth_token'
+        'kwenda_auth_token',
+        'app_version',           // Préserver la version pour éviter boucles
+        'app_version_last_check', // Préserver timestamp
+        'app_version_attempted'  // Préserver tentatives
       ];
 
       // ✅ Nettoyer les flags temporaires d'onboarding
@@ -87,7 +90,7 @@ class CacheWiper {
       let clearedCount = 0;
 
       allKeys.forEach(key => {
-        // Préserver les clés d'authentification
+        // Préserver les clés d'authentification et de version
         const isAuthKey = authKeys.some(authKey => key.includes(authKey));
         
         if (!isAuthKey) {
@@ -96,7 +99,7 @@ class CacheWiper {
         }
       });
 
-      logger.info(`✅ localStorage cleared (${clearedCount} items, auth preserved)`);
+      logger.info(`✅ localStorage cleared (${clearedCount} items, auth & version preserved)`);
     } catch (error) {
       logger.error('Failed to clear localStorage', error);
     }

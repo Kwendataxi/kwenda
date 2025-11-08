@@ -17,8 +17,12 @@ interface VersionInfo {
 class AutoUpdateService {
   private checkInterval: NodeJS.Timeout | null = null;
   private isChecking = false;
+  private isUpdating = false;
+  private isPaused = false;
+  private lastUpdateCheck: number = 0;
   private registration: ServiceWorkerRegistration | null = null;
-  private readonly CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  private readonly CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes
+  private readonly MIN_CHECK_INTERVAL = 60 * 1000; // Minimum 1 minute entre vérifications
   private readonly VERSION_CHECK_URL = '/version.json';
 
   /**
@@ -35,8 +39,8 @@ class AutoUpdateService {
       });
     }
 
-    // Vérification initiale après 10 secondes
-    setTimeout(() => this.checkAndInstallIfNeeded(), 10000);
+    // Vérification initiale après 2 MINUTES (laisser le temps de se connecter)
+    setTimeout(() => this.checkAndInstallIfNeeded(), 2 * 60 * 1000);
 
     // Vérification au focus de la fenêtre
     window.addEventListener('focus', () => this.onWindowFocus());
@@ -44,7 +48,7 @@ class AutoUpdateService {
     // Vérification au retour de visibilité
     document.addEventListener('visibilitychange', () => this.onVisibilityChange());
 
-    // Polling toutes les 5 minutes
+    // Polling toutes les 30 minutes
     this.startPeriodicCheck();
 
     logger.info('✅ AutoUpdateService initialized');
@@ -85,6 +89,25 @@ class AutoUpdateService {
    * Vérifie et installe automatiquement si nouvelle version
    */
   async checkAndInstallIfNeeded(): Promise<void> {
+    // Protection si en pause (pendant auth, paiement, etc.)
+    if (this.isPaused) {
+      logger.info('⏭️ Update check skipped (paused)');
+      return;
+    }
+
+    // Protection anti-spam
+    const now = Date.now();
+    if (now - this.lastUpdateCheck < this.MIN_CHECK_INTERVAL) {
+      logger.info('⏭️ Skipping update check (too soon)');
+      return;
+    }
+
+    // Protection contre mise à jour en cours
+    if (this.isUpdating) {
+      logger.info('⏭️ Update already in progress');
+      return;
+    }
+
     if (this.isChecking) {
       logger.info('Update check already in progress');
       return;
@@ -92,9 +115,12 @@ class AutoUpdateService {
 
     try {
       this.isChecking = true;
+      this.lastUpdateCheck = now;
+      
       const hasNewVersion = await this.checkForNewVersion();
 
       if (hasNewVersion) {
+        this.isUpdating = true;
         logger.info('🎉 New version detected, installing automatically');
         await this.installUpdateAutomatically();
       }
@@ -127,9 +153,28 @@ class AutoUpdateService {
         forceUpdate: versionInfo.forceUpdate
       });
 
-      // Comparer les versions
+      // Si les versions sont identiques, sauvegarder quand même
+      if (versionInfo.version === currentVersion) {
+        // Assurer que la version est sauvegardée
+        localStorage.setItem('app_version', versionInfo.version);
+        localStorage.setItem('app_version_last_check', Date.now().toString());
+        return false;
+      }
+
+      // Vérifier si on a déjà essayé cette mise à jour
+      const lastAttemptedVersion = localStorage.getItem('app_version_attempted');
+      if (lastAttemptedVersion === versionInfo.version) {
+        logger.warn('⚠️ Already attempted to update to', versionInfo.version);
+        // Mettre à jour quand même la version actuelle pour éviter la boucle
+        localStorage.setItem('app_version', versionInfo.version);
+        return false;
+      }
+
+      // Nouvelle version détectée
       if (versionInfo.version !== currentVersion) {
         logger.info('🆕 New version available:', versionInfo.version);
+        // Marquer cette version comme tentée
+        localStorage.setItem('app_version_attempted', versionInfo.version);
         return true;
       }
 
@@ -150,17 +195,47 @@ class AutoUpdateService {
    * Récupère la version actuelle de l'application
    */
   private getCurrentVersion(): string {
-    // Essayer depuis le package.json injecté
+    // 1. Essayer depuis __APP_VERSION__ (injecté par Vite)
     try {
       if (typeof (globalThis as any).__APP_VERSION__ !== 'undefined') {
-        return (globalThis as any).__APP_VERSION__;
+        const version = (globalThis as any).__APP_VERSION__;
+        // Sauvegarder pour comparaisons futures
+        localStorage.setItem('app_version', version);
+        return version;
       }
     } catch {
       // Ignore
     }
 
-    // Fallback sur localStorage
-    return localStorage.getItem('app_version') || '1.0.0';
+    // 2. Lire depuis localStorage (version déjà installée)
+    const savedVersion = localStorage.getItem('app_version');
+    if (savedVersion) {
+      return savedVersion;
+    }
+
+    // 3. Lire depuis version.json (première fois)
+    return this.fetchCurrentVersionSync();
+  }
+
+  /**
+   * Fetch la version courante de manière synchrone (première visite uniquement)
+   */
+  private fetchCurrentVersionSync(): string {
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', '/version.json?t=' + Date.now(), false); // Synchrone
+      xhr.send();
+      
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        localStorage.setItem('app_version', data.version);
+        return data.version;
+      }
+    } catch (error) {
+      logger.warn('Failed to fetch version synchronously');
+    }
+    
+    return '2.0.0'; // Fallback sur la version actuelle
   }
 
   /**
@@ -204,6 +279,22 @@ class AutoUpdateService {
         window.location.reload();
       }, 1000);
     }
+  }
+
+  /**
+   * Pause les vérifications de mise à jour (pendant auth, paiement, etc.)
+   */
+  pause(): void {
+    this.isPaused = true;
+    logger.info('⏸️ AutoUpdateService paused');
+  }
+
+  /**
+   * Reprend les vérifications
+   */
+  resume(): void {
+    this.isPaused = false;
+    logger.info('▶️ AutoUpdateService resumed');
   }
 
   /**

@@ -1,12 +1,12 @@
 {
   "version": "2.0.0",
-  "buildDate": "2025-11-08T21:30:00Z",
+  "buildDate": "2025-11-08T22:00:00Z",
   "forceUpdate": false,
   "minVersion": "2.0.0",
   "features": [
-    "Système de mise à jour automatique",
-    "Vidage automatique du cache",
+    "Système de mise à jour stable",
+    "Protection anti-boucle infinie",
     "Détection intelligente de version",
-    "Rechargement transparent"
+    "Pause automatique pendant l'authentification"
   ]
 }
