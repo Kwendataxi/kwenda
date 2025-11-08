@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Send, Gift } from 'lucide-react';
+import { Plus, Send, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface QuickAction {
@@ -15,13 +15,13 @@ interface QuickAction {
 interface WalletQuickActionsProps {
   onRecharge: () => void;
   onTransfer: () => void;
-  onConvert: () => void;
+  onQuickTransfer: () => void;
 }
 
 export const WalletQuickActions: React.FC<WalletQuickActionsProps> = ({
   onRecharge,
   onTransfer,
-  onConvert
+  onQuickTransfer
 }) => {
   const actions: QuickAction[] = [
     {
@@ -41,12 +41,12 @@ export const WalletQuickActions: React.FC<WalletQuickActionsProps> = ({
       onClick: onTransfer
     },
     {
-      id: 'convert',
-      label: 'Convertir',
-      icon: Gift,
-      color: 'text-congo-yellow',
-      gradient: 'from-congo-yellow to-congo-yellow-vibrant',
-      onClick: onConvert
+      id: 'quick_transfer',
+      label: 'Rapide',
+      icon: Zap,
+      color: 'text-purple-500',
+      gradient: 'from-purple-400 via-pink-500 to-purple-600',
+      onClick: onQuickTransfer
     }
   ];
 
