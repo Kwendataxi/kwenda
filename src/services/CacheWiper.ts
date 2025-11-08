@@ -74,6 +74,15 @@ class CacheWiper {
         'kwenda_auth_token'
       ];
 
+      // ✅ Nettoyer les flags temporaires d'onboarding
+      const temporaryFlags = ['onboarding_just_completed'];
+      temporaryFlags.forEach(flag => {
+        if (localStorage.getItem(flag)) {
+          localStorage.removeItem(flag);
+          logger.info(`🗑️ Temporary flag removed: ${flag}`);
+        }
+      });
+
       const allKeys = Object.keys(localStorage);
       let clearedCount = 0;
 

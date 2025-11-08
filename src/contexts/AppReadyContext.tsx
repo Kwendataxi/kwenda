@@ -55,6 +55,15 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // ✅ Protection: Si l'utilisateur termine l'onboarding, ne pas interférer
+        const justCompleted = localStorage.getItem('onboarding_just_completed');
+        if (justCompleted === 'true') {
+          console.log('✅ [AppReady] Onboarding just completed, waiting for auth');
+          setSessionReady(true);
+          setContentReady(true);
+          return;
+        }
+
         // Si session déjà fournie, juste charger le rôle
         if (initialSession) {
           setSession(initialSession);

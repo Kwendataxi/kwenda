@@ -121,10 +121,17 @@ const Onboarding: React.FC = () => {
       colors: ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--success))']
     });
 
+    // ✅ CORRECTION: Sauvegarder IMMÉDIATEMENT et SYNCHRONIQUEMENT
     try { 
       localStorage.setItem(`onboarding_seen::${ctx}`, "1"); 
       localStorage.setItem(`onboarding_completed_at::${ctx}`, new Date().toISOString());
-    } catch {}
+      
+      // ✅ NOUVEAU: Flag global pour indiquer que l'onboarding est complété
+      localStorage.setItem('onboarding_just_completed', 'true');
+      console.log('✅ [Onboarding] Flags saved, redirecting to auth');
+    } catch (e) {
+      console.error('❌ [Onboarding] Failed to save flags:', e);
+    }
     
     // Redirection intelligente selon le contexte
     const redirectMap: Record<OnboardingContext, string> = {
@@ -135,9 +142,8 @@ const Onboarding: React.FC = () => {
       partenaire: "/partner/auth",
     };
     
-    setTimeout(() => {
-      navigate(redirectMap[ctx] || "/app/auth", { replace: true });
-    }, 600);
+    // ✅ CORRECTION: Rediriger IMMÉDIATEMENT sans délai
+    navigate(redirectMap[ctx] || "/app/auth", { replace: true });
   };
 
   const onNext = () => {

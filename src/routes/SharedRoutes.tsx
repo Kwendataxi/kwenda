@@ -77,7 +77,14 @@ export const SharedRoutes = () => {
       <Route path="/splash" element={<MobileSplash />} />
       <Route path="/install" element={<Install />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/onboarding" element={<Onboarding />} />
+      <Route 
+        path="/onboarding" 
+        element={
+          <Suspense fallback={<RouteLoadingFallback />}>
+            <Onboarding />
+          </Suspense>
+        } 
+      />
       <Route path="/campaign/:campaignId" element={<CampaignLanding />} />
       <Route path="/campaign-thank-you" element={<CampaignThankYou />} />
       
