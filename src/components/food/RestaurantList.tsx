@@ -5,6 +5,7 @@ import { ModernFoodPromoBanner } from './ModernFoodPromoBanner';
 import { PopularDishesSection } from './PopularDishesSection';
 import { CategoryIconsSection } from './CategoryIconsSection';
 import { CategoryDishesPreview } from './CategoryDishesPreview';
+import { NewRestaurantsSection } from './NewRestaurantsSection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, useInView } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -113,7 +114,16 @@ export const RestaurantList = ({
   // Grouper par type de cuisine
   const cuisineTypes = Array.from(new Set(restaurants.flatMap(r => r.cuisine_types || ['Autre'])));
   const topRated = restaurants.filter(r => (r.rating_average || 0) >= 4).slice(0, 8);
-  const newRestaurants = restaurants.slice(0, 8);
+  
+  // Tri des restaurants par date (plus récents en premier)
+  const recentRestaurants = [...restaurants]
+    .sort((a, b) => {
+      const dateA = new Date(a.updated_at || 0);
+      const dateB = new Date(b.updated_at || 0);
+      return dateB.getTime() - dateA.getTime();
+    })
+    .slice(0, 6); // Limiter à 6 restaurants récents
+  
   const fastDelivery = restaurants.filter(r => (r.average_preparation_time || 60) <= 30).slice(0, 6);
 
   const filteredByCategory = categoryFilter
@@ -178,14 +188,12 @@ export const RestaurantList = ({
         </SectionWithParallax>
       )}
 
-      {/* 5. New Restaurants - Seulement si pas de filtre */}
-      {!categoryFilter && (
+      {/* 5. New Restaurants - Section moderne avec grid */}
+      {!categoryFilter && recentRestaurants.length > 0 && (
         <SectionWithParallax>
-          <RestaurantSlider
-            restaurants={newRestaurants}
-            loading={false}
+          <NewRestaurantsSection
+            restaurants={recentRestaurants}
             onSelectRestaurant={onSelectRestaurant}
-            title="🆕 Nouveautés"
             onViewAll={onViewAllRestaurants}
           />
         </SectionWithParallax>
