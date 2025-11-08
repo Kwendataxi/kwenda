@@ -62,7 +62,7 @@ serve(async (req) => {
       throw new Error('Limite de 10 transferts/heure atteinte. Réessayez plus tard.');
     }
 
-    // 4. Identifier le destinataire (avec backup dans auth.users)
+    // 4. Identifier le destinataire (avec backup dans user_wallets)
     let recipientId: string;
     
     // Si c'est un UUID direct
@@ -78,30 +78,54 @@ serve(async (req) => {
       
       if (client && !searchError) {
         recipientId = client.user_id;
+        console.log('✅ Destinataire trouvé dans clients:', client.display_name);
       } else {
-        // Backup: recherche dans auth.users par email avec client admin
-        console.log('🔍 Backup: recherche dans auth.users...');
+        // Backup: recherche dans user_wallets en joignant avec auth.users via email
+        console.log('🔍 Backup: recherche dans user_wallets...');
         
+        // On suppose que l'input est un email, cherchons tous les wallets
+        const { data: wallets, error: walletError } = await supabaseClient
+          .from('user_wallets')
+          .select('user_id')
+          .eq('status', 'active');
+        
+        if (walletError || !wallets || wallets.length === 0) {
+          console.error('❌ Erreur recherche wallets:', walletError);
+          throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
+        }
+        
+        // Pour chaque wallet, on vérifie l'email dans auth.users
+        let foundUserId: string | null = null;
+        
+        // Utiliser le service role key pour accéder à auth.users
         const supabaseAdmin = createClient(
           Deno.env.get('SUPABASE_URL') ?? '',
           Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         );
         
-        const { data: { users }, error: authError } = await supabaseAdmin.auth.admin.listUsers();
+        const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
         
-        if (authError) {
-          console.error('❌ Erreur recherche auth.users:', authError);
+        if (usersError || !users) {
+          console.error('❌ Erreur listUsers:', usersError);
+          throw new Error('Erreur lors de la recherche du destinataire');
+        }
+        
+        // Trouver l'utilisateur par email
+        const matchingUser = users.find(u => u.email === recipient_phone_or_id);
+        
+        if (!matchingUser) {
           throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
         }
         
-        const authUser = users?.find(u => u.email === recipient_phone_or_id);
+        // Vérifier que cet utilisateur a un wallet actif
+        const hasWallet = wallets.some(w => w.user_id === matchingUser.id);
         
-        if (!authUser) {
-          throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
+        if (!hasWallet) {
+          throw new Error('Le destinataire n\'a pas de wallet actif');
         }
         
-        console.log('✅ Destinataire trouvé dans auth.users:', authUser.email);
-        recipientId = authUser.id;
+        console.log('✅ Destinataire trouvé via user_wallets:', matchingUser.email);
+        recipientId = matchingUser.id;
       }
     }
 
