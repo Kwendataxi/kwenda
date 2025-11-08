@@ -55,9 +55,9 @@ const SectionWithParallax = ({ children }: { children: React.ReactNode }) => {
   return (
     <motion.div
       ref={ref}
-      initial={{ y: 50, opacity: 0 }}
+      initial={{ y: 80, opacity: 0 }}
       animate={isInView ? { y: 0, opacity: 1 } : {}}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
     >
       {children}
     </motion.div>
@@ -132,7 +132,7 @@ export const RestaurantList = ({
 
   return (
     <motion.div 
-      className="space-y-6 pb-24 md:pb-6"
+      className="space-y-8 pb-24 md:pb-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -188,40 +188,72 @@ export const RestaurantList = ({
         </SectionWithParallax>
       )}
 
-      {/* 5. New Restaurants - Section moderne avec grid */}
-      {!categoryFilter && recentRestaurants.length > 0 && (
+      {/* 5. Restaurants avec Tabs - Fusionner New, Fast, Top Rated */}
+      {!categoryFilter && (
         <SectionWithParallax>
-          <NewRestaurantsSection
-            restaurants={recentRestaurants}
-            onSelectRestaurant={onSelectRestaurant}
-            onViewAll={onViewAllRestaurants}
-          />
-        </SectionWithParallax>
-      )}
-
-      {/* 6. Fast Delivery (< 30 min) - Seulement si pas de filtre */}
-      {!categoryFilter && fastDelivery.length > 0 && (
-        <SectionWithParallax>
-          <RestaurantSlider
-            restaurants={fastDelivery}
-            loading={false}
-            onSelectRestaurant={onSelectRestaurant}
-            title="⏱️ Livrés en -30 min"
-            onViewAll={onViewAllRestaurants}
-          />
-        </SectionWithParallax>
-      )}
-
-      {/* 7. Top Rated Restaurants - Seulement si pas de filtre */}
-      {!categoryFilter && topRated.length > 0 && (
-        <SectionWithParallax>
-          <RestaurantSlider
-            restaurants={topRated}
-            loading={false}
-            onSelectRestaurant={onSelectRestaurant}
-            title="⭐ Top Resto"
-            onViewAll={onViewAllRestaurants}
-          />
+          <div className="px-4 space-y-4">
+            <Tabs defaultValue="new" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="new" className="text-sm">
+                  🆕 Nouveaux
+                </TabsTrigger>
+                <TabsTrigger value="fast" className="text-sm">
+                  ⏱️ Express
+                </TabsTrigger>
+                <TabsTrigger value="top" className="text-sm">
+                  ⭐ Top
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="new" className="mt-0">
+                {recentRestaurants.length > 0 ? (
+                  <RestaurantSlider
+                    restaurants={recentRestaurants}
+                    loading={false}
+                    onSelectRestaurant={onSelectRestaurant}
+                    title=""
+                    onViewAll={onViewAllRestaurants}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Aucun restaurant récent
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="fast" className="mt-0">
+                {fastDelivery.length > 0 ? (
+                  <RestaurantSlider
+                    restaurants={fastDelivery}
+                    loading={false}
+                    onSelectRestaurant={onSelectRestaurant}
+                    title=""
+                    onViewAll={onViewAllRestaurants}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Aucun restaurant express disponible
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="top" className="mt-0">
+                {topRated.length > 0 ? (
+                  <RestaurantSlider
+                    restaurants={topRated}
+                    loading={false}
+                    onSelectRestaurant={onSelectRestaurant}
+                    title=""
+                    onViewAll={onViewAllRestaurants}
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Aucun restaurant top noté
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
         </SectionWithParallax>
       )}
 
