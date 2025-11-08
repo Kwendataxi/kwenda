@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp, MessageCircle } from 'lucide-react';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp, MessageCircle, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,7 @@ import { AiShopperProductCard } from './AiShopperProductCard';
 import { useProductPromotions } from '@/hooks/useProductPromotions';
 import { AllMarketplaceProductsView } from './AllMarketplaceProductsView';
 import { AllVendorsView } from './AllVendorsView';
+import { VendorCard } from './VendorCard';
 
 // Anciens composants (conservés pour compatibilité)
 import { ProductGrid } from './ProductGrid';
@@ -52,6 +53,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useUserVerification } from '@/hooks/useUserVerification';
 import { useWallet } from '@/hooks/useWallet';
 import { useUniversalChat } from '@/hooks/useUniversalChat';
+import { useCart } from '@/context/CartContext';
 
 // Utiliser les types unifiés de marketplace.ts
 import { MarketplaceProduct, CartItem as MarketplaceCartItem, HorizontalProduct, productToCartItem } from '@/types/marketplace';
@@ -106,8 +108,10 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // Utiliser le panier global du CartContext
+  const { cartItems, addToCart: addToCartGlobal } = useCart();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
@@ -212,13 +216,19 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           : {};
         
         const normalizedImages = normalizeProductImages(product.images);
+        const fallbackImage = 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=800&h=800&fit=crop';
+        
+        // Remplacer placehold.co par fallback Unsplash
+        const cleanedImages = normalizedImages.map(img => 
+          img.includes('placehold.co') ? fallbackImage : img
+        );
         
         return {
           id: product.id,
           title: product.title,
           price: product.price,
-          images: normalizedImages,
-          image: normalizedImages[0] || 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+          images: cleanedImages,
+          image: cleanedImages[0] || fallbackImage,
           category: product.category,
           condition: product.condition || 'new',
           description: product.description || '',
@@ -419,29 +429,10 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     }
   });
 
-  // Cart functions avec feedback visuel
+  // Wrapper pour addToCart avec feedback visuel
   const addToCart = (product: Product, quantity: number = 1) => {
-    const existingItem = cartItems.find(item => item.id === product.id);
-    
-    if (existingItem) {
-      setCartItems(cartItems.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + quantity }
-          : item
-      ));
-    } else {
-      setCartItems([...cartItems, {
-        id: product.id,
-        product_id: product.id,
-        name: product.title,
-        price: product.price,
-        image: product.image,
-        quantity,
-        seller: product.seller?.display_name || 'Vendeur',
-        seller_id: product.seller_id,
-        coordinates: product.coordinates
-      }]);
-    }
+    // Utiliser le addToCart global du CartContext
+    addToCartGlobal(product);
 
     // Feedback visuel moderne avec confetti activé
     showFeedback(
@@ -461,24 +452,19 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     );
   };
 
+  // Ces fonctions sont maintenant gérées par CartContext
+  // On garde juste des références vides pour compatibilité
   const updateCartQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-    
-    setCartItems(cartItems.map(item =>
-      item.id === productId ? { ...item, quantity } : item
-    ));
+    // Géré par UnifiedShoppingCart qui utilise CartContext
   };
 
   const removeFromCart = (productId: string) => {
-    setCartItems(cartItems.filter(item => item.id !== productId));
+    // Géré par UnifiedShoppingCart qui utilise CartContext
   };
 
   const handleCheckout = async () => {
-    // Vider le panier local
-    setCartItems([]);
+    // Le panier est géré par CartContext maintenant
+    // Il sera vidé automatiquement après checkout
     
     // Rafraîchir les commandes
     ordersHook.refetch();
@@ -514,6 +500,29 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         })
         .slice(0, 10)
     : [];
+
+  // Calcul des top vendeurs pour la section "Boutiques populaires"
+  const topVendors = products
+    .reduce((acc, p) => {
+      const existing = acc.find(v => v.user_id === p.seller_id);
+      if (!existing) {
+        // Accéder aux propriétés vendeur directement depuis le product
+        const vendorData = (p as any);
+        acc.push({
+          user_id: p.seller_id,
+          shop_name: p.seller.display_name,
+          shop_logo_url: vendorData.sellerLogo,
+          shop_banner_url: undefined,
+          shop_description: undefined,
+          average_rating: vendorData.sellerRating || 0,
+          total_sales: vendorData.sellerTotalSales || 0,
+          product_count: products.filter(prod => prod.seller_id === p.seller_id).length,
+        });
+      }
+      return acc;
+    }, [] as any[])
+    .sort((a, b) => (b.average_rating * b.total_sales) - (a.average_rating * a.total_sales))
+    .slice(0, 10);
 
   // Gestion des favoris
   const handleToggleFavorite = (productId: string) => {
@@ -751,6 +760,43 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </section>
       )}
 
+      {/* BOUTIQUES POPULAIRES - Section avec slider horizontal */}
+      {!loading && filteredProducts.length > 0 && topVendors.length > 0 && (
+        <section className="px-4 py-6 space-y-4 bg-muted/30">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Store className="h-6 w-6 text-primary" />
+              Boutiques populaires
+            </h2>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setViewMode('all-vendors')}
+              className="text-blue-600"
+            >
+              Voir toutes les boutiques
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          
+          {/* Slider horizontal de vendeurs */}
+          <div className="overflow-x-auto pb-4 -mx-4 px-4">
+            <div className="flex gap-4">
+              {topVendors.slice(0, 8).map((vendor, idx) => (
+                <div key={vendor.user_id} className="w-[280px] flex-shrink-0">
+                  <VendorCard
+                    vendor={vendor}
+                    onVisit={(id) => navigate(`/marketplace/shop/${id}`)}
+                    badge={idx === 0 ? 'top' : undefined}
+                    index={idx}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* TABS : TOUS / NOUVEAUTÉS / PROCHE */}
       {!loading && filteredProducts.length > 0 && (
         <section className="px-4">
@@ -783,14 +829,39 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                   <option value="newest">Plus récents</option>
                 </select>
               </div>
-              <ProductGrid
-                products={filteredProducts.slice(0, 12).map(p => convertToHorizontalProduct(p))}
-                onAddToCart={handleAddToCartUnified}
-                onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
-                onViewSeller={setSelectedVendorId}
-                userLocation={coordinates}
-                cardVariant="vertical"
-              />
+              
+              <div className="grid grid-cols-2 gap-3">
+                {filteredProducts.slice(0, 12).map(product => {
+                  const discount = calculateDiscount(product);
+                  const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+                  
+                  return (
+                    <AiShopperProductCard
+                      key={product.id}
+                      product={{
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        originalPrice,
+                        discount,
+                        image: product.image,
+                        seller: product.seller,
+                        seller_id: product.seller_id,
+                        inStock: product.inStock,
+                        stockCount: product.stockCount
+                      }}
+                      onAddToCart={() => addToCart(product, 1)}
+                      onQuickView={() => {
+                        setQuickViewProduct(product);
+                        setIsQuickViewOpen(true);
+                      }}
+                      onToggleFavorite={() => handleToggleFavorite(product.id)}
+                      onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
+                      isFavorite={favorites.includes(product.id)}
+                    />
+                  );
+                })}
+              </div>
             </TabsContent>
 
             {/* Onglet NOUVEAUTÉS */}
@@ -799,14 +870,39 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                 <Sparkles className="h-5 w-5 text-purple-500" />
                 Dernières nouveautés
               </h3>
-              <ProductGrid
-                products={newProducts.slice(0, 12).map(p => convertToHorizontalProduct(p))}
-                onAddToCart={handleAddToCartUnified}
-                onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
-                onViewSeller={setSelectedVendorId}
-                userLocation={coordinates}
-                cardVariant="vertical"
-              />
+              
+              <div className="grid grid-cols-2 gap-3">
+                {newProducts.slice(0, 12).map(product => {
+                  const discount = calculateDiscount(product);
+                  const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+                  
+                  return (
+                    <AiShopperProductCard
+                      key={product.id}
+                      product={{
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        originalPrice,
+                        discount,
+                        image: product.image,
+                        seller: product.seller,
+                        seller_id: product.seller_id,
+                        inStock: product.inStock,
+                        stockCount: product.stockCount
+                      }}
+                      onAddToCart={() => addToCart(product, 1)}
+                      onQuickView={() => {
+                        setQuickViewProduct(product);
+                        setIsQuickViewOpen(true);
+                      }}
+                      onToggleFavorite={() => handleToggleFavorite(product.id)}
+                      onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
+                      isFavorite={favorites.includes(product.id)}
+                    />
+                  );
+                })}
+              </div>
             </TabsContent>
 
             {/* Onglet PROCHE */}
@@ -817,14 +913,39 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                     <MapPin className="h-5 w-5 text-green-500" />
                     Près de chez vous
                   </h3>
-                  <ProductGrid
-                    products={nearbyCalculated.slice(0, 12).map(p => convertToHorizontalProduct(p))}
-                    onAddToCart={handleAddToCartUnified}
-                    onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
-                    onViewSeller={setSelectedVendorId}
-                    userLocation={coordinates}
-                    cardVariant="vertical"
-                  />
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    {nearbyCalculated.slice(0, 12).map(product => {
+                      const discount = calculateDiscount(product);
+                      const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+                      
+                      return (
+                        <AiShopperProductCard
+                          key={product.id}
+                          product={{
+                            id: product.id,
+                            title: product.title,
+                            price: product.price,
+                            originalPrice,
+                            discount,
+                            image: product.image,
+                            seller: product.seller,
+                            seller_id: product.seller_id,
+                            inStock: product.inStock,
+                            stockCount: product.stockCount
+                          }}
+                          onAddToCart={() => addToCart(product, 1)}
+                          onQuickView={() => {
+                            setQuickViewProduct(product);
+                            setIsQuickViewOpen(true);
+                          }}
+                          onToggleFavorite={() => handleToggleFavorite(product.id)}
+                          onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
+                          isFavorite={favorites.includes(product.id)}
+                        />
+                      );
+                    })}
+                  </div>
                 </>
               ) : (
                 <div className="text-center py-12">

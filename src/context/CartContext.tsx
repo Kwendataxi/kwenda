@@ -47,7 +47,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cartItems]);
 
   const addToCart = (product: any) => {
-    if (!product.isAvailable) {
+    // Gérer à la fois inStock (MarketplaceProduct) et isAvailable (ancien format)
+    const isProductAvailable = product.inStock ?? product.isAvailable ?? true;
+    
+    if (!isProductAvailable) {
       toast({
         title: "Produit indisponible",
         description: "Ce produit n'est plus en stock",
@@ -67,16 +70,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       const cartItem: CartItem = {
         id: product.id,
-        product_id: product.id, // Ajouter product_id
-        name: product.name,
+        product_id: product.id,
+        name: product.title || product.name, // Gérer les deux formats
         price: product.price,
         originalPrice: product.originalPrice,
-        image: product.image,
+        image: product.image || (product.images && product.images[0]) || '',
         quantity: 1,
-        seller: product.seller,
+        seller: product.seller?.display_name || product.seller || 'Vendeur',
         seller_id: product.seller_id || product.sellerId,
         category: product.category,
-        isAvailable: product.isAvailable,
+        isAvailable: product.inStock ?? product.isAvailable ?? true,
+        coordinates: product.coordinates,
       };
       
       setCartItems(prev => [...prev, cartItem]);
