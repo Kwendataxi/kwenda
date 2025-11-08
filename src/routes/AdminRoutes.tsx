@@ -11,6 +11,7 @@ const QRAnalytics = lazy(() => import('@/pages/admin/QRAnalytics'));
 const AdminFoodManagement = lazy(() => import('@/pages/admin/AdminFoodManagement'));
 const AdminRentalModerationEnhanced = lazy(() => import('@/pages/AdminRentalModerationEnhanced'));
 const AdminNotificationTestPage = lazy(() => import('@/pages/admin/AdminNotificationTestPage'));
+const VendorShopTestPage = lazy(() => import('@/pages/admin/VendorShopTestPage'));
 
 export const AdminRoutes = () => {
   if (isSpecificBuild()) {
@@ -22,7 +23,7 @@ export const AdminRoutes = () => {
       <Route 
         path="/app/admin" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <AdminApp />
           </ProtectedRoute>
         } 
@@ -30,7 +31,7 @@ export const AdminRoutes = () => {
       <Route 
         path="/admin" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <AdminApp />
           </ProtectedRoute>
         } 
@@ -78,8 +79,16 @@ export const AdminRoutes = () => {
       <Route
         path="/admin/notification-test" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <AdminNotificationTestPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route
+        path="/admin/vendor-shop-test" 
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <VendorShopTestPage />
           </ProtectedRoute>
         } 
       />
