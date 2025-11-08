@@ -12678,6 +12678,42 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_stats_cache: {
+        Row: {
+          avg_rating: number
+          follower_count: number
+          last_product_date: string | null
+          last_sale_date: string | null
+          last_updated: string
+          total_products: number
+          total_reviews: number
+          total_sales: number
+          vendor_id: string
+        }
+        Insert: {
+          avg_rating?: number
+          follower_count?: number
+          last_product_date?: string | null
+          last_sale_date?: string | null
+          last_updated?: string
+          total_products?: number
+          total_reviews?: number
+          total_sales?: number
+          vendor_id: string
+        }
+        Update: {
+          avg_rating?: number
+          follower_count?: number
+          last_product_date?: string | null
+          last_sale_date?: string | null
+          last_updated?: string
+          total_products?: number
+          total_reviews?: number
+          total_sales?: number
+          vendor_id?: string
+        }
+        Relationships: []
+      }
       vendor_subscription_plans: {
         Row: {
           analytics_enabled: boolean | null
@@ -13628,28 +13664,6 @@ export type Database = {
           vendor_id: string | null
         }
         Relationships: []
-      }
-      vendor_stats_cache: {
-        Row: {
-          avg_rating: number | null
-          follower_count: number | null
-          last_product_date: string | null
-          last_sale_date: string | null
-          last_updated: string | null
-          total_products: number | null
-          total_reviews: number | null
-          total_sales: number | null
-          vendor_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_marketplace_products_seller"
-            columns: ["vendor_id"]
-            isOneToOne: false
-            referencedRelation: "vendor_profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
       }
       vendor_stats_mv: {
         Row: {
