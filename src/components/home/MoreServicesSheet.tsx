@@ -5,7 +5,7 @@ import {
   SheetTitle, 
   SheetDescription 
 } from '@/components/ui/sheet';
-import { Gift, Smartphone, Gamepad2, Ticket } from 'lucide-react';
+import { Gift, Send, Gamepad2, Ticket } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 
@@ -41,12 +41,12 @@ export const MoreServicesSheet = ({
       comingSoon: true
     },
     {
-      id: 'airtime',
-      name: t('home.services.airtime'),
-      icon: Smartphone,
-      gradient: 'hsl(221, 83%, 53%), hsl(189, 94%, 43%), hsl(173, 80%, 40%)',
-      iconColor: 'hsl(221, 83%, 53%)',
-      comingSoon: true
+      id: 'transfer',
+      name: t('home.services.transfer'),
+      icon: Send,
+      gradient: 'hsl(280, 90%, 58%), hsl(330, 81%, 60%), hsl(350, 89%, 60%)',
+      iconColor: 'hsl(280, 90%, 58%)',
+      comingSoon: false
     },
     {
       id: 'games',

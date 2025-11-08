@@ -20,6 +20,7 @@ import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';
 import { ClientWalletPanel } from '@/components/client/ClientWalletPanel';
+import { QuickTransferPopup } from '@/components/wallet/QuickTransferPopup';
 import { ModernHomeScreen } from '@/components/home/ModernHomeScreen';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
@@ -164,6 +165,9 @@ const ClientApp = () => {
   
   // Wallet top-up modal control
   const [shouldOpenWalletTopUp, setShouldOpenWalletTopUp] = useState(false);
+  
+  // Quick transfer popup state
+  const [showQuickTransfer, setShowQuickTransfer] = useState(false);
   
   // Transport states
   const [activeBooking, setActiveBooking] = useState<any>(null);
@@ -359,6 +363,12 @@ const ClientApp = () => {
     // ✅ Gestion lottery
     if (service === 'lottery' || service === 'tombola') {
       setCurrentView('lottery');
+      return;
+    }
+    
+    // ✅ Gestion transfert rapide
+    if (service === 'transfer') {
+      setShowQuickTransfer(true);
       return;
     }
     
@@ -946,6 +956,19 @@ const ClientApp = () => {
         
         {/* Toast notifications */}
         <div id="toast-container" />
+        
+        {/* Quick Transfer Popup */}
+        <QuickTransferPopup 
+          open={showQuickTransfer}
+          onClose={() => setShowQuickTransfer(false)}
+          onTransferSuccess={() => {
+            setShowQuickTransfer(false);
+            toast({
+              title: "Transfert réussi",
+              description: "L'argent a été envoyé avec succès",
+            });
+          }}
+        />
         
         {/* Cancellation notification */}
         <CancellationNotification 
