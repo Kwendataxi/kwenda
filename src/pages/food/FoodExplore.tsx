@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { RestaurantCard } from '@/components/food/RestaurantCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FoodFooterNav } from '@/components/food/FoodFooterNav';
 import { 
   ArrowLeft, 
   Search, 
@@ -335,6 +336,7 @@ export default function FoodExplore() {
           </AnimatePresence>
         </div>
       </div>
+      <FoodFooterNav />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useFavorites } from '@/context/FavoritesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { FoodFooterNav } from '@/components/food/FoodFooterNav';
 
 export default function FoodFavorites() {
   const navigate = useNavigate();
@@ -244,6 +245,7 @@ export default function FoodFavorites() {
           </TabsContent>
         </Tabs>
       </div>
+      <FoodFooterNav />
     </div>
   );
 }
