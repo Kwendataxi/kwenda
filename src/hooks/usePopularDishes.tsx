@@ -27,7 +27,7 @@ export const usePopularDishes = (city: string) => {
         `)
         .eq('restaurant_profiles.city', city)
         .eq('restaurant_profiles.is_active', true)
-        .eq('restaurant_profiles.verification_status', 'verified')
+        .eq('restaurant_profiles.verification_status', 'approved')
         .eq('is_available', true)
         .eq('moderation_status', 'approved')
         .order('created_at', { ascending: false })

@@ -14,6 +14,7 @@ import { useAllDishes } from '@/hooks/useAllDishes';
 import { PaginationControls } from '@/components/common/PaginationControls';
 import type { FoodProduct } from '@/types/food';
 import { formatCurrency } from '@/lib/utils';
+import { FOOD_CATEGORIES } from '@/config/foodCategories';
 
 interface AllDishesViewProps {
   city: string;
@@ -21,7 +22,7 @@ interface AllDishesViewProps {
   onAddToCart: (product: FoodProduct) => void;
 }
 
-const CATEGORIES = ['Entrée', 'Plat', 'Dessert', 'Boisson', 'Snack'];
+
 
 export const AllDishesView = ({ city, onBack, onAddToCart }: AllDishesViewProps) => {
   const {
@@ -85,20 +86,22 @@ export const AllDishesView = ({ city, onBack, onAddToCart }: AllDishesViewProps)
               <div className="space-y-3">
                 <Label className="text-base font-semibold">📂 Catégorie</Label>
                 <div className="grid grid-cols-2 gap-3">
-                  {CATEGORIES.map(cat => (
-                    <div key={cat} className="flex items-center space-x-2">
+                  {FOOD_CATEGORIES.map(cat => (
+                    <div key={cat.id} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`cat-${cat}`}
-                        checked={filters.categories.includes(cat)}
+                        id={`cat-${cat.id}`}
+                        checked={filters.categories.includes(cat.id)}
                         onCheckedChange={(checked) => {
                           updateFilters({
                             categories: checked
-                              ? [...filters.categories, cat]
-                              : filters.categories.filter(c => c !== cat)
+                              ? [...filters.categories, cat.id]
+                              : filters.categories.filter(c => c !== cat.id)
                           });
                         }}
                       />
-                      <Label htmlFor={`cat-${cat}`} className="cursor-pointer">{cat}</Label>
+                      <Label htmlFor={`cat-${cat.id}`} className="cursor-pointer">
+                        {cat.emoji} {cat.name}
+                      </Label>
                     </div>
                   ))}
                 </div>
@@ -170,15 +173,18 @@ export const AllDishesView = ({ city, onBack, onAddToCart }: AllDishesViewProps)
 
             {/* Active filter badges */}
             <AnimatePresence>
-              {filters.categories.map(cat => (
-                <FilterBadge
-                  key={cat}
-                  label={cat}
-                  onRemove={() => updateFilters({ 
-                    categories: filters.categories.filter(c => c !== cat) 
-                  })}
-                />
-              ))}
+              {filters.categories.map(catId => {
+                const category = FOOD_CATEGORIES.find(c => c.id === catId);
+                return (
+                  <FilterBadge
+                    key={catId}
+                    label={category ? `${category.emoji} ${category.name}` : catId}
+                    onRemove={() => updateFilters({ 
+                      categories: filters.categories.filter(c => c !== catId) 
+                    })}
+                  />
+                );
+              })}
             </AnimatePresence>
           </div>
         </div>

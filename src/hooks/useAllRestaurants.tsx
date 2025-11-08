@@ -45,7 +45,7 @@ export const useAllRestaurants = (city: string) => {
         .select('*', { count: 'exact' })
         .eq('city', city)
         .eq('is_active', true)
-        .eq('verification_status', 'verified')
+        .eq('verification_status', 'approved')
         .ilike('restaurant_name', filters.search ? `%${filters.search}%` : '%')
         .gte('rating_average', filters.minRating)
         .lte('average_preparation_time', filters.maxDeliveryTime)
