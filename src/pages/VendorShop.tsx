@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera, Home, Shield, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { YangoProductCard } from '@/components/marketplace/YangoProductCard';
+import { AiShopperProductCard } from '@/components/marketplace/AiShopperProductCard';
+import { useProductPromotions } from '@/hooks/useProductPromotions';
 import { VendorShopShareButtons } from '@/components/marketplace/VendorShopShareButtons';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/context/CartContext';
@@ -56,6 +58,8 @@ const VendorShop: React.FC = () => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [totalReviews, setTotalReviews] = useState(0);
   const [user, setUser] = useState<any>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const { calculateDiscount, getOriginalPrice } = useProductPromotions();
 
   // Hook pour gérer les favoris
   const { isFavorite, toggleFavorite } = useProductFavorites(user?.id);
@@ -344,6 +348,18 @@ const VendorShop: React.FC = () => {
     });
   };
 
+  const handleToggleFavorite = (productId: string) => {
+    setFavorites(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+    toast({
+      title: favorites.includes(productId) ? '💔 Retiré des favoris' : '❤️ Ajouté aux favoris',
+      duration: 2000,
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -614,35 +630,56 @@ const VendorShop: React.FC = () => {
               </Card>
             </motion.div>
           ) : (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ staggerChildren: 0.1 }}
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-            >
-              {products.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <YangoProductCard
+            <div className="grid grid-cols-2 gap-3">
+              {products.map((product) => {
+                const discount = calculateDiscount({
+                  ...product,
+                  seller_id: product.seller.id,
+                  inStock: product.stock_count > 0,
+                  stockCount: product.stock_count,
+                  seller: product.seller,
+                  image: product.images[0] || '/placeholder.svg',
+                  images: product.images,
+                  coordinates: undefined,
+                  rating: 0,
+                  reviews: 0,
+                  moderation_status: 'approved',
+                  popularityScore: 0,
+                  viewCount: 0,
+                  salesCount: 0,
+                  condition: 'new',
+                  location: ''
+                });
+                const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+
+                return (
+                  <AiShopperProductCard
+                    key={product.id}
                     product={{
                       id: product.id,
                       title: product.title,
                       price: product.price,
+                      originalPrice,
+                      discount,
                       image: product.images[0] || '/placeholder.svg',
-                      isNew: isNewProduct(product.created_at),
-                      stockCount: product.stock_count || 0
+                      seller: product.seller,
+                      seller_id: product.seller.id,
+                      inStock: product.stock_count > 0,
+                      stockCount: product.stock_count
                     }}
-                    isFavorite={isFavorite(product.id)}
                     onAddToCart={() => handleAddToCart(product)}
-                    onToggleFavorite={() => user ? toggleFavorite(product.id) : navigate('/auth')}
+                    onQuickView={() => {
+                      toast({
+                        title: '👁️ Aperçu rapide',
+                        description: 'Fonctionnalité bientôt disponible'
+                      });
+                    }}
+                    onToggleFavorite={() => handleToggleFavorite(product.id)}
+                    isFavorite={favorites.includes(product.id)}
                   />
-                </motion.div>
-              ))}
-            </motion.div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

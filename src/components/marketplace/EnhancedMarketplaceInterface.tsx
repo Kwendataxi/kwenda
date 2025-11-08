@@ -26,6 +26,8 @@ import { ResponsiveGrid } from '../ui/responsive-grid';
 import { AutoHideMarketplacePromoSlider } from './AutoHideMarketplacePromoSlider';
 import { KwendaShopHeader } from './KwendaShopHeader';
 import { TopProductsSection } from './TopProductsSection';
+import { AiShopperProductCard } from './AiShopperProductCard';
+import { useProductPromotions } from '@/hooks/useProductPromotions';
 
 // Anciens composants (conservés pour compatibilité)
 import { ProductGrid } from './ProductGrid';
@@ -84,9 +86,11 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { verification } = useUserVerification();
   const { wallet } = useWallet();
   const { createOrFindConversation } = useUniversalChat();
+  const { calculateDiscount, getOriginalPrice } = useProductPromotions();
   
   // State management
   const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow'>('shop');
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   // Détecter retour depuis l'espace vendeur
   useEffect(() => {
@@ -508,6 +512,19 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         .slice(0, 10)
     : [];
 
+  // Gestion des favoris
+  const handleToggleFavorite = (productId: string) => {
+    setFavorites(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+    toast({
+      title: favorites.includes(productId) ? '💔 Retiré des favoris' : '❤️ Ajouté aux favoris',
+      duration: 2000,
+    });
+  };
+
   const convertToHorizontalProduct = (product: Product): HorizontalProduct => ({
     id: product.id,
     name: product.title,
@@ -665,13 +682,49 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </motion.div>
       )}
 
-      {/* TOP PRODUITS CAROUSEL - Nouveau design vertical bleu */}
+      {/* PRODUITS POPULAIRES - Grille 2 colonnes style AiShopper */}
       {!loading && filteredProducts.length > 0 && (
-        <TopProductsSection
-          products={filteredProducts}
-          onAddToCart={handleAddToCartUnified}
-          onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
-        />
+        <section className="px-4 py-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Produits populaires</h2>
+            <span className="text-sm text-muted-foreground">
+              {filteredProducts.length} produits
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {filteredProducts.slice(0, 12).map(product => {
+              const discount = calculateDiscount(product);
+              const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+              
+              return (
+                <AiShopperProductCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    title: product.title,
+                    price: product.price,
+                    originalPrice,
+                    discount,
+                    image: product.image,
+                    seller: product.seller,
+                    seller_id: product.seller_id,
+                    inStock: product.inStock,
+                    stockCount: product.stockCount
+                  }}
+                  onAddToCart={() => addToCart(product, 1)}
+                  onQuickView={() => {
+                    setQuickViewProduct(product);
+                    setIsQuickViewOpen(true);
+                  }}
+                  onToggleFavorite={() => handleToggleFavorite(product.id)}
+                  onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
+                  isFavorite={favorites.includes(product.id)}
+                />
+              );
+            })}
+          </div>
+        </section>
       )}
 
       {/* TABS : TOUS / NOUVEAUTÉS / PROCHE */}
