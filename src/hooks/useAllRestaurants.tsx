@@ -48,7 +48,7 @@ export const useAllRestaurants = (city: string) => {
         .eq('verification_status', 'approved')
         .ilike('restaurant_name', filters.search ? `%${filters.search}%` : '%')
         .gte('rating_average', filters.minRating)
-        .lte('average_preparation_time', filters.maxDeliveryTime)
+        .or(`average_preparation_time.lte.${filters.maxDeliveryTime},average_preparation_time.is.null`)
         .order(sort.field, { ascending: sort.direction === 'asc' })
         .range(from, to);
 
