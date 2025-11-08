@@ -31,6 +31,7 @@ import { AppReadyProvider } from "@/contexts/AppReadyContext";
 import { SmoothTransitionWrapper } from "@/components/loading/SmoothTransitionWrapper";
 import { HelmetProvider } from 'react-helmet-async';
 import { ChatProvider } from "@/components/chat/ChatProvider";
+import { CartProvider } from '@/context/CartContext';
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { AppDownloadTopBanner } from "@/components/pwa/AppDownloadTopBanner";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
@@ -156,8 +157,9 @@ const App = () => (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <FavoritesProvider>
-            <LanguageProvider>
+          <CartProvider>
+            <FavoritesProvider>
+              <LanguageProvider>
               <ABTestProvider>
                 <TooltipProvider>
                   <ChatProvider>
@@ -167,6 +169,7 @@ const App = () => (
               </ABTestProvider>
             </LanguageProvider>
           </FavoritesProvider>
+          </CartProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

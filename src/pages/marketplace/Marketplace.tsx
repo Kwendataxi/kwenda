@@ -13,7 +13,6 @@ import {
 import { Link } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
 import ModernFooter from "@/components/landing/ModernFooter";
-import { CartProvider } from '@/context/CartContext';
 import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
 import { AdvancedFilters } from '@/components/marketplace/AdvancedFilters';
 import { ProductCard } from '@/components/marketplace/ProductCard';
@@ -460,11 +459,7 @@ const MarketplaceContent = () => {
 };
 
 const Marketplace = () => {
-  return (
-    <CartProvider>
-      <MarketplaceContent />
-    </CartProvider>
-  );
+  return <MarketplaceContent />;
 };
 
 export default Marketplace;
