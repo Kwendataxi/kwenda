@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useRating } from '@/hooks/useRating';
+import { useVendorRating } from '@/hooks/useVendorRating';
 import { Star, Sparkles, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import confetti from 'canvas-confetti';
@@ -51,7 +51,7 @@ export const VendorRatingDialog: React.FC<VendorRatingDialogProps> = ({
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
-  const { submitRating, loading } = useRating();
+  const { submitVendorRating, loading } = useVendorRating();
 
   const handleSubmit = async () => {
     if (rating === 0) {
@@ -60,7 +60,7 @@ export const VendorRatingDialog: React.FC<VendorRatingDialogProps> = ({
     }
 
     try {
-      const success = await submitRating(
+      const success = await submitVendorRating(
         vendorId,
         rating,
         comment.trim() || undefined

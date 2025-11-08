@@ -230,10 +230,17 @@ const VendorShop: React.FC = () => {
   };
 
   const handleSubscribe = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    console.log('[VendorShop] 🔔 Subscribe button clicked', { 
+      hasUser: !!user, 
+      hasProfile: !!profile,
+      currentSubscriptionStatus: isSubscribed 
+    });
+
+    const { data: { user: authUser } } = await supabase.auth.getUser();
     
     // ✅ PHASE 2: CTA pour visiteurs non connectés
-    if (!user) {
+    if (!authUser) {
+      console.log('[VendorShop] ⚠️ User not authenticated, showing login prompt');
       toast({
         title: '🔒 Connectez-vous',
         description: 'Créez un compte pour vous abonner à cette boutique.',
@@ -251,33 +258,54 @@ const VendorShop: React.FC = () => {
       return;
     }
 
-    if (!profile) return;
+    if (!profile) {
+      console.log('[VendorShop] ⚠️ No profile loaded');
+      return;
+    }
 
     try {
       if (isSubscribed) {
+        console.log('[VendorShop] 📤 Unsubscribing...', {
+          userId: authUser.id,
+          vendorId: profile.user_id
+        });
+
         // Unsubscribe
-        await supabase
+        const { error: unsubError } = await supabase
           .from('vendor_subscriptions')
           .update({ is_active: false })
-          .eq('subscriber_id', user.id)
+          .eq('subscriber_id', authUser.id)
           .eq('vendor_id', profile.user_id);
+
+        if (unsubError) throw unsubError;
+        
+        setIsSubscribed(false);
+        console.log('[VendorShop] ✅ Unsubscribed successfully');
         
         toast({
           title: 'Désabonné',
           description: 'Vous ne recevrez plus de notifications de cette boutique.'
         });
       } else {
+        console.log('[VendorShop] 📥 Subscribing...', {
+          userId: authUser.id,
+          vendorId: profile.user_id
+        });
+
         // Subscribe with confetti
-        await supabase
+        const { error: subError } = await supabase
           .from('vendor_subscriptions')
           .upsert({
-            customer_id: user.id,
-            subscriber_id: user.id,
+            customer_id: authUser.id,
+            subscriber_id: authUser.id,
             vendor_id: profile.user_id,
             is_active: true
           });
+
+        if (subError) throw subError;
         
         setIsSubscribed(true);
+        console.log('[VendorShop] ✅ Subscribed successfully');
         
         toast({
           title: '🎉 Abonné !',
@@ -287,12 +315,18 @@ const VendorShop: React.FC = () => {
       
       // Reload to update follower count (will be auto-updated by trigger)
       setTimeout(() => loadVendorData(), 500);
-    } catch (error) {
-      console.error('Subscribe error:', error);
+    } catch (error: any) {
+      console.error('[VendorShop] ❌ Subscribe error:', {
+        error,
+        code: error?.code,
+        message: error?.message,
+        details: error?.details
+      });
+      
       toast({
         variant: 'destructive',
-        title: 'Erreur',
-        description: 'Impossible de modifier l\'abonnement.'
+        title: 'Erreur d\'abonnement',
+        description: error?.message || 'Impossible de modifier l\'abonnement. Vérifiez votre connexion.'
       });
     }
   };
