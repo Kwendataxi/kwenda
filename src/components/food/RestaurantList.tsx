@@ -217,51 +217,6 @@ export const RestaurantList = ({
         </SectionWithParallax>
       )}
 
-      {/* 8. Restaurants by Category (tabs - option avancée) */}
-      {!categoryFilter && (
-        <div className="px-4">
-          <h2 className="text-xl font-bold mb-4 text-foreground">📂 Par Cuisine</h2>
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="w-full justify-start overflow-x-auto mb-4">
-              <TabsTrigger value="all" className="flex items-center gap-2">
-                Tous ({restaurants.length})
-              </TabsTrigger>
-              {cuisineTypes.slice(0, 5).map(cuisine => {
-                const count = restaurants.filter(r => r.cuisine_types?.includes(cuisine)).length;
-                return (
-                  <TabsTrigger key={cuisine} value={cuisine} className="flex items-center gap-2 capitalize">
-                    {cuisine} ({count})
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-
-            <TabsContent value="all" className="grid grid-cols-1 gap-4">
-              {restaurants.map((restaurant) => (
-                <RestaurantCard
-                  key={restaurant.id}
-                  restaurant={restaurant}
-                  onClick={() => onSelectRestaurant(restaurant)}
-                />
-              ))}
-            </TabsContent>
-
-            {cuisineTypes.map(cuisine => (
-              <TabsContent key={cuisine} value={cuisine} className="grid grid-cols-1 gap-4">
-                {restaurants
-                  .filter(r => r.cuisine_types?.includes(cuisine))
-                  .map((restaurant) => (
-                    <RestaurantCard
-                      key={restaurant.id}
-                      restaurant={restaurant}
-                      onClick={() => onSelectRestaurant(restaurant)}
-                    />
-                  ))}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
-      )}
 
     </motion.div>
   );
