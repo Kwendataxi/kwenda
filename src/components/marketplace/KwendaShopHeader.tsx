@@ -58,27 +58,45 @@ export const KwendaShopHeader = ({
             </motion.div>
           </div>
 
-          {/* Droite: Badge panier */}
+          {/* Droite: Badge panier avec animation bounce */}
           {cartItemsCount > 0 && (
             <motion.div
+              key={cartItemsCount}
               initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+              animate={{ 
+                scale: [0, 1.3, 1],
+                rotate: [0, 10, -10, 0]
+              }}
+              transition={{ 
+                duration: 0.5, 
+                type: "spring",
+                stiffness: 300
+              }}
               whileTap={{ scale: 0.95 }}
               className="flex-shrink-0"
             >
               <Button
+                data-cart-button
                 variant="ghost"
                 size="icon"
                 onClick={onCartClick}
                 className="relative text-white hover:bg-white/20"
               >
                 <ShoppingBag className="h-5 w-5 md:h-6 md:w-6" />
-                <Badge 
-                  variant="secondary"
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-white text-primary p-0 shadow-lg"
+                <motion.div
+                  key={`badge-${cartItemsCount}`}
+                  initial={{ scale: 2, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute -top-1 -right-1"
                 >
-                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                </Badge>
+                  <Badge 
+                    variant="secondary"
+                    className="h-5 w-5 flex items-center justify-center text-xs bg-white text-primary p-0 shadow-lg"
+                  >
+                    {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                  </Badge>
+                </motion.div>
               </Button>
             </motion.div>
           )}

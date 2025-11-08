@@ -435,7 +435,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       }]);
     }
 
-    // Feedback visuel moderne
+    // Feedback visuel moderne avec confetti activé
     showFeedback(
       {
         id: product.id,
@@ -446,7 +446,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       quantity,
       {
         withAnimation: true,
-        withConfetti: false,
+        withConfetti: true,
         productElementSelector: `[data-product-id="${product.id}"]`,
         cartButtonSelector: '[data-cart-button]'
       }

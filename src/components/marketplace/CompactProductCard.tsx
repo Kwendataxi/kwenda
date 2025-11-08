@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Star, Eye, Heart, MessageCircle, TrendingUp, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/components/chat/ChatProvider';
+import { AnimatedAddToCartButton } from './AnimatedAddToCartButton';
 
 interface Product {
   id: string;
@@ -87,6 +88,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
   return (
     <motion.div
+      data-product-id={product.id}
       whileHover={{ 
         scale: 1.05,
         rotateY: 5,
@@ -242,23 +244,16 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
 
         {/* Actions toujours visibles */}
         <div className="flex gap-1 pt-1">
-          <Button
-            size="sm"
-            variant="default"
-            className="flex-1 h-8 text-xs"
-            disabled={!product.isAvailable}
-            onClick={(e) => {
-              e.stopPropagation();
+          <AnimatedAddToCartButton
+            onAdd={() => {
               onAddToCart(product);
             }}
-          >
-            <ShoppingCart className="h-3 w-3 mr-1" />
-            Acheter
-          </Button>
+            isAvailable={product.isAvailable}
+          />
           <Button
             size="sm"
             variant="outline"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails(product);
