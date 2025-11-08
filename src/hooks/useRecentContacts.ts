@@ -46,15 +46,7 @@ export const useRecentContacts = () => {
       // Fetch recent transfers from this user
       const { data: transfers, error } = await supabase
         .from('wallet_transfers')
-        .select(`
-          recipient_id,
-          created_at,
-          profiles!wallet_transfers_recipient_id_fkey(
-            id,
-            display_name,
-            phone_number
-          )
-        `)
+        .select('recipient_id, created_at')
         .eq('sender_id', user.id)
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
@@ -62,12 +54,39 @@ export const useRecentContacts = () => {
 
       if (error) throw error;
 
+      console.log('🔍 Transferts récupérés:', transfers?.length || 0);
+
+      // Get unique recipient IDs
+      const recipientIds = [...new Set(transfers?.map(t => t.recipient_id) || [])];
+
+      if (recipientIds.length === 0) {
+        console.log('⚠️ Aucun destinataire trouvé');
+        setContacts([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch profiles separately
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, phone_number')
+        .in('user_id', recipientIds);
+
+      if (profilesError) throw profilesError;
+
+      console.log('👥 Profils récupérés:', profiles?.length || 0);
+
+      // Create profiles map for quick lookup
+      const profilesMap = new Map(
+        profiles?.map(p => [p.user_id, p]) || []
+      );
+
       // Group by recipient and count transfers
       const contactsMap = new Map<string, RecentContact>();
 
       transfers?.forEach((transfer: any) => {
         const recipientId = transfer.recipient_id;
-        const profile = transfer.profiles;
+        const profile = profilesMap.get(recipientId);
 
         if (!profile || !recipientId) return;
 
@@ -98,6 +117,8 @@ export const useRecentContacts = () => {
         }
         return new Date(b.last_transfer_date).getTime() - new Date(a.last_transfer_date).getTime();
       });
+
+      console.log('📋 Contacts finaux:', sortedContacts.length);
 
       setContacts(sortedContacts.slice(0, 6));
     } catch (error) {
