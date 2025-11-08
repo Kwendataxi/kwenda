@@ -1,13 +1,42 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+// ============================================================================
+// 💸 EDGE FUNCTION: Transfert entre wallets
+// ============================================================================
+// Description: Exécute un transfert atomique entre deux wallets
+// Sécurité: JWT requis (authentifié uniquement)
+// ============================================================================
 
-serve(async (req) => {
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface TransferRequest {
+  recipientIdentifier: string; // Email ou téléphone
+  amount: number;
+  description?: string;
+}
+
+interface TransferResponse {
+  success: boolean;
+  transferId?: string;
+  senderNewBalance?: number;
+  recipientNewBalance?: number;
+  recipientName?: string;
+  error?: string;
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('💸 [1/7] Transfert wallet démarré');
+
+    // Initialiser le client Supabase
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -18,187 +47,171 @@ serve(async (req) => {
       }
     );
 
-    // 1. Authentification
+    // Vérifier l'authentification
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      throw new Error('Non autorisé - Authentification requise');
+      console.error('❌ [2/7] Erreur authentification:', authError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Non authentifié' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const { recipient_phone_or_id, amount, description } = await req.json();
+    console.log('✅ [2/7] Utilisateur authentifié:', user.id);
 
-    console.log('💸 Transfert initié:', {
-      sender: user.id,
-      recipient: recipient_phone_or_id,
-      amount,
-      timestamp: new Date().toISOString()
-    });
+    // Parser le body
+    const body: TransferRequest = await req.json();
+    const { recipientIdentifier, amount, description } = body;
 
-    // 2. Validations montant
-    if (!amount || isNaN(amount)) {
-      throw new Error('Montant invalide');
+    if (!recipientIdentifier || !amount || amount <= 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Paramètres invalides' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    if (amount < 100) {
-      throw new Error('Montant minimum : 100 CDF');
-    }
+    console.log('💸 [3/7] Transfert initié:', { sender: user.id, recipient: recipientIdentifier, amount });
 
-    if (amount > 500000) {
-      throw new Error('Montant maximum : 500,000 CDF par transfert');
-    }
+    // Trouver le destinataire
+    const isEmail = recipientIdentifier.includes('@');
+    let recipientUserId: string | null = null;
 
-    // 3. Rate limiting (max 10 transferts/heure)
-    const oneHourAgo = new Date(Date.now() - 3600000).toISOString();
-    const { data: recentTransfers, error: rateError } = await supabaseClient
-      .from('wallet_transfers')
-      .select('id')
-      .eq('sender_id', user.id)
-      .gte('created_at', oneHourAgo);
-
-    if (rateError) {
-      console.error('❌ Erreur rate limiting:', rateError);
-    }
-
-    if (recentTransfers && recentTransfers.length >= 10) {
-      throw new Error('Limite de 10 transferts/heure atteinte. Réessayez plus tard.');
-    }
-
-    // 4. Identifier le destinataire (approche simplifiée)
-    let recipientId: string;
-    
-    // Si c'est un UUID direct
-    if (recipient_phone_or_id.length === 36 && recipient_phone_or_id.includes('-')) {
-      recipientId = recipient_phone_or_id;
-    } else {
-      // Recherche par numéro de téléphone ou email dans clients
-      const { data: client, error: searchError } = await supabaseClient
+    if (isEmail) {
+      // Recherche par email
+      const { data: clientData } = await supabaseClient
         .from('clients')
-        .select('user_id, display_name, phone_number')
-        .or(`phone_number.eq.${recipient_phone_or_id},email.eq.${recipient_phone_or_id}`)
+        .select('user_id')
+        .eq('email', recipientIdentifier.toLowerCase())
         .maybeSingle();
-      
-      if (client && !searchError) {
-        recipientId = client.user_id;
-        console.log('✅ Destinataire trouvé dans clients:', client.display_name);
+
+      if (clientData) {
+        recipientUserId = clientData.user_id;
       } else {
-        // Backup: utiliser directement auth.admin pour chercher par email
-        console.log('🔍 Backup: recherche directe dans auth.users...');
-        
-        // Utiliser le service role key pour accéder à auth.users
-        const supabaseAdmin = createClient(
-          Deno.env.get('SUPABASE_URL') ?? '',
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        );
-        
-        // Chercher l'utilisateur par email directement
-        const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
-        
-        if (usersError || !users) {
-          console.error('❌ Erreur listUsers:', usersError);
-          throw new Error('Erreur lors de la recherche du destinataire');
-        }
-        
-        // Trouver l'utilisateur par email
-        const matchingUser = users.find(u => u.email === recipient_phone_or_id);
-        
-        if (!matchingUser) {
-          throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
-        }
-        
-        console.log('🔍 Utilisateur trouvé, ID:', matchingUser.id, 'Email:', matchingUser.email);
-        
-        // Vérifier que cet utilisateur a un wallet (avec client admin pour bypass RLS)
-        console.log('🔍 Recherche du wallet pour user_id:', matchingUser.id);
-        const { data: wallet, error: walletCheckError } = await supabaseAdmin
-          .from('user_wallets')
-          .select('user_id, balance')
-          .eq('user_id', matchingUser.id)
+        // Recherche dans partner_profiles
+        const { data: partnerData } = await supabaseClient
+          .from('partner_profiles')
+          .select('user_id')
+          .eq('company_email', recipientIdentifier.toLowerCase())
           .maybeSingle();
-        
-        console.log('🔍 Résultat wallet:', { wallet, walletCheckError });
-        
-        if (walletCheckError) {
-          console.error('❌ Erreur lors de la recherche du wallet:', walletCheckError);
-          throw new Error('Erreur lors de la vérification du wallet');
+
+        if (partnerData) {
+          recipientUserId = partnerData.user_id;
+        } else {
+          // Recherche dans auth.users via RPC
+          const { data: authData } = await supabaseClient.rpc(
+            'get_user_by_email',
+            { p_email: recipientIdentifier.toLowerCase() }
+          );
+
+          if (authData && authData.length > 0) {
+            recipientUserId = authData[0].id;
+          }
         }
-        
-        if (!wallet) {
-          console.error('❌ Aucun wallet trouvé pour cet utilisateur');
-          throw new Error('Le destinataire n\'a pas de wallet actif');
+      }
+    } else {
+      // Recherche par téléphone
+      const { data: clientData } = await supabaseClient
+        .from('clients')
+        .select('user_id')
+        .eq('phone_number', recipientIdentifier)
+        .maybeSingle();
+
+      if (clientData) {
+        recipientUserId = clientData.user_id;
+      } else {
+        // Recherche dans partner_profiles
+        const { data: partnerData } = await supabaseClient
+          .from('partner_profiles')
+          .select('user_id')
+          .eq('company_phone', recipientIdentifier)
+          .maybeSingle();
+
+        if (partnerData) {
+          recipientUserId = partnerData.user_id;
         }
-        
-        console.log('✅ Destinataire trouvé avec wallet:', matchingUser.email, 'Balance:', wallet.balance);
-        recipientId = matchingUser.id;
       }
     }
 
-    // 5. Vérifier auto-transfert
-    if (recipientId === user.id) {
-      throw new Error('Impossible de transférer de l\'argent à soi-même');
+    if (!recipientUserId) {
+      console.error('❌ [4/7] Destinataire introuvable');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Destinataire introuvable' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // 6. Récupérer info destinataire pour notification
-    const { data: recipientClient } = await supabaseClient
-      .from('clients')
-      .select('display_name, phone_number')
-      .eq('user_id', recipientId)
-      .maybeSingle();
+    console.log('✅ [4/7] Destinataire trouvé:', recipientUserId);
 
-    // 7. Transaction atomique via RPC
-    console.log('🔄 Exécution du transfert atomique...');
-    const { data: result, error: rpcError } = await supabaseClient
-      .rpc('execute_wallet_transfer', {
+    // Vérifier l'auto-transfert
+    if (recipientUserId === user.id) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Impossible de transférer vers soi-même' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Exécuter le transfert atomique avec la fonction RPC
+    console.log('🔄 [5/7] Exécution du transfert atomique...');
+    
+    const { data: transferData, error: transferError } = await supabaseClient.rpc(
+      'execute_wallet_transfer',
+      {
         p_sender_id: user.id,
-        p_recipient_id: recipientId,
+        p_recipient_id: recipientUserId,
         p_amount: amount,
         p_description: description || 'Transfert KwendaPay'
-      });
-
-    if (rpcError) {
-      console.error('❌ Erreur RPC:', rpcError);
-      throw new Error(rpcError.message || 'Échec du transfert');
-    }
-
-    console.log('✅ Transfert réussi:', result);
-
-    // 8. Envoyer notification au destinataire
-    try {
-      await supabaseClient.from('notifications').insert({
-        user_id: recipientId,
-        type: 'transfer_received',
-        title: '💰 Transfert reçu',
-        message: `Vous avez reçu ${amount.toLocaleString()} CDF`,
-        data: {
-          transfer_id: result.transfer_id,
-          amount,
-          sender_id: user.id
-        }
-      });
-    } catch (notifError) {
-      console.error('⚠️ Erreur notification:', notifError);
-      // Ne pas bloquer le transfert si la notification échoue
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        transfer_id: result.transfer_id,
-        new_balance: result.sender_new_balance,
-        recipient_name: recipientClient?.display_name || 'Utilisateur'
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      }
     );
 
-  } catch (error: any) {
-    console.error('❌ Erreur transfert:', error);
+    if (transferError) {
+      console.error('❌ [6/7] Erreur lors du transfert:', transferError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: transferError.message || 'Erreur lors du transfert'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('✅ [6/7] Transfert réussi:', transferData);
+
+    // Envoyer une notification au destinataire
+    try {
+      await supabaseClient.from('notifications').insert({
+        user_id: recipientUserId,
+        title: 'Transfert reçu',
+        message: `Vous avez reçu ${amount} CDF de ${transferData.sender_name}`,
+        type: 'wallet_transfer',
+        reference_id: transferData.transfer_id,
+        reference_type: 'wallet_transfer'
+      });
+      console.log('✅ [7/7] Notification envoyée');
+    } catch (notifError) {
+      console.warn('⚠️ [7/7] Erreur envoi notification (non bloquante):', notifError);
+    }
+
+    const response: TransferResponse = {
+      success: true,
+      transferId: transferData.transfer_id,
+      senderNewBalance: transferData.sender_new_balance,
+      recipientNewBalance: transferData.recipient_new_balance,
+      recipientName: transferData.recipient_name,
+    };
+
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Erreur lors du transfert'
+      JSON.stringify(response),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('❌ [ERROR] Erreur transfert wallet:', error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       }),
-      { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

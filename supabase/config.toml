@@ -164,6 +164,9 @@ verify_jwt = true  # ✅ Validation sécurisée codes promo et parrainage
 [functions.validate-transfer-recipient]
 verify_jwt = true  # ✅ Validation temps réel du destinataire de transfert
 
+[functions.wallet-transfer]
+verify_jwt = true  # ✅ Transfert atomique entre wallets
+
 [functions.process-marketplace-sale]
 verify_jwt = false  # ✅ PHASE 4: Traitement automatique des commissions marketplace (appelé par trigger)
 

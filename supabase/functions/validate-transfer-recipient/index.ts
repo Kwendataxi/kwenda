@@ -1,13 +1,40 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+// ============================================================================
+// 🔍 EDGE FUNCTION: Validation de destinataire pour transferts
+// ============================================================================
+// Description: Valide qu'un destinataire existe (email ou téléphone)
+// Sécurité: JWT requis (authentifié uniquement)
+// ============================================================================
 
-serve(async (req) => {
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface ValidateRecipientRequest {
+  identifier: string; // Email ou numéro de téléphone
+}
+
+interface ValidateRecipientResponse {
+  success: boolean;
+  valid: boolean;
+  recipientId?: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  error?: string;
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('🔍 [1/6] Validation destinataire démarrée');
+
+    // Initialiser le client Supabase
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -18,220 +45,187 @@ serve(async (req) => {
       }
     );
 
-    // Authentification
+    // Vérifier l'authentification
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      throw new Error('Non autorisé');
-    }
-
-    // Créer un client admin pour contourner les RLS lors de la recherche (sécurisé car on ne retourne que des infos publiques)
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    const { recipient_input } = await req.json();
-
-    if (!recipient_input || recipient_input.trim().length === 0) {
+      console.error('❌ [2/6] Erreur authentification:', authError);
       return new Response(
-        JSON.stringify({ valid: false, error: 'Veuillez entrer un numéro ou email' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, valid: false, error: 'Non authentifié' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Rate limiting : max 20 validations/minute
-    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
-    const { data: recentValidations } = await supabaseClient
-      .from('wallet_transfers')
-      .select('id')
-      .eq('sender_id', user.id)
-      .gte('created_at', oneMinuteAgo);
+    console.log('✅ [2/6] Utilisateur authentifié:', user.id);
 
-    if (recentValidations && recentValidations.length >= 20) {
+    // Parser le body
+    const body: ValidateRecipientRequest = await req.json();
+    const { identifier } = body;
+
+    if (!identifier || identifier.trim() === '') {
       return new Response(
-        JSON.stringify({ valid: false, error: 'Trop de tentatives. Attendez une minute.' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, valid: false, error: 'Identifiant requis' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('🔍 [1/6] Validation démarrée:', { input: recipient_input, sender: user.id });
+    console.log('🔎 [3/6] Recherche destinataire:', identifier);
 
-    let client = null;
+    // Déterminer si c'est un email ou un téléphone
+    const isEmail = identifier.includes('@');
+    let recipientUserId: string | null = null;
+    let recipientName: string | null = null;
+    let recipientEmail: string | null = null;
 
-    // ÉTAPE 1 : Recherche par email dans clients (via admin pour bypass RLS)
-    console.log('🔍 [2/6] Recherche par email dans clients...');
-    const { data: clientByEmail, error: emailError } = await supabaseAdmin
-      .from('clients')
-      .select('user_id, display_name, phone_number, email, is_active')
-      .eq('email', recipient_input.toLowerCase().trim())
-      .eq('is_active', true)
-      .maybeSingle();
-
-    console.log('🔎 [2/6] DEBUG - Résultat recherche email:', { 
-      found: !!clientByEmail, 
-      hasError: !!emailError,
-      errorCode: emailError?.code,
-      errorMessage: emailError?.message 
-    });
-
-    if (emailError && emailError.code !== 'PGRST116') {
-      console.error('❌ Erreur recherche email:', emailError);
-      return new Response(
-        JSON.stringify({ valid: false, error: 'Erreur lors de la recherche' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (clientByEmail) {
-      console.log('✅ [2/6] Client trouvé par email:', clientByEmail.display_name);
-      client = clientByEmail;
-    } else {
-      // ÉTAPE 2 : Recherche par téléphone dans clients (via admin pour bypass RLS)
-      console.log('🔍 [3/6] Pas trouvé par email, recherche par téléphone...');
-      const { data: clientByPhone, error: phoneError } = await supabaseAdmin
+    if (isEmail) {
+      // Recherche par email dans clients
+      const { data: clientData, error: clientError } = await supabaseClient
         .from('clients')
-        .select('user_id, display_name, phone_number, email, is_active')
-        .eq('phone_number', recipient_input.trim())
-        .eq('is_active', true)
+        .select('user_id, display_name, email')
+        .eq('email', identifier.toLowerCase())
         .maybeSingle();
 
-      console.log('🔎 [3/6] DEBUG - Résultat recherche téléphone:', { 
-        found: !!clientByPhone,
-        hasError: !!phoneError,
-        errorCode: phoneError?.code 
-      });
+      console.log('🔎 [4/6] Résultat recherche clients:', clientData ? 'Trouvé' : 'Non trouvé');
 
-      if (phoneError && phoneError.code !== 'PGRST116') {
-        console.error('❌ Erreur recherche téléphone:', phoneError);
-        return new Response(
-          JSON.stringify({ valid: false, error: 'Erreur lors de la recherche' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      if (clientByPhone) {
-        console.log('✅ [3/6] Client trouvé par téléphone:', clientByPhone.display_name);
-        client = clientByPhone;
+      if (clientData) {
+        recipientUserId = clientData.user_id;
+        recipientName = clientData.display_name;
+        recipientEmail = clientData.email;
       } else {
-        console.log('⚠️ [3/6] Pas trouvé dans clients, recherche backup dans auth.users...');
-      }
-    }
+        // Recherche dans partner_profiles
+        const { data: partnerData, error: partnerError } = await supabaseClient
+          .from('partner_profiles')
+          .select('user_id, company_name, company_email')
+          .eq('company_email', identifier.toLowerCase())
+          .maybeSingle();
 
-    console.log('🔎 [4/6] Résultat recherche clients:', client ? `Trouvé: ${client.display_name}` : 'Non trouvé');
+        console.log('🔎 [4.1/6] Résultat recherche partners:', partnerData ? 'Trouvé' : 'Non trouvé');
 
-    // ÉTAPE 3 : Recherche backup dans auth.users si pas trouvé dans clients
-    if (!client) {
-      console.log('🔍 [4.5/6] Recherche backup dans auth.users par email...');
-
-      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.listUsers();
-      
-      if (!authError && authUser?.users) {
-        const foundUser = authUser.users.find(u => 
-          u.email?.toLowerCase() === recipient_input.toLowerCase().trim()
-        );
-        
-        if (foundUser) {
-          console.log('✅ [4.5/6] Utilisateur trouvé dans auth.users:', foundUser.email);
-          // Créer un objet client à partir des données auth
-          client = {
-            user_id: foundUser.id,
-            display_name: foundUser.user_metadata?.display_name || foundUser.email?.split('@')[0] || 'Utilisateur',
-            phone_number: foundUser.phone || null,
-            email: foundUser.email,
-            is_active: true
-          };
+        if (partnerData) {
+          recipientUserId = partnerData.user_id;
+          recipientName = partnerData.company_name;
+          recipientEmail = partnerData.company_email;
         } else {
-          console.log('⚠️ [4.5/6] Utilisateur pas trouvé dans auth.users non plus');
+          // Recherche dans auth.users via RPC
+          const { data: authData, error: authSearchError } = await supabaseClient.rpc(
+            'get_user_by_email',
+            { p_email: identifier.toLowerCase() }
+          );
+
+          console.log('🔎 [4.2/6] Résultat recherche auth.users:', authData ? 'Trouvé' : 'Non trouvé');
+
+          if (authData && authData.length > 0) {
+            recipientUserId = authData[0].id;
+            recipientEmail = authData[0].email;
+            
+            // Utiliser get_user_display_name pour récupérer le nom
+            const { data: nameData } = await supabaseClient.rpc(
+              'get_user_display_name',
+              { p_user_id: recipientUserId }
+            );
+            
+            recipientName = nameData || authData[0].email?.split('@')[0];
+          }
+        }
+      }
+    } else {
+      // Recherche par numéro de téléphone
+      const { data: clientData, error: clientError } = await supabaseClient
+        .from('clients')
+        .select('user_id, display_name, email, phone_number')
+        .eq('phone_number', identifier)
+        .maybeSingle();
+
+      console.log('🔎 [4/6] Résultat recherche par téléphone:', clientData ? 'Trouvé' : 'Non trouvé');
+
+      if (clientData) {
+        recipientUserId = clientData.user_id;
+        recipientName = clientData.display_name;
+        recipientEmail = clientData.email;
+      } else {
+        // Recherche dans partner_profiles
+        const { data: partnerData } = await supabaseClient
+          .from('partner_profiles')
+          .select('user_id, company_name, company_email, company_phone')
+          .eq('company_phone', identifier)
+          .maybeSingle();
+
+        if (partnerData) {
+          recipientUserId = partnerData.user_id;
+          recipientName = partnerData.company_name;
+          recipientEmail = partnerData.company_email;
         }
       }
     }
 
-    if (!client) {
+    // Vérifier si un destinataire a été trouvé
+    if (!recipientUserId) {
+      console.log('❌ [5/6] Destinataire introuvable');
       return new Response(
-        JSON.stringify({ 
-          valid: false, 
-          error: 'Aucun utilisateur trouvé avec ce numéro ou email' 
+        JSON.stringify({
+          success: true,
+          valid: false,
+          error: 'Destinataire introuvable'
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Vérifier que ce n'est pas l'utilisateur lui-même
-    console.log('🔍 [5/6] Vérification auto-transfert...');
-    if (client.user_id === user.id) {
+    // Vérifier que l'utilisateur ne transfère pas vers lui-même
+    if (recipientUserId === user.id) {
       console.log('❌ [5/6] Auto-transfert détecté');
       return new Response(
-        JSON.stringify({ 
-          valid: false, 
-          error: 'Vous ne pouvez pas transférer à vous-même' 
+        JSON.stringify({
+          success: true,
+          valid: false,
+          error: 'Impossible de transférer vers soi-même'
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    console.log('✅ [5/6] Pas un auto-transfert');
 
-    // Vérifier que le destinataire a un portefeuille actif (via admin pour bypass RLS)
-    console.log('🔍 [6/6] Vérification wallet du destinataire...');
-    const { data: wallet, error: walletError } = await supabaseAdmin
+    // Vérifier que le destinataire a un wallet
+    const { data: walletData, error: walletError } = await supabaseClient
       .from('user_wallets')
-      .select('id, is_active')
-      .eq('user_id', client.user_id)
-      .eq('is_active', true)
+      .select('id')
+      .eq('user_id', recipientUserId)
       .maybeSingle();
 
-    console.log('🔎 [6/6] DEBUG - Résultat recherche wallet:', { 
-      found: !!wallet,
-      hasError: !!walletError,
-      errorCode: walletError?.code,
-      userId: client.user_id 
-    });
-
-    if (walletError && walletError.code !== 'PGRST116') {
-      console.error('❌ [6/6] Erreur wallet:', walletError);
+    if (!walletData) {
+      console.log('❌ [5/6] Wallet destinataire introuvable');
       return new Response(
-        JSON.stringify({ 
-          valid: false, 
-          error: 'Erreur lors de la vérification du portefeuille' 
+        JSON.stringify({
+          success: true,
+          valid: false,
+          error: 'Le destinataire n\'a pas de wallet actif'
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!wallet) {
-      console.log('❌ [6/6] Wallet non trouvé ou inactif');
-      return new Response(
-        JSON.stringify({ 
-          valid: false, 
-          error: 'Le destinataire n\'a pas de portefeuille actif' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log('✅ [6/6] Destinataire validé avec succès');
 
-    console.log('✅ [6/6] Wallet actif trouvé');
-    console.log('🎉 Validation complète réussie:', client.display_name);
+    const response: ValidateRecipientResponse = {
+      success: true,
+      valid: true,
+      recipientId: recipientUserId,
+      recipientName: recipientName || undefined,
+      recipientEmail: recipientEmail || undefined,
+    };
 
     return new Response(
-      JSON.stringify({
-        valid: true,
-        user_id: client.user_id,
-        display_name: client.display_name,
-        phone_number: client.phone_number
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify(response),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
-    console.error('❌ Erreur validation:', error);
+  } catch (error) {
+    console.error('❌ [ERROR] Erreur validation destinataire:', error);
     return new Response(
-      JSON.stringify({ 
-        valid: false, 
-        error: error.message || 'Erreur de validation' 
+      JSON.stringify({
+        success: false,
+        valid: false,
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       }),
-      { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
