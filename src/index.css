@@ -25,6 +25,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Marketplace Congo Design System */
+@import './styles/marketplace-cards.css';
+
 /* Import feature-specific styles with @layer support */
 @import './styles/auth-theme.css';
 @import './styles/wallet-theme.css';

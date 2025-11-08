@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, ShoppingCart, Heart, Star, MapPin } from 'lucide-react';
+import { Eye, ShoppingCart, Heart, Star, MapPin, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { MarketplaceProduct } from '@/types/marketplace';
@@ -190,31 +190,40 @@ export const OptimizedProductCard = ({
     );
   }
 
-  // Vue grille (par défaut) - Design compact optimisé
+  // Vue grille (par défaut) - Design moderne Congo
   return (
     <motion.div
-      whileHover={{ y: -6, scale: 1.02 }}
-      transition={{ duration: 0.3 }}
-      className="group h-full cursor-pointer"
+      whileHover={{ 
+        y: -12, 
+        scale: 1.03,
+        rotateX: 2,
+      }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 20 
+      }}
+      className="group h-full cursor-pointer hover-lift-3d"
       onClick={() => onViewDetails?.(product)}
+      data-product-id={product.id}
     >
-      <Card className="relative overflow-hidden bg-card hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-        {/* Image Container - aspect-square pour uniformité */}
-        <div className="relative aspect-square overflow-hidden bg-muted">
+      <Card className="relative overflow-hidden bg-card hover:shadow-congo-lg transition-all duration-300 h-full flex flex-col border-2 border-border/50 hover:border-primary/20">
+        {/* Image Container - aspect-square avec gradient overlay */}
+        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
           <img
             src={mainImage}
             alt={product.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             loading="lazy"
           />
           
-          {/* Overlay gradient on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* Gradient overlay permanent mais subtil */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-300 image-overlay-gradient" />
           
-          {/* Quick View Button (hover only) */}
+          {/* Quick View Button - Design Congo moderne */}
           {onQuickView && (
             <motion.button
-              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
               onClick={(e) => {
                 e.stopPropagation();
                 onQuickView(product);
@@ -222,90 +231,136 @@ export const OptimizedProductCard = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="bg-white/95 px-4 py-2 rounded-full shadow-xl flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                <span className="text-sm font-medium">Aperçu rapide</span>
+              <div className="quick-view-overlay px-6 py-3 rounded-full shadow-congo flex items-center gap-2 font-semibold text-foreground">
+                <Eye className="h-5 w-5 text-primary" />
+                <span className="text-sm">Aperçu rapide</span>
               </div>
             </motion.button>
           )}
           
-          {/* Wishlist Button */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute top-2 right-2 bg-white/90 hover:bg-white backdrop-blur-sm shadow-lg"
+          {/* Wishlist Heart - Position top-right */}
+          <motion.button
+            className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/95 backdrop-blur-sm shadow-lg flex items-center justify-center z-20 hover:scale-110 transition-transform"
             onClick={(e) => {
               e.stopPropagation();
               setIsWishlisted(!isWishlisted);
             }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           >
             <Heart className={cn(
-              "h-4 w-4 transition-all",
-              isWishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"
+              "h-5 w-5 transition-all wishlist-heart",
+              isWishlisted ? "active" : "text-muted-foreground"
             )} />
-          </Button>
+          </motion.button>
 
-          {/* Stock Badge */}
+          {/* Badge Nouveau (si produit récent) */}
+          {product.created_at && new Date(product.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+            <motion.div
+              initial={{ scale: 0, rotate: -45 }}
+              animate={{ scale: 1, rotate: 0 }}
+              className="absolute top-3 left-3 z-10"
+            >
+              <Badge className="badge-congo-new shadow-lg">
+                ✨ Nouveau
+              </Badge>
+            </motion.div>
+          )}
+
+          {/* Badge Rupture */}
           {!inStock && (
-            <Badge className="absolute top-2 left-2 bg-black/70 text-white backdrop-blur-sm">
-              Rupture
+            <Badge className="absolute top-3 left-3 bg-black/80 text-white backdrop-blur-sm font-bold shadow-lg z-10">
+              Rupture de stock
             </Badge>
           )}
 
-          {/* Cart Quantity Badge */}
+          {/* Cart Quantity Badge - Bottom left */}
           {cartQuantity > 0 && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute bottom-2 left-2"
+              className="absolute bottom-3 left-3 z-10"
             >
-              <Badge className="bg-green-600 text-white font-bold">
-                Au panier: {cartQuantity}
+              <Badge className="bg-green-600 text-white font-bold shadow-lg px-3 py-1">
+                🛒 {cartQuantity} au panier
               </Badge>
             </motion.div>
           )}
-        </div>
-        
-        {/* Product Info - Compact design */}
-        <CardContent className="flex-1 flex flex-col p-3 space-y-2">
-          {/* Title - 1 ligne seulement */}
-          <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
-            {product.title}
-          </h3>
-          
-          {/* Rating compact */}
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-0.5">
-              <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-              <span className="text-xs font-medium">{product.rating > 0 ? product.rating.toFixed(1) : '0.0'}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">({product.reviews})</span>
-          </div>
-          
-          {/* Prix Badge - grand et visible */}
-          <Badge className="w-full bg-destructive hover:bg-destructive text-white text-base font-bold py-2 justify-center shadow-md">
-            {formatPrice(product.price)}
-          </Badge>
-          
-          {/* Seller info - compact */}
-          {showSeller && (
-            <p className="text-xs text-muted-foreground truncate">
-              {product.seller?.display_name || 'Vendeur'}
-            </p>
-          )}
-          
-          {/* Bouton Acheter principal - Touch optimized */}
-          <Button 
-            className="w-full bg-primary hover:bg-primary/90 font-semibold shadow-md h-10"
+
+          {/* FAB Add to Cart - Bottom right */}
+          <motion.button
+            className="fab-cart absolute bottom-3 right-3 z-20"
             onClick={(e) => {
               e.stopPropagation();
               onBuyNow?.(product);
             }}
             disabled={!inStock}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            {cartQuantity > 0 ? `Au panier (${cartQuantity})` : 'Acheter'}
-          </Button>
+            <ShoppingCart className="h-5 w-5 text-white" />
+          </motion.button>
+        </div>
+        
+        {/* Product Info - Design Congo moderne */}
+        <CardContent className="flex-1 flex flex-col p-4 space-y-3 bg-card">
+          {/* Store Badge */}
+          {showSeller && product.seller && (
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="store-badge flex items-center gap-2 p-2 rounded-lg cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Handle vendor click
+              }}
+            >
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <Store className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                <span className="text-xs font-semibold text-primary truncate">
+                  {product.seller.display_name}
+                </span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Title - 2 lignes max */}
+          <h3 className="font-bold text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors leading-tight">
+            {product.title}
+          </h3>
+          
+          {/* Rating avec étoiles dorées */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    "h-4 w-4 transition-all",
+                    i < Math.floor(product.rating)
+                      ? "star-filled"
+                      : "star-empty"
+                  )}
+                />
+              ))}
+            </div>
+            <span className="text-sm font-bold">{product.rating > 0 ? product.rating.toFixed(1) : '0.0'}</span>
+            <span className="text-xs text-muted-foreground">({product.reviews})</span>
+          </div>
+          
+          {/* Prix Badge Congo - Effet glow */}
+          <div className="relative w-full">
+            <Badge className="price-badge-congo w-full text-white text-lg font-black py-3 justify-center shadow-congo badge-congo-primary">
+              {formatPrice(product.price)}
+            </Badge>
+          </div>
+
+          {/* Distance (si disponible) */}
+          {showDistance && userLocation && product.coordinates && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5" />
+              <span>{calculateDistance()} km</span>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
