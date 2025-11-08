@@ -86,16 +86,12 @@ serve(async (req) => {
         // On suppose que l'input est un email, cherchons tous les wallets
         const { data: wallets, error: walletError } = await supabaseClient
           .from('user_wallets')
-          .select('user_id')
-          .eq('status', 'active');
+          .select('user_id');
         
         if (walletError || !wallets || wallets.length === 0) {
           console.error('❌ Erreur recherche wallets:', walletError);
           throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
         }
-        
-        // Pour chaque wallet, on vérifie l'email dans auth.users
-        let foundUserId: string | null = null;
         
         // Utiliser le service role key pour accéder à auth.users
         const supabaseAdmin = createClient(
