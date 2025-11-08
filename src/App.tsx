@@ -44,6 +44,7 @@ import { DebugHelper } from "@/utils/debugHelper";
 import { useServiceRealtime } from "./hooks/useServiceRealtime";
 import { autoUpdateService } from "@/services/AutoUpdateService";
 import { initVersionDebug } from "@/utils/versionDebug";
+import { migrateToDefaultLightTheme } from "@/utils/themeMigration";
 
 // Critical imports
 import Index from "./pages/Index";
@@ -73,6 +74,9 @@ const AppContent = () => {
   useServiceRealtime();
   
   useEffect(() => {
+    // Exécuter la migration du thème en premier
+    migrateToDefaultLightTheme();
+    
     healthOrchestrator.start();
     sessionRecovery.restoreSession();
     return () => healthOrchestrator.stop();

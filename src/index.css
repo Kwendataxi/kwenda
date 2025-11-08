@@ -25,6 +25,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force light mode as default before JS loads */
+:root:not(.dark) {
+  color-scheme: light;
+}
+
+html {
+  color-scheme: light;
+}
+
 /* Import Marketplace Congo Design System */
 @import './styles/marketplace-cards.css';
 

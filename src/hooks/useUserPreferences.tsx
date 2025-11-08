@@ -38,7 +38,7 @@ const defaultPreferences: UserPreferences = {
     driver_updates: true,
     payment_alerts: true,
   },
-  app_theme: 'system',
+  app_theme: 'light',
   auto_save_addresses: true,
   share_location: true,
 };
