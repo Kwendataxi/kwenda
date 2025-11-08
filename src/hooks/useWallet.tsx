@@ -202,7 +202,7 @@ export const useWallet = () => {
     try {
       const { data, error } = await supabase.functions.invoke('wallet-transfer', {
         body: {
-          recipient_phone_or_id: recipientPhoneOrId,
+          recipientIdentifier: recipientPhoneOrId,
           amount,
           description
         }
@@ -210,11 +210,11 @@ export const useWallet = () => {
 
       if (error) throw error;
 
-      if (data.success) {
+      if (data?.success) {
         toast.success(
           `Transfert de ${amount.toLocaleString()} CDF effectué avec succès`,
           {
-            description: `Envoyé à ${data.recipient_name}`
+            description: `Envoyé à ${data.recipientName || 'Destinataire'}`
           }
         );
         
@@ -222,7 +222,7 @@ export const useWallet = () => {
         await fetchTransactions();
         return true;
       } else {
-        throw new Error(data.error || 'Échec du transfert');
+        throw new Error(data?.error || 'Échec du transfert');
       }
     } catch (error: any) {
       console.error('Transfer error:', error);

@@ -38,7 +38,7 @@ export const useRecipientValidation = () => {
         const { data, error: funcError } = await supabase.functions.invoke(
           'validate-transfer-recipient',
           {
-            body: { recipient_input: input.trim() }
+            body: { identifier: input.trim() }
           }
         );
 
@@ -50,17 +50,17 @@ export const useRecipientValidation = () => {
           return;
         }
 
-        if (data.valid) {
+        if (data?.success && data?.valid) {
           setRecipientInfo({
             valid: true,
-            user_id: data.user_id,
-            display_name: data.display_name,
-            phone_number: data.phone_number
+            user_id: data.recipientId,
+            display_name: data.recipientName,
+            phone_number: data.recipientEmail // Utiliser l'email comme identifiant
           });
           setError(null);
         } else {
-          setError(data.error || 'Destinataire invalide');
-          setRecipientInfo({ valid: false, error: data.error });
+          setError(data?.error || 'Destinataire invalide');
+          setRecipientInfo({ valid: false, error: data?.error });
         }
 
         setIsValidating(false);
