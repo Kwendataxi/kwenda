@@ -16,6 +16,7 @@ import { OperatorSelector } from '@/components/wallet/OperatorSelector';
 import { AnimatedTopUpButton } from '@/components/wallet/AnimatedTopUpButton';
 import { TransactionCard } from '@/components/wallet/TransactionCard';
 import { EmptyTransactions } from '@/components/wallet/EmptyTransactions';
+import { ModernTransferCard } from '@/components/wallet/ModernTransferCard';
 import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
 import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
 import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
@@ -129,29 +130,77 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
         onConvert={() => setShowConversionDialog(true)}
       />
 
-      {/* Transaction History - Liste propre */}
-      <div id="transactions-section" className="px-4 space-y-3">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          {t('wallet.recent_transactions')}
-        </h3>
+      {/* Transaction History - Design moderne et groupé */}
+      <div id="transactions-section" className="px-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            {t('wallet.recent_transactions')}
+          </h3>
+        </div>
         
         {transactions.length === 0 ? (
           <EmptyTransactions />
         ) : (
-          <div className="bg-white dark:bg-card/50 rounded-2xl shadow-sm border border-border/50 dark:border-border/30 divide-y divide-border/30 overflow-hidden">
-            {transactions.slice(0, 8).map((transaction, index) => (
-              <TransactionCard
-                key={transaction.id}
-                id={transaction.id}
-                type={normalizeTransactionType(transaction.transaction_type)}
-                amount={Number(transaction.amount)}
-                currency={transaction.currency}
-                description={transaction.description}
-                date={transaction.created_at}
-                index={index}
-                compact={true}
-              />
-            ))}
+          <div className="space-y-4">
+            {/* Transferts groupés */}
+            {transactions.filter(t => ['transfer_in', 'transfer_out'].includes(t.transaction_type)).length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2 px-1">
+                  💸 Transferts
+                </p>
+                <div className="space-y-2">
+                  {transactions
+                    .filter(t => ['transfer_in', 'transfer_out'].includes(t.transaction_type))
+                    .slice(0, 5)
+                    .map((transaction, index) => (
+                      <ModernTransferCard
+                        key={transaction.id}
+                        type={transaction.transaction_type as 'transfer_in' | 'transfer_out'}
+                        amount={Math.abs(Number(transaction.amount))}
+                        currency={transaction.currency}
+                        contactName={
+                          transaction.description?.includes('de ') 
+                            ? transaction.description.split('de ')[1]?.trim() || 'Contact'
+                            : transaction.description?.includes('à ')
+                              ? transaction.description.split('à ')[1]?.trim() || 'Contact'
+                              : 'Contact'
+                        }
+                        description={transaction.description}
+                        status={transaction.status}
+                        timestamp={transaction.created_at}
+                        index={index}
+                      />
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Autres transactions */}
+            {transactions.filter(t => !['transfer_in', 'transfer_out'].includes(t.transaction_type)).length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2 px-1">
+                  📊 Autres activités
+                </p>
+                <div className="bg-white dark:bg-card/50 rounded-2xl shadow-sm border border-border/50 dark:border-border/30 divide-y divide-border/30 overflow-hidden">
+                  {transactions
+                    .filter(t => !['transfer_in', 'transfer_out'].includes(t.transaction_type))
+                    .slice(0, 5)
+                    .map((transaction, index) => (
+                      <TransactionCard
+                        key={transaction.id}
+                        id={transaction.id}
+                        type={normalizeTransactionType(transaction.transaction_type)}
+                        amount={Number(transaction.amount)}
+                        currency={transaction.currency}
+                        description={transaction.description}
+                        date={transaction.created_at}
+                        index={index}
+                        compact={true}
+                      />
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

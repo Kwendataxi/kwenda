@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-export type ActivityType = 'delivery' | 'marketplace_purchase' | 'marketplace_sale' | 'payment' | 'transport';
+export type ActivityType = 'delivery' | 'marketplace_purchase' | 'marketplace_sale' | 'payment' | 'transport' | 'wallet_transfer';
 
 export interface UnifiedActivityItem {
   id: string;
@@ -133,6 +133,16 @@ export const useUnifiedActivityRobust = () => {
               .eq('user_id', user.id)
               .order('created_at', { ascending: false })
               .limit(25)
+          ),
+          // Wallet transfers (in/out)
+          fetchWithTimeout(
+            supabase
+              .from('wallet_transactions')
+              .select('*')
+              .eq('user_id', user.id)
+              .in('transaction_type', ['transfer_in', 'transfer_out'])
+              .order('created_at', { ascending: false })
+              .limit(25)
           )
         ];
 
@@ -141,7 +151,7 @@ export const useUnifiedActivityRobust = () => {
 
       const results = await retryWithBackoff(fetchData);
       
-      const [transportRes, deliveryRes, marketplaceBuyerRes, marketplaceSellerRes, paymentsRes] = results;
+      const [transportRes, deliveryRes, marketplaceBuyerRes, marketplaceSellerRes, paymentsRes, transfersRes] = results;
 
       const allItems: UnifiedActivityItem[] = [];
 
@@ -209,20 +219,48 @@ export const useUnifiedActivityRobust = () => {
         allItems.push(...sellerItems);
       }
 
-      // Payments
+      // Payments (excluding transfers)
       if (paymentsRes.status === 'fulfilled' && paymentsRes.value.data) {
-        const paymentItems = paymentsRes.value.data.map((p: any) => ({
-          id: p.id,
-          type: 'payment' as ActivityType,
-          title: `${p.transaction_type === 'credit' ? 'Reçu' : 'Envoyé'} ${p.amount ? Math.abs(p.amount).toLocaleString() : ''} ${p.currency || 'CDF'}`,
-          subtitle: `${p.status} • ${p.description || p.payment_method || 'Wallet'}`,
-          amount: Math.abs(p.amount || 0),
-          currency: p.currency || 'CDF',
-          status: p.status,
-          timestamp: p.created_at,
-          raw: p,
-        }));
+        const paymentItems = paymentsRes.value.data
+          .filter((p: any) => !['transfer_in', 'transfer_out'].includes(p.transaction_type))
+          .map((p: any) => ({
+            id: p.id,
+            type: 'payment' as ActivityType,
+            title: `${p.transaction_type === 'credit' ? 'Reçu' : 'Envoyé'} ${p.amount ? Math.abs(p.amount).toLocaleString() : ''} ${p.currency || 'CDF'}`,
+            subtitle: `${p.status} • ${p.description || p.payment_method || 'Wallet'}`,
+            amount: Math.abs(p.amount || 0),
+            currency: p.currency || 'CDF',
+            status: p.status,
+            timestamp: p.created_at,
+            raw: p,
+          }));
         allItems.push(...paymentItems);
+      }
+
+      // Wallet Transfers (in/out)
+      if (transfersRes.status === 'fulfilled' && transfersRes.value.data) {
+        const transferItems = transfersRes.value.data.map((t: any) => {
+          const isReceived = t.transaction_type === 'transfer_in';
+          const contactName = t.description?.includes('de ') 
+            ? t.description.split('de ')[1]?.trim() || 'Contact'
+            : t.description?.includes('à ')
+              ? t.description.split('à ')[1]?.trim() || 'Contact'
+              : 'Contact';
+          
+          return {
+            id: t.id,
+            type: 'wallet_transfer' as ActivityType,
+            title: isReceived ? `Reçu de ${contactName}` : `Envoyé à ${contactName}`,
+            subtitle: t.status === 'completed' ? 'Complété' : 'En attente',
+            amount: Math.abs(t.amount || 0),
+            currency: t.currency || 'CDF',
+            status: t.status,
+            timestamp: t.created_at,
+            counterpartyName: contactName,
+            raw: t,
+          };
+        });
+        allItems.push(...transferItems);
       }
 
       // Trier par timestamp

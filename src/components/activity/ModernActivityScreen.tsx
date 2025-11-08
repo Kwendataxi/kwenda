@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useUnifiedActivityRobust, UnifiedActivityItem } from '@/hooks/useUnifiedActivityRobust';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, RefreshCw, Wifi, WifiOff, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Wifi, WifiOff, TrendingUp, Clock, CheckCircle2, AlertCircle, ArrowLeftRight } from 'lucide-react';
 import { ModernActivityItem } from './ModernActivityItem';
 import { ActivityDetailsSheet } from './ActivityDetailsSheet';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +13,7 @@ interface ModernActivityScreenProps {
 
 export const ModernActivityScreen = ({ onBack }: ModernActivityScreenProps) => {
   const { activities, loading, error, refresh, retryCount, stats, isFromCache } = useUnifiedActivityRobust();
-  const [filter, setFilter] = useState<'all' | 'transport' | 'delivery' | 'marketplace' | 'payment'>('all');
+  const [filter, setFilter] = useState<'all' | 'transport' | 'delivery' | 'marketplace' | 'payment' | 'wallet_transfer'>('all');
   const [selected, setSelected] = useState<UnifiedActivityItem | null>(null);
   const [visibleCount, setVisibleCount] = useState(20);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -25,6 +25,7 @@ export const ModernActivityScreen = ({ onBack }: ModernActivityScreenProps) => {
     if (filter === 'delivery') return a.type === 'delivery';
     if (filter === 'marketplace') return a.type === 'marketplace_purchase' || a.type === 'marketplace_sale';
     if (filter === 'payment') return a.type === 'payment';
+    if (filter === 'wallet_transfer') return a.type === 'wallet_transfer';
     return true;
   });
 
@@ -138,6 +139,7 @@ export const ModernActivityScreen = ({ onBack }: ModernActivityScreenProps) => {
               { key: 'transport', label: 'Transport', icon: Clock },
               { key: 'delivery', label: 'Livraisons', icon: CheckCircle2 },
               { key: 'marketplace', label: 'Marketplace', icon: AlertCircle },
+              { key: 'wallet_transfer', label: 'Transferts', icon: ArrowLeftRight },
               { key: 'payment', label: 'Paiements', icon: Clock },
             ].map(({ key, label, icon: Icon }) => (
               <Button

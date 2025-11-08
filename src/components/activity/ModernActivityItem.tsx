@@ -2,8 +2,10 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { UnifiedActivityItem } from '@/hooks/useUnifiedActivityRobust';
-import { Car, Package, ShoppingBag, CreditCard, Truck, MapPin, Clock, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { Car, Package, ShoppingBag, CreditCard, Truck, MapPin, Clock, CheckCircle2, AlertCircle, XCircle, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface ModernActivityItemProps {
   item: UnifiedActivityItem;
@@ -11,6 +13,69 @@ interface ModernActivityItemProps {
 }
 
 export const ModernActivityItem = ({ item, onClick }: ModernActivityItemProps) => {
+  // Cas spécial pour les transferts
+  if (item.type === 'wallet_transfer') {
+    const isReceived = item.title.includes('Reçu');
+    
+    return (
+      <motion.div
+        whileHover={{ scale: 1.02, x: 5 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <Card 
+          onClick={() => onClick?.(item)}
+          className="cursor-pointer border-none shadow-sm hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-card to-card/95"
+        >
+          <CardContent className="p-4 flex items-center gap-4">
+            {/* Avatar avec gradient moderne */}
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
+              isReceived 
+                ? 'bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600' 
+                : 'bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600'
+            }`}>
+              {isReceived ? (
+                <ArrowDownLeft className="h-6 w-6 text-white" />
+              ) : (
+                <ArrowUpRight className="h-6 w-6 text-white" />
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-foreground mb-1 truncate">
+                {item.counterpartyName || 'Contact'}
+              </h4>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>{isReceived ? 'Transfert reçu' : 'Transfert envoyé'}</span>
+                <span>•</span>
+                <span>{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: fr })}</span>
+              </div>
+            </div>
+
+            {/* Montant */}
+            <div className="text-right">
+              <div className={`text-lg font-bold ${
+                isReceived ? 'text-emerald-600' : 'text-blue-600'
+              }`}>
+                {isReceived ? '+' : '-'}{item.amount?.toLocaleString()} {item.currency}
+              </div>
+              <Badge 
+                variant={isReceived ? 'default' : 'secondary'}
+                className={`text-xs ${
+                  isReceived 
+                    ? 'bg-emerald-100 text-emerald-700' 
+                    : 'bg-blue-100 text-blue-700'
+                }`}
+              >
+                {item.subtitle}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   const getIcon = () => {
     switch (item.type) {
       case 'transport':
