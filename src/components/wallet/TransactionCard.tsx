@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 interface TransactionCardProps {
   id: string;
-  type: 'credit' | 'debit';
+  type: 'credit' | 'debit' | 'transfer_in' | 'transfer_out' | 'top_up' | 'withdrawal' | string;
   amount: number;
   currency: string;
   description: string;
@@ -25,7 +25,8 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
   index,
   compact = false
 }) => {
-  const isCredit = type === 'credit';
+  // Détection robuste des crédits (transferts reçus, recharges, bonus, etc.)
+  const isCredit = ['credit', 'transfer_in', 'top_up', 'refund', 'bonus'].includes(type);
 
   // Détection des transferts pour icônes personnalisées
   const isTransferSent = description.toLowerCase().includes('transfert envoyé');

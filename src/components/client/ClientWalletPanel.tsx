@@ -8,6 +8,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useWalletValidation } from '@/hooks/useWalletValidation';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { normalizeTransactionType } from '@/lib/utils';
 import { WalletHero } from '@/components/wallet/WalletHero';
 import { WalletQuickActions } from '@/components/wallet/WalletQuickActions';
 import { QuickAmountSelector } from '@/components/wallet/QuickAmountSelector';
@@ -142,7 +143,7 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
               <TransactionCard
                 key={transaction.id}
                 id={transaction.id}
-                type={transaction.transaction_type as 'credit' | 'debit'}
+                type={normalizeTransactionType(transaction.transaction_type)}
                 amount={Number(transaction.amount)}
                 currency={transaction.currency}
                 description={transaction.description}

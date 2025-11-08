@@ -13,7 +13,8 @@ interface TransactionCardProps {
 }
 
 export const TransactionCard = ({ transaction, serviceType }: TransactionCardProps) => {
-  const isCredit = transaction.transaction_type === 'credit';
+  // Détection robuste des crédits (transferts reçus, recharges, bonus, etc.)
+  const isCredit = ['credit', 'transfer_in', 'top_up', 'refund', 'bonus'].includes(transaction.transaction_type);
   const amount = transaction.amount;
 
   const getIcon = () => {

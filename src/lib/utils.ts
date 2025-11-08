@@ -19,3 +19,17 @@ export function formatCurrency(amount: number, currency: string = 'CDF'): string
     }).format(amount);
   }
 }
+
+/**
+ * Détermine si une transaction est un crédit (positif) ou un débit (négatif)
+ */
+export function isTransactionCredit(transactionType: string): boolean {
+  return ['credit', 'transfer_in', 'top_up', 'refund', 'bonus'].includes(transactionType);
+}
+
+/**
+ * Convertit un transaction_type en type simplifié credit/debit
+ */
+export function normalizeTransactionType(transactionType: string): 'credit' | 'debit' {
+  return isTransactionCredit(transactionType) ? 'credit' : 'debit';
+}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { normalizeTransactionType } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useWallet } from '@/hooks/useWallet';
@@ -126,7 +127,7 @@ export const DriverWalletPanel: React.FC = () => {
                 <TransactionCard
                   key={transaction.id}
                   id={transaction.id}
-                  type={transaction.transaction_type as 'credit' | 'debit'}
+                  type={normalizeTransactionType(transaction.transaction_type)}
                   amount={Number(transaction.amount)}
                   currency={transaction.currency}
                   description={transaction.description}
