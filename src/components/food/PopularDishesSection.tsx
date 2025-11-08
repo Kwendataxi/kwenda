@@ -31,7 +31,7 @@ export const PopularDishesSection = ({
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-4">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-[400px] w-[280px] flex-shrink-0 rounded-2xl" />
+              <Skeleton key={i} className="h-[300px] w-[240px] flex-shrink-0 rounded-2xl" />
             ))}
           </div>
         </div>
@@ -71,7 +71,7 @@ export const PopularDishesSection = ({
       {/* Carousel horizontal scrollable */}
       <div className="overflow-x-auto scrollbar-hide">
         <div 
-          className="flex gap-4 px-4 pb-2" 
+          className="flex gap-3 px-4 pb-2" 
           style={{ scrollSnapType: 'x mandatory' }}
         >
           {displayedDishes.map((dish, index) => (

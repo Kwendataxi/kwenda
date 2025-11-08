@@ -57,7 +57,7 @@ export const FoodDishCard = ({
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className={className}
     >
-      <Card className="relative w-[280px] overflow-hidden cursor-pointer border-border/40 bg-gradient-to-b from-[#F5F1E8] to-[#FAF8F3]">
+      <Card className="relative w-[240px] overflow-hidden cursor-pointer border-border/40 bg-gradient-to-b from-[#F5F1E8] to-[#FAF8F3]">
         {/* Top Position Badge */}
         {topPosition && topPosition <= 3 && (
           <motion.div
@@ -85,7 +85,7 @@ export const FoodDishCard = ({
         )}
 
         {/* Image */}
-        <div className="relative h-[200px] overflow-hidden rounded-t-2xl">
+        <div className="relative h-[150px] overflow-hidden rounded-t-2xl">
           <motion.img
             src={dish.main_image_url || '/placeholder.svg'}
             alt={dish.name}
@@ -97,15 +97,15 @@ export const FoodDishCard = ({
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-3">
+        <div className="p-3 space-y-2">
           {/* Dish Name */}
-          <h3 className="text-lg font-bold text-foreground line-clamp-1">
+          <h3 className="text-base font-bold text-foreground line-clamp-1">
             {dish.name}
           </h3>
 
           {/* Description */}
           {dish.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">
+            <p className="text-xs text-muted-foreground line-clamp-2 min-h-[32px]">
               {dish.description}
             </p>
           )}
@@ -121,23 +121,23 @@ export const FoodDishCard = ({
                 <img
                   src={dish.restaurant_logo_url}
                   alt={dish.restaurant_name}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-border"
+                  className="w-8 h-8 rounded-full object-cover border border-border"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                  <Store className="w-5 h-5 text-muted-foreground" />
+                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border">
+                  <Store className="w-4 h-4 text-muted-foreground" />
                 </div>
               )}
-              <span className="text-sm font-semibold text-red-500 group-hover:text-red-600 transition-colors">
+              <span className="text-xs font-semibold text-red-500 group-hover:text-red-600 transition-colors">
                 {dish.restaurant_name}
               </span>
             </motion.div>
           )}
 
           {/* Price and Add Button Row */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-1.5">
             {/* Price */}
-            <div className="text-2xl font-bold text-foreground">
+            <div className="text-xl font-bold text-foreground">
               {formatPrice(dish.price)}
             </div>
 
@@ -150,9 +150,9 @@ export const FoodDishCard = ({
                 size="icon"
                 disabled={!isAvailable}
                 onClick={handleAddClick}
-                className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Plus className="w-6 h-6" />
+                <Plus className="w-5 h-5" />
               </Button>
             </motion.div>
           </div>
