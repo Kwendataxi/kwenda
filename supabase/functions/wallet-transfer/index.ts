@@ -62,25 +62,47 @@ serve(async (req) => {
       throw new Error('Limite de 10 transferts/heure atteinte. Réessayez plus tard.');
     }
 
-    // 4. Identifier le destinataire
+    // 4. Identifier le destinataire (avec backup dans auth.users)
     let recipientId: string;
     
     // Si c'est un UUID direct
     if (recipient_phone_or_id.length === 36 && recipient_phone_or_id.includes('-')) {
       recipientId = recipient_phone_or_id;
     } else {
-      // Recherche par numéro de téléphone ou email
+      // Recherche par numéro de téléphone ou email dans clients
       const { data: client, error: searchError } = await supabaseClient
         .from('clients')
         .select('user_id, display_name, phone_number')
         .or(`phone_number.eq.${recipient_phone_or_id},email.eq.${recipient_phone_or_id}`)
         .maybeSingle();
       
-      if (searchError || !client) {
-        throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
+      if (client && !searchError) {
+        recipientId = client.user_id;
+      } else {
+        // Backup: recherche dans auth.users par email avec client admin
+        console.log('🔍 Backup: recherche dans auth.users...');
+        
+        const supabaseAdmin = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+        
+        const { data: { users }, error: authError } = await supabaseAdmin.auth.admin.listUsers();
+        
+        if (authError) {
+          console.error('❌ Erreur recherche auth.users:', authError);
+          throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
+        }
+        
+        const authUser = users?.find(u => u.email === recipient_phone_or_id);
+        
+        if (!authUser) {
+          throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
+        }
+        
+        console.log('✅ Destinataire trouvé dans auth.users:', authUser.email);
+        recipientId = authUser.id;
       }
-      
-      recipientId = client.user_id;
     }
 
     // 5. Vérifier auto-transfert
