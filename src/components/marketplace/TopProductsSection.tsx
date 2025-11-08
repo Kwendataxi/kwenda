@@ -15,10 +15,14 @@ export const TopProductsSection: React.FC<TopProductsSectionProps> = ({
   onAddToCart,
   onViewDetails
 }) => {
-  // Sélectionner top 8 produits basés sur popularityScore
+  // Calculer un score dynamique pour chaque produit
   const topProducts = products
-    .filter(p => p.popularityScore && p.popularityScore > 0)
-    .sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0))
+    .filter(p => p.inStock) // Seulement produits en stock
+    .map(p => ({
+      ...p,
+      calculatedScore: (p.popularityScore || 0) + (p.salesCount || 0) * 10 + (p.viewCount || 0) * 2 + (p.rating || 0) * 5
+    }))
+    .sort((a, b) => b.calculatedScore - a.calculatedScore)
     .slice(0, 8);
 
   if (topProducts.length === 0) return null;

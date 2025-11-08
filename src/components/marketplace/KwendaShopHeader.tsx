@@ -68,8 +68,8 @@ export const KwendaShopHeader = ({
             }}
             transition={{ 
               duration: 0.5, 
-              type: "spring",
-              stiffness: 300
+              type: "tween",
+              ease: "easeInOut"
             }}
             whileTap={{ scale: 0.95 }}
             className="flex-shrink-0"

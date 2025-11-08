@@ -103,28 +103,28 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({
             </div>
           )}
 
-          {/* Floating Add Button - Bleu */}
-          {product.inStock && (
-            <motion.div
-              className="absolute bottom-4 right-4"
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
+        {/* Bouton Add floating - Plus gros et visible */}
+        {product.inStock && (
+          <motion.div 
+            className="absolute bottom-4 right-4 z-10"
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              size="icon"
+              onClick={handleAddToCart}
+              className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-2xl hover:shadow-blue-500/50 transition-all"
             >
-              <Button
-                size="icon"
-                onClick={handleAddToCart}
-                className="w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all"
-              >
-                <Plus className="h-6 w-6" />
-              </Button>
-            </motion.div>
-          )}
+              <Plus className="h-7 w-7" />
+            </Button>
+          </motion.div>
+        )}
         </div>
 
         {/* Content */}
         <div className="p-4 space-y-3">
           {/* Product Name */}
-          <h3 className="text-lg font-bold line-clamp-2 text-foreground leading-tight min-h-[3rem]">
+          <h3 className="text-xl font-bold line-clamp-2 text-foreground leading-tight min-h-[3.5rem]">
             {product.title}
           </h3>
 
@@ -162,9 +162,9 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({
             </div>
           </div>
 
-          {/* Price */}
-          <div className="pt-2 border-t border-blue-100">
-            <p className="text-2xl font-bold text-foreground">
+          {/* Prix - Plus visible */}
+          <div className="pt-3 border-t border-blue-200">
+            <p className="text-3xl font-bold text-blue-600">
               {formatCurrency(product.price)}
             </p>
           </div>

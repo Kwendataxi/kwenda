@@ -77,30 +77,30 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             }}
             exit={{ opacity: 0, scale: 0.8 }}
           >
-            {cardVariant === 'vertical' ? (
-              <ShopProductCard
-                product={{
-                  id: product.id,
-                  title: product.name,
-                  price: product.price,
-                  image: product.image,
-                  rating: product.rating,
-                  reviews: product.reviewCount,
-                  seller: { display_name: product.seller },
-                  inStock: product.isAvailable
-                }}
-                onAddToCart={() => onAddToCart(product)}
-                onViewDetails={() => onViewDetails(product)}
-              />
-            ) : (
-              <CompactProductCard
-                product={product}
-                onAddToCart={() => onAddToCart(product)}
-                onViewDetails={() => onViewDetails(product)}
-                onViewSeller={onViewSeller}
-                userLocation={userLocation}
-              />
-            )}
+          {cardVariant === 'vertical' ? (
+            <ShopProductCard
+              product={{
+                id: product.id,
+                title: product.name,
+                price: product.price,
+                image: product.image,
+                rating: product.rating,
+                reviews: product.reviewCount,
+                seller: { display_name: product.seller },
+                inStock: product.isAvailable
+              }}
+              onAddToCart={() => onAddToCart(product)}
+              onViewDetails={() => onViewDetails(product)}
+            />
+          ) : (
+            <CompactProductCard
+              product={product}
+              onAddToCart={() => onAddToCart(product)}
+              onViewDetails={() => onViewDetails(product)}
+              onViewSeller={() => onViewSeller?.(product.sellerId)}
+              userLocation={userLocation}
+            />
+          )}
           </motion.div>
         ))}
       </AnimatePresence>

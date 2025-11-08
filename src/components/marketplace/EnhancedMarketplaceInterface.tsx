@@ -529,6 +529,42 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     return (views * 0.3) + (sales * 0.5) + (rating * 20);
   };
 
+  // Helper unifié pour ajouter au panier depuis n'importe quel format
+  const handleAddToCartUnified = (item: Product | HorizontalProduct | any) => {
+    // Si c'est déjà un Product (MarketplaceProduct)
+    if ('title' in item && 'inStock' in item) {
+      addToCart(item as Product);
+      return;
+    }
+    
+    // Si c'est un HorizontalProduct, retrouver l'original
+    const originalProduct = filteredProducts.find(p => p.id === item.id);
+    if (originalProduct) {
+      addToCart(originalProduct);
+      return;
+    }
+    
+    // Fallback : construire un Product minimal
+    addToCart({
+      id: item.id,
+      title: item.name || item.title,
+      price: item.price,
+      image: item.image,
+      images: [item.image],
+      category: item.category || 'general',
+      condition: 'new',
+      seller_id: item.sellerId || item.seller_id,
+      seller: { display_name: item.seller || 'Vendeur' },
+      location: 'Kinshasa',
+      inStock: item.isAvailable ?? item.inStock ?? true,
+      stockCount: 1,
+      rating: item.rating || 0,
+      reviews: item.reviewCount || 0,
+      moderation_status: 'approved',
+      description: ''
+    } as Product);
+  };
+
   const handlePromoClick = (action: string) => {
     switch (action) {
       case 'electronics':
@@ -633,7 +669,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       {!loading && filteredProducts.length > 0 && (
         <TopProductsSection
           products={filteredProducts}
-          onAddToCart={addToCart}
+          onAddToCart={handleAddToCartUnified}
           onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
         />
       )}
@@ -672,10 +708,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               </div>
               <ProductGrid
                 products={filteredProducts.slice(0, 12).map(p => convertToHorizontalProduct(p))}
-                onAddToCart={(product) => {
-                  const originalProduct = filteredProducts.find(fp => fp.id === product.id);
-                  if (originalProduct) addToCart(originalProduct);
-                }}
+                onAddToCart={handleAddToCartUnified}
                 onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
                 onViewSeller={setSelectedVendorId}
                 userLocation={coordinates}
@@ -691,10 +724,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               </h3>
               <ProductGrid
                 products={newProducts.slice(0, 12).map(p => convertToHorizontalProduct(p))}
-                onAddToCart={(product) => {
-                  const originalProduct = newProducts.find(np => np.id === product.id);
-                  if (originalProduct) addToCart(originalProduct);
-                }}
+                onAddToCart={handleAddToCartUnified}
                 onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
                 onViewSeller={setSelectedVendorId}
                 userLocation={coordinates}
@@ -712,10 +742,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                   </h3>
                   <ProductGrid
                     products={nearbyCalculated.slice(0, 12).map(p => convertToHorizontalProduct(p))}
-                    onAddToCart={(product) => {
-                      const originalProduct = nearbyCalculated.find(nc => nc.id === product.id);
-                      if (originalProduct) addToCart(originalProduct);
-                    }}
+                    onAddToCart={handleAddToCartUnified}
                     onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
                     onViewSeller={setSelectedVendorId}
                     userLocation={coordinates}
