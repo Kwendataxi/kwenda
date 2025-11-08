@@ -25,6 +25,7 @@ import { QuickFiltersBar } from './QuickFiltersBar';
 import { ResponsiveGrid } from '../ui/responsive-grid';
 import { AutoHideMarketplacePromoSlider } from './AutoHideMarketplacePromoSlider';
 import { KwendaShopHeader } from './KwendaShopHeader';
+import { TopProductsSection } from './TopProductsSection';
 
 // Anciens composants (conservés pour compatibilité)
 import { ProductGrid } from './ProductGrid';
@@ -580,7 +581,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   };
 
   const renderShopTab = () => (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {/* SLIDER PUBLICITAIRE - Auto-hide après 6s */}
       <section className="px-4 pt-2">
         <AutoHideMarketplacePromoSlider 
@@ -628,119 +629,109 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </motion.div>
       )}
 
-      {/* SECTION TENDANCES */}
-      {!loading && filteredProducts.length > 0 && trendingProducts.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <motion.h2 
-              className="text-2xl font-bold flex items-center gap-2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <TrendingUp className="h-6 w-6 text-orange-500" />
-              En Tendance
-            </motion.h2>
-            <Button variant="ghost" size="sm">Voir tout →</Button>
-          </div>
-          <HorizontalProductScroll
-            title="En Tendance"
-            products={trendingProducts.map(p => convertToHorizontalProduct(p))}
-            onAddToCart={(product) => {
-              const originalProduct = trendingProducts.find(p => p.id === product.id);
-              if (originalProduct) addToCart(originalProduct);
-            }}
-            onViewDetails={(product) => {
-              navigate(`/marketplace/product/${product.id}`);
-            }}
-            onViewSeller={setSelectedVendorId}
-            userLocation={coordinates}
-            autoScroll={true}
-          />
-        </section>
-      )}
-
-      {/* SECTION NOUVEAUTÉS */}
-      {!loading && filteredProducts.length > 0 && newProducts.length > 0 && (
-        <section>
-          <motion.h2 
-            className="text-2xl font-bold flex items-center gap-2 mb-4"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <Sparkles className="h-6 w-6 text-purple-500" />
-            Nouveautés
-          </motion.h2>
-          <ProductGrid
-            products={newProducts.slice(0, 8).map(p => convertToHorizontalProduct(p))}
-            onAddToCart={(product) => {
-              const originalProduct = newProducts.find(p => p.id === product.id);
-              if (originalProduct) addToCart(originalProduct);
-            }}
-            onViewDetails={(product) => {
-              navigate(`/marketplace/product/${product.id}`);
-            }}
-            onViewSeller={setSelectedVendorId}
-            userLocation={coordinates}
-          />
-        </section>
-      )}
-
-      {/* SECTION PRÈS DE VOUS - seulement si >3 produits */}
-      {!loading && filteredProducts.length > 0 && nearbyCalculated.length > 3 && (
-        <section>
-          <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
-            <MapPin className="h-5 w-5 text-green-500" />
-            Près de chez vous
-          </h2>
-          <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="md">
-            {nearbyCalculated.slice(0, 4).map(p => (
-              <ModernProductCard
-                key={p.id}
-                product={p}
-                onAddToCart={() => addToCart(p)}
-                onViewDetails={() => navigate(`/marketplace/product/${p.id}`)}
-              />
-            ))}
-          </ResponsiveGrid>
-        </section>
-      )}
-
-      {/* TOUS LES PRODUITS - Grille moderne avec toggle vue */}
+      {/* TOP PRODUITS CAROUSEL - Nouveau design vertical bleu */}
       {!loading && filteredProducts.length > 0 && (
-        <section data-section="all-products">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold">Tous les produits</h2>
-          
-          {/* Tri rapide */}
-          <select 
-            value={filters.sortBy} 
-            onChange={(e) => setFilters(prev => ({...prev, sortBy: e.target.value}))}
-            className="h-8 text-xs border rounded-md px-2 bg-background"
-          >
-            <option value="popularity">Popularité</option>
-            <option value="price_low">Prix croissant</option>
-            <option value="price_high">Prix décroissant</option>
-            <option value="rating">Meilleures notes</option>
-            <option value="newest">Plus récents</option>
-          </select>
-        </div>
-        
-        {/* Grille moderne avec toggle vue grille/liste */}
-        <ModernProductGrid
+        <TopProductsSection
           products={filteredProducts}
-          onProductClick={(product) => {
-            navigate(`/marketplace/product/${product.id}`);
-          }}
-          onQuickView={(product) => {
-            setQuickViewProduct(product);
-            setIsQuickViewOpen(true);
-          }}
-          onAddToCart={(product) => addToCart(product)}
-          cartItems={cartItems}
-          userLocation={coordinates}
-          loading={loading}
-          emptyMessage="Aucun produit trouvé"
+          onAddToCart={addToCart}
+          onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
         />
+      )}
+
+      {/* TABS : TOUS / NOUVEAUTÉS / PROCHE */}
+      {!loading && filteredProducts.length > 0 && (
+        <section className="px-4">
+          <Tabs defaultValue="tous" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="tous" className="text-sm">
+                🏪 Tous
+              </TabsTrigger>
+              <TabsTrigger value="nouveautes" className="text-sm">
+                ✨ Nouveautés
+              </TabsTrigger>
+              <TabsTrigger value="proche" className="text-sm">
+                📍 Proche
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Onglet TOUS */}
+            <TabsContent value="tous" className="space-y-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-bold">Tous les produits</h3>
+                <select 
+                  value={filters.sortBy} 
+                  onChange={(e) => setFilters(prev => ({...prev, sortBy: e.target.value}))}
+                  className="h-8 text-xs border rounded-md px-2 bg-background"
+                >
+                  <option value="popularity">Popularité</option>
+                  <option value="price_low">Prix croissant</option>
+                  <option value="price_high">Prix décroissant</option>
+                  <option value="rating">Meilleures notes</option>
+                  <option value="newest">Plus récents</option>
+                </select>
+              </div>
+              <ProductGrid
+                products={filteredProducts.slice(0, 12).map(p => convertToHorizontalProduct(p))}
+                onAddToCart={(product) => {
+                  const originalProduct = filteredProducts.find(fp => fp.id === product.id);
+                  if (originalProduct) addToCart(originalProduct);
+                }}
+                onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
+                onViewSeller={setSelectedVendorId}
+                userLocation={coordinates}
+                cardVariant="vertical"
+              />
+            </TabsContent>
+
+            {/* Onglet NOUVEAUTÉS */}
+            <TabsContent value="nouveautes" className="space-y-4">
+              <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+                <Sparkles className="h-5 w-5 text-purple-500" />
+                Dernières nouveautés
+              </h3>
+              <ProductGrid
+                products={newProducts.slice(0, 12).map(p => convertToHorizontalProduct(p))}
+                onAddToCart={(product) => {
+                  const originalProduct = newProducts.find(np => np.id === product.id);
+                  if (originalProduct) addToCart(originalProduct);
+                }}
+                onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
+                onViewSeller={setSelectedVendorId}
+                userLocation={coordinates}
+                cardVariant="vertical"
+              />
+            </TabsContent>
+
+            {/* Onglet PROCHE */}
+            <TabsContent value="proche" className="space-y-4">
+              {nearbyCalculated.length > 0 ? (
+                <>
+                  <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+                    <MapPin className="h-5 w-5 text-green-500" />
+                    Près de chez vous
+                  </h3>
+                  <ProductGrid
+                    products={nearbyCalculated.slice(0, 12).map(p => convertToHorizontalProduct(p))}
+                    onAddToCart={(product) => {
+                      const originalProduct = nearbyCalculated.find(nc => nc.id === product.id);
+                      if (originalProduct) addToCart(originalProduct);
+                    }}
+                    onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
+                    onViewSeller={setSelectedVendorId}
+                    userLocation={coordinates}
+                    cardVariant="vertical"
+                  />
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    Aucun produit proche trouvé
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </section>
       )}
     </div>

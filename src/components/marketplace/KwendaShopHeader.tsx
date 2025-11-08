@@ -58,48 +58,49 @@ export const KwendaShopHeader = ({
             </motion.div>
           </div>
 
-          {/* Droite: Badge panier avec animation bounce */}
-          {cartItemsCount > 0 && (
-            <motion.div
-              key={cartItemsCount}
-              initial={{ scale: 0 }}
-              animate={{ 
-                scale: [0, 1.3, 1],
-                rotate: [0, 10, -10, 0]
-              }}
-              transition={{ 
-                duration: 0.5, 
-                type: "spring",
-                stiffness: 300
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-shrink-0"
+          {/* Droite: Badge panier TOUJOURS VISIBLE */}
+          <motion.div
+            key={cartItemsCount}
+            initial={{ scale: 0 }}
+            animate={{ 
+              scale: cartItemsCount > 0 ? [1, 1.2, 1] : 1,
+              rotate: cartItemsCount > 0 ? [0, 10, -10, 0] : 0
+            }}
+            transition={{ 
+              duration: 0.5, 
+              type: "spring",
+              stiffness: 300
+            }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-shrink-0"
+          >
+            <Button
+              data-cart-button
+              variant="default"
+              size="icon"
+              onClick={onCartClick}
+              className="relative h-12 w-12 rounded-full bg-gradient-to-br from-white to-blue-50 text-primary hover:from-white hover:to-blue-100 shadow-lg hover:shadow-xl transition-all"
             >
-              <Button
-                data-cart-button
-                variant="ghost"
-                size="icon"
-                onClick={onCartClick}
-                className="relative text-white hover:bg-white/20"
+              <ShoppingBag className="h-6 w-6" />
+              <motion.div
+                key={`badge-${cartItemsCount}`}
+                initial={{ scale: cartItemsCount > 0 ? 2 : 1, opacity: cartItemsCount > 0 ? 0 : 1 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="absolute -top-1 -right-1"
               >
-                <ShoppingBag className="h-5 w-5 md:h-6 md:w-6" />
-                <motion.div
-                  key={`badge-${cartItemsCount}`}
-                  initial={{ scale: 2, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute -top-1 -right-1"
+                <Badge 
+                  className={`min-w-[24px] h-6 flex items-center justify-center text-xs font-bold p-0 shadow-lg ${
+                    cartItemsCount > 0 
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}
                 >
-                  <Badge 
-                    variant="secondary"
-                    className="h-5 w-5 flex items-center justify-center text-xs bg-white text-primary p-0 shadow-lg"
-                  >
-                    {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                  </Badge>
-                </motion.div>
-              </Button>
-            </motion.div>
-          )}
+                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                </Badge>
+              </motion.div>
+            </Button>
+          </motion.div>
         </div>
       </div>
 

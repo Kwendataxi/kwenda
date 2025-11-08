@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CompactProductCard } from './CompactProductCard';
+import { ShopProductCard } from './ShopProductCard';
 
 interface Product {
   id: string;
@@ -28,6 +29,7 @@ interface ProductGridProps {
   onViewSeller?: (sellerId: string) => void;
   userLocation?: { lat: number; lng: number } | null;
   loading?: boolean;
+  cardVariant?: 'compact' | 'vertical';
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -36,14 +38,19 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   onViewDetails,
   onViewSeller,
   userLocation,
-  loading = false
+  loading = false,
+  cardVariant = 'compact'
 }) => {
+  const gridClasses = cardVariant === 'vertical' 
+    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center'
+    : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4';
+
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className={gridClasses}>
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="aspect-square bg-muted rounded-lg mb-2" />
+          <div key={i} className="animate-pulse w-full max-w-[280px]">
+            <div className={`bg-muted rounded-lg mb-2 ${cardVariant === 'vertical' ? 'h-[200px]' : 'aspect-square'}`} />
             <div className="h-3 bg-muted rounded mb-1" />
             <div className="h-3 bg-muted rounded w-3/4" />
           </div>
@@ -55,7 +62,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   return (
     <motion.div
       layout
-      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+      className={gridClasses}
     >
       <AnimatePresence mode="popLayout">
         {products.map((product, index) => (
@@ -70,13 +77,30 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             }}
             exit={{ opacity: 0, scale: 0.8 }}
           >
-            <CompactProductCard
-              product={product}
-              onAddToCart={() => onAddToCart(product)}
-              onViewDetails={() => onViewDetails(product)}
-              onViewSeller={onViewSeller}
-              userLocation={userLocation}
-            />
+            {cardVariant === 'vertical' ? (
+              <ShopProductCard
+                product={{
+                  id: product.id,
+                  title: product.name,
+                  price: product.price,
+                  image: product.image,
+                  rating: product.rating,
+                  reviews: product.reviewCount,
+                  seller: { display_name: product.seller },
+                  inStock: product.isAvailable
+                }}
+                onAddToCart={() => onAddToCart(product)}
+                onViewDetails={() => onViewDetails(product)}
+              />
+            ) : (
+              <CompactProductCard
+                product={product}
+                onAddToCart={() => onAddToCart(product)}
+                onViewDetails={() => onViewDetails(product)}
+                onViewSeller={onViewSeller}
+                userLocation={userLocation}
+              />
+            )}
           </motion.div>
         ))}
       </AnimatePresence>
