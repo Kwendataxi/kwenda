@@ -150,21 +150,46 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
         />
         
         <SheetHeader className="relative z-10">
-          <SheetTitle className="flex items-center gap-3 text-white">
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 200 }}
-              className="p-2 bg-white/20 rounded-xl backdrop-blur-sm"
-            >
-              <ShoppingBag className="w-6 h-6" />
-            </motion.div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xl font-bold">Mon Panier</span>
-              <span className="text-sm text-white/90 font-normal">
-                {totalItems} article{totalItems > 1 ? 's' : ''} • {vendorCount} vendeur{vendorCount > 1 ? 's' : ''}
-              </span>
+          <SheetTitle className="flex items-center justify-between gap-3 text-white">
+            <div className="flex items-center gap-3">
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 200 }}
+                className="p-2 bg-white/20 rounded-xl backdrop-blur-sm"
+              >
+                <ShoppingBag className="w-6 h-6" />
+              </motion.div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xl font-bold">Mon Panier</span>
+                <span className="text-sm text-white/90 font-normal">
+                  {totalItems} article{totalItems > 1 ? 's' : ''} • {vendorCount} vendeur{vendorCount > 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
+            {cartItems.length > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  if (confirm(`Vider le panier (${totalItems} article${totalItems > 1 ? 's' : ''}) ?`)) {
+                    console.log('[UnifiedCart] Clearing entire cart');
+                    cartItems.forEach(item => {
+                      console.log('[UnifiedCart] Removing:', item.id);
+                      onRemoveItem(item.id);
+                    });
+                    toast({
+                      title: "Panier vidé",
+                      description: "Tous les articles ont été retirés"
+                    });
+                  }
+                }}
+                className="text-xs text-white/80 hover:text-white hover:bg-white/20"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Vider
+              </Button>
+            )}
           </SheetTitle>
         </SheetHeader>
       </div>
@@ -196,8 +221,14 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
                           key={item.id}
                           item={item}
                           index={index}
-                          onUpdateQuantity={onUpdateQuantity}
-                          onRemove={onRemoveItem}
+                          onUpdateQuantity={(id, qty) => {
+                            console.log('[UnifiedCart] Update quantity:', id, qty);
+                            onUpdateQuantity(id, qty);
+                          }}
+                          onRemove={(id, name) => {
+                            console.log('[UnifiedCart] Remove item:', id, name);
+                            onRemoveItem(id);
+                          }}
                         />
                       ))}
                     </AnimatePresence>

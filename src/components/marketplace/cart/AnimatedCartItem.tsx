@@ -30,10 +30,10 @@ export const AnimatedCartItem: React.FC<AnimatedCartItemProps> = ({
   const [isRemoving, setIsRemoving] = useState(false);
 
   const handleRemove = () => {
+    console.log('[AnimatedCartItem] Removing item:', item.id, item.name);
     setIsRemoving(true);
-    setTimeout(() => {
-      onRemove(item.id, item.name);
-    }, 300);
+    // Appel immédiat de la suppression (l'animation continue visuellement)
+    onRemove(item.id, item.name);
   };
 
   const itemTotal = item.price * item.quantity;
@@ -132,12 +132,21 @@ export const AnimatedCartItem: React.FC<AnimatedCartItemProps> = ({
           </div>
         </div>
 
-        {/* Delete button - touch-optimized */}
+        {/* Delete button - touch-optimized with improved visibility */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleRemove}
-          className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-2 sm:p-1.5 rounded-lg bg-destructive/10 text-destructive opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center touch-manipulation"
+          disabled={isRemoving}
+          className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-2 rounded-lg 
+                     bg-destructive/20 text-destructive 
+                     hover:bg-destructive hover:text-white
+                     transition-colors
+                     min-h-[44px] min-w-[44px] 
+                     flex items-center justify-center touch-manipulation
+                     opacity-100 sm:opacity-0 group-hover:opacity-100
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label={`Supprimer ${item.name}`}
         >
           <Trash2 className="w-4 h-4" />
         </motion.button>

@@ -41,9 +41,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to localStorage with debounce
   useEffect(() => {
-    localStorage.setItem('kwenda_cart', JSON.stringify(cartItems));
+    const timeoutId = setTimeout(() => {
+      try {
+        if (cartItems.length === 0) {
+          localStorage.removeItem('kwenda_cart');
+          console.log('[CartContext] Cart cleared from localStorage');
+        } else {
+          localStorage.setItem('kwenda_cart', JSON.stringify(cartItems));
+          console.log('[CartContext] Cart saved:', cartItems.length, 'items');
+        }
+      } catch (error) {
+        console.error('[CartContext] Error saving cart:', error);
+      }
+    }, 200); // Debounce de 200ms
+
+    return () => clearTimeout(timeoutId);
   }, [cartItems]);
 
   const addToCart = (product: any) => {
@@ -92,8 +106,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const removeFromCart = (id: string) => {
-    const item = cartItems.find(item => item.id === id);
-    setCartItems(prev => prev.filter(item => item.id !== id));
+    console.log('[CartContext] Removing item with ID:', id);
+    const item = cartItems.find(item => item.id === id || item.product_id === id);
+    
+    setCartItems(prev => {
+      const newCart = prev.filter(item => item.id !== id && item.product_id !== id);
+      console.log('[CartContext] Cart after removal:', newCart.length, 'items');
+      return newCart;
+    });
     
     if (item) {
       toast({
