@@ -20,10 +20,8 @@ export const invokeEdgeFunction = async ({
   
   while (attempt < maxAttempts) {
     const { data, error } = await supabase.functions.invoke(functionName, {
-      body,
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      }
+      body
+      // ✅ Pas de header Authorization manuel - Supabase le gère automatiquement
     });
     
     // Si erreur 401 et retry activé
