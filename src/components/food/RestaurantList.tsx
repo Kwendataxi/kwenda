@@ -4,11 +4,13 @@ import { RestaurantSlider } from './RestaurantSlider';
 import { ModernFoodPromoBanner } from './ModernFoodPromoBanner';
 import { PopularDishesSection } from './PopularDishesSection';
 import { CategoryIconsSection } from './CategoryIconsSection';
+import { CategoryDishesPreview } from './CategoryDishesPreview';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, useInView } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw } from 'lucide-react';
+import { FOOD_CATEGORIES } from '@/config/foodCategories';
 import type { Restaurant, FoodProduct } from '@/types/food';
 
 interface RestaurantListProps {
@@ -70,7 +72,7 @@ export const RestaurantList = ({
   onViewAllDishes,
   onViewAllRestaurants
 }: RestaurantListProps) => {
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -135,30 +137,59 @@ export const RestaurantList = ({
         />
       </motion.div>
 
-      {/* 3. Popular Dishes Section */}
-      {onAddToCart && (
+      {/* 3. Category Dishes Preview - Afficher plats par catégorie si sélectionnée */}
+      {categoryFilter && onAddToCart && (
+        <SectionWithParallax>
+          <CategoryDishesPreview
+            category={FOOD_CATEGORIES.find(c => c.id === categoryFilter)!}
+            city={selectedCity}
+            onAddToCart={onAddToCart}
+            onViewAll={(catId) => {
+              // Navigate to all dishes view with category filter
+              onViewAllDishes?.();
+            }}
+            onRestaurantClick={(restaurantId) => {
+              const restaurant = restaurants.find(r => r.id === restaurantId);
+              if (restaurant) {
+                onSelectRestaurant(restaurant);
+              }
+            }}
+          />
+        </SectionWithParallax>
+      )}
+
+      {/* 4. Popular Dishes Section - Seulement si pas de filtre */}
+      {!categoryFilter && onAddToCart && (
         <SectionWithParallax>
           <PopularDishesSection 
             city={selectedCity}
             onAddToCart={onAddToCart}
             onViewAll={onViewAllDishes}
+            onRestaurantClick={(restaurantId) => {
+              const restaurant = restaurants.find(r => r.id === restaurantId);
+              if (restaurant) {
+                onSelectRestaurant(restaurant);
+              }
+            }}
           />
         </SectionWithParallax>
       )}
 
-      {/* 4. New Restaurants */}
-      <SectionWithParallax>
-        <RestaurantSlider
-          restaurants={newRestaurants}
-          loading={false}
-          onSelectRestaurant={onSelectRestaurant}
-          title="🆕 Nouveautés"
-          onViewAll={onViewAllRestaurants}
-        />
-      </SectionWithParallax>
+      {/* 5. New Restaurants - Seulement si pas de filtre */}
+      {!categoryFilter && (
+        <SectionWithParallax>
+          <RestaurantSlider
+            restaurants={newRestaurants}
+            loading={false}
+            onSelectRestaurant={onSelectRestaurant}
+            title="🆕 Nouveautés"
+            onViewAll={onViewAllRestaurants}
+          />
+        </SectionWithParallax>
+      )}
 
-      {/* 5. Fast Delivery (< 30 min) */}
-      {fastDelivery.length > 0 && (
+      {/* 6. Fast Delivery (< 30 min) - Seulement si pas de filtre */}
+      {!categoryFilter && fastDelivery.length > 0 && (
         <SectionWithParallax>
           <RestaurantSlider
             restaurants={fastDelivery}
@@ -170,8 +201,8 @@ export const RestaurantList = ({
         </SectionWithParallax>
       )}
 
-      {/* 6. Top Rated Restaurants */}
-      {topRated.length > 0 && (
+      {/* 7. Top Rated Restaurants - Seulement si pas de filtre */}
+      {!categoryFilter && topRated.length > 0 && (
         <SectionWithParallax>
           <RestaurantSlider
             restaurants={topRated}
@@ -183,8 +214,8 @@ export const RestaurantList = ({
         </SectionWithParallax>
       )}
 
-      {/* 7. Restaurants by Category (tabs - option avancée) */}
-      {categoryFilter === '' && (
+      {/* 8. Restaurants by Category (tabs - option avancée) */}
+      {!categoryFilter && (
         <div className="px-4">
           <h2 className="text-xl font-bold mb-4 text-foreground">📂 Par Cuisine</h2>
           <Tabs defaultValue="all" className="w-full">
@@ -229,33 +260,6 @@ export const RestaurantList = ({
         </div>
       )}
 
-      {/* 8. Filtered restaurants (when category filter is active) */}
-      {categoryFilter !== '' && (
-        <div className="px-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-foreground">
-              Résultats ({filteredByCategory.length})
-            </h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCategoryFilter('')}
-              className="text-primary"
-            >
-              Effacer le filtre
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 gap-4">
-            {filteredByCategory.map((restaurant) => (
-              <RestaurantCard
-                key={restaurant.id}
-                restaurant={restaurant}
-                onClick={() => onSelectRestaurant(restaurant)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 };

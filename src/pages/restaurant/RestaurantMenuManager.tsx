@@ -43,7 +43,7 @@ export default function RestaurantMenuManager() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: 'Plats',
+    category: 'plats',
     price: '',
     preparation_time: '15',
     main_image_url: '',
@@ -209,7 +209,7 @@ export default function RestaurantMenuManager() {
     setFormData({
       name: '',
       description: '',
-      category: 'Plats',
+      category: 'plats',
       price: '',
       preparation_time: '15',
       main_image_url: '',
@@ -293,7 +293,7 @@ export default function RestaurantMenuManager() {
                       return (
                         <div key={cat.id}>
                           <RadioGroupItem
-                            value={cat.name}
+                            value={cat.id}
                             id={cat.id}
                             className="peer sr-only"
                           />
@@ -301,7 +301,7 @@ export default function RestaurantMenuManager() {
                             htmlFor={cat.id}
                             className={cn(
                               "flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all",
-                              formData.category === cat.name && "border-primary bg-primary/10"
+                              formData.category === cat.id && "border-primary bg-primary/10"
                             )}
                           >
                             <Icon className="h-6 w-6 mb-2" />

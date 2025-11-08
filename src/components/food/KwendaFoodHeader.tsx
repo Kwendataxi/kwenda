@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, ShoppingCart, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FoodSearchBar } from './FoodSearchBar';
 import BrandLogo from '@/components/brand/BrandLogo';
+import { toast } from 'sonner';
 
 interface KwendaFoodHeaderProps {
   step: 'restaurants' | 'menu' | 'checkout' | 'all-dishes' | 'all-restaurants';
@@ -113,10 +114,24 @@ export const KwendaFoodHeader = ({
         </div>
       </div>
 
-      {/* Ligne secondaire : Contexte */}
+      {/* Ligne secondaire : Contexte avec sélecteur de ville */}
       <div className="h-10 px-4 bg-muted/30 flex items-center gap-3 text-sm border-t">
-        <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-        <span className="font-medium">{selectedCity}</span>
+        <button
+          onClick={() => {
+            const cities = ['Kinshasa', 'Lubumbashi', 'Kolwezi', 'Abidjan'];
+            const currentIndex = cities.indexOf(selectedCity);
+            const nextCity = cities[(currentIndex + 1) % cities.length];
+            onCityChange(nextCity);
+            toast.success(`Ville changée`, {
+              description: `Vous explorez maintenant ${nextCity}`
+            });
+          }}
+          className="flex items-center gap-1.5 hover:bg-muted px-2 py-1 rounded-md transition-colors flex-shrink-0"
+        >
+          <MapPin className="w-4 h-4 text-primary" />
+          <span className="font-medium">{selectedCity}</span>
+          <span className="text-xs text-muted-foreground">▼</span>
+        </button>
         <span className="text-muted-foreground hidden sm:inline">·</span>
         <span className="text-muted-foreground truncate hidden sm:inline">{breadcrumb}</span>
       </div>

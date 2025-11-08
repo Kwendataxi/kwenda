@@ -5,6 +5,7 @@ import type { FoodProduct } from '@/types/food';
 interface PopularDish extends FoodProduct {
   restaurant_name?: string;
   restaurant_logo_url?: string;
+  restaurant_id: string;
 }
 
 export const usePopularDishes = (city: string) => {

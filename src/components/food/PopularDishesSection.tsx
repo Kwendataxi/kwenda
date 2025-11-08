@@ -10,9 +10,10 @@ interface PopularDishesSectionProps {
   city: string;
   onAddToCart: (product: FoodProduct) => void;
   onViewAll?: () => void;
+  onRestaurantClick?: (restaurantId: string) => void;
 }
 
-export const PopularDishesSection = ({ city, onAddToCart, onViewAll }: PopularDishesSectionProps) => {
+export const PopularDishesSection = ({ city, onAddToCart, onViewAll, onRestaurantClick }: PopularDishesSectionProps) => {
   const { data: dishes, isLoading } = usePopularDishes(city);
 
   if (isLoading) {
@@ -109,9 +110,17 @@ export const PopularDishesSection = ({ city, onAddToCart, onViewAll }: PopularDi
                       {formatPrice(dish.price)}
                     </p>
                     {dish.restaurant_name && (
-                      <p className="text-xs text-muted-foreground dark:text-muted-foreground/90 truncate">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onRestaurantClick && dish.restaurant_id) {
+                            onRestaurantClick(dish.restaurant_id);
+                          }
+                        }}
+                        className="text-xs text-muted-foreground dark:text-muted-foreground/90 truncate hover:text-primary hover:underline"
+                      >
                         @{dish.restaurant_name}
-                      </p>
+                      </button>
                     )}
                   </div>
 

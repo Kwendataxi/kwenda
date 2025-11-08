@@ -1,57 +1,53 @@
-import React from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { FOOD_CATEGORIES } from '@/config/foodCategories';
 
 interface Category {
   id: string;
   name: string;
-  icon: string;
-  filter: string;
+  emoji: string;
+  categoryId: string | null;
 }
 
 const CATEGORIES: Category[] = [
-  { id: 'all', name: 'Tous', icon: '🍽️', filter: '' },
-  { id: 'burger', name: 'Burgers', icon: '🍔', filter: 'Fast-food' },
-  { id: 'pizza', name: 'Pizza', icon: '🍕', filter: 'Italien' },
-  { id: 'grill', name: 'Grillades', icon: '🍗', filter: 'Grill' },
-  { id: 'african', name: 'Africain', icon: '🍜', filter: 'Africain' },
-  { id: 'dessert', name: 'Desserts', icon: '🍰', filter: 'Dessert' },
-  { id: 'drinks', name: 'Boissons', icon: '☕', filter: 'Boisson' },
-  { id: 'asian', name: 'Asiatique', icon: '🍱', filter: 'Asiatique' },
-  { id: 'seafood', name: 'Poissons', icon: '🐟', filter: 'Fruits de mer' },
+  { id: 'all', name: 'Tous', emoji: '🍽️', categoryId: null },
+  ...FOOD_CATEGORIES.map(cat => ({
+    id: cat.id,
+    name: cat.name,
+    emoji: cat.emoji,
+    categoryId: cat.id
+  }))
 ];
 
 interface CategoryIconsSectionProps {
-  activeCategory: string;
-  onCategorySelect: (filter: string) => void;
+  activeCategory: string | null;
+  onCategorySelect: (categoryId: string | null) => void;
 }
 
-export const CategoryIconsSection: React.FC<CategoryIconsSectionProps> = ({
+export const CategoryIconsSection = ({
   activeCategory,
   onCategorySelect,
-}) => {
+}: CategoryIconsSectionProps) => {
   return (
-    <section className="py-4">
-      <div className="px-4 mb-3">
-        <h2 className="text-lg font-bold text-foreground">Catégories 🍕</h2>
-      </div>
-      
-      <div className="flex overflow-x-auto gap-3 px-4 pb-2 scrollbar-hide">
+    <section className="py-4 bg-background/50 backdrop-blur-sm sticky top-[104px] z-40 border-b">
+      <div className="flex gap-2 px-4 overflow-x-auto pb-2 scrollbar-hide">
         {CATEGORIES.map((category) => {
-          const isActive = activeCategory === category.filter;
+          const isActive = activeCategory === category.categoryId;
           
           return (
             <motion.button
               key={category.id}
-              onClick={() => onCategorySelect(category.filter)}
+              onClick={() => onCategorySelect(category.categoryId)}
               whileTap={{ scale: 0.95 }}
-              className={`flex flex-col items-center gap-1.5 min-w-[70px] p-3 rounded-2xl transition-all ${
-                isActive
-                  ? 'bg-primary dark:bg-primary/90 text-primary-foreground shadow-lg scale-105 border-2 border-primary-glow'
-                  : 'bg-muted dark:bg-muted/80 text-muted-foreground dark:text-muted-foreground/90 hover:bg-muted/80 dark:hover:bg-muted border-2 border-transparent'
-              }`}
+              className={cn(
+                "flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[70px] transition-all",
+                isActive 
+                  ? "bg-primary text-primary-foreground shadow-md" 
+                  : "bg-muted/50 hover:bg-muted"
+              )}
             >
-              <div className="text-3xl filter drop-shadow-md">{category.icon}</div>
-              <span className={`text-xs font-medium whitespace-nowrap ${isActive ? 'text-white dark:text-white' : 'text-foreground/80 dark:text-foreground/85'}`}>
+              <span className="text-2xl">{category.emoji}</span>
+              <span className="text-xs font-medium whitespace-nowrap">
                 {category.name}
               </span>
             </motion.button>
