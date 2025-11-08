@@ -10,6 +10,7 @@ import { YangoProductCard } from '@/components/marketplace/YangoProductCard';
 import { AiShopperProductCard } from '@/components/marketplace/AiShopperProductCard';
 import { useProductPromotions } from '@/hooks/useProductPromotions';
 import { VendorShopShareButtons } from '@/components/marketplace/VendorShopShareButtons';
+import { VendorRatingDialog } from '@/components/marketplace/VendorRatingDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/context/CartContext';
 import { useProductFavorites } from '@/hooks/useProductFavorites';
@@ -56,6 +57,7 @@ const VendorShop: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [totalReviews, setTotalReviews] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -527,15 +529,18 @@ const VendorShop: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex flex-col items-center gap-2">
+          <button 
+            onClick={() => setShowRatingDialog(true)}
+            className="flex flex-col items-center gap-2 hover:scale-105 transition-transform active:scale-95"
+          >
             <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
               <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
             </div>
             <div className="text-center">
               <div className="text-lg font-bold">{profile.average_rating?.toFixed(1) || '0.0'}</div>
-              <div className="text-xs text-muted-foreground">Note</div>
+              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">👆 Notez</div>
             </div>
-          </div>
+          </button>
           
           <div className="flex flex-col items-center gap-2">
             <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
@@ -547,31 +552,6 @@ const VendorShop: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* CTA Partage après stats */}
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-blue-200 dark:border-blue-800">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="font-semibold text-sm mb-1">
-                  ❤️ Vous aimez cette boutique ?
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Partagez-la avec vos proches pour leur faire découvrir !
-                </p>
-              </div>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setShowShareDialog(true)}
-                className="gap-2 shrink-0"
-              >
-                <Share2 className="h-4 w-4" />
-                Partager
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* ✅ PHASE 2: Bouton S'abonner adaptatif */}
         {!user ? (
@@ -588,11 +568,13 @@ const VendorShop: React.FC = () => {
           <Button
             variant={isSubscribed ? "outline" : "default"}
             size="lg"
-            className="w-full"
+            className={`w-full transition-all ${
+              isSubscribed ? 'border-green-500 text-green-600 dark:text-green-400' : ''
+            }`}
             onClick={handleSubscribe}
           >
-            <Heart className={`h-5 w-5 mr-2 ${isSubscribed ? 'fill-current' : ''}`} />
-            {isSubscribed ? 'Abonné ✓' : 'S\'abonner'}
+            <Heart className={`h-5 w-5 mr-2 ${isSubscribed ? 'fill-current text-red-500' : ''}`} />
+            {isSubscribed ? '✓ Abonné' : 'S\'abonner'}
           </Button>
         )}
 
@@ -684,6 +666,22 @@ const VendorShop: React.FC = () => {
         </div>
       </div>
 
+      {/* Dialog Notation Vendeur */}
+      <VendorRatingDialog
+        open={showRatingDialog}
+        onOpenChange={setShowRatingDialog}
+        vendorId={profile.user_id}
+        vendorName={profile.shop_name}
+        vendorLogo={profile.shop_logo_url || undefined}
+        onSuccess={() => {
+          toast({
+            title: '✅ Merci pour votre avis !',
+            description: 'Votre note a été enregistrée avec succès.'
+          });
+          loadVendorData();
+        }}
+      />
+
       {/* Dialog Partage Amélioré */}
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
         <DialogContent className="sm:max-w-md">
@@ -720,22 +718,6 @@ const VendorShop: React.FC = () => {
           </motion.div>
         </DialogContent>
       </Dialog>
-
-      {/* Floating Action Button - Partage Rapide */}
-      <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.5, type: "spring", stiffness: 260, damping: 20 }}
-        className="fixed bottom-20 right-4 z-30"
-      >
-        <Button
-          size="lg"
-          onClick={() => setShowShareDialog(true)}
-          className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/80 shadow-2xl hover:shadow-primary/50 hover:scale-110 transition-all duration-300"
-        >
-          <Share2 className="h-6 w-6" />
-        </Button>
-      </motion.div>
     </div>
   );
 };
