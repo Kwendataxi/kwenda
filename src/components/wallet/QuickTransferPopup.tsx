@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, ArrowRight, Loader2 } from 'lucide-react';
+import { X, Zap, ArrowRight, Loader2, Search } from 'lucide-react';
 import { Drawer } from 'vaul';
 import { useWallet } from '@/hooks/useWallet';
 import { useRecentContacts } from '@/hooks/useRecentContacts';
@@ -8,7 +8,21 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { ContactCard } from './ContactCard';
 import { SuccessConfetti } from './SuccessConfetti';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import '@/styles/quick-transfer.css';
+
+// Générer couleur avatar consistante
+const generateAvatarColor = (userId: string): string => {
+  const colors = [
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  ];
+  const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[hash % colors.length];
+};
 
 interface QuickTransferPopupProps {
   open: boolean;
@@ -33,6 +47,11 @@ export const QuickTransferPopup: React.FC<QuickTransferPopupProps> = ({
   const [customAmount, setCustomAmount] = useState('');
   const [isTransferring, setIsTransferring] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  
+  // États pour la recherche manuelle
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Debug: Log contacts state
   React.useEffect(() => {
@@ -41,6 +60,69 @@ export const QuickTransferPopup: React.FC<QuickTransferPopupProps> = ({
       console.log('🔥 Loading:', loadingContacts);
     }
   }, [open, contacts, loadingContacts]);
+
+  // Recherche manuelle d'utilisateur
+  const handleSearchUser = async (query: string) => {
+    setSearchQuery(query);
+    
+    if (query.length < 3) {
+      setSearchResults([]);
+      return;
+    }
+    
+    setIsSearching(true);
+    
+    try {
+      console.log('🔍 Recherche utilisateur:', query);
+      
+      const { data, error } = await supabase.functions.invoke(
+        'validate-transfer-recipient',
+        {
+          body: { identifier: query }
+        }
+      );
+      
+      if (error) {
+        console.error('Erreur recherche:', error);
+        throw error;
+      }
+      
+      console.log('📋 Résultat recherche:', data);
+      
+      if (data?.valid && data?.recipientId) {
+        setSearchResults([{
+          user_id: data.recipientId,
+          display_name: data.recipientName || 'Utilisateur',
+          phone_number: query.includes('@') ? undefined : query,
+          avatar_color: generateAvatarColor(data.recipientId),
+          last_transfer_date: new Date().toISOString(),
+          total_transfers: 0
+        }]);
+        
+        toast({
+          title: '✅ Utilisateur trouvé',
+          description: data.recipientName || 'Contact valide',
+        });
+      } else {
+        setSearchResults([]);
+        toast({
+          title: 'Utilisateur introuvable',
+          description: 'Vérifiez le numéro ou l\'email',
+          variant: 'destructive'
+        });
+      }
+    } catch (error: any) {
+      console.error('Erreur recherche:', error);
+      setSearchResults([]);
+      toast({
+        title: 'Erreur de recherche',
+        description: error.message || 'Impossible de rechercher l\'utilisateur',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleTransfer = async () => {
     if (!selectedContact || (!selectedAmount && !customAmount)) {
@@ -132,18 +214,70 @@ export const QuickTransferPopup: React.FC<QuickTransferPopupProps> = ({
             ))}
           </div>
         ) : contacts.length === 0 ? (
-          <div className="text-center py-6 md:py-8 space-y-2">
-            <p className="text-muted-foreground text-sm">Aucun contact récent</p>
-            <button 
-              onClick={() => {
-                console.log('🔄 Rafraîchissement manuel des contacts');
-                refreshContacts();
-              }}
-              className="text-xs text-purple-500 hover:text-purple-600 underline"
-            >
-              Actualiser
-            </button>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-3"
+          >
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              {loadingContacts ? 'Chargement...' : 'Aucun transfert récent'}
+            </p>
+            
+            {/* Interface de recherche manuelle */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Search className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <p className="text-xs font-medium text-purple-600 dark:text-purple-400">
+                  Rechercher un contact
+                </p>
+              </div>
+              
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Numéro de téléphone ou email..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchUser(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg bg-background border border-border text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                />
+                {isSearching && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-purple-500" />
+                )}
+              </div>
+              
+              <p className="text-xs text-muted-foreground mt-2">
+                Saisissez au moins 3 caractères
+              </p>
+            </div>
+            
+            {/* Résultats de recherche */}
+            {searchResults.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="pt-2"
+              >
+                <p className="text-xs font-medium mb-2 text-foreground">Résultat</p>
+                <ContactCard
+                  contact={searchResults[0]}
+                  selected={selectedContact === searchResults[0].user_id}
+                  onClick={() => setSelectedContact(searchResults[0].user_id)}
+                />
+              </motion.div>
+            )}
+            
+            {!loadingContacts && (
+              <button 
+                onClick={() => {
+                  console.log('🔄 Rafraîchissement manuel des contacts');
+                  refreshContacts();
+                }}
+                className="text-xs text-purple-500 hover:text-purple-600 underline mx-auto block"
+              >
+                Actualiser les contacts
+              </button>
+            )}
+          </motion.div>
         ) : (
           <div className="grid grid-cols-3 gap-2 md:gap-3">
             {contacts.slice(0, 6).map((contact, index) => (

@@ -32,15 +32,19 @@ const generateAvatarColor = (userId: string): string => {
 };
 
 export const useRecentContacts = () => {
-  const { user } = useAuth();
+  const { user, sessionReady } = useAuth();
   const [contacts, setContacts] = useState<RecentContact[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchContacts = async () => {
-    if (!user?.id) {
+    // ✅ CRITIQUE : Attendre que la session soit prête ET que user existe
+    if (!user?.id || !sessionReady) {
+      console.log('⚠️ Session non prête - user:', user?.id, 'sessionReady:', sessionReady);
       setLoading(false);
       return;
     }
+
+    console.log('✅ Session prête - Fetching contacts pour user:', user.id);
 
     try {
       // Fetch recent transfers from this user
@@ -130,10 +134,15 @@ export const useRecentContacts = () => {
   };
 
   useEffect(() => {
-    console.log('🚀 useRecentContacts - Hook déclenché pour user:', user?.id);
-    fetchContacts();
+    // ✅ Attendre que sessionReady soit true avant de fetch
+    if (sessionReady && user?.id) {
+      console.log('🚀 useRecentContacts - Session prête pour user:', user.id);
+      fetchContacts();
+    } else {
+      console.log('⏳ useRecentContacts - En attente session - user:', user?.id, 'ready:', sessionReady);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, sessionReady]);
 
   const refreshContacts = () => {
     setLoading(true);
