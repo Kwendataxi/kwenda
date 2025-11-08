@@ -22,6 +22,8 @@ import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { RatingDialog } from '../rating/RatingDialog';
 import { CancellationDialog } from '../shared/CancellationDialog';
+import { ClientOrderCard } from './orders/ClientOrderCard';
+import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
 
 export const PurchaseManagement: React.FC = () => {
   const { orders, loading, refetch, cancelOrder } = useMarketplaceOrders();
@@ -39,9 +41,22 @@ export const PurchaseManagement: React.FC = () => {
     orderId: string;
     status: string;
   } | null>(null);
+  const [approvalDialog, setApprovalDialog] = useState<{
+    order: any;
+  } | null>(null);
 
   // Filter orders where current user is the buyer
   const purchaseOrders = orders.filter(order => order.buyer_id === user?.id);
+
+  // Check for orders awaiting approval
+  useEffect(() => {
+    const orderAwaitingApproval = purchaseOrders.find(
+      o => o.status === 'pending_buyer_approval' && o.delivery_fee > 0
+    );
+    if (orderAwaitingApproval && !approvalDialog) {
+      setApprovalDialog({ order: orderAwaitingApproval });
+    }
+  }, [purchaseOrders]);
 
   // Apply search and status filters
   const filteredOrders = purchaseOrders.filter(order => {
@@ -168,107 +183,17 @@ export const PurchaseManagement: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => (
-            <Card key={order.id} className="hover:shadow-lg transition-all duration-200">
-              <CardContent className="p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  {/* Product Image */}
-                  <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                    {order.product?.images?.[0] ? (
-                      <img 
-                        src={order.product.images[0]} 
-                        alt={order.product.title}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <Package className="w-8 h-8 text-muted-foreground" />
-                    )}
-                  </div>
-
-                  {/* Order Details */}
-                  <div className="flex-1 space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <h3 className="font-semibold text-lg">{order.product?.title}</h3>
-                      <Badge className={`w-fit ${getStatusColor(order.status)}`}>
-                        <span className="flex items-center gap-1">
-                          {getStatusIcon(order.status)}
-                          {getStatusText(order.status)}
-                        </span>
-                      </Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                      <p>Vendeur: {order.seller?.display_name}</p>
-                      <p>Quantité: {order.quantity}</p>
-                      <p>Prix unitaire: {order.unit_price?.toLocaleString()} FC</p>
-                      <p>Total: {order.total_amount?.toLocaleString()} FC</p>
-                    </div>
-
-                    {order.delivery_address && (
-                      <p className="text-sm text-muted-foreground">
-                        Livraison: {order.delivery_address}
-                      </p>
-                    )}
-
-                    <p className="text-xs text-muted-foreground">
-                      Commandé le {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <Separator className="my-4" />
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4" />
-                    Contacter le vendeur
-                  </Button>
-                  
-                  {order.status === 'delivered' && (
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" />
-                      Confirmer réception
-                    </Button>
-                  )}
-                  
-                  {order.status === 'completed' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex items-center gap-2"
-                      onClick={() => setRatingDialog({
-                        ratedUserId: order.seller_id,
-                        ratedUserName: order.seller?.display_name || 'Vendeur',
-                        orderId: order.id
-                      })}
-                    >
-                      <Star className="w-4 h-4" />
-                      Laisser un avis
-                    </Button>
-                  )}
-                  
-                  {order.status === 'pending' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex items-center gap-2 text-destructive"
-                      onClick={() => setCancelDialog({ 
-                        open: true, 
-                        orderId: order.id,
-                        status: order.status 
-                      })}
-                    >
-                      <XCircle className="w-4 h-4" />
-                      Annuler
-                    </Button>
-                  )}
-                  
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <RefreshCw className="w-4 h-4" />
-                    Racheter
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ClientOrderCard 
+              key={order.id}
+              order={order}
+              onConfirmReceived={() => {
+                refetch();
+                toast({
+                  title: '✅ Réception confirmée',
+                  description: 'Le paiement a été libéré au vendeur'
+                });
+              }}
+            />
           ))}
         </div>
       )}
@@ -301,6 +226,25 @@ export const PurchaseManagement: React.FC = () => {
           bookingType="marketplace"
           bookingDetails={{
             status: cancelDialog.status
+          }}
+        />
+      )}
+
+      {/* Delivery Fee Approval Dialog */}
+      {approvalDialog && (
+        <DeliveryFeeApprovalDialog
+          order={approvalDialog.order}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setApprovalDialog(null);
+          }}
+          onApproved={() => {
+            refetch();
+            setApprovalDialog(null);
+            toast({
+              title: '✅ Frais acceptés',
+              description: 'Votre paiement a été traité'
+            });
           }}
         />
       )}

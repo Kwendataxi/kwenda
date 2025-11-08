@@ -4940,6 +4940,7 @@ export type Database = {
       marketplace_orders: {
         Row: {
           assigned_to_driver_at: string | null
+          auto_completed: boolean | null
           buyer_id: string
           buyer_phone: string | null
           completed_at: string | null
@@ -4981,6 +4982,7 @@ export type Database = {
         }
         Insert: {
           assigned_to_driver_at?: string | null
+          auto_completed?: boolean | null
           buyer_id: string
           buyer_phone?: string | null
           completed_at?: string | null
@@ -5022,6 +5024,7 @@ export type Database = {
         }
         Update: {
           assigned_to_driver_at?: string | null
+          auto_completed?: boolean | null
           buyer_id?: string
           buyer_phone?: string | null
           completed_at?: string | null
@@ -13684,6 +13687,7 @@ export type Database = {
           view_name: string
         }[]
       }
+      auto_complete_old_delivered_orders: { Args: never; Returns: undefined }
       auto_fix_function_search_paths: {
         Args: never
         Returns: {

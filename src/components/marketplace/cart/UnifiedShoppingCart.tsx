@@ -13,17 +13,9 @@ import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
 import { useWallet } from '@/hooks/useWallet';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useToast } from '@/hooks/use-toast';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-  seller: string;
-  seller_id: string;
-  coordinates?: { lat: number; lng: number };
-}
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import type { CartItem } from '@/types/marketplace';
 
 interface UnifiedShoppingCartProps {
   isOpen: boolean;
@@ -45,6 +37,7 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
   userCoordinates,
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { wallet } = useWallet();
   const { createBulkOrder } = useMarketplaceOrders();
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('cart');
@@ -91,15 +84,30 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
     setIsProcessing(true);
 
     try {
-      // Grouper les commandes par vendeur et créer en masse
-      await createBulkOrder(cartItems, userCoordinates);
+      // ✅ NOUVEAU : Appeler edge function sécurisée pour paiement + escrow
+      const { data, error } = await supabase.functions.invoke('process-marketplace-checkout', {
+        body: {
+          cartItems: cartItems.map(item => ({
+            id: item.id,
+            product_id: item.product_id || item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            seller_id: item.seller_id
+          })),
+          userId: user?.id,
+          userCoordinates
+        }
+      });
+
+      if (error) throw error;
 
       setCheckoutStep('success');
       setShowConfetti(true);
 
       toast({
-        title: '✅ Commande réussie !',
-        description: `${vendorCount} commande(s) créée(s) pour ${totalPrice.toLocaleString()} CDF`,
+        title: '✅ Paiement réussi !',
+        description: `${data.orderIds.length} commande(s) créée(s) • ${data.totalAmount.toLocaleString()} CDF ${data.paidWithBonus ? '(bonus)' : ''}`,
       });
 
       // Vider le panier et fermer après 2 secondes

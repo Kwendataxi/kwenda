@@ -217,3 +217,9 @@ verify_jwt = true  # ✅ JWT requis pour recharge wallet restaurant
 
 [functions.mobile-money-webhook]
 verify_jwt = false  # ✅ Webhook appelé par providers Mobile Money
+
+[functions.process-marketplace-checkout]
+verify_jwt = true  # ✅ PHASE 5: Checkout sécurisé avec paiement wallet et création escrow atomique
+
+[functions.approve-delivery-fee]
+verify_jwt = true  # ✅ PHASE 5: Approbation/refus frais de livraison par le client avec gestion escrow
