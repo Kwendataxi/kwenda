@@ -40,12 +40,13 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const { restaurants, loading, refetch } = useRestaurantsQuery(selectedCity);
   const { cart, setCart, clearCart } = useFoodCart(selectedRestaurant?.id);
 
-  // Vider l'affichage du panier quand on retourne à la liste des restaurants
+  // Vider l'affichage du panier seulement si on retourne à la liste ET qu'il est vide
   useEffect(() => {
-    if (!selectedRestaurant) {
-      setCart([]);
+    if (!selectedRestaurant && step === 'restaurants' && cart.length === 0) {
+      // Ne rien faire - le panier est déjà vide
     }
-  }, [selectedRestaurant, setCart]);
+    // Ne pas vider le panier automatiquement quand on change de vue
+  }, [selectedRestaurant, step, cart.length]);
 
   const handleSelectRestaurant = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
@@ -290,15 +291,31 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       <FoodFooterNav />
 
       {/* Global Cart Sheet */}
-      {selectedRestaurant && cart.length > 0 && (
+      {cart.length > 0 && (
         <FoodCart
           open={showCartSheet}
           onOpenChange={setShowCartSheet}
           cart={cart}
-          restaurant={selectedRestaurant}
+          restaurant={selectedRestaurant || {
+            id: cart[0]?.restaurant_id || '',
+            restaurant_name: 'Restaurant',
+            city: selectedCity,
+            address: '',
+            is_active: true,
+            verification_status: 'approved',
+            minimum_order_amount: 0
+          }}
           onUpdateQuantity={handleUpdateCartItem}
           onRemove={handleRemoveFromCart}
           onCheckout={() => {
+            // Si pas de restaurant sélectionné, naviguer vers celui du panier
+            if (!selectedRestaurant && cart.length > 0) {
+              const restaurant = restaurants.find(r => r.id === cart[0].restaurant_id);
+              if (restaurant) {
+                setSelectedRestaurant(restaurant);
+                setStep('menu');
+              }
+            }
             setShowCartSheet(false);
             setStep('checkout');
           }}
@@ -322,7 +339,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
           estimatedTime={selectedRestaurant.average_preparation_time || 30}
           onTrackOrder={() => {
             setSuccessModalOpen(false);
-            navigate('/app/client/food-orders');
+            navigate('/food/orders');
           }}
         />
       )}

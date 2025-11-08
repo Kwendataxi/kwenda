@@ -139,7 +139,7 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
                 onClick={() => navigate(`/unified-tracking/food/${order.id}`)}
               >
                 <MapPin className="w-4 h-4 mr-2" />
-                Suivre ma commande
+                Suivre
               </Button>
             )}
             

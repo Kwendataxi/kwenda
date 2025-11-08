@@ -88,7 +88,7 @@ export const KwendaFoodHeader = ({
 
         {/* Droite : Panier */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {cartItemsCount > 0 && step === 'menu' && (
+          {cartItemsCount > 0 && (step === 'menu' || step === 'all-dishes') && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -101,7 +101,6 @@ export const KwendaFoodHeader = ({
                 size="icon"
                 className="h-9 w-9 relative"
                 onClick={onCartClick}
-                disabled={!onCartClick}
               >
                 <ShoppingCart className="w-5 h-5" />
                 <motion.span
