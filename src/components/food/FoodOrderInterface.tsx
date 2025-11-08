@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRestaurantsQuery } from '@/hooks/useRestaurantsQuery';
@@ -12,6 +12,7 @@ import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { AllDishesView } from './AllDishesView';
 import { AllRestaurantsView } from './AllRestaurantsView';
 import { FoodFooterNav } from './FoodFooterNav';
+import { FoodCart } from './FoodCart';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { AnimatePresence } from 'framer-motion';
@@ -35,8 +36,16 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const [step, setStep] = useState<Step>('restaurants');
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [lastOrderNumber, setLastOrderNumber] = useState('');
+  const [showCartSheet, setShowCartSheet] = useState(false);
   const { restaurants, loading, refetch } = useRestaurantsQuery(selectedCity);
   const { cart, setCart, clearCart } = useFoodCart(selectedRestaurant?.id);
+
+  // Vider l'affichage du panier quand on retourne à la liste des restaurants
+  useEffect(() => {
+    if (!selectedRestaurant) {
+      setCart([]);
+    }
+  }, [selectedRestaurant, setCart]);
 
   const handleSelectRestaurant = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
@@ -174,6 +183,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         cartItemsCount={cart.length}
         onBack={handleBack}
         onBackToHome={handleBackToHome}
+        onCartClick={() => setShowCartSheet(true)}
       />
 
       {/* Content with Animations */}
@@ -247,6 +257,22 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       </div>
 
       <FoodFooterNav />
+
+      {/* Global Cart Sheet */}
+      {selectedRestaurant && cart.length > 0 && (
+        <FoodCart
+          open={showCartSheet}
+          onOpenChange={setShowCartSheet}
+          cart={cart}
+          restaurant={selectedRestaurant}
+          onUpdateQuantity={handleUpdateCartItem}
+          onRemove={handleRemoveFromCart}
+          onCheckout={() => {
+            setShowCartSheet(false);
+            setStep('checkout');
+          }}
+        />
+      )}
 
       {/* Success Modal */}
       {selectedRestaurant && (

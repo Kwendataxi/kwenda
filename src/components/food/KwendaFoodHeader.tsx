@@ -13,6 +13,7 @@ interface KwendaFoodHeaderProps {
   cartItemsCount: number;
   onBack: () => void;
   onBackToHome?: () => void;
+  onCartClick?: () => void;
 }
 
 export const KwendaFoodHeader = ({
@@ -22,7 +23,8 @@ export const KwendaFoodHeader = ({
   selectedRestaurant,
   cartItemsCount,
   onBack,
-  onBackToHome
+  onBackToHome,
+  onCartClick
 }: KwendaFoodHeaderProps) => {
   const getBreadcrumb = () => {
     switch (step) {
@@ -86,7 +88,7 @@ export const KwendaFoodHeader = ({
 
         {/* Droite : Panier */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {cartItemsCount > 0 && (
+          {cartItemsCount > 0 && step === 'menu' && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -98,6 +100,8 @@ export const KwendaFoodHeader = ({
                 variant="ghost" 
                 size="icon"
                 className="h-9 w-9 relative"
+                onClick={onCartClick}
+                disabled={!onCartClick}
               >
                 <ShoppingCart className="w-5 h-5" />
                 <motion.span
