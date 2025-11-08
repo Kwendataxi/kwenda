@@ -104,8 +104,8 @@ serve(async (req) => {
           throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
         }
         
-        // Vérifier que cet utilisateur a un wallet
-        const { data: wallet, error: walletCheckError } = await supabaseClient
+        // Vérifier que cet utilisateur a un wallet (avec client admin pour bypass RLS)
+        const { data: wallet, error: walletCheckError } = await supabaseAdmin
           .from('user_wallets')
           .select('user_id')
           .eq('user_id', matchingUser.id)
