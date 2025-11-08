@@ -28,6 +28,8 @@ import { KwendaShopHeader } from './KwendaShopHeader';
 import { TopProductsSection } from './TopProductsSection';
 import { AiShopperProductCard } from './AiShopperProductCard';
 import { useProductPromotions } from '@/hooks/useProductPromotions';
+import { AllMarketplaceProductsView } from './AllMarketplaceProductsView';
+import { AllVendorsView } from './AllVendorsView';
 
 // Anciens composants (conservés pour compatibilité)
 import { ProductGrid } from './ProductGrid';
@@ -90,6 +92,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   
   // State management
   const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow'>('shop');
+  const [viewMode, setViewMode] = useState<'home' | 'all-products' | 'all-vendors'>('home');
   const [favorites, setFavorites] = useState<string[]>([]);
 
   // Détecter retour depuis l'espace vendeur
@@ -633,7 +636,28 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     }
   };
 
-  const renderShopTab = () => (
+  const renderShopTab = () => {
+    if (viewMode === 'all-products') {
+      return (
+        <AllMarketplaceProductsView
+          onBack={() => setViewMode('home')}
+          onAddToCart={(product) => addToCart(product, 1)}
+          onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
+          onVisitShop={(id) => navigate(`/marketplace/shop/${id}`)}
+        />
+      );
+    }
+
+    if (viewMode === 'all-vendors') {
+      return (
+        <AllVendorsView
+          onBack={() => setViewMode('home')}
+          onSelectVendor={(id) => navigate(`/marketplace/shop/${id}`)}
+        />
+      );
+    }
+
+    return (
     <div className="space-y-8">
       {/* SLIDER PUBLICITAIRE - Auto-hide après 6s */}
       <section className="px-4 pt-2">
@@ -687,9 +711,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         <section className="px-4 py-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Produits populaires</h2>
-            <span className="text-sm text-muted-foreground">
-              {filteredProducts.length} produits
-            </span>
+            <Button variant="ghost" size="sm" onClick={() => setViewMode('all-products')} className="text-blue-600">
+              Voir tout
+            </Button>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
@@ -815,7 +839,8 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </section>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background mobile-safe-layout">

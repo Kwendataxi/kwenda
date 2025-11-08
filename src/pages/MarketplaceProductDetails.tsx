@@ -24,6 +24,7 @@ import { ProductReviewsSection } from '@/components/marketplace/ProductReviewsSe
 import { SimilarProductsCarousel } from '@/components/marketplace/SimilarProductsCarousel';
 import { ProductSpecifications } from '@/components/marketplace/ProductSpecifications';
 import { UnifiedShoppingCart } from '@/components/marketplace/cart/UnifiedShoppingCart';
+import { ProductQASection } from '@/components/marketplace/ProductQASection';
 
 // Hooks
 import { useMarketplaceProductDetails, useSimilarProducts } from '@/hooks/useMarketplaceProductDetails';
@@ -244,7 +245,13 @@ const MarketplaceProductDetails = () => {
             {/* Reviews section */}
             <ProductReviewsSection
               avgRating={product.rating}
-              reviews={[]} // TODO: Fetch real reviews
+              reviews={[]}
+            />
+            
+            {/* Q&A Section */}
+            <ProductQASection
+              productId={product.id}
+              sellerId={product.seller_id}
             />
             
             {/* Produits similaires */}
