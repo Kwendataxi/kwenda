@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { FoodOrder, FoodOrderStatus } from '@/hooks/useFoodClientOrders';
 import { formatCurrency } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,8 +37,10 @@ const STATUS_CONFIG: Record<FoodOrderStatus, { label: string; color: string; ico
 };
 
 export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardProps) => {
+  const navigate = useNavigate();
   const statusConfig = STATUS_CONFIG[order.status];
   const canCancel = ['pending', 'confirmed'].includes(order.status);
+  const isActiveOrder = ['confirmed', 'preparing', 'ready', 'delivering'].includes(order.status);
 
   const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
@@ -128,6 +131,18 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
 
           {/* Actions */}
           <div className="flex gap-2">
+            {isActiveOrder && (
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1"
+                onClick={() => navigate(`/unified-tracking/food/${order.id}`)}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                Suivre ma commande
+              </Button>
+            )}
+            
             {canCancel && onCancel && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>

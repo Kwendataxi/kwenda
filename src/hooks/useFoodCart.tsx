@@ -28,8 +28,13 @@ export const useFoodCart = (restaurantId?: string) => {
           return;
         }
 
-        // Only restore if same restaurant
-        if (restaurantId && parsedCart.restaurantId === restaurantId) {
+        // Mode restaurant unique : vérifier la cohérence
+        if (restaurantId && parsedCart.restaurantId !== restaurantId) {
+          return; // Ne pas charger si restaurant différent
+        }
+        
+        // Mode multi-restaurant (pas de restaurantId) ou restaurant correspondant
+        if (!restaurantId || parsedCart.restaurantId === restaurantId) {
           setCart(parsedCart.items);
         }
       } catch (error) {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FilterDrawer } from '@/components/ui/FilterDrawer';
@@ -209,35 +210,61 @@ export const AllDishesView = ({ city, onBack, onAddToCart }: AllDishesViewProps)
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="space-y-4">
               {dishes.map((dish) => (
                 <motion.div
                   key={dish.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ y: -4 }}
-                  className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-all cursor-pointer group"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-card rounded-xl overflow-hidden border border-border hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer"
                 >
-                  <div className="relative aspect-square overflow-hidden">
-                    <img
-                      src={dish.main_image_url || '/placeholder-food.jpg'}
-                      alt={dish.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-3 space-y-2">
-                    <h3 className="font-semibold text-sm line-clamp-2">{dish.name}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{dish.restaurant_name}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-primary font-bold">{formatPrice(dish.price)}</span>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 bg-primary/10 hover:bg-primary hover:text-primary-foreground"
-                        onClick={() => onAddToCart(dish)}
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                      </Button>
+                  <div className="flex gap-4 p-3">
+                    {/* Image à gauche (format carré mais plus grand) */}
+                    <div className="relative w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+                      <img
+                        src={dish.main_image_url || '/placeholder-food.jpg'}
+                        alt={dish.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {!dish.is_available && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <Badge variant="destructive" className="text-xs">
+                            Indisponible
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Contenu à droite */}
+                    <div className="flex-1 flex flex-col justify-between min-w-0">
+                      <div>
+                        <h3 className="font-bold text-base line-clamp-2 mb-1">
+                          {dish.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
+                          {dish.restaurant_name}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-primary font-bold text-lg">
+                          {formatPrice(dish.price)}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant={dish.is_available ? "default" : "secondary"}
+                          disabled={!dish.is_available}
+                          className="h-9 px-4 gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddToCart(dish);
+                          }}
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                          Ajouter
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>

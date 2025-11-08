@@ -53,6 +53,23 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   };
 
   const handleAddToCart = (product: FoodProduct, quantity: number = 1, notes?: string) => {
+    // Vérifier si panier non vide et restaurant différent
+    if (cart.length > 0 && cart[0].restaurant_id !== product.restaurant_id) {
+      toast.error('Vous avez déjà des articles d\'un autre restaurant', {
+        description: 'Videz votre panier ou terminez votre commande avant d\'ajouter des plats d\'un autre restaurant',
+        action: {
+          label: 'Vider le panier',
+          onClick: () => {
+            clearCart();
+            toast.success('Panier vidé', {
+              description: 'Vous pouvez maintenant ajouter ce plat'
+            });
+          }
+        }
+      });
+      return;
+    }
+
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id);
       
@@ -76,6 +93,20 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
     });
 
     toast.success(t('food.added_to_cart', { product: product.name }));
+
+    // Si on est dans "Tous les plats", naviguer vers le restaurant après ajout
+    if (!selectedRestaurant && step === 'all-dishes') {
+      const restaurant = restaurants.find(r => r.id === product.restaurant_id);
+      if (restaurant) {
+        setTimeout(() => {
+          setSelectedRestaurant(restaurant);
+          setStep('menu');
+          toast.success('Redirection vers le restaurant', {
+            description: `Vous pouvez continuer à commander chez ${restaurant.restaurant_name}`
+          });
+        }, 1000);
+      }
+    }
   };
 
   const handleUpdateCartItem = (productId: string, quantity: number) => {
