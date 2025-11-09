@@ -67,6 +67,21 @@ export const KwendaShopHeader = ({
               Accueil
             </Button>
 
+            {/* Bouton de test promo (dev only) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  localStorage.removeItem('kwenda_shop_welcome_v1');
+                  window.location.reload();
+                }}
+                className="text-white hover:bg-white/20 text-xs"
+              >
+                Reset Promo
+              </Button>
+            )}
+
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}

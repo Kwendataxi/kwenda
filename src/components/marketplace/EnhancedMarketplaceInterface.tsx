@@ -31,6 +31,8 @@ import { useProductPromotions } from '@/hooks/useProductPromotions';
 import { AllMarketplaceProductsView } from './AllMarketplaceProductsView';
 import { AllVendorsView } from './AllVendorsView';
 import { VendorCard } from './VendorCard';
+import { MarketplacePromoSheet } from './MarketplacePromoSheet';
+import { shopWelcomeMessage } from '@/data/shopPromos';
 
 // Anciens composants (conservés pour compatibilité)
 import { ProductGrid } from './ProductGrid';
@@ -96,6 +98,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow' | 'messages'>('shop');
   const [viewMode, setViewMode] = useState<'home' | 'all-products' | 'all-vendors'>('home');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [promoSheetOpen, setPromoSheetOpen] = useState(false);
 
   // Détecter retour depuis l'espace vendeur
   useEffect(() => {
@@ -146,6 +149,20 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     sortBy: 'popularity',
     showOnlyFavorites: false,
   });
+  
+  // ✅ Afficher le welcome sheet une fois par semaine
+  useEffect(() => {
+    const WELCOME_KEY = 'kwenda_shop_welcome_v1';
+    const lastShown = localStorage.getItem(WELCOME_KEY);
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    
+    if (!lastShown || Date.now() - parseInt(lastShown) > oneWeek) {
+      setTimeout(() => {
+        setPromoSheetOpen(true);
+        localStorage.setItem(WELCOME_KEY, Date.now().toString());
+      }, 2000);
+    }
+  }, []);
   
   // ✅ État de connexion
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -1409,6 +1426,13 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           filteredCount: filteredProducts.length,
           averagePrice: calculateAveragePrice(filteredProducts),
         }}
+      />
+
+      {/* Marketplace Welcome Sheet */}
+      <MarketplacePromoSheet
+        open={promoSheetOpen}
+        onOpenChange={setPromoSheetOpen}
+        offer={shopWelcomeMessage}
       />
 
     </div>
