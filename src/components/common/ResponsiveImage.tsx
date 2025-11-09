@@ -43,18 +43,15 @@ export const ResponsiveImage = ({
     return fileName.replace(/\.[^/.]+$/, '');
   };
 
-  // Générer srcset pour WebP et fallback PNG
-  const generateSrcSet = (format: 'webp' | 'png') => {
+  // Générer srcset pour WebP avec différentes largeurs
+  const generateWebPSrcSet = () => {
     const baseName = getFileNameWithoutExt(src);
+    const dirPath = src.substring(0, src.lastIndexOf('/') + 1);
+    
     return widths
       .map((width) => {
-        // Vite gère les imports d'images avec query params
-        // On utilise le format original pour le fallback
-        if (format === 'png') {
-          return `${src} ${width}w`;
-        }
-        // Pour WebP, on suppose que les images optimisées existent
-        const webpSrc = src.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+        // Format: /assets/image-640w.webp 640w
+        const webpSrc = `${dirPath}${baseName}-${width}w.webp`;
         return `${webpSrc} ${width}w`;
       })
       .join(', ');
@@ -82,10 +79,10 @@ export const ResponsiveImage = ({
   // Utiliser picture element pour WebP avec fallback PNG
   return (
     <picture>
-      {/* Source WebP pour navigateurs modernes */}
+      {/* Source WebP avec srcset responsive pour navigateurs modernes */}
       <source
         type="image/webp"
-        srcSet={src.replace(/\.(png|jpg|jpeg)$/i, '.webp')}
+        srcSet={generateWebPSrcSet()}
         sizes={sizes}
       />
       
