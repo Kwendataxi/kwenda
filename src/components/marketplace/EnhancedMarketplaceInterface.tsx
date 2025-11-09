@@ -54,6 +54,7 @@ import { useUserVerification } from '@/hooks/useUserVerification';
 import { useWallet } from '@/hooks/useWallet';
 import { useUniversalChat } from '@/hooks/useUniversalChat';
 import { useCart } from '@/context/CartContext';
+import { useProductFavorites } from '@/hooks/useProductFavorites';
 
 // Utiliser les types unifiés de marketplace.ts
 import { MarketplaceProduct, CartItem as MarketplaceCartItem, HorizontalProduct, productToCartItem } from '@/types/marketplace';
@@ -95,7 +96,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   // State management
   const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow' | 'messages'>('shop');
   const [viewMode, setViewMode] = useState<'home' | 'all-products' | 'all-vendors'>('home');
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const { favorites, toggleFavorite, isFavorite, loading: favoritesLoading } = useProductFavorites(user?.id);
 
   // Détecter retour depuis l'espace vendeur
   useEffect(() => {
@@ -512,6 +513,11 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       }
     }
 
+    // Favorites filter
+    if (filters.showOnlyFavorites && !isFavorite(product.id)) {
+      return false;
+    }
+
     return true;
   }).sort((a, b) => {
     // Apply sorting
@@ -655,17 +661,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     .sort((a, b) => (b.average_rating * b.total_sales) - (a.average_rating * a.total_sales))
     .slice(0, 10);
 
-  // Gestion des favoris
-  const handleToggleFavorite = (productId: string) => {
-    setFavorites(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-    toast({
-      title: favorites.includes(productId) ? '💔 Retiré des favoris' : '❤️ Ajouté aux favoris',
-      duration: 2000,
-    });
+  // Gestion des favoris avec persistance
+  const handleToggleFavorite = async (productId: string) => {
+    await toggleFavorite(productId);
   };
 
   const convertToHorizontalProduct = (product: Product): HorizontalProduct => ({
@@ -913,7 +911,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                   }}
                   onToggleFavorite={() => handleToggleFavorite(product.id)}
                   onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
-                  isFavorite={favorites.includes(product.id)}
+                  isFavorite={isFavorite(product.id)}
                 />
               );
             })}
@@ -1022,7 +1020,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                       }}
                       onToggleFavorite={() => handleToggleFavorite(product.id)}
                       onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
-                      isFavorite={favorites.includes(product.id)}
+                      isFavorite={isFavorite(product.id)}
                     />
                   );
                 })}
@@ -1103,7 +1101,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                       }}
                       onToggleFavorite={() => handleToggleFavorite(product.id)}
                       onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
-                      isFavorite={favorites.includes(product.id)}
+                      isFavorite={isFavorite(product.id)}
                     />
                   );
                 })}
@@ -1150,7 +1148,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                           }}
                           onToggleFavorite={() => handleToggleFavorite(product.id)}
                           onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
-                          isFavorite={favorites.includes(product.id)}
+                          isFavorite={isFavorite(product.id)}
                         />
                       );
                     })}

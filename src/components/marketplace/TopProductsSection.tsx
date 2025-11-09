@@ -8,12 +8,16 @@ interface TopProductsSectionProps {
   products: MarketplaceProduct[];
   onAddToCart: (product: MarketplaceProduct) => void;
   onViewDetails: (product: MarketplaceProduct) => void;
+  onToggleFavorite?: (productId: string) => void;
+  isFavorite?: (productId: string) => boolean;
 }
 
 export const TopProductsSection: React.FC<TopProductsSectionProps> = ({
   products,
   onAddToCart,
-  onViewDetails
+  onViewDetails,
+  onToggleFavorite,
+  isFavorite
 }) => {
   // Calculer un score dynamique pour chaque produit
   const topProducts = products
@@ -65,6 +69,8 @@ export const TopProductsSection: React.FC<TopProductsSectionProps> = ({
             <ShopProductCard
               product={product}
               topPosition={index < 3 ? index + 1 : undefined}
+              isFavorite={isFavorite?.(product.id)}
+              onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(product.id) : undefined}
               onAddToCart={() => onAddToCart(product)}
               onViewDetails={() => onViewDetails(product)}
             />

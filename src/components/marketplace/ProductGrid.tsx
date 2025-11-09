@@ -27,6 +27,8 @@ interface ProductGridProps {
   onAddToCart: (product: Product) => void;
   onViewDetails: (product: Product) => void;
   onViewSeller?: (sellerId: string) => void;
+  onToggleFavorite?: (productId: string) => void;
+  isFavorite?: (productId: string) => boolean;
   userLocation?: { lat: number; lng: number } | null;
   loading?: boolean;
   cardVariant?: 'compact' | 'vertical';
@@ -37,6 +39,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   onAddToCart,
   onViewDetails,
   onViewSeller,
+  onToggleFavorite,
+  isFavorite,
   userLocation,
   loading = false,
   cardVariant = 'compact'
@@ -89,6 +93,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
                 seller: { display_name: product.seller },
                 inStock: product.isAvailable
               }}
+              isFavorite={isFavorite?.(product.id)}
+              onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(product.id) : undefined}
               onAddToCart={() => onAddToCart(product)}
               onViewDetails={() => onViewDetails(product)}
             />

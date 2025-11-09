@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Star, Plus, Award } from 'lucide-react';
+import { Star, Plus, Award, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 
@@ -21,6 +21,8 @@ interface ShopProductCardProps {
     inStock: boolean;
   };
   topPosition?: number; // Position dans le top (1, 2, 3 pour badges)
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
   onAddToCart: () => void;
   onViewDetails: () => void;
   className?: string;
@@ -29,6 +31,8 @@ interface ShopProductCardProps {
 export const ShopProductCard: React.FC<ShopProductCardProps> = ({
   product,
   topPosition,
+  isFavorite = false,
+  onToggleFavorite,
   onAddToCart,
   onViewDetails,
   className
@@ -42,6 +46,12 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({
     e.stopPropagation();
     triggerHaptic('medium');
     onAddToCart();
+  };
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic('light');
+    onToggleFavorite?.();
   };
 
   return (
@@ -91,6 +101,35 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({
                 <Award className="h-3 w-3" />
                 Top #{topPosition}
               </Badge>
+            </motion.div>
+          )}
+
+          {/* Bouton Favoris - Top Right */}
+          {onToggleFavorite && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: 'spring' }}
+              className="absolute top-3 right-3 z-20"
+            >
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={handleToggleFavorite}
+                className={cn(
+                  "w-10 h-10 rounded-full shadow-lg transition-all backdrop-blur-sm",
+                  isFavorite 
+                    ? "bg-red-500 hover:bg-red-600 text-white" 
+                    : "bg-white/90 hover:bg-white text-gray-600"
+                )}
+              >
+                <Heart
+                  className={cn(
+                    "h-5 w-5 transition-all",
+                    isFavorite && "fill-current"
+                  )}
+                />
+              </Button>
             </motion.div>
           )}
 
