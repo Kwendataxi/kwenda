@@ -13,6 +13,8 @@ import { AllDishesView } from './AllDishesView';
 import { AllRestaurantsView } from './AllRestaurantsView';
 import { FoodFooterNav } from './FoodFooterNav';
 import { FoodCart } from './FoodCart';
+import { FoodPromoSheet } from './FoodPromoSheet';
+import { mockFoodPromos } from '@/data/foodPromos';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -37,8 +39,21 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [lastOrderNumber, setLastOrderNumber] = useState('');
   const [showCartSheet, setShowCartSheet] = useState(false);
+  const [promoSheetOpen, setPromoSheetOpen] = useState(false);
   const { restaurants, loading, refetch } = useRestaurantsQuery(selectedCity);
   const { cart, setCart, clearCart } = useFoodCart(selectedRestaurant?.id);
+
+  // Affichage automatique du promo sheet
+  useEffect(() => {
+    const hasSeenPromo = localStorage.getItem('kwenda_food_promo_seen_v1');
+    if (!hasSeenPromo && mockFoodPromos.length > 0) {
+      const timer = setTimeout(() => {
+        setPromoSheetOpen(true);
+        localStorage.setItem('kwenda_food_promo_seen_v1', 'true');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Vider l'affichage du panier seulement si on retourne à la liste ET qu'il est vide
   useEffect(() => {
@@ -380,6 +395,35 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
           onTrackOrder={() => {
             setSuccessModalOpen(false);
             navigate('/food/orders');
+          }}
+        />
+      )}
+
+      {/* Food Promo Sheet */}
+      {mockFoodPromos.length > 0 && (
+        <FoodPromoSheet
+          open={promoSheetOpen}
+          onOpenChange={setPromoSheetOpen}
+          offer={mockFoodPromos[0]}
+          onOrder={(promoCode) => {
+            toast.success('Code promo copié !', {
+              description: `Utilisez ${promoCode} lors de votre commande`,
+              duration: 3000
+            });
+            
+            // Chercher le restaurant de l'offre
+            const restaurant = restaurants.find(
+              r => r.restaurant_name === mockFoodPromos[0].restaurant_name
+            );
+            
+            if (restaurant) {
+              setTimeout(() => {
+                handleSelectRestaurant(restaurant);
+                toast.success('Restaurant sélectionné', {
+                  description: `Vous pouvez maintenant commander chez ${restaurant.restaurant_name}`
+                });
+              }, 500);
+            }
           }}
         />
       )}
