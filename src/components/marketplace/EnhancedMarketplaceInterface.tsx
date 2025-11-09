@@ -93,7 +93,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { calculateDiscount, getOriginalPrice } = useProductPromotions();
   
   // State management
-  const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow'>('shop');
+  const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow' | 'messages'>('shop');
   const [viewMode, setViewMode] = useState<'home' | 'all-products' | 'all-vendors'>('home');
   const [favorites, setFavorites] = useState<string[]>([]);
 
@@ -177,6 +177,19 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     }, 2000);
     
     return () => clearTimeout(timer);
+  }, []);
+
+  // ✅ Gérer la navigation vers l'onglet Messages via URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    
+    if (tab === 'messages') {
+      console.log('📩 [Marketplace] Navigation vers onglet Messages');
+      setCurrentTab('messages');
+      // Clear URL param
+      window.history.replaceState({}, '', '/marketplace');
+    }
   }, []);
 
   const loadProducts = async () => {

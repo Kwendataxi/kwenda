@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Package, ShoppingCart } from 'lucide-react';
+import { Heart, Package, ShoppingCart, MessageCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useProductPromotions } from '@/hooks/useProductPromotions';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface AiShopperProductCardProps {
   product: {
@@ -46,6 +48,7 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
   const { triggerHaptic } = useHapticFeedback();
   const { formatCurrency } = useLanguage();
   const { calculateDiscount, getOriginalPrice, getPromotionLabel } = useProductPromotions();
+  const { user } = useAuth();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -83,6 +86,29 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
     if (onVisitShop) {
       triggerHaptic('light');
       onVisitShop(product.seller_id);
+    }
+  };
+
+  const handleContactSeller = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic('light');
+    try {
+      const { useUniversalChat } = await import('@/hooks/useUniversalChat');
+      const hook = useUniversalChat();
+      await hook.createOrFindConversation(
+        'marketplace',
+        product.seller_id,
+        product.id,
+        `Discussion sur : ${product.title}`
+      );
+      window.location.href = '/marketplace?tab=messages';
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      if ((error as Error).message?.includes('vous-même')) {
+        toast.error('Vous ne pouvez pas contacter votre propre boutique');
+      } else {
+        toast.error('Erreur lors de la création de la conversation');
+      }
     }
   };
 
@@ -143,6 +169,20 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
               className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-200"
             >
               <ShoppingCart className="h-5 w-5" />
+            </motion.button>
+          )}
+
+          {/* Bouton Contacter - Apparaît au survol en bas à gauche (si ce n'est pas son produit) */}
+          {user && user.id !== product.seller_id && (
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleContactSeller}
+              className="absolute bottom-3 left-3 w-10 h-10 rounded-full bg-white text-primary shadow-lg flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-200"
+              title="Contacter le vendeur"
+            >
+              <MessageCircle className="h-5 w-5" />
             </motion.button>
           )}
 

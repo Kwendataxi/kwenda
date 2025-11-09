@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Plus, Minus, ExternalLink, Star, Store, MapPin } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, ExternalLink, Star, Store, MapPin, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { MarketplaceProduct } from '@/types/marketplace';
 
@@ -147,6 +147,38 @@ export const ProductQuickView = ({
                 </div>
                 <MapPin className="h-4 w-4 text-muted-foreground" />
               </div>
+
+              {/* Bouton Contacter le vendeur */}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const { useUniversalChat } = await import('@/hooks/useUniversalChat');
+                    const hook = useUniversalChat();
+                    const conv = await hook.createOrFindConversation(
+                      'marketplace',
+                      product.seller_id,
+                      product.id,
+                      `Discussion sur : ${product.title}`
+                    );
+                    if (conv) {
+                      window.location.href = '/marketplace?tab=messages';
+                    }
+                  } catch (error) {
+                    console.error('Error creating conversation:', error);
+                    if ((error as Error).message?.includes('vous-même')) {
+                      alert('Vous ne pouvez pas contacter votre propre boutique');
+                    } else {
+                      alert('Erreur lors de la création de la conversation');
+                    }
+                  }
+                }}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Contacter le vendeur
+              </Button>
 
               {/* Sélecteur de quantité */}
               <div className="space-y-2">

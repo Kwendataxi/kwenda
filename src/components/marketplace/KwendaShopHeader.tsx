@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, ShoppingBag, Package } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Package, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useUniversalChat } from '@/hooks/useUniversalChat';
+import { useMemo } from 'react';
 
 interface KwendaShopHeaderProps {
   cartItemsCount: number;
@@ -14,6 +16,14 @@ export const KwendaShopHeader = ({
   onBack,
   onCartClick
 }: KwendaShopHeaderProps) => {
+  const { conversations } = useUniversalChat();
+  
+  const marketplaceUnreadCount = useMemo(() => {
+    return conversations
+      .filter(conv => conv.context_type === 'marketplace')
+      .reduce((sum, conv) => sum + (conv.unread_count || 0), 0);
+  }, [conversations]);
+
   return (
     <motion.div
       initial={{ y: -100 }}
@@ -25,15 +35,27 @@ export const KwendaShopHeader = ({
         <div className="flex items-center justify-between gap-3">
           {/* Gauche: Retour + Titre */}
           <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onBack}
-              className="text-white hover:bg-white/20 flex-shrink-0"
-              aria-label="Retour"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onBack}
+                className="text-white hover:bg-white/20 flex-shrink-0"
+                aria-label="Retour"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              
+              {/* Badge messages non lus */}
+              {marketplaceUnreadCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] font-bold animate-pulse"
+                >
+                  {marketplaceUnreadCount}
+                </Badge>
+              )}
+            </div>
             
             {/* Bouton de sortie d'urgence */}
             <Button

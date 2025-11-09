@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Package, TrendingUp, ChevronRight } from 'lucide-react';
+import { Star, Package, TrendingUp, ChevronRight, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -126,29 +126,56 @@ export const VendorCard: React.FC<VendorCardProps> = ({ vendor, badge, onVisit, 
           {vendor.shop_description || 'Découvrez les produits de cette boutique'}
         </p>
 
-        {/* CTA Button - Premium gradient */}
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full"
-        >
-          <Button
-            variant="default"
-            className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-all group/btn relative overflow-hidden"
-            onClick={(e) => {
-              e.stopPropagation();
-              onVisit(vendor.user_id);
-            }}
+        {/* CTA Buttons - Dual action */}
+        <div className="grid grid-cols-2 gap-2">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {/* Shimmer effect */}
-            <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-            
-            <span className="relative z-10 flex items-center justify-center gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 text-xs font-semibold shadow-lg"
+              onClick={(e) => {
+                e.stopPropagation();
+                onVisit(vendor.user_id);
+              }}
+            >
               Visiter
-              <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-            </span>
-          </Button>
-        </motion.div>
+              <ChevronRight className="h-3 w-3 ml-1" />
+            </Button>
+          </motion.div>
+          
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs font-semibold border-primary/30 hover:bg-primary/10"
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  const { useUniversalChat } = await import('@/hooks/useUniversalChat');
+                  const hook = useUniversalChat();
+                  await hook.createOrFindConversation(
+                    'marketplace',
+                    vendor.user_id,
+                    undefined,
+                    `Discussion avec ${vendor.shop_name}`
+                  );
+                  window.location.href = '/marketplace?tab=messages';
+                } catch (error) {
+                  console.error('Error:', error);
+                }
+              }}
+            >
+              <MessageCircle className="h-3 w-3 mr-1" />
+              Chat
+            </Button>
+          </motion.div>
+        </div>
       </div>
     </motion.div>
   );

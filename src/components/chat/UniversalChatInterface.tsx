@@ -290,13 +290,40 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: Con
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-muted-foreground">Chargement...</div>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full"
+        />
       </div>
     );
   }
 
+  // ✅ EMPTY STATE MARKETPLACE
   if (conversations.length === 0) {
-    return null;
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200 }}
+        >
+          <MessageCircle className="h-20 w-20 text-muted-foreground/40 mb-2" />
+        </motion.div>
+        <div className="space-y-2">
+          <h3 className="text-xl font-bold">Aucun message</h3>
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Commencez à discuter avec des vendeurs pour poser vos questions sur leurs produits
+          </p>
+        </div>
+        <Button 
+          onClick={() => window.location.href = '/marketplace'}
+          className="mt-4"
+        >
+          Explorer les produits
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -308,16 +335,16 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: Con
             onClick={() => onSelectConversation(conversation.id)}
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
           >
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={conversation.other_participant?.avatar_url} />
-              <AvatarFallback>
-                {conversation.other_participant?.display_name?.charAt(0) || 'U'}
+            <Avatar className="h-10 w-10 ring-2 ring-primary/20">
+              <AvatarImage src={conversation.other_participant?.shop_logo_url || conversation.other_participant?.avatar_url} />
+              <AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white">
+                {conversation.other_participant?.shop_name?.[0] || conversation.other_participant?.display_name?.charAt(0) || 'V'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <p className="font-medium truncate">
-                  {conversation.other_participant?.display_name || 'Utilisateur'}
+                  {conversation.other_participant?.shop_name || conversation.other_participant?.display_name || 'Vendeur'}
                 </p>
                 {conversation.unread_count && conversation.unread_count > 0 && (
                   <Badge variant="secondary" className="text-xs">
