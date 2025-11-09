@@ -103,6 +103,8 @@ import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
 import { useLotteryTickets } from '@/hooks/useLotteryTickets';
 import { UnifiedActivityScreen } from '@/components/activity/UnifiedActivityScreen';
 import { CancellationNotification } from '@/components/notifications/CancellationNotification';
+import { ServiceWelcomeCarousel } from '@/components/onboarding/ServiceWelcomeCarousel';
+import { serviceWelcomeSlides } from '@/data/serviceWelcome';
 
 interface Location {
   address: string;
@@ -176,6 +178,9 @@ const ClientApp = () => {
   // Cancellation notification state
   const [showCancellationPrompt, setShowCancellationPrompt] = useState(false);
 
+  // Welcome carousel state
+  const [showWelcomeCarousel, setShowWelcomeCarousel] = useState(false);
+
   // Prefill for taxi when coming from home search
   type TaxiPrefill = {
     pickup?: Location;
@@ -214,6 +219,26 @@ const ClientApp = () => {
       lotteryTickets.awardDailyLoginTickets();
     }
   }, [user]);
+
+  // ✅ Afficher le carrousel de bienvenue au premier lancement
+  useEffect(() => {
+    const WELCOME_KEY = 'kwenda_services_intro_v1';
+    const lastShown = localStorage.getItem(WELCOME_KEY);
+    const isDev = import.meta.env.DEV;
+    
+    // Afficher une seule fois (ou toujours en dev pour test)
+    if (!lastShown || isDev) {
+      const timer = setTimeout(() => {
+        setShowWelcomeCarousel(true);
+        // Sauvegarder seulement en production
+        if (!isDev && !lastShown) {
+          localStorage.setItem(WELCOME_KEY, Date.now().toString());
+        }
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Gérer l'ouverture du modal de rechargement depuis la navigation
   useEffect(() => {
@@ -977,6 +1002,26 @@ const ClientApp = () => {
           onNewRide={() => {
             setShowCancellationPrompt(false);
             setCurrentView('transport');
+          }}
+        />
+        
+        {/* Welcome Carousel - Présentation des services au premier lancement */}
+        <ServiceWelcomeCarousel
+          open={showWelcomeCarousel}
+          onOpenChange={setShowWelcomeCarousel}
+          slides={serviceWelcomeSlides}
+          onNavigate={(path) => {
+            setShowWelcomeCarousel(false);
+            // Navigation selon le service
+            if (path === '/food') {
+              handleServiceSelect('food');
+            } else if (path === '/marketplace') {
+              handleServiceSelect('marketplace');
+            } else if (path === '/transport') {
+              handleServiceSelect('transport');
+            } else if (path === '/lottery') {
+              handleServiceSelect('lottery');
+            }
           }}
         />
       </div>
