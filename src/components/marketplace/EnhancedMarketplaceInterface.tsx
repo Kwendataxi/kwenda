@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -152,8 +152,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  // Hooks
-  const ordersHook = useMarketplaceOrders();
+  // Hooks supprimés - duplication nettoyée
 
   // Check for pending fee approval orders
   useEffect(() => {
@@ -188,61 +187,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     };
   }, []);
 
-  // ✅ Chargement initial avec gestion des erreurs et rechargement forcé
-  useEffect(() => {
-    console.log('🚀 [Marketplace] Montage du composant - DÉBUT');
-    
-    // Chargement immédiat
-    const initialLoad = async () => {
-      console.log('📦 [Marketplace] Premier chargement des produits');
-      await loadProducts();
-    };
-    
-    initialLoad().catch(error => {
-      console.error('💥 [Marketplace] Erreur critique au montage:', error);
-      // Retry après 1s
-      setTimeout(() => {
-        console.log('🔄 [Marketplace] Retry après erreur');
-        loadProducts();
-      }, 1000);
-    });
-    
-    // Force reload si toujours vide après 3s
-    const forceTimer = setTimeout(() => {
-      if (products.length === 0 && !loading) {
-        console.warn('⚠️ [Marketplace] FORCE RELOAD - Aucun produit après 3s');
-        loadProducts();
-      }
-    }, 3000);
-    
-    return () => {
-      console.log('🧹 [Marketplace] Démontage du composant');
-      clearTimeout(forceTimer);
-    };
-  }, []);
-
-  // ✅ Gérer la navigation vers l'onglet Messages via URL
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
-    
-    if (tab === 'messages') {
-      console.log('📩 [Marketplace] Navigation vers onglet Messages');
-      setCurrentTab('messages');
-      // Clear URL param
-      window.history.replaceState({}, '', '/marketplace');
-    }
-  }, []);
-
-  const loadProducts = async () => {
+  // ✅ Fonction de chargement stabilisée avec useCallback
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
       console.log('🔍 [Marketplace] Chargement des produits...');
       console.log('🌐 [Marketplace] Online:', navigator.onLine);
+      console.log('👤 [Marketplace] User:', user?.id || 'anonymous');
       
       const startTime = performance.now();
       
-      // ✅ CORRECTION : LEFT JOIN au lieu de INNER pour inclure TOUS les produits
       const { data, error } = await supabase
         .from('marketplace_products')
         .select(`
@@ -271,7 +225,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       console.log(`✅ [Marketplace] ${data?.length || 0} produits chargés depuis Supabase`);
       console.log('📦 [Marketplace] Sample product:', data?.[0]);
 
-      // Handle empty data gracefully
       if (!data || data.length === 0) {
         console.warn('⚠️ [Marketplace] Aucun produit trouvé dans la base de données');
         setProducts([]);
@@ -279,7 +232,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         return;
       }
 
-      // ✅ PHASE 1.4 : Fonction de normalisation d'images
+      // Normalisation des images
       const normalizeProductImages = (images: any): string[] => {
         if (!images) return [];
         if (Array.isArray(images)) {
@@ -304,7 +257,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         const normalizedImages = normalizeProductImages(product.images);
         const fallbackImage = 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=800&h=800&fit=crop';
         
-        // Remplacer placehold.co par fallback Unsplash
         const cleanedImages = normalizedImages.map(img => 
           img.includes('placehold.co') ? fallbackImage : img
         );
@@ -344,31 +296,85 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       });
 
       setProducts(transformedProducts);
-      console.log(`✅ [Marketplace] ${transformedProducts.length} produits transformés et prêts à l'affichage`);
+      console.log(`✅ [Marketplace] ${transformedProducts.length} produits transformés et prêts`);
     } catch (error) {
       console.error('💥 [Marketplace] CRITICAL ERROR:', error);
-      console.error('📊 [Marketplace] Error details:', {
-        name: (error as Error).name,
-        message: (error as Error).message,
-        stack: (error as Error).stack
-      });
-      
-      // Set empty products on error
       setProducts([]);
       
-      // Show explicit error toast for critical errors only
-      if (error instanceof Error && !error.message.includes('No rows')) {
-        toast({
-          title: "Erreur de chargement",
-          description: "Impossible de charger les produits. Vérifiez votre connexion internet.",
-          variant: 'destructive',
-          duration: 5000,
-        });
-      }
+      toast({
+        title: "Erreur de chargement",
+        description: "Impossible de charger les produits. Vérifiez votre connexion.",
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
+
+  // ✅ Chargement initial avec gestion des erreurs et rechargement forcé
+  useEffect(() => {
+    console.log('🚀 [Marketplace] MONTAGE COMPOSANT');
+    console.log('📊 [Marketplace] État initial:', {
+      productsCount: products.length,
+      loading,
+      isOnline,
+      userConnected: !!user
+    });
+    
+    let mounted = true;
+    
+    const executeLoad = async () => {
+      if (!mounted) return;
+      
+      console.log('📦 [Marketplace] Démarrage chargement initial...');
+      
+      try {
+        await loadProducts();
+        console.log('✅ [Marketplace] Chargement initial terminé');
+      } catch (err) {
+        console.error('💥 [Marketplace] Erreur chargement initial:', err);
+        
+        // Retry après 2s si échec
+        if (mounted) {
+          console.log('🔄 [Marketplace] Retry dans 2s...');
+          setTimeout(() => {
+            if (mounted) loadProducts();
+          }, 2000);
+        }
+      }
+    };
+    
+    executeLoad();
+    
+    // Force reload si toujours vide après 5s
+    const forceTimer = setTimeout(() => {
+      if (mounted && products.length === 0 && !loading) {
+        console.warn('⚠️ [Marketplace] FORCE RELOAD - Toujours vide après 5s');
+        loadProducts();
+      }
+    }, 5000);
+    
+    return () => {
+      console.log('🧹 [Marketplace] DÉMONTAGE COMPOSANT');
+      mounted = false;
+      clearTimeout(forceTimer);
+    };
+  }, [loadProducts]);
+
+  // ✅ Gérer la navigation vers l'onglet Messages via URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    
+    if (tab === 'messages') {
+      console.log('📩 [Marketplace] Navigation vers onglet Messages');
+      setCurrentTab('messages');
+      // Clear URL param
+      window.history.replaceState({}, '', '/marketplace');
+    }
+  }, []);
+
+  // loadProducts moved above before useEffect
 
   // Calculate distance between two points
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -591,7 +597,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     // Il sera vidé automatiquement après checkout
     
     // Rafraîchir les commandes
-    ordersHook.refetch();
+    refetchOrders();
     
     // Toast de confirmation
     toast({
@@ -1028,6 +1034,42 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                 <Sparkles className="h-5 w-5 text-purple-500" />
                 Dernières nouveautés
               </h3>
+
+              {/* DEBUG BUTTONS - Visible uniquement si vide depuis plus de 3s */}
+              {!loading && products.length === 0 && (
+                <div className="fixed bottom-20 right-4 z-50 flex flex-col gap-2">
+                  <Button
+                    onClick={() => {
+                      console.log('🔧 [DEBUG] Force reload manuel');
+                      setLoading(true);
+                      loadProducts();
+                    }}
+                    variant="destructive"
+                    size="sm"
+                    className="shadow-2xl animate-pulse"
+                  >
+                    🔧 Debug: Recharger
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      console.log('🔧 [DEBUG] Diagnostic complet');
+                      console.log({
+                        productsCount: products.length,
+                        loading,
+                        isOnline,
+                        user: user?.id,
+                        filters,
+                        cartItems: cartItems.length
+                      });
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="shadow-2xl"
+                  >
+                    📊 Logs
+                  </Button>
+                </div>
+              )}
               
               <div className="grid grid-cols-2 gap-3">
                 {newProducts.slice(0, 12).map(product => {

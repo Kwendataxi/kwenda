@@ -87,7 +87,7 @@ export function FoodPromoSheet({ open, onOpenChange, offer, onOrder }: FoodPromo
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} modal>
-      <DrawerContent className="max-h-[90vh] rounded-t-[2rem] border-0 shadow-2xl overflow-hidden bg-background z-[60]">
+      <DrawerContent className="max-h-[90vh] rounded-t-[2rem] border-0 shadow-2xl overflow-hidden bg-background z-[100]">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

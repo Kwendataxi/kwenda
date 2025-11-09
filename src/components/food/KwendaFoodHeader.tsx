@@ -128,6 +128,22 @@ export const KwendaFoodHeader = ({
               🎁 Test
             </Button>
           )}
+          
+          {/* Bouton RESET localStorage pour forcer le promo sheet */}
+          {import.meta.env.DEV && (
+            <Button
+              onClick={() => {
+                localStorage.removeItem('kwenda_food_promo_seen_v1');
+                window.location.reload();
+              }}
+              variant="outline"
+              size="sm"
+              className="text-xs h-9 px-2 hidden sm:flex items-center gap-1 bg-purple-500/10 border-purple-500/30"
+              title="Réinitialiser promo sheet"
+            >
+              🔄 Reset Promo
+            </Button>
+          )}
           {cartItemsCount > 0 && (step === 'menu' || step === 'all-dishes' || step === 'restaurants') && (
             <motion.div
               initial={{ scale: 0 }}
