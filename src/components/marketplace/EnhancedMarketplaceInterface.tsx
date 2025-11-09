@@ -399,14 +399,23 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       return false;
     }
 
-    // Distance filter
-    if (filters.maxDistance < 50 && coordinates && product.coordinates) {
-      const distance = calculateDistance(
-        coordinates.lat, coordinates.lng,
-        product.coordinates.lat, product.coordinates.lng
-      );
-      if (distance > filters.maxDistance) {
-        return false;
+    // Distance filter avec validation
+    if (filters.maxDistance < 50 && coordinates) {
+      try {
+        if (product.coordinates && 
+            typeof product.coordinates.lat === 'number' && 
+            typeof product.coordinates.lng === 'number') {
+          const distance = calculateDistance(
+            coordinates.lat, coordinates.lng,
+            product.coordinates.lat, product.coordinates.lng
+          );
+          if (distance > filters.maxDistance) {
+            return false;
+          }
+        }
+      } catch (error) {
+        console.warn('[EnhancedMarketplace] Distance calculation error:', error);
+        // Ne pas exclure le produit si erreur de calcul
       }
     }
 
@@ -440,7 +449,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     // Utiliser le addToCart global du CartContext
     addToCartGlobal(product);
 
-    // Feedback visuel moderne avec confetti activé
+    // Feedback haptique mobile - triple vibration
+    if (navigator.vibrate) {
+      navigator.vibrate([50, 30, 100]);
+    }
+
+    // Feedback visuel moderne avec confetti FORCÉ
     showFeedback(
       {
         id: product.id,
@@ -451,17 +465,25 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       quantity,
       {
         withAnimation: true,
-        withConfetti: true,
+        withConfetti: true,  // Toujours activé
         productElementSelector: `[data-product-id="${product.id}"]`,
         cartButtonSelector: '[data-cart-button]'
       }
     );
 
-    // Toast amélioré
+    // Pulse sur l'icône panier
+    const cartIcon = document.querySelector('[data-cart-button]');
+    if (cartIcon) {
+      cartIcon.classList.add('animate-bounce');
+      setTimeout(() => cartIcon.classList.remove('animate-bounce'), 600);
+    }
+
+    // Toast position TOP-CENTER pour visibilité maximale
     toast({
-      title: "✅ Ajouté au panier",
+      title: "🎉 Ajouté au panier !",
       description: `${product.title} • ${formatCurrency(product.price)}`,
-      duration: 2000
+      duration: 2500,
+      className: "border-2 border-primary shadow-2xl"
     });
   };
 

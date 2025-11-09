@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShoppingBag, Plus, Minus, Trash2, Shield, CheckCircle, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { AnimatedCartItem } from './AnimatedCartItem';
 import { CartEmptyState } from './CartEmptyState';
 import { KwendaPayCheckout } from './KwendaPayCheckout';
@@ -162,9 +163,15 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
               </motion.div>
               <div className="flex flex-col gap-1">
                 <span className="text-xl font-bold">Mon Panier</span>
-                <span className="text-sm text-white/90 font-normal">
+                <motion.span
+                  key={totalItems}
+                  initial={{ scale: 1.3, color: 'rgb(239, 68, 68)' }}
+                  animate={{ scale: 1, color: 'inherit' }}
+                  transition={{ type: 'spring', stiffness: 300 }}
+                  className="text-sm text-white/90 font-normal"
+                >
                   {totalItems} article{totalItems > 1 ? 's' : ''} • {vendorCount} vendeur{vendorCount > 1 ? 's' : ''}
-                </span>
+                </motion.span>
               </div>
             </div>
             {cartItems.length > 0 && (
@@ -246,11 +253,11 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
             </div>
           </ScrollArea>
 
-          {/* Footer with total and checkout - compact mobile */}
-          <div className="border-t bg-background/95 backdrop-blur-sm p-3 sm:p-4 space-y-2.5 sm:space-y-3">
+          {/* Footer with total and checkout - sticky */}
+          <div className="sticky bottom-0 border-t bg-background/98 backdrop-blur-md shadow-2xl p-3 sm:p-4 space-y-2.5 sm:space-y-3 z-50">
             {/* Wallet Balance - compact */}
             <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
-              <CardContent className="p-2.5 sm:p-3">
+              <CardContent className="p-2.5 sm:p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
@@ -264,6 +271,26 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
                     <p className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
                       {wallet && wallet.balance >= totalPrice ? '✓ Suffisant' : '⚠ Insuffisant'}
                     </p>
+                  </div>
+                </div>
+                
+                {/* Progress bar de solde */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>Couverture</span>
+                    <span>{Math.min(100, ((wallet?.balance || 0) / totalPrice * 100)).toFixed(0)}%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, (wallet?.balance || 0) / totalPrice * 100)}%` }}
+                      className={cn(
+                        "h-full transition-all duration-700",
+                        wallet && wallet.balance >= totalPrice 
+                          ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                          : "bg-gradient-to-r from-amber-500 to-orange-500"
+                      )}
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -284,6 +311,7 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
 
             {/* Checkout Button - touch-optimized */}
             <Button 
+              data-checkout-button
               className="w-full h-12 sm:h-14 text-sm sm:text-base font-semibold bg-gradient-to-r from-primary to-primary-light min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform"
               onClick={handleCheckout}
               disabled={!wallet || wallet.balance < totalPrice}
@@ -340,9 +368,26 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
     </div>
   );
 
+  // Confirmation avant fermeture si panier non-vide
+  const handleCloseAttempt = (open: boolean) => {
+    if (!open && cartItems.length > 0 && checkoutStep === 'cart') {
+      const confirmed = confirm(
+        `⚠️ Vous avez ${totalItems} article${totalItems > 1 ? 's' : ''} dans votre panier !\n\n` +
+        `💰 Total : ${totalPrice.toLocaleString()} CDF\n\n` +
+        `Voulez-vous vraiment quitter sans finaliser votre commande ?`
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+    }
+    
+    onClose();
+  };
+
   return (
     <>
-      <Sheet open={isOpen} onOpenChange={onClose}>
+      <Sheet open={isOpen} onOpenChange={handleCloseAttempt}>
         <SheetContent className="w-full sm:max-w-md md:max-w-lg p-0 overflow-hidden">
           {checkoutStep === 'cart' && renderCartView()}
           {checkoutStep === 'processing' && renderProcessingView()}

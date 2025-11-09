@@ -205,37 +205,57 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
                 </div>
               </div>
 
-              {/* Actions avec badge nombre d'items */}
+              {/* Actions avec CTA commander prominant */}
               <div className="flex gap-2 mt-3">
                 {onOpenCart && (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        toast.dismiss(t);
+                        onOpenCart();
+                        // Auto-scroll vers checkout button
+                        setTimeout(() => {
+                          document.querySelector('[data-checkout-button]')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                      }}
+                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 font-bold shadow-lg text-white"
+                    >
+                      💳 Commander ({formatPrice(product.price * quantity)})
+                    </Button>
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        toast.dismiss(t);
+                        onOpenCart();
+                      }}
+                      className="flex-shrink-0 px-3"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                {!onOpenCart && (
                   <Button
                     size="sm"
-                    onClick={() => {
-                      toast.dismiss(t);
-                      onOpenCart();
-                    }}
-                    className="flex-1 font-semibold shadow-md hover:shadow-lg transition-shadow"
+                    variant="ghost"
+                    onClick={() => toast.dismiss(t)}
+                    className="flex-1"
                   >
-                    <ShoppingCart className="h-4 w-4 mr-1.5" />
-                    Voir le panier
+                    Continuer
                   </Button>
                 )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => toast.dismiss(t)}
-                  className="flex-shrink-0 px-4"
-                >
-                  Continuer
-                </Button>
               </div>
             </div>
           </div>
         </div>
       </motion.div>
     ), {
-      duration: 5000,
-      position: 'bottom-right',
+      duration: 6000,
+      position: 'top-center',
+      className: 'w-full max-w-md mx-auto',
     });
   };
 

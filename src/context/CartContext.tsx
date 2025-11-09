@@ -112,20 +112,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateQuantity(product.id, existingItem.quantity + 1);
       // Pas de toast ici, géré par le composant appelant
     } else {
+      // Validation stricte des données
       const cartItem: CartItem = {
-        id: product.id,
+        id: product.id || `temp_${Date.now()}`,
         product_id: product.id,
-        name: product.title || product.name, // Gérer les deux formats
-        price: product.price,
+        name: (product.title || product.name || 'Produit').substring(0, 100),
+        price: Math.max(0, product.price || 0),
         originalPrice: product.originalPrice,
-        image: product.image || (product.images && product.images[0]) || '',
+        image: product.image || (product.images?.[0]) || '/placeholder-product.png',
         quantity: 1,
-        seller: product.seller?.display_name || product.seller || 'Vendeur',
-        seller_id: product.seller_id || product.sellerId,
-        category: product.category,
+        seller: (product.seller?.display_name || product.seller || 'Vendeur').substring(0, 50),
+        seller_id: product.seller_id || product.sellerId || 'unknown',
+        category: product.category || 'general',
         isAvailable: product.inStock ?? product.isAvailable ?? true,
         coordinates: product.coordinates,
       };
+
+      // Validation finale avant ajout
+      if (!cartItem.id || !cartItem.name || cartItem.price < 0) {
+        console.error('[CartContext] Invalid cart item:', cartItem);
+        toast({
+          title: "Erreur",
+          description: "Impossible d'ajouter ce produit au panier",
+          variant: "destructive"
+        });
+        return;
+      }
       
       setCartItems(prev => [...prev, cartItem]);
       

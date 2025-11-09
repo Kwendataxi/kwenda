@@ -1,9 +1,9 @@
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ShoppingCart } from 'lucide-react';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface CartItem {
@@ -26,9 +26,18 @@ export const FloatingCartIndicator = ({
   className
 }: FloatingCartIndicatorProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [recentAddition, setRecentAddition] = useState(false);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  // Détecter les ajouts au panier
+  useEffect(() => {
+    if (cartCount > 0) {
+      setRecentAddition(true);
+      setTimeout(() => setRecentAddition(false), 1000);
+    }
+  }, [cartCount]);
   
   // Afficher seulement les 3 derniers articles ajoutés
   const recentItems = cartItems.slice(-3).reverse();
@@ -64,6 +73,7 @@ export const FloatingCartIndicator = ({
           whileTap={{ scale: 0.95 }}
         >
           <Button
+            data-cart-button
             size="lg"
             onClick={onOpenCart}
             className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-orange-500 text-white shadow-2xl hover:shadow-primary/50 transition-shadow"
@@ -76,10 +86,13 @@ export const FloatingCartIndicator = ({
                 <motion.div
                   key={cartCount}
                   initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
+                  animate={recentAddition ? {
+                    scale: [1, 1.5, 1],
+                    rotate: [0, 10, -10, 0]
+                  } : { scale: 1, rotate: 0 }}
                   exit={{ scale: 0, rotate: 180 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg ring-2 ring-white"
+                  transition={recentAddition ? { duration: 0.5, type: "spring" } : { type: 'spring', stiffness: 300 }}
+                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg ring-2 ring-white animate-pulse"
                 >
                   {cartCount > 99 ? '99+' : cartCount}
                 </motion.div>

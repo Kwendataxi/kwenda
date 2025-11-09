@@ -101,6 +101,7 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
 
   return (
     <motion.div
+      data-product-id={product.id}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.15, ease: "easeOut" }}
