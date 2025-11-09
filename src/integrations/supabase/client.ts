@@ -23,13 +23,14 @@ const baseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
       'X-Client-Info': 'kwenda-vtc/1.0.0'
     },
     fetch: (url, options = {}) => {
-      // ✅ Timeout réduit à 5 secondes pour meilleure réactivité
+      // ✅ Timeout augmenté à 10 secondes pour éviter les timeouts prématurés
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
       return fetch(url, {
         ...options,
-        signal: controller.signal
+        signal: controller.signal,
+        credentials: 'same-origin' // ✅ Inclure les cookies pour l'authentification
       }).finally(() => clearTimeout(timeoutId));
     }
   },

@@ -56,11 +56,11 @@ export class HealthMonitor {
   }
 
   private startMonitoring() {
-    // Monitoring toutes les 15 secondes
+    // Monitoring toutes les 60 secondes (optimisé pour réduire la charge CPU)
     this.monitoringInterval = setInterval(() => {
       this.updateMetrics();
       this.notifyListeners();
-    }, 15000);
+    }, 60000);
 
     // Monitoring immédiat au démarrage
     this.updateMetrics();
@@ -69,7 +69,7 @@ export class HealthMonitor {
   private async updateMetrics() {
     await Promise.all([
       this.checkMemory(),
-      this.checkCPU(),
+      // CPU check désactivé car il cause des blocages UI
       this.checkNetwork(),
       this.checkBattery()
     ]);

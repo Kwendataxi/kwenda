@@ -54,15 +54,7 @@ export type Database = {
           updated_at?: string
           variants?: Json
         }
-        Relationships: [
-          {
-            foreignKeyName: "ab_experiments_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       ab_test_events: {
         Row: {
@@ -98,15 +90,7 @@ export type Database = {
           user_id?: string | null
           variant?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "ab_test_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       ab_user_assignments: {
         Row: {
@@ -130,15 +114,7 @@ export type Database = {
           user_id?: string | null
           variant?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "ab_user_assignments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       activity_logs: {
         Row: {
@@ -356,15 +332,7 @@ export type Database = {
           setting_value?: Json
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "admin_settings_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       admins: {
         Row: {
@@ -415,15 +383,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "admins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       ai_interactions: {
         Row: {
@@ -465,15 +425,7 @@ export type Database = {
           user_id?: string | null
           user_message?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "ai_interactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       api_rate_limits: {
         Row: {
@@ -539,15 +491,7 @@ export type Database = {
           usage_count?: number | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "booking_beneficiaries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       booking_reports: {
         Row: {
@@ -640,15 +584,7 @@ export type Database = {
           updated_at?: string
           verified_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "business_accounts_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       business_team_members: {
         Row: {
@@ -692,20 +628,6 @@ export type Database = {
             referencedRelation: "business_accounts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "business_team_members_invited_by_fkey"
-            columns: ["invited_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "business_team_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       campaign_conversions: {
@@ -740,13 +662,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marketing_campaigns"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_conversions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "campaign_conversions_visitor_id_fkey"
@@ -907,22 +822,7 @@ export type Database = {
           reviewed_by?: string | null
           status_at_cancellation?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "cancellation_history_cancelled_by_fkey"
-            columns: ["cancelled_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "cancellation_history_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       challenge_rewards: {
         Row: {
@@ -1150,15 +1050,7 @@ export type Database = {
           verification_level?: string | null
           verification_status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "chauffeurs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       clients: {
         Row: {
@@ -1218,15 +1110,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "clients_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       code_generation_rate_limit: {
         Row: {
@@ -1250,15 +1134,7 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "code_generation_rate_limit_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       commission_configuration: {
         Row: {
@@ -1460,25 +1336,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "conversations_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "conversations_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1959,29 +1821,7 @@ export type Database = {
           user_id?: string
           vehicle_size?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "delivery_orders_cancelled_by_fkey"
-            columns: ["cancelled_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "delivery_orders_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "delivery_orders_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       delivery_pricing_config: {
         Row: {
@@ -2029,15 +1869,7 @@ export type Database = {
           surge_multiplier?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "delivery_pricing_config_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       delivery_status_history: {
         Row: {
@@ -2074,13 +1906,6 @@ export type Database = {
           status?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "delivery_status_history_changed_by_fkey"
-            columns: ["changed_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "delivery_status_history_delivery_order_id_fkey"
             columns: ["delivery_order_id"]
@@ -2989,13 +2814,6 @@ export type Database = {
             referencedRelation: "subscription_plans"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "driver_subscriptions_trial_granted_by_fkey"
-            columns: ["trial_granted_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       driver_vehicle_associations: {
@@ -3276,22 +3094,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "emergency_alerts_responder_id_fkey"
-            columns: ["responder_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "emergency_alerts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       encryption_keys: {
         Row: {
@@ -3327,15 +3130,7 @@ export type Database = {
           key_identifier?: string
           key_type?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "encryption_keys_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       enhanced_support_tickets: {
         Row: {
@@ -3580,13 +3375,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorites_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -4042,15 +3830,7 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "geolocation_audit_trail_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       heatmap_clicks: {
         Row: {
@@ -4107,15 +3887,7 @@ export type Database = {
           x?: number
           y?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "heatmap_clicks_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       intelligent_places: {
         Row: {
@@ -4265,15 +4037,7 @@ export type Database = {
           search_radius_km?: number | null
           user_agent?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "location_access_audit_accessed_by_fkey"
-            columns: ["accessed_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       location_search_cache: {
         Row: {
@@ -4354,15 +4118,7 @@ export type Database = {
           target_type?: string
           user_agent?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "lottery_admin_actions_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       lottery_config: {
         Row: {
@@ -4526,15 +4282,7 @@ export type Database = {
           title?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "lottery_notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       lottery_prize_deliveries: {
         Row: {
@@ -4599,13 +4347,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "lottery_prize_deliveries_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "lottery_prize_deliveries_delivery_person_id_fkey"
             columns: ["delivery_person_id"]
             isOneToOne: false
@@ -4624,13 +4365,6 @@ export type Database = {
             columns: ["delivery_person_id"]
             isOneToOne: false
             referencedRelation: "driver_status_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "lottery_prize_deliveries_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
             referencedColumns: ["user_id"]
           },
           {
@@ -4829,15 +4563,7 @@ export type Database = {
           user_id?: string
           vip_bonus?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "lottery_user_limits_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       lottery_wins: {
         Row: {
@@ -4927,15 +4653,7 @@ export type Database = {
           validated_by?: string | null
           wallet_transaction_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "lottery_wins_validated_by_fkey"
-            columns: ["validated_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       marketing_campaigns: {
         Row: {
@@ -5117,15 +4835,7 @@ export type Database = {
           service_type?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "marketplace_commission_config_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       marketplace_delivery_assignments: {
         Row: {
@@ -5502,20 +5212,6 @@ export type Database = {
             referencedRelation: "marketplace_categories"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "marketplace_products_moderator_id_fkey"
-            columns: ["moderator_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "marketplace_products_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       marketplace_promotions: {
@@ -5610,13 +5306,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "marketplace_ratings_buyer_id_fkey"
-            columns: ["buyer_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "marketplace_ratings_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -5629,13 +5318,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "marketplace_ratings_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -5935,15 +5617,7 @@ export type Database = {
           updated_at?: string
           voice_instructions_count?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "navigation_sessions_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       navigation_stats_daily: {
         Row: {
@@ -6057,15 +5731,7 @@ export type Database = {
           target_type?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notification_campaign_history_sent_by_fkey"
-            columns: ["sent_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       notification_preferences: {
         Row: {
@@ -6250,22 +5916,7 @@ export type Database = {
           verified_by?: string | null
           website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "partenaires_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "partenaires_verified_by_fkey"
-            columns: ["verified_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       partner_audit_logs: {
         Row: {
@@ -6604,13 +6255,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "partner_rental_followers_follower_id_fkey"
-            columns: ["follower_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "partner_rental_followers_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
@@ -6820,15 +6464,7 @@ export type Database = {
           is_active?: boolean
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "partner_security_config_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       partner_subscription_earnings: {
         Row: {
@@ -7133,15 +6769,7 @@ export type Database = {
           supported_currencies?: string[]
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "payment_settings_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       payment_transactions: {
         Row: {
@@ -7210,13 +6838,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -7352,15 +6973,7 @@ export type Database = {
           points_converted?: number
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "points_conversion_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       pricing_configs: {
         Row: {
@@ -7544,25 +7157,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "product_qa_answered_by_fkey"
-            columns: ["answered_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "product_qa_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_qa_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -7652,20 +7251,6 @@ export type Database = {
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "product_reports_reporter_id_fkey"
-            columns: ["reporter_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "product_reports_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       product_views_log: {
@@ -7697,13 +7282,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_views_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -7789,15 +7367,7 @@ export type Database = {
           user_id?: string
           user_type?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       promo_code_usage: {
         Row: {
@@ -7837,13 +7407,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "promo_codes"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "promo_code_usage_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -7917,15 +7480,7 @@ export type Database = {
           valid_from?: string
           valid_until?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "promo_codes_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       promo_compensation_config: {
         Row: {
@@ -8080,15 +7635,7 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "promotional_ads_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       push_messages: {
         Row: {
@@ -8473,15 +8020,7 @@ export type Database = {
           usage_count?: number | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "referral_codes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       referral_rewards: {
         Row: {
@@ -8564,22 +8103,7 @@ export type Database = {
           rewarded_at?: string | null
           status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "referral_system_referee_id_fkey"
-            columns: ["referee_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "referral_system_referrer_id_fkey"
-            columns: ["referrer_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       referral_tracking: {
         Row: {
@@ -8637,20 +8161,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "referral_codes"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referral_tracking_referred_id_fkey"
-            columns: ["referred_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "referral_tracking_referrer_id_fkey"
-            columns: ["referrer_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -9272,13 +8782,6 @@ export type Database = {
             referencedRelation: "rental_vehicle_categories"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "rental_vehicles_moderator_id_fkey"
-            columns: ["moderator_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       restaurant_audit_logs: {
@@ -9307,13 +8810,6 @@ export type Database = {
           restaurant_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_audit_logs_performed_by_fkey"
-            columns: ["performed_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "restaurant_audit_logs_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -9351,15 +8847,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "restaurant_commission_config_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       restaurant_custom_commission_rates: {
         Row: {
@@ -9393,13 +8881,6 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "restaurant_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_custom_commission_rates_set_by_fkey"
-            columns: ["set_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -9457,13 +8938,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "restaurant_daily_reports_generated_by_fkey"
-            columns: ["generated_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "restaurant_daily_reports_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
@@ -9492,13 +8966,6 @@ export type Database = {
           restaurant_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_followers_follower_id_fkey"
-            columns: ["follower_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "restaurant_followers_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -9549,13 +9016,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_inventory_last_restocked_by_fkey"
-            columns: ["last_restocked_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "restaurant_inventory_product_id_fkey"
             columns: ["product_id"]
@@ -9628,20 +9088,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_pos_sessions_closed_by_fkey"
-            columns: ["closed_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "restaurant_pos_sessions_opened_by_fkey"
-            columns: ["opened_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "restaurant_pos_sessions_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -9716,13 +9162,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "restaurant_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "restaurant_pos_transactions_served_by_fkey"
-            columns: ["served_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "restaurant_pos_transactions_session_id_fkey"
@@ -9847,13 +9286,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "restaurant_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "restaurant_profiles_verified_by_fkey"
             columns: ["verified_by"]
             isOneToOne: false
@@ -9912,13 +9344,6 @@ export type Database = {
           unit_cost?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "restaurant_stock_movements_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "restaurant_stock_movements_inventory_id_fkey"
             columns: ["inventory_id"]
@@ -10306,15 +9731,7 @@ export type Database = {
           usage_count?: number | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "saved_addresses_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       scratch_card_pity_tracker: {
         Row: {
@@ -10470,15 +9887,7 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "security_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       security_logs: {
         Row: {
@@ -10508,15 +9917,7 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "security_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       seller_profiles: {
         Row: {
@@ -10687,15 +10088,7 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "sensitive_data_access_audit_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       sensitive_data_access_logs: {
         Row: {
@@ -11239,13 +10632,6 @@ export type Database = {
             referencedRelation: "super_lottery_draws"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "super_lottery_entries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       support_categories: {
@@ -11559,22 +10945,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "team_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "team_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       transport_bookings: {
         Row: {
@@ -11732,27 +11103,6 @@ export type Database = {
             referencedRelation: "booking_beneficiaries"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "transport_bookings_cancelled_by_fkey"
-            columns: ["cancelled_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "transport_bookings_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "transport_bookings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       transport_chat_messages: {
@@ -11864,15 +11214,7 @@ export type Database = {
           trip_id?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "trip_share_links_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       unified_conversations: {
         Row: {
@@ -12091,15 +11433,7 @@ export type Database = {
           primary_user_id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_accounts_primary_user_id_fkey"
-            columns: ["primary_user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       user_activity_log: {
         Row: {
@@ -12138,15 +11472,7 @@ export type Database = {
           user_agent?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_activity_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       user_location_preferences: {
         Row: {
@@ -12206,15 +11532,7 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_lottery_badges_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       user_loyalty_points: {
         Row: {
@@ -12454,15 +11772,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_preferences_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       user_ratings: {
         Row: {
@@ -12659,22 +11969,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_assigned_by_fkey"
-            columns: ["assigned_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       user_saved_places: {
         Row: {
@@ -12761,15 +12056,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_security_settings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       user_settings: {
         Row: {
@@ -12874,13 +12161,6 @@ export type Database = {
             columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "admins"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_verification_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
             referencedColumns: ["user_id"]
           },
         ]
@@ -13028,13 +12308,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vendor_subscription_plans"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vendor_active_subscriptions_vendor_id_fkey"
-            columns: ["vendor_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -13218,13 +12491,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "vendor_followers_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "vendor_followers_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
@@ -13289,15 +12555,7 @@ export type Database = {
           title?: string
           vendor_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "vendor_notifications_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       vendor_product_favorites: {
         Row: {
@@ -13325,13 +12583,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "vendor_product_favorites_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -13383,13 +12634,6 @@ export type Database = {
             referencedRelation: "marketplace_products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "vendor_product_notifications_vendor_id_fkey"
-            columns: ["vendor_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       vendor_profiles: {
@@ -13432,15 +12676,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "vendor_profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       vendor_stats_cache: {
         Row: {
@@ -13476,15 +12712,7 @@ export type Database = {
           total_sales?: number
           vendor_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "vendor_stats_cache_vendor_id_fkey"
-            columns: ["vendor_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       vendor_subscription_plans: {
         Row: {
@@ -13589,15 +12817,7 @@ export type Database = {
           updated_at?: string
           vendor_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "vendor_subscriptions_subscriber_id_fkey"
-            columns: ["subscriber_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       vendor_wallet_transactions: {
         Row: {
@@ -13840,22 +13060,7 @@ export type Database = {
           status?: string
           user_agent?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "wallet_transfers_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "wallet_transfers_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       webhook_audit_logs: {
         Row: {
@@ -14311,15 +13516,7 @@ export type Database = {
           updated_at?: string | null
           vehicle_classes?: never
         }
-        Relationships: [
-          {
-            foreignKeyName: "chauffeurs_user_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       driver_status_unified: {
         Row: {
@@ -14336,15 +13533,7 @@ export type Database = {
           user_id: string | null
           verification_status: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "chauffeurs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       heatmap_grid_density: {
         Row: {
@@ -14398,15 +13587,7 @@ export type Database = {
           total_vehicles: number | null
           user_id: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "partenaires_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles_unified"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       rental_booking_stats_secure: {
         Row: {
@@ -14447,13 +13628,11 @@ export type Database = {
         }
         Relationships: []
       }
-      user_profiles_unified: {
+      user_profiles_safe: {
         Row: {
-          created_at: string | null
-          display_name: string | null
           email: string | null
           is_active: boolean | null
-          phone_number: string | null
+          name: string | null
           role: string | null
           user_id: string | null
         }
@@ -14513,13 +13692,6 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "vendor_profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "marketplace_products_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles_unified"
             referencedColumns: ["user_id"]
           },
         ]
@@ -14834,10 +14006,10 @@ export type Database = {
           p_address?: string
           p_business_type: string
           p_company_name: string
-          p_display_name?: string
+          p_display_name: string
           p_email: string
           p_phone_number: string
-          p_service_areas?: string[]
+          p_service_areas: string[]
           p_user_id: string
         }
         Returns: Json
