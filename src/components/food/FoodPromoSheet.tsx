@@ -5,6 +5,8 @@ import {
   Drawer,
   DrawerContent,
   DrawerClose,
+  DrawerTitle,
+  DrawerDescription,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -104,6 +106,10 @@ export function FoodPromoSheet({ open, onOpenChange, offer, onOrder }: FoodPromo
               <X className="h-5 w-5" />
             </Button>
           </DrawerClose>
+
+          {/* Accessibility - Required by Vaul */}
+          <DrawerTitle className="sr-only">{offer.product_name}</DrawerTitle>
+          <DrawerDescription className="sr-only">{offer.description}</DrawerDescription>
 
           {/* Hero Image Section */}
           <div className="relative w-full aspect-[4/3] overflow-hidden">

@@ -81,6 +81,20 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
     return () => window.removeEventListener('openFoodPromo', handleOpenPromo);
   }, []);
 
+  // Debug: Force portal mounting check
+  useEffect(() => {
+    if (promoSheetOpen) {
+      setTimeout(() => {
+        const portalExists = document.querySelector('[data-vaul-drawer]') !== null;
+        console.log('🔍 [DEBUG] Drawer portal check:', {
+          open: promoSheetOpen,
+          portalMounted: portalExists,
+          drawerContent: document.querySelector('[data-vaul-drawer-wrapper]') !== null
+        });
+      }, 100);
+    }
+  }, [promoSheetOpen]);
+
   // Vider l'affichage du panier seulement si on retourne à la liste ET qu'il est vide
   useEffect(() => {
     if (!selectedRestaurant && step === 'restaurants' && cart.length === 0) {
