@@ -163,9 +163,20 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     }
   }, [orders]);
 
-  // Load products with optimized caching
+  // ✅ Chargement initial avec gestion des erreurs et rechargement forcé
   useEffect(() => {
+    console.log('🚀 [Marketplace] Montage du composant - Chargement des produits');
     loadProducts();
+    
+    // Force reload si aucun produit après 2s
+    const timer = setTimeout(() => {
+      if (products.length === 0 && !loading) {
+        console.warn('⚠️ [Marketplace] Aucun produit après 2s - Rechargement forcé');
+        loadProducts();
+      }
+    }, 2000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const loadProducts = async () => {
@@ -718,6 +729,21 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           autoplayDelay={5000}
         />
       </section>
+
+      {/* LOADING INDICATOR - Visible pendant le chargement */}
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-16">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full mb-4"
+          />
+          <p className="text-muted-foreground font-medium">Chargement des produits...</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Si ça prend trop de temps, actualisez la page
+          </p>
+        </div>
+      )}
 
       {/* EMPTY STATE - Aucun produit disponible */}
       {!loading && filteredProducts.length === 0 && (

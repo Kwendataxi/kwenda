@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, Plus, Minus, ExternalLink, Star, Store, MapPin } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MarketplaceProduct } from '@/types/marketplace';
 
 type Product = MarketplaceProduct;
@@ -28,6 +28,13 @@ export const ProductQuickView = ({
 }: ProductQuickViewProps) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+
+  // Log de debug pour vérifier l'ouverture
+  useEffect(() => {
+    if (isOpen && product) {
+      console.log('🔍 [ProductQuickView] Ouverture pour:', product.title);
+    }
+  }, [isOpen, product]);
 
   if (!product) return null;
 

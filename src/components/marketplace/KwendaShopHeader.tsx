@@ -34,6 +34,16 @@ export const KwendaShopHeader = ({
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            
+            {/* Bouton de sortie d'urgence */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = '/'}
+              className="text-white hover:bg-white/20 text-xs hidden sm:flex"
+            >
+              Accueil
+            </Button>
 
             <motion.div
               initial={{ opacity: 0, x: -20 }}

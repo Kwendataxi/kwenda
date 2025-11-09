@@ -169,8 +169,14 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
                 "w-full h-full object-cover transition-all duration-500 group-hover:scale-105",
                 !imageLoaded && "opacity-0"
               )}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageError(true)}
+              onLoad={() => {
+                console.log('✅ [ProductCard] Image loaded:', product.title);
+                setImageLoaded(true);
+              }}
+              onError={() => {
+                console.error('❌ [ProductCard] Image failed:', product.image);
+                setImageError(true);
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-muted">

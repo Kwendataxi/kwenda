@@ -9,7 +9,7 @@ const MarketplacePage = () => {
     <div className="min-h-screen bg-background mobile-safe-layout">
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto content-scrollable">
-        <EnhancedMarketplaceInterface onNavigate={(path) => navigate('/')} />
+        <EnhancedMarketplaceInterface onNavigate={(path) => navigate(path)} />
       </main>
     </div>
   );
