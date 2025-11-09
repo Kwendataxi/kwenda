@@ -5,10 +5,10 @@ export const useServiceTransition = () => {
   const navigate = useNavigate();
 
   const transitionToService = useCallback((service: string) => {
-    // Animation de sortie de la page actuelle
+    // Animation de sortie de la page actuelle (fade-out doux)
     const mainElement = document.querySelector('[data-page="home"]');
     if (mainElement) {
-      mainElement.classList.add('animate-slide-out-left');
+      mainElement.classList.add('animate-fade-out');
     }
 
     // Feedback haptique léger
@@ -16,7 +16,7 @@ export const useServiceTransition = () => {
       navigator.vibrate(8);
     }
 
-    // Navigation avec délai pour l'animation
+    // Navigation avec délai augmenté pour une transition plus fluide
     setTimeout(() => {
       switch (service) {
         case 'transport':
@@ -37,7 +37,7 @@ export const useServiceTransition = () => {
         default:
           console.log(`Service ${service} non implémenté`);
       }
-    }, 200); // Délai pour l'animation de sortie
+    }, 400); // Délai augmenté de 200ms à 400ms pour plus de fluidité
   }, [navigate]);
 
   return { transitionToService };

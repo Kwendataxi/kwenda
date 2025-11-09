@@ -15,7 +15,7 @@ import { FoodFooterNav } from './FoodFooterNav';
 import { FoodCart } from './FoodCart';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '@/lib/utils';
@@ -205,7 +205,12 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const total = subtotal + deliveryFee + serviceFee;
 
   return (
-    <div className="h-full flex flex-col bg-background pb-20 md:pb-0">
+    <motion.div 
+      className="h-full flex flex-col bg-background pb-20 md:pb-0"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Header */}
       <KwendaFoodHeader
         step={step}
@@ -220,48 +225,75 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
 
       {/* Content with Animations */}
       <div className="flex-1 overflow-auto">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync">
           {step === 'restaurants' && (
-            <RestaurantList
+            <motion.div
               key="restaurants"
-              restaurants={restaurants}
-              loading={loading}
-              onSelectRestaurant={handleSelectRestaurant}
-              onForceRefresh={refetch}
-              selectedCity={selectedCity}
-              onAddToCart={(product) => handleAddToCart(product, 1)}
-              onViewAllDishes={() => setStep('all-dishes')}
-              onViewAllRestaurants={() => setStep('all-restaurants')}
-              onRestaurantClick={(restaurantId) => {
-                const restaurant = restaurants.find(r => r.id === restaurantId);
-                if (restaurant) {
-                  handleSelectRestaurant(restaurant);
-                }
-              }}
-            />
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <RestaurantList
+                restaurants={restaurants}
+                loading={loading}
+                onSelectRestaurant={handleSelectRestaurant}
+                onForceRefresh={refetch}
+                selectedCity={selectedCity}
+                onAddToCart={(product) => handleAddToCart(product, 1)}
+                onViewAllDishes={() => setStep('all-dishes')}
+                onViewAllRestaurants={() => setStep('all-restaurants')}
+                onRestaurantClick={(restaurantId) => {
+                  const restaurant = restaurants.find(r => r.id === restaurantId);
+                  if (restaurant) {
+                    handleSelectRestaurant(restaurant);
+                  }
+                }}
+              />
+            </motion.div>
           )}
 
           {step === 'all-dishes' && (
-            <AllDishesView
+            <motion.div
               key="all-dishes"
-              city={selectedCity}
-              onBack={() => setStep('restaurants')}
-              onAddToCart={(product) => handleAddToCart(product, 1)}
-            />
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <AllDishesView
+                city={selectedCity}
+                onBack={() => setStep('restaurants')}
+                onAddToCart={(product) => handleAddToCart(product, 1)}
+              />
+            </motion.div>
           )}
 
           {step === 'all-restaurants' && (
-            <AllRestaurantsView
+            <motion.div
               key="all-restaurants"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <AllRestaurantsView
               city={selectedCity}
               onBack={() => setStep('restaurants')}
               onSelectRestaurant={handleSelectRestaurant}
             />
+            </motion.div>
           )}
 
           {step === 'menu' && selectedRestaurant && (
-            <RestaurantStoreView
+            <motion.div
               key="menu"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <RestaurantStoreView
               restaurant={selectedRestaurant}
               cart={cart}
               onAddToCart={handleAddToCart}
@@ -270,11 +302,18 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
               onProceedToCheckout={() => setStep('checkout')}
               onBack={() => setStep('restaurants')}
             />
+            </motion.div>
           )}
 
           {step === 'checkout' && selectedRestaurant && (
-            <FoodCheckout
+            <motion.div
               key="checkout"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <FoodCheckout
               cart={cart}
               restaurant={selectedRestaurant}
               subtotal={subtotal}
@@ -284,6 +323,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
               onPlaceOrder={handlePlaceOrder}
               onBack={() => setStep('menu')}
             />
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
@@ -343,7 +383,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
           }}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 

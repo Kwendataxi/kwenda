@@ -44,13 +44,28 @@ export const KwendaFoodHeader = ({
   const breadcrumb = getBreadcrumb();
 
   return (
-    <header className="sticky top-0 z-50 bg-background border-b shadow-sm">
+    <motion.header 
+      className="sticky top-0 z-50 bg-background border-b shadow-sm"
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
       {/* Ligne principale */}
-      <div className="h-14 px-4 flex items-center justify-between gap-3">
+      <motion.div 
+        className="h-14 px-4 flex items-center justify-between gap-3"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
         {/* Gauche : Navigation + Logo + Titre */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <motion.div 
+          className="flex items-center gap-2 flex-shrink-0"
+          initial={{ x: -10, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+        >
           {step !== 'restaurants' ? (
-            <Button 
+            <Button
               onClick={onBack} 
               variant="ghost" 
               size="icon"
@@ -77,17 +92,27 @@ export const KwendaFoodHeader = ({
             <p className="text-xs text-muted-foreground leading-none">Food</p>
           </div>
           <h1 className="text-lg font-bold sm:hidden">KWENDA Food</h1>
-        </div>
+        </motion.div>
 
         {/* Centre : Recherche (desktop uniquement) */}
         {step === 'restaurants' && (
-          <div className="hidden md:block flex-1 max-w-xl">
+          <motion.div 
+            className="hidden md:block flex-1 max-w-xl"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
             <FoodSearchBar city={selectedCity} />
-          </div>
+          </motion.div>
         )}
 
         {/* Droite : Panier */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <motion.div 
+          className="flex items-center gap-2 flex-shrink-0"
+          initial={{ x: 10, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.25 }}
+        >
           {cartItemsCount > 0 && (step === 'menu' || step === 'all-dishes' || step === 'restaurants') && (
             <motion.div
               initial={{ scale: 0 }}
@@ -114,11 +139,16 @@ export const KwendaFoodHeader = ({
               </Button>
             </motion.div>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Ligne secondaire : Contexte avec sélecteur de ville */}
-      <div className="h-10 px-4 bg-muted/30 flex items-center gap-3 text-sm border-t">
+      <motion.div 
+        className="h-10 px-4 bg-muted/30 flex items-center gap-3 text-sm border-t"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+      >
         <CityDropdown 
           selectedCity={selectedCity}
           onCityChange={onCityChange}
@@ -126,7 +156,7 @@ export const KwendaFoodHeader = ({
         />
         <span className="text-muted-foreground hidden sm:inline">·</span>
         <span className="text-muted-foreground truncate hidden sm:inline">{breadcrumb}</span>
-      </div>
-    </header>
+      </motion.div>
+    </motion.header>
   );
 };

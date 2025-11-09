@@ -45,46 +45,49 @@ export const ModernFoodPromoBanner = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % promoSlides.length);
-    }, 5000);
+    }, 9000); // Augmenté de 5s à 9s pour plus de calme
     return () => clearInterval(timer);
   }, []);
 
   const slide = promoSlides[currentSlide];
 
   return (
-    <div className="relative overflow-hidden rounded-3xl mx-4 mt-4">
-      {/* Gradient animé de fond */}
+    <motion.div 
+      className="relative overflow-hidden rounded-3xl mx-4 mt-4"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.8, delay: 0.2 }}
+    >
+      {/* Gradient avec subtle pulse au lieu d'animation rapide */}
       <motion.div
         key={slide.id}
         className={`absolute inset-0 bg-gradient-to-br ${slide.gradient}`}
         initial={{ opacity: 0 }}
         animate={{ 
-          opacity: 1,
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+          opacity: [0.9, 1, 0.9]
         }}
         transition={{ 
-          opacity: { duration: 0.5 },
-          backgroundPosition: { duration: 10, repeat: Infinity }
+          opacity: { duration: 3, repeat: Infinity, ease: "easeInOut" }
         }}
-        style={{ backgroundSize: '200% 200%' }}
       />
 
-      {/* Particules flottantes */}
+      {/* Particules réduites et plus lentes */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(8)].map((_, i) => (
+        {[...Array(4)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 bg-white/20 rounded-full"
+            className="absolute w-2 h-2 bg-white/15 rounded-full"
             animate={{
-              y: [0, -30, 0],
-              x: [0, Math.random() * 30 - 15, 0],
-              opacity: [0.2, 0.8, 0.2],
-              scale: [1, 1.5, 1],
+              y: [0, -40, 0],
+              x: [0, Math.random() * 20 - 10, 0],
+              opacity: [0.15, 0.5, 0.15],
+              scale: [1, 1.3, 1],
             }}
             transition={{
-              duration: 3 + i * 0.5,
+              duration: 5 + i * 0.8,
               repeat: Infinity,
-              delay: i * 0.3,
+              delay: i * 0.5,
+              ease: "easeInOut"
             }}
             style={{
               top: `${20 + Math.random() * 60}%`,
@@ -99,10 +102,10 @@ export const ModernFoodPromoBanner = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id}
-            initial={{ x: 50, opacity: 0 }}
+            initial={{ x: 30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -50, opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            exit={{ x: -30, opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
             className="flex items-center justify-between gap-4"
           >
             <div className="flex-1 min-w-0">
@@ -137,17 +140,18 @@ export const ModernFoodPromoBanner = () => {
               </motion.div>
             </div>
 
-            {/* Icône décorative */}
+            {/* Icône décorative avec animation plus douce */}
             <motion.div
               className="hidden md:flex items-center justify-center w-20 h-20 rounded-full bg-white/20 text-white"
               animate={{ 
-                rotate: [0, 10, -10, 0],
-                scale: [1, 1.1, 1]
+                rotate: [0, 5, -5, 0],
+                scale: [1, 1.05, 1]
               }}
               transition={{ 
-                duration: 2,
+                duration: 4,
                 repeat: Infinity,
-                repeatDelay: 1
+                repeatDelay: 2,
+                ease: "easeInOut"
               }}
             >
               {slide.icon}
@@ -172,6 +176,6 @@ export const ModernFoodPromoBanner = () => {
           ))}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

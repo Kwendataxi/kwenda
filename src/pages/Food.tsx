@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { FoodOrderInterface } from '@/components/food/FoodOrderInterface';
+import { FoodServiceTransition } from '@/components/food/FoodServiceTransition';
 
 export default function Food() {
   const navigate = useNavigate();
@@ -15,12 +16,14 @@ export default function Food() {
   };
 
   return (
-    <FoodOrderInterface 
-      onBack={handleBack}
-      onOrderComplete={(orderId) => {
-        // Optionnel: naviguer vers le suivi de commande
-        console.log('Order completed:', orderId);
-      }}
-    />
+    <FoodServiceTransition>
+      <FoodOrderInterface 
+        onBack={handleBack}
+        onOrderComplete={(orderId) => {
+          // Optionnel: naviguer vers le suivi de commande
+          console.log('Order completed:', orderId);
+        }}
+      />
+    </FoodServiceTransition>
   );
 }
