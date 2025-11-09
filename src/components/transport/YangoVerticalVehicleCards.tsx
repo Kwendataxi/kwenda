@@ -97,16 +97,30 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
     }).sort((a, b) => a.basePrice - b.basePrice);
   }, [availableServices, getVehicleDisplayConfig]);
 
+  // Debug : Logger si aucun véhicule disponible
+  useEffect(() => {
+    if (!loading && availableServices.length === 0) {
+      console.error('❌ [YangoVerticalVehicleCards] NO VEHICLES AVAILABLE', {
+        city: city,
+        timestamp: Date.now(),
+        loading: loading
+      });
+    }
+  }, [loading, availableServices, city]);
+
   // Message si aucun véhicule disponible
-  if (vehicles.length === 0) {
+  if (!loading && vehicles.length === 0) {
     return (
-      <div className="text-center py-8">
-        <Car className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-        <h3 className="font-semibold text-foreground mb-1">
-          Aucun véhicule disponible
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Aucun service de transport actif pour {city}
+      <div className="p-6 text-center space-y-3 bg-muted/20 rounded-xl border border-dashed border-muted-foreground/30">
+        <Car className="w-16 h-16 mx-auto text-muted-foreground/40" />
+        <div className="space-y-1">
+          <p className="text-destructive font-semibold text-base">⚠️ Aucun véhicule disponible</p>
+          <p className="text-sm text-muted-foreground font-medium">
+            Ville sélectionnée : <span className="font-bold text-foreground">{city}</span>
+          </p>
+        </div>
+        <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+          Vérifiez que les services sont activés dans l'admin (pricing_rules et service_configurations)
         </p>
       </div>
     );

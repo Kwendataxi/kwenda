@@ -60,7 +60,7 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
       let { data: pricingRules, error: pricingError } = await supabase
         .from('pricing_rules')
         .select('*')
-        .eq('city', city)
+        .ilike('city', city) // ✅ Case-insensitive pour robustesse
         .eq('service_type', 'transport')
         .eq('is_active', true);
 
@@ -69,7 +69,11 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
         throw pricingError;
       }
 
-      console.log(`[${timestamp}] 📊 Pricing rules fetched:`, pricingRules?.length);
+      console.log(`[${timestamp}] 📊 Pricing rules fetched:`, {
+        count: pricingRules?.length || 0,
+        city: city,
+        vehicleClasses: pricingRules?.map(r => r.vehicle_class) || []
+      });
 
       // FALLBACK : Si aucune règle active pour cette ville, utiliser Kinshasa
       if (!pricingRules || pricingRules.length === 0) {
@@ -111,7 +115,10 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
         throw configError;
       }
 
-      console.log(`[${timestamp}] ⚙️ Service configurations fetched:`, serviceConfigs?.length);
+      console.log(`[${timestamp}] ⚙️ Service configurations:`, {
+        count: serviceConfigs?.length || 0,
+        serviceTypes: serviceConfigs?.map(c => c.service_type) || []
+      });
 
       // 3. Filtrer pour ne garder que les services avec BOTH is_active = true
       const availableServices: AvailableTaxiService[] = (pricingRules || [])
@@ -124,7 +131,12 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
 
           // Si config n'existe pas ou n'est pas active, exclure ce service
           if (!config || !config.is_active) {
-            console.log(`[${timestamp}] ⚠️ Service ${rule.vehicle_class} excluded (config inactive)`);
+            console.log(`[${timestamp}] ⚠️ Service ${rule.vehicle_class} excluded:`, {
+              serviceType: serviceType,
+              configExists: !!config,
+              configActive: config?.is_active || false,
+              reason: !config ? 'No matching config' : 'Config inactive'
+            });
             return null;
           }
 
@@ -144,10 +156,10 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
 
       return availableServices;
     },
-    staleTime: 0, // ⚠️ Force refresh pour tests
-    gcTime: 0,    // ⚠️ Pas de cache pour tests
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    staleTime: 30 * 1000,        // 30 secondes - cache optimisé
+    gcTime: 5 * 60 * 1000,        // 5 minutes - garbage collection
+    refetchOnMount: true,         // true au lieu de 'always'
+    refetchOnWindowFocus: false,  // false pour éviter refetch trop fréquents
   });
 
   // Realtime: Écouter les changements sur les deux tables
