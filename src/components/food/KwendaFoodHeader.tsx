@@ -85,6 +85,21 @@ export const KwendaFoodHeader = ({
             </Button>
           )}
           
+          {/* Bouton de test promo - Visible en DEV */}
+          {import.meta.env.DEV && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                localStorage.removeItem('kwenda_food_welcome_v1');
+                window.location.reload();
+              }}
+              className="bg-yellow-500/20 hover:bg-yellow-500/30 border-yellow-500 text-yellow-600 text-xs"
+            >
+              🔄 Reset Promo
+            </Button>
+          )}
+          
           <BrandLogo size={32} className="hidden sm:block" />
           
           <div className="hidden sm:block">

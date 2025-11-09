@@ -67,18 +67,18 @@ export const KwendaShopHeader = ({
               Accueil
             </Button>
 
-            {/* Bouton de test promo (dev only) */}
-            {process.env.NODE_ENV === 'development' && (
+            {/* Bouton de test promo - Visible en DEV */}
+            {import.meta.env.DEV && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => {
                   localStorage.removeItem('kwenda_shop_welcome_v1');
                   window.location.reload();
                 }}
-                className="text-white hover:bg-white/20 text-xs"
+                className="bg-yellow-500/20 hover:bg-yellow-500/30 border-yellow-500 text-yellow-600 text-xs"
               >
-                Reset Promo
+                🔄 Reset Promo
               </Button>
             )}
 

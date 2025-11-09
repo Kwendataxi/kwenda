@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import {
   Drawer,
@@ -17,6 +18,13 @@ interface MarketplacePromoSheetProps {
 }
 
 export const MarketplacePromoSheet = ({ open, onOpenChange, offer }: MarketplacePromoSheetProps) => {
+  // Debug: Log when drawer opens
+  useEffect(() => {
+    if (open) {
+      console.log('📱 [MarketplacePromoSheet] Drawer ouvert - État:', { open, offer });
+    }
+  }, [open, offer]);
+  
   const handleDiscover = () => {
     onOpenChange(false);
   };

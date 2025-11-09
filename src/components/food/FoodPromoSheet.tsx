@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import {
   Drawer,
@@ -17,6 +18,13 @@ interface FoodPromoSheetProps {
 }
 
 export const FoodPromoSheet = ({ open, onOpenChange, offer }: FoodPromoSheetProps) => {
+  // Debug: Log when drawer opens
+  useEffect(() => {
+    if (open) {
+      console.log('📱 [FoodPromoSheet] Drawer ouvert - État:', { open, offer });
+    }
+  }, [open, offer]);
+  
   const handleDiscover = () => {
     onOpenChange(false);
   };

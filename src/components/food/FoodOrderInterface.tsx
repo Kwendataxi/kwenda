@@ -82,6 +82,22 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
     window.addEventListener('openFoodPromo', handleOpenPromo);
     return () => window.removeEventListener('openFoodPromo', handleOpenPromo);
   }, []);
+  
+  // Diagnostic du portal mounting
+  useEffect(() => {
+    if (promoSheetOpen) {
+      setTimeout(() => {
+        const drawerPortal = document.querySelector('[data-vaul-drawer]');
+        const drawerWrapper = document.querySelector('[data-vaul-drawer-wrapper]');
+        console.log('🔍 [DEBUG FoodPromo] Portal check:', {
+          open: promoSheetOpen,
+          portalExists: !!drawerPortal,
+          wrapperExists: !!drawerWrapper,
+          portalHTML: drawerPortal?.outerHTML.substring(0, 200)
+        });
+      }, 100);
+    }
+  }, [promoSheetOpen]);
 
 
   // Vider l'affichage du panier seulement si on retourne à la liste ET qu'il est vide
