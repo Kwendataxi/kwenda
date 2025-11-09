@@ -13698,6 +13698,13 @@ export type Database = {
       }
     }
     Functions: {
+      activate_transport_services_all_cities: {
+        Args: never
+        Returns: {
+          city: string
+          services_activated: number
+        }[]
+      }
       add_partner_role_to_existing_user: {
         Args: {
           p_business_type: string
@@ -14378,6 +14385,10 @@ export type Database = {
           total_cancellations: number
           unique_users: number
         }[]
+      }
+      get_city_price_multiplier: {
+        Args: { city_name: string }
+        Returns: number
       }
       get_clients_admin_safe: {
         Args: never

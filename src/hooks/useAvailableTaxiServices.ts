@@ -26,12 +26,26 @@ export interface AvailableTaxiService {
 }
 
 /**
+ * Multiplicateur de prix par ville (ajustement automatique)
+ */
+const getCityMultiplier = (city: string): number => {
+  switch(city) {
+    case 'Lubumbashi': return 1.2; // +20%
+    case 'Kolwezi': return 1.1; // +10%
+    case 'Abidjan': return 1.0; // XOF a un taux différent mais même base
+    default: return 1.0;
+  }
+};
+
+/**
  * Hook unifié pour récupérer les services taxi disponibles
  * Combine pricing_rules.is_active ET service_configurations.is_active
  * 
  * Un service est visible UNIQUEMENT si les deux conditions sont remplies :
  * 1. pricing_rules.is_active = true
  * 2. service_configurations.is_active = true (via mapping vehicle_class -> service_type)
+ * 
+ * FALLBACK : Si aucune règle n'existe pour une ville, utilise Kinshasa avec multiplicateur
  */
 export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
   const queryClient = useQueryClient();
@@ -43,7 +57,7 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
       console.log(`[${timestamp}] 🚕 Fetching available taxi services for ${city}...`);
 
       // 1. Récupérer les pricing_rules actifs pour cette ville
-      const { data: pricingRules, error: pricingError } = await supabase
+      let { data: pricingRules, error: pricingError } = await supabase
         .from('pricing_rules')
         .select('*')
         .eq('city', city)
@@ -56,6 +70,34 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
       }
 
       console.log(`[${timestamp}] 📊 Pricing rules fetched:`, pricingRules?.length);
+
+      // FALLBACK : Si aucune règle active pour cette ville, utiliser Kinshasa
+      if (!pricingRules || pricingRules.length === 0) {
+        console.warn(`[${timestamp}] ⚠️ No active pricing rules for ${city}, falling back to Kinshasa`);
+        
+        const { data: fallbackRules, error: fallbackError } = await supabase
+          .from('pricing_rules')
+          .select('*')
+          .eq('city', 'Kinshasa')
+          .eq('service_type', 'transport')
+          .eq('is_active', true);
+          
+        if (fallbackError) throw fallbackError;
+        
+        // Adapter les prix selon le multiplicateur de la ville
+        const cityMultiplier = getCityMultiplier(city);
+        pricingRules = fallbackRules?.map(rule => ({
+          ...rule,
+          city: city, // Garder la ville demandée
+          base_price: rule.base_price * cityMultiplier,
+          price_per_km: rule.price_per_km * cityMultiplier,
+          price_per_minute: rule.price_per_minute * cityMultiplier,
+          minimum_fare: rule.minimum_fare * cityMultiplier,
+          waiting_fee_per_minute: rule.waiting_fee_per_minute * cityMultiplier
+        }));
+        
+        console.log(`[${timestamp}] 🔄 Fallback applied with ${cityMultiplier}x multiplier`);
+      }
 
       // 2. Récupérer les service_configurations pour les taxis
       const { data: serviceConfigs, error: configError } = await supabase
