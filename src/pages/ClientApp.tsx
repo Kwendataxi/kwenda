@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { welcomeCarouselUtils } from '@/utils/welcomeCarousel';
 
 import { ConnectionIndicator, OptimizedImage, ProgressiveLoader, useDataCompression } from '@/components/optimization/SlowConnectionComponents';
 import CongoVehicleSelection from '@/components/transport/CongoVehicleSelection';
@@ -220,19 +221,18 @@ const ClientApp = () => {
     }
   }, [user]);
 
-  // ✅ Afficher le carrousel de bienvenue au premier lancement
+  // ✅ Afficher le carrousel de bienvenue une fois par jour
   useEffect(() => {
-    const WELCOME_KEY = 'kwenda_services_intro_v1';
-    const lastShown = localStorage.getItem(WELCOME_KEY);
     const isDev = import.meta.env.DEV;
     
-    // Afficher une seule fois (ou toujours en dev pour test)
-    if (!lastShown || isDev) {
+    // En dev, toujours afficher pour faciliter les tests
+    // En prod, vérifier si 24h se sont écoulées
+    if (welcomeCarouselUtils.shouldShow() || isDev) {
       const timer = setTimeout(() => {
         setShowWelcomeCarousel(true);
-        // Sauvegarder seulement en production
-        if (!isDev && !lastShown) {
-          localStorage.setItem(WELCOME_KEY, Date.now().toString());
+        // Sauvegarder le timestamp (sauf en dev pour pouvoir tester)
+        if (!isDev) {
+          welcomeCarouselUtils.markAsShown();
         }
       }, 2000);
       
