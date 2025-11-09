@@ -11,7 +11,6 @@ import { OrderSuccessModal } from './OrderSuccessModal';
 import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { AllDishesView } from './AllDishesView';
 import { AllRestaurantsView } from './AllRestaurantsView';
-import { FoodFooterNav } from './FoodFooterNav';
 import { FoodCart } from './FoodCart';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
@@ -208,7 +207,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
 
   return (
     <motion.div 
-      className="h-full flex flex-col bg-background pb-20 md:pb-0"
+      className="min-h-screen flex flex-col bg-background pb-24"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Search, ShoppingBag, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -25,8 +25,18 @@ export const FoodFooterNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    // Force le positionnement fixe au montage
+    const footer = document.querySelector('footer[data-food-footer]');
+    if (footer) {
+      (footer as HTMLElement).style.position = 'fixed';
+      (footer as HTMLElement).style.bottom = '0';
+    }
+  }, []);
+
   return (
     <motion.footer
+      data-food-footer
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ 
@@ -35,7 +45,7 @@ export const FoodFooterNav: React.FC = () => {
         damping: 25,
         delay: 0.1
       }}
-      className="fixed bottom-0 left-0 right-0 z-[200] pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-[200] pb-safe isolate"
     >
       {/* Ligne décorative supérieure avec gradient */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />

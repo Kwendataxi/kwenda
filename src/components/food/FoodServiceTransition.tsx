@@ -40,7 +40,7 @@ export const FoodServiceTransition = ({ children }: FoodServiceTransitionProps) 
       style={{
         willChange: 'opacity, transform, filter'
       }}
-      className="h-full"
+      className="min-h-screen"
     >
       {children}
     </motion.div>
