@@ -15,13 +15,17 @@ export const invokeEdgeFunction = async ({
   const session = await getValidSession();
   if (!session) throw new Error('Session invalide');
   
+  console.log(`🚀 [invokeEdgeFunction] Appel à ${functionName} avec token:`, session.access_token.substring(0, 20) + '...');
+  
   let attempt = 0;
   const maxAttempts = retryOn401 ? 2 : 1;
   
   while (attempt < maxAttempts) {
     const { data, error } = await supabase.functions.invoke(functionName, {
-      body
-      // ✅ Pas de header Authorization manuel - Supabase le gère automatiquement
+      body,
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      }
     });
     
     // Si erreur 401 et retry activé
