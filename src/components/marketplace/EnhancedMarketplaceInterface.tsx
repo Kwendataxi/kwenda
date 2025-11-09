@@ -31,8 +31,6 @@ import { useProductPromotions } from '@/hooks/useProductPromotions';
 import { AllMarketplaceProductsView } from './AllMarketplaceProductsView';
 import { AllVendorsView } from './AllVendorsView';
 import { VendorCard } from './VendorCard';
-import { MarketplacePromoSheet } from './MarketplacePromoSheet';
-import { shopWelcomeMessage } from '@/data/shopPromos';
 
 // Anciens composants (conservés pour compatibilité)
 import { ProductGrid } from './ProductGrid';
@@ -98,7 +96,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow' | 'messages'>('shop');
   const [viewMode, setViewMode] = useState<'home' | 'all-products' | 'all-vendors'>('home');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [promoSheetOpen, setPromoSheetOpen] = useState(false);
 
   // Détecter retour depuis l'espace vendeur
   useEffect(() => {
@@ -150,61 +147,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     showOnlyFavorites: false,
   });
   
-  // ✅ Afficher le welcome sheet une fois par semaine avec logs de debug
-  useEffect(() => {
-    const WELCOME_KEY = 'kwenda_shop_welcome_v1';
-    const lastShown = localStorage.getItem(WELCOME_KEY);
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    const isDev = import.meta.env.DEV;
-    
-    console.log('🛍️ [ShopWelcome] Initialization:', { 
-      isDev, 
-      lastShown,
-      shouldShow: !lastShown || (Date.now() - parseInt(lastShown)) > oneWeek
-    });
-    
-    // En dev, toujours afficher | En prod, respecter le délai d'1 semaine
-    if (isDev || !lastShown || (Date.now() - parseInt(lastShown)) > oneWeek) {
-      console.log('🛍️ [ShopWelcome] Affichage programmé dans 2s');
-      const timer = setTimeout(() => {
-        console.log('🛍️ [ShopWelcome] OUVERTURE MAINTENANT');
-        setPromoSheetOpen(true);
-        if (!isDev) {
-          localStorage.setItem(WELCOME_KEY, Date.now().toString());
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    } else {
-      console.log('🛍️ [ShopWelcome] Skip: Déjà vu récemment');
-    }
-  }, []);
-  
-  // Event listener pour test manuel
-  useEffect(() => {
-    const handleOpenPromo = () => {
-      console.log('🎁 [ShopPromoSheet] Ouverture FORCÉE via event');
-      setPromoSheetOpen(true);
-    };
-    
-    window.addEventListener('openShopPromo', handleOpenPromo);
-    return () => window.removeEventListener('openShopPromo', handleOpenPromo);
-  }, []);
-  
-  // Diagnostic du portal mounting
-  useEffect(() => {
-    if (promoSheetOpen) {
-      setTimeout(() => {
-        const drawerPortal = document.querySelector('[data-vaul-drawer]');
-        const drawerWrapper = document.querySelector('[data-vaul-drawer-wrapper]');
-        console.log('🔍 [DEBUG ShopPromo] Portal check:', {
-          open: promoSheetOpen,
-          portalExists: !!drawerPortal,
-          wrapperExists: !!drawerWrapper,
-          portalHTML: drawerPortal?.outerHTML.substring(0, 200)
-        });
-      }, 100);
-    }
-  }, [promoSheetOpen]);
   
   // ✅ État de connexion
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -1468,13 +1410,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           filteredCount: filteredProducts.length,
           averagePrice: calculateAveragePrice(filteredProducts),
         }}
-      />
-
-      {/* Marketplace Welcome Sheet */}
-      <MarketplacePromoSheet
-        open={promoSheetOpen}
-        onOpenChange={setPromoSheetOpen}
-        offer={shopWelcomeMessage}
       />
 
     </div>

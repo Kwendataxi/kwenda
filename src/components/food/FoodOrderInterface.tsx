@@ -13,8 +13,6 @@ import { AllDishesView } from './AllDishesView';
 import { AllRestaurantsView } from './AllRestaurantsView';
 import { FoodFooterNav } from './FoodFooterNav';
 import { FoodCart } from './FoodCart';
-import { FoodPromoSheet } from './FoodPromoSheet';
-import { foodWelcomeMessage } from '@/data/foodPromos';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -39,65 +37,9 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [lastOrderNumber, setLastOrderNumber] = useState('');
   const [showCartSheet, setShowCartSheet] = useState(false);
-  const [promoSheetOpen, setPromoSheetOpen] = useState(false);
   const { restaurants, loading, refetch } = useRestaurantsQuery(selectedCity);
   const { cart, setCart, clearCart } = useFoodCart(selectedRestaurant?.id);
 
-  // Affichage automatique du welcome sheet (1 fois par semaine)
-  useEffect(() => {
-    const WELCOME_KEY = 'kwenda_food_welcome_v1';
-    const lastShown = localStorage.getItem(WELCOME_KEY);
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    const isDev = import.meta.env.DEV;
-    
-    console.log('🎁 [FoodWelcome] Initialization:', { 
-      isDev, 
-      lastShown,
-      shouldShow: !lastShown || (Date.now() - parseInt(lastShown)) > oneWeek
-    });
-    
-    // En dev, toujours afficher | En prod, respecter le délai d'1 semaine
-    if (isDev || !lastShown || (Date.now() - parseInt(lastShown)) > oneWeek) {
-      console.log('🎁 [FoodWelcome] Affichage programmé dans 2s');
-      const timer = setTimeout(() => {
-        console.log('🎁 [FoodWelcome] OUVERTURE MAINTENANT');
-        setPromoSheetOpen(true);
-        if (!isDev) {
-          localStorage.setItem(WELCOME_KEY, Date.now().toString());
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    } else {
-      console.log('🎁 [FoodWelcome] Skip: Déjà vu récemment');
-    }
-  }, []);
-
-  // Event listener pour test manuel
-  useEffect(() => {
-    const handleOpenPromo = () => {
-      console.log('🎁 [FoodPromoSheet] Ouverture manuelle via event');
-      setPromoSheetOpen(true);
-    };
-    
-    window.addEventListener('openFoodPromo', handleOpenPromo);
-    return () => window.removeEventListener('openFoodPromo', handleOpenPromo);
-  }, []);
-  
-  // Diagnostic du portal mounting
-  useEffect(() => {
-    if (promoSheetOpen) {
-      setTimeout(() => {
-        const drawerPortal = document.querySelector('[data-vaul-drawer]');
-        const drawerWrapper = document.querySelector('[data-vaul-drawer-wrapper]');
-        console.log('🔍 [DEBUG FoodPromo] Portal check:', {
-          open: promoSheetOpen,
-          portalExists: !!drawerPortal,
-          wrapperExists: !!drawerWrapper,
-          portalHTML: drawerPortal?.outerHTML.substring(0, 200)
-        });
-      }, 100);
-    }
-  }, [promoSheetOpen]);
 
 
   // Vider l'affichage du panier seulement si on retourne à la liste ET qu'il est vide
@@ -443,13 +385,6 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
           }}
         />
       )}
-
-      {/* Food Welcome Sheet */}
-      <FoodPromoSheet
-        open={promoSheetOpen}
-        onOpenChange={setPromoSheetOpen}
-        offer={foodWelcomeMessage}
-      />
     </motion.div>
   );
 };
