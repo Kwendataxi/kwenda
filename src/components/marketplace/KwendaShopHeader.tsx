@@ -95,13 +95,13 @@ export const KwendaShopHeader = ({
             key={cartItemsCount}
             initial={{ scale: 0 }}
             animate={{ 
-              scale: cartItemsCount > 0 ? [1, 1.2, 1] : 1,
-              rotate: cartItemsCount > 0 ? [0, 10, -10, 0] : 0
+              scale: cartItemsCount > 0 ? 1.1 : 1,
+              rotate: 0
             }}
             transition={{ 
-              duration: 0.5, 
-              type: "tween",
-              ease: "easeInOut"
+              type: "spring",
+              stiffness: 400,
+              damping: 10
             }}
             whileTap={{ scale: 0.95 }}
             className="flex-shrink-0"

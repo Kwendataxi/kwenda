@@ -138,7 +138,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [filters, setFilters] = useState({
     searchQuery: '',
     selectedCategory: 'all',
-    priceRange: [0, 2000000] as [number, number],
+    priceRange: [0, 5000000] as [number, number],
     minRating: 0,
     conditions: [] as string[],
     maxDistance: 50,
@@ -146,6 +146,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     sortBy: 'popularity',
     showOnlyFavorites: false,
   });
+  
+  // ✅ État de connexion
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
@@ -163,20 +166,59 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     }
   }, [orders]);
 
+  // ✅ Détection de connexion en ligne/hors ligne
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('✅ [Marketplace] Connexion rétablie');
+      setIsOnline(true);
+      loadProducts(); // Reload automatique quand la connexion revient
+    };
+    
+    const handleOffline = () => {
+      console.warn('❌ [Marketplace] Connexion perdue');
+      setIsOnline(false);
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   // ✅ Chargement initial avec gestion des erreurs et rechargement forcé
   useEffect(() => {
-    console.log('🚀 [Marketplace] Montage du composant - Chargement des produits');
-    loadProducts();
+    console.log('🚀 [Marketplace] Montage du composant - DÉBUT');
     
-    // Force reload si aucun produit après 2s
-    const timer = setTimeout(() => {
+    // Chargement immédiat
+    const initialLoad = async () => {
+      console.log('📦 [Marketplace] Premier chargement des produits');
+      await loadProducts();
+    };
+    
+    initialLoad().catch(error => {
+      console.error('💥 [Marketplace] Erreur critique au montage:', error);
+      // Retry après 1s
+      setTimeout(() => {
+        console.log('🔄 [Marketplace] Retry après erreur');
+        loadProducts();
+      }, 1000);
+    });
+    
+    // Force reload si toujours vide après 3s
+    const forceTimer = setTimeout(() => {
       if (products.length === 0 && !loading) {
-        console.warn('⚠️ [Marketplace] Aucun produit après 2s - Rechargement forcé');
+        console.warn('⚠️ [Marketplace] FORCE RELOAD - Aucun produit après 3s');
         loadProducts();
       }
-    }, 2000);
+    }, 3000);
     
-    return () => clearTimeout(timer);
+    return () => {
+      console.log('🧹 [Marketplace] Démontage du composant');
+      clearTimeout(forceTimer);
+    };
   }, []);
 
   // ✅ Gérer la navigation vers l'onglet Messages via URL
@@ -196,6 +238,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     try {
       setLoading(true);
       console.log('🔍 [Marketplace] Chargement des produits...');
+      console.log('🌐 [Marketplace] Online:', navigator.onLine);
+      
+      const startTime = performance.now();
       
       // ✅ CORRECTION : LEFT JOIN au lieu de INNER pour inclure TOUS les produits
       const { data, error } = await supabase
@@ -215,9 +260,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         .order('popularity_score', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      const endTime = performance.now();
+      console.log(`⏱️ [Marketplace] Query took ${(endTime - startTime).toFixed(0)}ms`);
+
+      if (error) {
+        console.error('❌ [Marketplace] Supabase error:', error);
+        throw error;
+      }
 
       console.log(`✅ [Marketplace] ${data?.length || 0} produits chargés depuis Supabase`);
+      console.log('📦 [Marketplace] Sample product:', data?.[0]);
 
       // Handle empty data gracefully
       if (!data || data.length === 0) {
@@ -294,7 +346,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       setProducts(transformedProducts);
       console.log(`✅ [Marketplace] ${transformedProducts.length} produits transformés et prêts à l'affichage`);
     } catch (error) {
-      console.error('❌ [Marketplace] Erreur chargement produits:', error);
+      console.error('💥 [Marketplace] CRITICAL ERROR:', error);
+      console.error('📊 [Marketplace] Error details:', {
+        name: (error as Error).name,
+        message: (error as Error).message,
+        stack: (error as Error).stack
+      });
       
       // Set empty products on error
       setProducts([]);
@@ -337,7 +394,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     setFilters({
       searchQuery: '',
       selectedCategory: 'all',
-      priceRange: [0, 2000000],
+      priceRange: [0, 5000000],
       minRating: 0,
       conditions: [],
       maxDistance: 50,
@@ -372,7 +429,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   // Calculate filter stats
   const hasActiveFilters = 
     filters.priceRange[0] > 0 ||
-    filters.priceRange[1] < 2000000 ||
+    filters.priceRange[1] < 5000000 ||
     filters.minRating > 0 ||
     filters.conditions.length > 0 ||
     filters.maxDistance < 50 ||
@@ -380,7 +437,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     filters.showOnlyFavorites;
 
   const activeFiltersCount = [
-    filters.priceRange[0] > 0 || filters.priceRange[1] < 2000000,
+    filters.priceRange[0] > 0 || filters.priceRange[1] < 5000000,
     filters.minRating > 0,
     filters.conditions.length > 0,
     filters.maxDistance < 50,
@@ -779,12 +836,23 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button 
                 onClick={() => {
+                  console.log('🔄 [Marketplace] Rechargement manuel déclenché');
                   handleResetFilters();
+                  setLoading(true);
                   loadProducts();
                 }}
                 variant="default"
               >
                 Actualiser
+              </Button>
+              <Button 
+                onClick={() => {
+                  console.log('🔄 [Marketplace] HARD RELOAD');
+                  window.location.reload();
+                }}
+                variant="outline"
+              >
+                Recharger la page
               </Button>
               <Button 
                 onClick={() => onNavigate('/vendeur/inscription')}
@@ -1069,6 +1137,13 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         onBack={() => onNavigate('/client')}
         onCartClick={() => setIsCartOpen(true)}
       />
+      
+      {/* ✅ Bandeau d'alerte hors ligne */}
+      {!isOnline && (
+        <div className="sticky top-0 z-50 bg-destructive text-destructive-foreground px-4 py-2 text-center text-sm font-medium">
+          ⚠️ Vous êtes hors ligne. Vérifiez votre connexion internet.
+        </div>
+      )}
       
       {/* Data attribute pour animations de feedback */}
       <div data-cart-button style={{ display: 'none' }} />
