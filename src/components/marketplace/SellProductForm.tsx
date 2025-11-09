@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
-import { Camera, Upload, X, ArrowLeft, ArrowRight, CheckCircle, Eye, Plus, Minus, Loader2 } from 'lucide-react';
+import { Camera, Upload, X, ArrowLeft, ArrowRight, CheckCircle, Eye, Plus, Minus, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useProductFormValidation } from '@/hooks/useProductFormValidation';
@@ -548,22 +548,48 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
                   <CompactProductCard
                     product={{
                       id: 'preview',
-                      name: formData.title || "Titre du produit",
-                      price: Number(formData.price) || 0,
-                      image: imagePreviews[0] || '/placeholder.png',
+                      name: formData.title || "Nom du produit à vendre",
+                      price: Number(formData.price) || 25000,
+                      image: imagePreviews.length > 0 
+                        ? imagePreviews[0] 
+                        : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=400&h=400&fit=crop',
                       rating: 0,
                       reviewCount: 0,
-                      category: formData.category,
-                      seller: "Vous",
+                      category: formData.category || 'other',
+                      seller: "Votre boutique",
                       sellerId: "preview",
-                      isAvailable: true,
+                      isAvailable: formData.stock_count > 0,
                     }}
                     onAddToCart={() => {}}
                     onViewDetails={() => {}}
                   />
                 </div>
+
+                {/* Messages d'aide contextuels */}
+                {imagePreviews.length === 0 && (
+                  <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <p className="text-sm text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                      <span>
+                        <strong>Aperçu temporaire.</strong> Ajoutez des photos à l'étape 1 pour voir votre produit réel.
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                {imagePreviews.length > 0 && (
+                  <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <p className="text-sm text-green-800 dark:text-green-200 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                      <span>
+                        Aperçu avec vos {imagePreviews.length} photo(s) uploadée(s)
+                      </span>
+                    </p>
+                  </div>
+                )}
+
                 <p className="text-center text-sm text-muted-foreground mt-4">
-                  Voici comment votre produit apparaîtra sur la marketplace
+                  Voici comment votre produit apparaîtra sur la marketplace Kwenda
                 </p>
               </CardContent>
             </Card>

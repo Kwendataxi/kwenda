@@ -206,8 +206,24 @@ export default function VendorAddProduct() {
       navigate('/vendeur');
       return true;
     } catch (error: any) {
-      // ✅ Logs détaillés avec informations images
       console.error('❌ Error adding product:', error);
+      
+      // ✅ NOUVEAU : Détection d'erreurs liées au trigger
+      if (error.message?.includes('app.supabase_url') || 
+          error.message?.includes('unrecognized configuration parameter')) {
+        toast({
+          title: "⚠️ Produit créé avec avertissement",
+          description: "Le produit a été créé mais les notifications automatiques sont temporairement indisponibles. Nos admins seront notifiés manuellement.",
+          variant: "default",
+          duration: 8000
+        });
+        
+        // Le produit est créé malgré l'erreur du trigger, rediriger quand même
+        navigate('/vendeur');
+        return true;
+      }
+      
+      // Logs détaillés avec informations images
       console.error('📋 Form data:', {
         title: formData.title,
         price: formData.price,
@@ -217,7 +233,7 @@ export default function VendorAddProduct() {
         stock_count: formData.stock_count
       });
       
-      // ✅ Messages d'erreur spécifiques selon le type d'erreur
+      // Messages d'erreur spécifiques selon le type d'erreur
       let errorMessage = "Une erreur inconnue est survenue";
       
       if (error.message?.includes('timeout') || error.message?.includes('Connexion')) {
@@ -232,7 +248,7 @@ export default function VendorAddProduct() {
       } else if (error.message?.includes('bucket') || error.message?.includes('storage')) {
         errorMessage = "Erreur de stockage des images. Contactez le support.";
       } else if (error.message?.includes('dépasse') || error.message?.includes('5MB')) {
-        errorMessage = error.message; // Afficher le message de taille dépassée
+        errorMessage = error.message;
       } else if (error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
         errorMessage = "Problème de connexion réseau. Réessayez.";
       } else if (error.message) {

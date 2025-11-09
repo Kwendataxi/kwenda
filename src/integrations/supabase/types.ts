@@ -191,6 +191,39 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notification_queue: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          notification_type: string
+          processed: boolean | null
+          processed_at: string | null
+          reference_id: string | null
+          reference_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          notification_type: string
+          processed?: boolean | null
+          processed_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          notification_type?: string
+          processed?: boolean | null
+          processed_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Relationships: []
+      }
       admin_notification_templates: {
         Row: {
           content_template: string
