@@ -14,7 +14,7 @@ import { AllRestaurantsView } from './AllRestaurantsView';
 import { FoodFooterNav } from './FoodFooterNav';
 import { FoodCart } from './FoodCart';
 import { FoodPromoSheet } from './FoodPromoSheet';
-import { mockFoodPromos } from '@/data/foodPromos';
+import { foodWelcomeMessage } from '@/data/foodPromos';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -43,30 +43,32 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const { restaurants, loading, refetch } = useRestaurantsQuery(selectedCity);
   const { cart, setCart, clearCart } = useFoodCart(selectedRestaurant?.id);
 
-  // Affichage automatique du promo sheet (TESTABLE EN DEV)
+  // Affichage automatique du welcome sheet (1 fois par semaine)
   useEffect(() => {
-    const hasSeenPromo = localStorage.getItem('kwenda_food_promo_seen_v1');
+    const WELCOME_KEY = 'kwenda_food_welcome_v1';
+    const lastShown = localStorage.getItem(WELCOME_KEY);
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
     const isDev = import.meta.env.DEV;
     
-    console.log('🎁 [FoodPromoSheet] Initialization:', { 
+    console.log('🎁 [FoodWelcome] Initialization:', { 
       isDev, 
-      hasSeenPromo, 
-      promoCount: mockFoodPromos.length 
+      lastShown,
+      shouldShow: !lastShown || (Date.now() - parseInt(lastShown)) > oneWeek
     });
     
-    // En dev, toujours afficher | En prod, respecter localStorage
-    if ((isDev || !hasSeenPromo) && mockFoodPromos.length > 0) {
-      console.log('🎁 [FoodPromoSheet] Affichage programmé dans 2s');
+    // En dev, toujours afficher | En prod, respecter le délai d'1 semaine
+    if (isDev || !lastShown || (Date.now() - parseInt(lastShown)) > oneWeek) {
+      console.log('🎁 [FoodWelcome] Affichage programmé dans 2s');
       const timer = setTimeout(() => {
-        console.log('🎁 [FoodPromoSheet] OUVERTURE MAINTENANT');
+        console.log('🎁 [FoodWelcome] OUVERTURE MAINTENANT');
         setPromoSheetOpen(true);
         if (!isDev) {
-          localStorage.setItem('kwenda_food_promo_seen_v1', 'true');
+          localStorage.setItem(WELCOME_KEY, Date.now().toString());
         }
       }, 2000);
       return () => clearTimeout(timer);
     } else {
-      console.log('🎁 [FoodPromoSheet] Skip:', isDev ? 'N/A' : 'Already seen');
+      console.log('🎁 [FoodWelcome] Skip: Déjà vu récemment');
     }
   }, []);
 
@@ -81,19 +83,6 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
     return () => window.removeEventListener('openFoodPromo', handleOpenPromo);
   }, []);
 
-  // Debug: Force portal mounting check
-  useEffect(() => {
-    if (promoSheetOpen) {
-      setTimeout(() => {
-        const portalExists = document.querySelector('[data-vaul-drawer]') !== null;
-        console.log('🔍 [DEBUG] Drawer portal check:', {
-          open: promoSheetOpen,
-          portalMounted: portalExists,
-          drawerContent: document.querySelector('[data-vaul-drawer-wrapper]') !== null
-        });
-      }, 100);
-    }
-  }, [promoSheetOpen]);
 
   // Vider l'affichage du panier seulement si on retourne à la liste ET qu'il est vide
   useEffect(() => {
@@ -439,34 +428,12 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         />
       )}
 
-      {/* Food Promo Sheet */}
-      {mockFoodPromos.length > 0 && (
-        <FoodPromoSheet
-          open={promoSheetOpen}
-          onOpenChange={setPromoSheetOpen}
-          offer={mockFoodPromos[0]}
-          onOrder={(promoCode) => {
-            toast.success('Code promo copié !', {
-              description: `Utilisez ${promoCode} lors de votre commande`,
-              duration: 3000
-            });
-            
-            // Chercher le restaurant de l'offre
-            const restaurant = restaurants.find(
-              r => r.restaurant_name === mockFoodPromos[0].restaurant_name
-            );
-            
-            if (restaurant) {
-              setTimeout(() => {
-                handleSelectRestaurant(restaurant);
-                toast.success('Restaurant sélectionné', {
-                  description: `Vous pouvez maintenant commander chez ${restaurant.restaurant_name}`
-                });
-              }, 500);
-            }
-          }}
-        />
-      )}
+      {/* Food Welcome Sheet */}
+      <FoodPromoSheet
+        open={promoSheetOpen}
+        onOpenChange={setPromoSheetOpen}
+        offer={foodWelcomeMessage}
+      />
     </motion.div>
   );
 };

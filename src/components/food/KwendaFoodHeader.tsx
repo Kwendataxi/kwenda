@@ -106,44 +106,13 @@ export const KwendaFoodHeader = ({
           </motion.div>
         )}
 
-        {/* Droite : Bouton Test (DEV) + Panier */}
-        <motion.div 
-          className="flex items-center gap-2 flex-shrink-0"
-          initial={{ x: 10, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.25 }}
-        >
-          {/* Bouton Test Promo (DEV ONLY) */}
-          {import.meta.env.DEV && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                console.log('🎁 [Test] Dispatch openFoodPromo event');
-                window.dispatchEvent(new CustomEvent('openFoodPromo'));
-              }}
-              className="text-xs h-9 px-2 hidden sm:flex items-center gap-1"
-              title="Tester le promo sheet"
-            >
-              🎁 Test
-            </Button>
-          )}
-          
-          {/* Bouton RESET localStorage pour forcer le promo sheet */}
-          {import.meta.env.DEV && (
-            <Button
-              onClick={() => {
-                localStorage.removeItem('kwenda_food_promo_seen_v1');
-                window.location.reload();
-              }}
-              variant="outline"
-              size="sm"
-              className="text-xs h-9 px-2 hidden sm:flex items-center gap-1 bg-purple-500/10 border-purple-500/30"
-              title="Réinitialiser promo sheet"
-            >
-              🔄 Reset Promo
-            </Button>
-          )}
+          {/* Droite : Panier */}
+          <motion.div 
+            className="flex items-center gap-2 flex-shrink-0"
+            initial={{ x: 10, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+          >
           {cartItemsCount > 0 && (step === 'menu' || step === 'all-dishes' || step === 'restaurants') && (
             <motion.div
               initial={{ scale: 0 }}
