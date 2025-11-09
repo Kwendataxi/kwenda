@@ -34,7 +34,13 @@ Deno.serve(async (req) => {
   try {
     console.log('🔍 [1/6] Validation destinataire démarrée');
 
-    // Initialiser le client Supabase
+    // Initialiser le client Supabase avec SERVICE_ROLE_KEY pour accès complet
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Extraire et valider le JWT utilisateur
     const authHeader = req.headers.get('Authorization');
     
     console.log('🔑 [1.5/6] Authorization header:', authHeader ? 'Présent' : 'Absent');
@@ -50,16 +56,6 @@ Deno.serve(async (req) => {
     // Extraire le JWT token du header "Bearer <token>"
     const token = authHeader.replace('Bearer ', '');
     
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
-    );
-
     // Vérifier l'authentification avec le token extrait
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
     if (authError || !user) {
