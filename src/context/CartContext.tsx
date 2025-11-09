@@ -27,21 +27,54 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const { toast } = useToast();
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage on mount with robust validation
   useEffect(() => {
-    const savedCart = localStorage.getItem('kwenda_cart');
-    if (savedCart) {
+    const loadCart = () => {
       try {
-        const parsedCart = JSON.parse(savedCart);
-        setCartItems(parsedCart);
+        const saved = localStorage.getItem('kwenda_cart');
+        if (!saved) return;
+
+        const parsed = JSON.parse(saved);
+        
+        // Vérifier l'intégrité des données
+        if (!Array.isArray(parsed)) {
+          console.error('[CartContext] Invalid cart data - not an array');
+          localStorage.removeItem('kwenda_cart');
+          return;
+        }
+
+        // Valider chaque item
+        const validItems = parsed.filter(item => 
+          item.id && item.name && typeof item.price === 'number' && item.quantity > 0
+        );
+
+        if (validItems.length !== parsed.length) {
+          console.warn('[CartContext] Some cart items were invalid:', parsed.length - validItems.length, 'removed');
+          toast({
+            title: "Panier nettoyé",
+            description: `${parsed.length - validItems.length} article(s) invalide(s) retiré(s)`,
+            duration: 3000
+          });
+        }
+
+        setCartItems(validItems);
+        console.log('[CartContext] Cart loaded:', validItems.length, 'valid items');
       } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
+        console.error('[CartContext] Error loading cart:', error);
         localStorage.removeItem('kwenda_cart');
+        toast({
+          title: "Erreur de chargement",
+          description: "Le panier a été réinitialisé",
+          variant: "destructive",
+          duration: 3000
+        });
       }
-    }
+    };
+
+    loadCart();
   }, []);
 
-  // Save cart to localStorage with debounce
+  // Save cart to localStorage with optimized debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       try {
@@ -55,7 +88,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error('[CartContext] Error saving cart:', error);
       }
-    }, 200); // Debounce de 200ms
+    }, 500); // Debounce optimisé à 500ms
 
     return () => clearTimeout(timeoutId);
   }, [cartItems]);
@@ -77,10 +110,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (existingItem) {
       updateQuantity(product.id, existingItem.quantity + 1);
-      toast({
-        title: "Quantité mise à jour",
-        description: `${product.name} - Quantité: ${existingItem.quantity + 1}`,
-      });
+      // Pas de toast ici, géré par le composant appelant
     } else {
       const cartItem: CartItem = {
         id: product.id,
@@ -98,10 +128,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       
       setCartItems(prev => [...prev, cartItem]);
-      toast({
-        title: "Ajouté au panier",
-        description: `${product.name} a été ajouté à votre panier`,
-      });
+      
+      // Analytics tracking
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'add_to_cart', {
+          event_category: 'Cart',
+          product_id: product.id,
+          product_name: cartItem.name,
+          price: product.price,
+          quantity: 1
+        });
+      }
     }
   };
 
@@ -120,6 +157,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Retiré du panier",
         description: `${item.name} a été retiré de votre panier`,
       });
+
+      // Analytics tracking
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'remove_from_cart', {
+          event_category: 'Cart',
+          product_id: id,
+          product_name: item.name,
+          cart_value: cartTotal
+        });
+      }
     }
   };
 
@@ -137,11 +184,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = () => {
+    const itemCount = cartItems.length;
+    const totalValue = cartTotal;
+    
     setCartItems([]);
     toast({
       title: "Panier vidé",
-      description: "Tous les articles ont été retirés de votre panier",
+      description: `${itemCount} article(s) retiré(s) de votre panier`,
     });
+
+    // Analytics tracking
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'clear_cart', {
+        event_category: 'Cart',
+        items_count: itemCount,
+        cart_value: totalValue
+      });
+    }
   };
 
   const isInCart = (id: string) => {

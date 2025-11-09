@@ -111,7 +111,13 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [isCartOpen, setIsCartOpen] = useState(false);
   
   // Utiliser le panier global du CartContext
-  const { cartItems, addToCart: addToCartGlobal } = useCart();
+  const { 
+    cartItems, 
+    addToCart: addToCartGlobal,
+    removeFromCart: removeFromCartGlobal,
+    updateQuantity: updateQuantityGlobal,
+    clearCart: clearCartGlobal 
+  } = useCart();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
@@ -429,7 +435,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     }
   });
 
-  // Wrapper pour addToCart avec feedback visuel
+  // Wrapper pour addToCart avec feedback visuel amélioré
   const addToCart = (product: Product, quantity: number = 1) => {
     // Utiliser le addToCart global du CartContext
     addToCartGlobal(product);
@@ -450,16 +456,24 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         cartButtonSelector: '[data-cart-button]'
       }
     );
+
+    // Toast amélioré
+    toast({
+      title: "✅ Ajouté au panier",
+      description: `${product.title} • ${formatCurrency(product.price)}`,
+      duration: 2000
+    });
   };
 
-  // Ces fonctions sont maintenant gérées par CartContext
-  // On garde juste des références vides pour compatibilité
+  // Connecter les fonctions au CartContext
   const updateCartQuantity = (productId: string, quantity: number) => {
-    // Géré par UnifiedShoppingCart qui utilise CartContext
+    console.log('[EnhancedMarketplace] Updating quantity:', productId, quantity);
+    updateQuantityGlobal(productId, quantity);
   };
 
   const removeFromCart = (productId: string) => {
-    // Géré par UnifiedShoppingCart qui utilise CartContext
+    console.log('[EnhancedMarketplace] Removing item:', productId);
+    removeFromCartGlobal(productId);
   };
 
   const handleCheckout = async () => {

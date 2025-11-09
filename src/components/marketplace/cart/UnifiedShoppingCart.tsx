@@ -172,15 +172,23 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
                 variant="ghost" 
                 size="sm"
                 onClick={() => {
-                  if (confirm(`Vider le panier (${totalItems} article${totalItems > 1 ? 's' : ''}) ?`)) {
+                  const confirmMessage = `Voulez-vous vraiment vider le panier ?\n\n📦 ${totalItems} article${totalItems > 1 ? 's' : ''}\n💰 ${totalPrice.toLocaleString()} CDF\n\nCette action est irréversible.`;
+                  
+                  if (confirm(confirmMessage)) {
                     console.log('[UnifiedCart] Clearing entire cart');
-                    cartItems.forEach(item => {
-                      console.log('[UnifiedCart] Removing:', item.id);
-                      onRemoveItem(item.id);
+                    
+                    // Animation progressive de suppression
+                    cartItems.forEach((item, index) => {
+                      setTimeout(() => {
+                        console.log('[UnifiedCart] Removing:', item.id);
+                        onRemoveItem(item.id);
+                      }, index * 100); // 100ms entre chaque suppression
                     });
+                    
                     toast({
-                      title: "Panier vidé",
-                      description: "Tous les articles ont été retirés"
+                      title: "✅ Panier vidé",
+                      description: `${totalItems} article${totalItems > 1 ? 's' : ''} retiré${totalItems > 1 ? 's' : ''}`,
+                      duration: 3000
                     });
                   }
                 }}
@@ -304,7 +312,9 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
         <h3 className="text-base sm:text-lg font-semibold">Traitement en cours</h3>
         <p className="text-sm sm:text-base text-muted-foreground">Création de {vendorCount} commande{vendorCount > 1 ? 's' : ''}...</p>
         <p className="text-xs sm:text-sm text-muted-foreground">Paiement sécurisé par KwendaPay</p>
+        <p className="text-xs text-muted-foreground/70">Ne fermez pas cette fenêtre</p>
       </div>
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
 
