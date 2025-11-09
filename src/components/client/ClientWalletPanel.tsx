@@ -23,7 +23,6 @@ import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
 import { PointsConversionDialog } from '@/components/loyalty/PointsConversionDialog';
 import { TopUpModal } from '@/components/wallet/TopUpModal';
 import { SessionStatusIndicator } from '@/components/SessionStatusIndicator';
-import { QuickTransferPopup } from '@/components/wallet/QuickTransferPopup';
 import { Send, Gift, Zap } from 'lucide-react';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
@@ -51,7 +50,6 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
   const [showConfetti, setShowConfetti] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showConversionDialog, setShowConversionDialog] = useState(false);
-  const [showQuickTransfer, setShowQuickTransfer] = useState(false);
   const [showTopUpModal, setShowTopUpModal] = useState(initialTopUpOpen);
 
   // Ouvrir le modal si demandé depuis l'extérieur
@@ -135,7 +133,7 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
       <WalletQuickActions 
         onRecharge={() => handleTopUpModalChange(true)}
         onTransfer={() => setShowTransferDialog(true)}
-        onQuickTransfer={() => setShowQuickTransfer(true)}
+        onConvert={() => setShowConversionDialog(true)}
       />
 
       {/* Transaction History - Design moderne et groupé */}
@@ -218,16 +216,7 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
         onClose={() => setShowTransferDialog(false)} 
       />
 
-      <QuickTransferPopup
-        open={showQuickTransfer}
-        onClose={() => setShowQuickTransfer(false)}
-        onTransferSuccess={() => {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-        }}
-      />
-
-      <PointsConversionDialog 
+      <PointsConversionDialog
         open={showConversionDialog} 
         onClose={() => setShowConversionDialog(false)} 
       />

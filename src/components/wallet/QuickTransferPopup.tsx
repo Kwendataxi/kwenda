@@ -9,6 +9,7 @@ import { ContactCard } from './ContactCard';
 import { SuccessConfetti } from './SuccessConfetti';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeEdgeFunction } from '@/utils/edgeFunctionWrapper';
 import '@/styles/quick-transfer.css';
 
 // Générer couleur avatar consistante
@@ -75,12 +76,11 @@ export const QuickTransferPopup: React.FC<QuickTransferPopupProps> = ({
     try {
       console.log('🔍 Recherche utilisateur:', query);
       
-      const { data, error } = await supabase.functions.invoke(
-        'validate-transfer-recipient',
-        {
-          body: { identifier: query }
-        }
-      );
+      const { data, error } = await invokeEdgeFunction({
+        functionName: 'validate-transfer-recipient',
+        body: { identifier: query },
+        retryOn401: true
+      });
       
       if (error) {
         console.error('Erreur recherche:', error);
