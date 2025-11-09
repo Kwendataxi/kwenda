@@ -98,6 +98,10 @@ import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useAuth } from '@/hooks/useAuth';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { dataCache } from '@/services/dataCache';
+import { retryWithBackoff } from '@/utils/retryWithBackoff';
+import { logDataLoss } from '@/utils/errorLogger';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { useTabScrollReset } from '@/hooks/useTabScrollReset';
 import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
@@ -141,6 +145,7 @@ interface PackageType {
 
 const ClientApp = () => {
   const { user } = useAuth();
+  const { isSessionValid } = useSessionGuard();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, language, setLanguage, formatCurrency } = useLanguage();
@@ -251,95 +256,115 @@ const ClientApp = () => {
     }
   }, [location.state]);
 
-  // Fetch products from Supabase - ✅ Inclure tous les produits du vendeur
+  // Fetch products from Supabase - ✅ Avec cache persistant et retry logic
   useEffect(() => {
     const fetchProducts = async () => {
+      if (!user) return;
+      
       setIsLoadingProducts(true);
+      
       try {
-        // ✅ Récupérer les produits publics (approved + active)
-        const { data: publicProducts, error: publicError } = await supabase
-          .from('marketplace_products')
-          .select('*')
-          .eq('status', 'active')
-          .eq('moderation_status', 'approved')
-          .order('created_at', { ascending: false });
-
-        // ✅ Si l'utilisateur est connecté, récupérer aussi ses propres produits (tous statuts)
-        let sellerProducts: any[] = [];
-        if (user) {
-          const { data: myProducts } = await supabase
-            .from('marketplace_products')
-            .select('*')
-            .eq('seller_id', user.id)
-            .order('created_at', { ascending: false });
-          
-          if (myProducts) {
-            sellerProducts = myProducts;
-          }
+        // ✅ 1. Essayer de charger depuis le cache
+        const cachedProducts = dataCache.get<any[]>('marketplace_products', user.id);
+        if (cachedProducts && cachedProducts.length > 0) {
+          console.log('📦 [ClientApp] Produits chargés depuis le cache');
+          setMarketplaceProducts(cachedProducts);
+          setIsLoadingProducts(false);
         }
         
-        // ✅ Fusionner sans doublons (priorité aux produits vendeur pour afficher le bon statut)
-        const allProducts = [
-          ...sellerProducts,
-          ...(publicProducts || []).filter(
-            p => !sellerProducts.some(sp => sp.id === p.id)
-          )
-        ];
+        // ✅ 2. Charger depuis Supabase avec retry logic
+        const result = await retryWithBackoff(async () => {
+          const { data: publicProducts, error: publicError } = await supabase
+            .from('marketplace_products')
+            .select('*')
+            .eq('status', 'active')
+            .eq('moderation_status', 'approved')
+            .order('created_at', { ascending: false });
 
-        if (publicError) {
-          console.error('Erreur lors du chargement des produits:', publicError);
+          let sellerProducts: any[] = [];
+          if (user) {
+            const { data: myProducts } = await supabase
+              .from('marketplace_products')
+              .select('*')
+              .eq('seller_id', user.id)
+              .order('created_at', { ascending: false });
+            
+            if (myProducts) {
+              sellerProducts = myProducts;
+            }
+          }
+          
+          const allProducts = [
+            ...sellerProducts,
+            ...(publicProducts || []).filter(
+              p => !sellerProducts.some(sp => sp.id === p.id)
+            )
+          ];
+
+          if (publicError) throw publicError;
+          
+          return allProducts;
+        }, 3, 1000);
+
+        console.log(`Produits chargés: ${result.length} depuis Supabase`);
+        
+        // ✅ 3. Transformer et sauvegarder dans le cache
+        const transformedProducts = result.map(product => ({
+          id: product.id,
+          name: product.title,
+          price: product.price,
+          image: Array.isArray(product.images) && product.images.length > 0 
+            ? product.images[0] 
+            : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+          images: Array.isArray(product.images) ? product.images : [],
+          rating: 4.5,
+          reviews: Math.floor(Math.random() * 200) + 10,
+          seller: 'Vendeur Kwenda',
+          category: product.category?.toLowerCase() || 'other',
+          description: product.description || '',
+          specifications: {},
+          inStock: product.status === 'active',
+          stockCount: Math.floor(Math.random() * 20) + 1,
+          isTrending: product.featured || false,
+          trendingScore: product.featured ? Math.floor(Math.random() * 30) + 70 : 0,
+          condition: product.condition,
+          location: product.location,
+          coordinates: product.coordinates,
+          moderationStatus: product.moderation_status,
+          productStatus: product.status,
+          isOwnProduct: user?.id === product.seller_id
+        }));
+        
+        setMarketplaceProducts(transformedProducts);
+        dataCache.set('marketplace_products', transformedProducts, user.id);
+        
+      } catch (error) {
+        logDataLoss('ClientApp.fetchProducts', error);
+        console.error('❌ Erreur fatale:', error);
+        
+        // ✅ Fallback au cache en cas d'erreur
+        const cachedProducts = dataCache.get<any[]>('marketplace_products', user.id);
+        if (cachedProducts && cachedProducts.length > 0) {
+          console.log('🔄 [ClientApp] Utilisation du cache suite à une erreur');
+          setMarketplaceProducts(cachedProducts);
+          toast({
+            title: '⚠️ Mode hors ligne',
+            description: 'Affichage des données en cache. Vérifiez votre connexion.',
+          });
+        } else {
           toast({
             title: t('common.error'),
             description: t('client.error_load_products'),
             variant: "destructive",
           });
-        } else {
-          console.log(`Produits chargés: ${allProducts.length} (${sellerProducts.length} vendeur + ${publicProducts?.length || 0} publics)`);
-          
-          // Transform products to match our interface
-          const transformedProducts = allProducts.map(product => ({
-            id: product.id,
-            name: product.title,
-            price: product.price,
-            image: Array.isArray(product.images) && product.images.length > 0 
-              ? product.images[0] 
-              : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
-            images: Array.isArray(product.images) ? product.images : [],
-            rating: 4.5, // Default rating
-            reviews: Math.floor(Math.random() * 200) + 10, // Mock reviews
-            seller: 'Vendeur Kwenda',
-            category: product.category?.toLowerCase() || 'other',
-            description: product.description || '',
-            specifications: {},
-            inStock: product.status === 'active',
-            stockCount: Math.floor(Math.random() * 20) + 1,
-            isTrending: product.featured || false,
-            trendingScore: product.featured ? Math.floor(Math.random() * 30) + 70 : 0,
-            condition: product.condition,
-            location: product.location,
-            coordinates: product.coordinates,
-            // ✅ Ajouter les statuts pour affichage vendeur
-            moderationStatus: product.moderation_status,
-            productStatus: product.status,
-            isOwnProduct: user?.id === product.seller_id
-          })) || [];
-          
-          setMarketplaceProducts(transformedProducts);
         }
-      } catch (error) {
-        console.error('Erreur de connexion:', error);
-        toast({
-          title: t('client.connection_error'),
-          description: t('client.check_connection'),
-          variant: "destructive",
-        });
       } finally {
         setIsLoadingProducts(false);
       }
     };
 
     fetchProducts();
-  }, [user?.id]);
+  }, [user?.id, isSessionValid]);
 
   // Use either real products or fallback to empty array
   const mockProducts = marketplaceProducts;

@@ -74,8 +74,13 @@ export const AnimatedAddToCartButton: React.FC<AnimatedAddToCartButtonProps> = (
         return (
           <motion.div
             initial={{ scale: 0 }}
-            animate={{ scale: [0, 1.2, 1] }}
-            transition={{ duration: 0.5, type: 'spring' }}
+            animate={{ scale: 1 }}
+            transition={{ 
+              duration: 0.5, 
+              type: 'spring',
+              stiffness: 200,
+              damping: 15
+            }}
             className="flex items-center gap-1.5"
           >
             <Check className="h-3 w-3" />
