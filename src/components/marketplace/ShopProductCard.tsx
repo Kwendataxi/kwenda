@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Star, Plus, Award, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { cardVariants, buttonVariants } from '@/utils/animationVariants';
 
 interface ShopProductCardProps {
   product: {
@@ -28,7 +30,7 @@ interface ShopProductCardProps {
   className?: string;
 }
 
-export const ShopProductCard: React.FC<ShopProductCardProps> = ({
+export const ShopProductCard = React.memo<ShopProductCardProps>(({
   product,
   topPosition,
   isFavorite = false,
@@ -42,17 +44,17 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({
 
   const formatCurrency = (amount: number) => `${amount.toLocaleString()} CDF`;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     triggerHaptic('medium');
     onAddToCart();
-  };
+  }, [onAddToCart, triggerHaptic]);
 
-  const handleToggleFavorite = (e: React.MouseEvent) => {
+  const handleToggleFavorite = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    triggerHaptic('light');
+    triggerHaptic('medium');
     onToggleFavorite?.();
-  };
+  }, [onToggleFavorite, triggerHaptic]);
 
   return (
     <motion.div
@@ -68,20 +70,14 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({
       )}>
         {/* Image Container - 280x200px */}
         <div className="relative w-full h-[200px] overflow-hidden rounded-t-2xl">
-          {!imageLoaded && (
-            <Skeleton className="absolute inset-0 bg-muted/20" />
-          )}
-          <motion.img
+          <OptimizedImage
             src={product.image}
             alt={product.title}
-            className={cn(
-              "w-full h-full object-cover transition-all duration-300",
-              imageLoaded ? "opacity-100" : "opacity-0"
-            )}
-            whileHover={{ scale: 1.1 }}
-            transition={{ duration: 0.3 }}
-            onLoad={() => setImageLoaded(true)}
-            loading="lazy"
+            width={280}
+            height={200}
+            objectFit="cover"
+            className="w-full h-full"
+            priority={topPosition ? topPosition <= 3 : false}
           />
 
           {/* Top Badge - Position dans le top */}
@@ -211,4 +207,9 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({
       </Card>
     </motion.div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison pour éviter les re-renders inutiles
+  return prevProps.product.id === nextProps.product.id &&
+         prevProps.isFavorite === nextProps.isFavorite &&
+         prevProps.topPosition === nextProps.topPosition;
+});

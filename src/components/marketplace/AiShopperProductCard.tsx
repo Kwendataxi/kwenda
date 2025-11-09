@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Package, ShoppingCart, MessageCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -8,6 +8,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useProductPromotions } from '@/hooks/useProductPromotions';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { cardVariants, buttonVariants } from '@/utils/animationVariants';
+import { secureLog } from '@/utils/secureLogger';
+import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
 
 interface AiShopperProductCardProps {
@@ -35,7 +39,7 @@ interface AiShopperProductCardProps {
   className?: string;
 }
 
-export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
+export const AiShopperProductCard = React.memo<AiShopperProductCardProps>(({
   product,
   cartQuantity = 0,
   onAddToCart,
@@ -163,8 +167,8 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
           {product.inStock && (
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={buttonVariants.hover}
+              whileTap={buttonVariants.tap}
               onClick={handleAddToCartButton}
               className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200"
             >
@@ -189,8 +193,8 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
           {user && user.id !== product.seller_id && (
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={buttonVariants.hover}
+              whileTap={buttonVariants.tap}
               onClick={handleContactSeller}
               className="absolute bottom-3 left-3 w-10 h-10 rounded-full bg-white text-primary shadow-lg flex items-center justify-center z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200"
               title="Contacter le vendeur"
@@ -270,4 +274,9 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
       </Card>
     </motion.div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison pour éviter les re-renders inutiles
+  return prevProps.product.id === nextProps.product.id &&
+         prevProps.isFavorite === nextProps.isFavorite &&
+         prevProps.cartQuantity === nextProps.cartQuantity;
+});
