@@ -26,10 +26,10 @@ export const KwendaShopHeader = ({
 
   return (
     <motion.div
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100 }}
-      className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white shadow-2xl"
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="sticky top-0 z-50 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white shadow-lg"
     >
       <div className="px-4 py-3 md:py-4">
         <div className="flex items-center justify-between gap-3">
@@ -57,31 +57,6 @@ export const KwendaShopHeader = ({
               )}
             </div>
             
-            {/* Bouton de sortie d'urgence */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => window.location.href = '/'}
-              className="text-white hover:bg-white/20 text-xs hidden sm:flex"
-            >
-              Accueil
-            </Button>
-
-            {/* Bouton de test promo - Visible en DEV */}
-            {import.meta.env.DEV && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  localStorage.removeItem('kwenda_shop_welcome_v1');
-                  window.location.reload();
-                }}
-                className="bg-yellow-500/20 hover:bg-yellow-500/30 border-yellow-500 text-yellow-600 text-xs"
-              >
-                🔄 Reset Promo
-              </Button>
-            )}
-
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -95,10 +70,10 @@ export const KwendaShopHeader = ({
                 <Package className="h-7 w-7 md:h-8 md:w-8 drop-shadow-lg" />
               </motion.div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-base md:text-xl font-bold truncate">
+                <h1 className="text-base md:text-xl font-bold truncate font-montserrat">
                   Kwenda Shop
                 </h1>
-                <p className="text-xs md:text-sm opacity-90 truncate">
+                <p className="text-xs md:text-sm opacity-90 truncate font-medium">
                   Marketplace sécurisé
                 </p>
               </div>
@@ -153,10 +128,10 @@ export const KwendaShopHeader = ({
 
       {/* Shine effect animé */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none"
         initial={{ x: '-100%' }}
         animate={{ x: '200%' }}
-        transition={{ duration: 3, repeat: Infinity, repeatDelay: 5 }}
+        transition={{ duration: 4, repeat: Infinity, repeatDelay: 8, ease: "easeInOut" }}
       />
     </motion.div>
   );

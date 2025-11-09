@@ -45,10 +45,10 @@ export const KwendaFoodHeader = ({
 
   return (
     <motion.header 
-      className="sticky top-0 z-50 bg-background border-b shadow-sm"
+      className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
     >
       {/* Ligne principale */}
       <motion.div 
@@ -85,28 +85,13 @@ export const KwendaFoodHeader = ({
             </Button>
           )}
           
-          {/* Bouton de test promo - Visible en DEV */}
-          {import.meta.env.DEV && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                localStorage.removeItem('kwenda_food_welcome_v1');
-                window.location.reload();
-              }}
-              className="bg-yellow-500/20 hover:bg-yellow-500/30 border-yellow-500 text-yellow-600 text-xs"
-            >
-              🔄 Reset Promo
-            </Button>
-          )}
-          
           <BrandLogo size={32} className="hidden sm:block" />
           
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold leading-none">KWENDA</h1>
-            <p className="text-xs text-muted-foreground leading-none">Food</p>
+            <h1 className="text-lg font-bold leading-none font-montserrat">KWENDA</h1>
+            <p className="text-xs text-muted-foreground leading-none font-medium">Food</p>
           </div>
-          <h1 className="text-lg font-bold sm:hidden">KWENDA Food</h1>
+          <h1 className="text-lg font-bold sm:hidden font-montserrat">KWENDA Food</h1>
         </motion.div>
 
         {/* Centre : Recherche (desktop uniquement) */}
@@ -159,10 +144,10 @@ export const KwendaFoodHeader = ({
 
       {/* Ligne secondaire : Contexte avec sélecteur de ville */}
       <motion.div 
-        className="h-10 px-4 bg-muted/30 flex items-center gap-3 text-sm border-t"
+        className="h-10 px-4 bg-muted/20 flex items-center gap-3 text-sm border-t border-border/30"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
       >
         <CityDropdown 
           selectedCity={selectedCity}
