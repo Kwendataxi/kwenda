@@ -4,9 +4,9 @@ export const mockFoodPromos: FoodPromoOffer[] = [
   {
     id: 'kfc_chicken_box',
     restaurant_name: 'KFC Kinshasa',
-    restaurant_logo: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=100&h=100&fit=crop',
+    restaurant_logo: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=200&h=200&fit=crop&q=80',
     product_name: 'Chicken Lunchbox Max',
-    product_image: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=800&h=600&fit=crop',
+    product_image: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=1200&h=800&fit=crop&q=80',
     original_price: 6000,
     promo_price: 2000,
     promo_code: 'DELI2000',

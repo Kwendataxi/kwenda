@@ -43,16 +43,42 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   const { restaurants, loading, refetch } = useRestaurantsQuery(selectedCity);
   const { cart, setCart, clearCart } = useFoodCart(selectedRestaurant?.id);
 
-  // Affichage automatique du promo sheet
+  // Affichage automatique du promo sheet (TESTABLE EN DEV)
   useEffect(() => {
     const hasSeenPromo = localStorage.getItem('kwenda_food_promo_seen_v1');
-    if (!hasSeenPromo && mockFoodPromos.length > 0) {
+    const isDev = import.meta.env.DEV;
+    
+    console.log('🎁 [FoodPromoSheet] Initialization:', { 
+      isDev, 
+      hasSeenPromo, 
+      promoCount: mockFoodPromos.length 
+    });
+    
+    // En dev, toujours afficher | En prod, respecter localStorage
+    if ((isDev || !hasSeenPromo) && mockFoodPromos.length > 0) {
+      console.log('🎁 [FoodPromoSheet] Affichage programmé dans 2s');
       const timer = setTimeout(() => {
+        console.log('🎁 [FoodPromoSheet] OUVERTURE MAINTENANT');
         setPromoSheetOpen(true);
-        localStorage.setItem('kwenda_food_promo_seen_v1', 'true');
+        if (!isDev) {
+          localStorage.setItem('kwenda_food_promo_seen_v1', 'true');
+        }
       }, 2000);
       return () => clearTimeout(timer);
+    } else {
+      console.log('🎁 [FoodPromoSheet] Skip:', isDev ? 'N/A' : 'Already seen');
     }
+  }, []);
+
+  // Event listener pour test manuel
+  useEffect(() => {
+    const handleOpenPromo = () => {
+      console.log('🎁 [FoodPromoSheet] Ouverture manuelle via event');
+      setPromoSheetOpen(true);
+    };
+    
+    window.addEventListener('openFoodPromo', handleOpenPromo);
+    return () => window.removeEventListener('openFoodPromo', handleOpenPromo);
   }, []);
 
   // Vider l'affichage du panier seulement si on retourne à la liste ET qu'il est vide

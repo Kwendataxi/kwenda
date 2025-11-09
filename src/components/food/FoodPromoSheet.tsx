@@ -33,7 +33,16 @@ interface FoodPromoSheetProps {
 
 export function FoodPromoSheet({ open, onOpenChange, offer, onOrder }: FoodPromoSheetProps) {
   const [copied, setCopied] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const { toast } = useToast();
+
+  // ✅ LOG DE DEBUG
+  console.log('🎁 [FoodPromoSheet] Rendered:', {
+    open,
+    offerName: offer.product_name,
+    offerRestaurant: offer.restaurant_name,
+    promoCode: offer.promo_code
+  });
 
   const discountPercentage = Math.round(
     ((offer.original_price - offer.promo_price) / offer.original_price) * 100
@@ -77,8 +86,8 @@ export function FoodPromoSheet({ open, onOpenChange, offer, onOrder }: FoodPromo
   const gradientClass = offer.background_gradient || 'from-orange-500 via-amber-500 to-yellow-500';
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh] rounded-t-[2rem] border-0 shadow-2xl overflow-hidden bg-background">
+    <Drawer open={open} onOpenChange={onOpenChange} modal>
+      <DrawerContent className="max-h-[90vh] rounded-t-[2rem] border-0 shadow-2xl overflow-hidden bg-background z-[60]">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -107,7 +116,12 @@ export function FoodPromoSheet({ open, onOpenChange, offer, onOrder }: FoodPromo
               alt={offer.product_name}
               className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-90"
               onError={(e) => {
+                console.warn('❌ [FoodPromoSheet] Image failed:', offer.product_image);
                 e.currentTarget.style.display = 'none';
+              }}
+              onLoad={() => {
+                console.log('✅ [FoodPromoSheet] Image loaded:', offer.product_image);
+                setImageLoaded(true);
               }}
             />
 
