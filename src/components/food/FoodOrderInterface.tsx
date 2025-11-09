@@ -330,8 +330,6 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         </AnimatePresence>
       </div>
 
-      <FoodFooterNav />
-
       {/* Global Cart Sheet */}
       {cart.length > 0 && (
         <FoodCart

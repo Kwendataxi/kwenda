@@ -17,6 +17,10 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'favorites', label: 'Favoris', icon: Heart, path: '/food/favorites' },
 ];
 
+/**
+ * 🍔 KWENDA FOOD - FOOTER NAVIGATION MODERNE
+ * Design professionnel avec backdrop-blur, gradients et animations fluides
+ */
 export const FoodFooterNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,44 +31,95 @@ export const FoodFooterNav: React.FC = () => {
       animate={{ y: 0, opacity: 1 }}
       transition={{ 
         type: "spring", 
-        stiffness: 260, 
-        damping: 20,
-        delay: 0.2
+        stiffness: 300, 
+        damping: 25,
+        delay: 0.1
       }}
-      className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/98 to-background/95 backdrop-blur-xl border-t-2 border-primary/20 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] dark:shadow-[0_-4px_30px_rgba(0,0,0,0.4)] z-50 safe-area-inset-bottom"
+      className="fixed bottom-0 left-0 right-0 z-[200] pb-safe"
     >
-      <nav className="flex justify-around items-center h-16 px-2">
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+      {/* Ligne décorative supérieure avec gradient */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      
+      {/* Container principal avec glassmorphism */}
+      <div className="relative bg-background/80 backdrop-blur-2xl border-t border-border/50 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_-8px_48px_rgba(0,0,0,0.5)]">
+        {/* Effet de glow subtil */}
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent pointer-events-none" />
+        
+        <nav className="relative flex justify-around items-center h-16 px-2 max-w-2xl mx-auto">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
 
-          return (
-            <motion.button
-              key={item.id}
-              onClick={() => navigate(item.path)}
-              whileTap={{ scale: 0.85 }}
-              whileHover={{ scale: 1.05 }}
-              className={`flex flex-col items-center justify-center gap-1.5 px-4 py-3 rounded-2xl transition-all duration-200 relative ${
-                isActive
-                  ? 'text-primary bg-primary/10 scale-105'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              }`}
-            >
-              <Icon className={`w-6 h-6 transition-transform ${isActive ? 'scale-110' : ''}`} />
-              <span className={`text-xs ${isActive ? 'font-bold' : 'font-medium'}`}>
-                {item.label}
-              </span>
-              {isActive && (
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => navigate(item.path)}
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ scale: 1.08 }}
+                className={`
+                  relative flex flex-col items-center justify-center gap-1 px-4 py-2.5 rounded-2xl 
+                  transition-all duration-300 ease-out
+                  ${isActive
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                  }
+                `}
+              >
+                {/* Background actif avec glassmorphism */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeBg"
+                    className="absolute inset-0 bg-primary/10 backdrop-blur-sm rounded-2xl border border-primary/20"
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 400, 
+                      damping: 30 
+                    }}
+                  />
+                )}
+
+                {/* Icône avec animation */}
                 <motion.div
-                  layoutId="activeTab"
-                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-primary via-primary/80 to-primary rounded-full shadow-lg shadow-primary/50"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
-            </motion.button>
-          );
-        })}
-      </nav>
+                  animate={{
+                    scale: isActive ? 1.1 : 1,
+                    y: isActive ? -2 : 0
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className="relative z-10"
+                >
+                  <Icon 
+                    className="w-5 h-5" 
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                </motion.div>
+
+                {/* Label */}
+                <span 
+                  className={`
+                    relative z-10 text-[10px] font-semibold tracking-wide
+                    ${isActive ? 'font-bold' : 'font-medium'}
+                  `}
+                >
+                  {item.label}
+                </span>
+
+                {/* Indicateur de tab actif (ligne en haut) */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className="absolute -top-[2px] left-1/2 -translate-x-1/2 w-10 h-[3px] bg-gradient-to-r from-primary via-primary/90 to-primary rounded-full shadow-lg shadow-primary/50"
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 500, 
+                      damping: 35 
+                    }}
+                  />
+                )}
+              </motion.button>
+            );
+          })}
+        </nav>
+      </div>
     </motion.footer>
   );
 };
