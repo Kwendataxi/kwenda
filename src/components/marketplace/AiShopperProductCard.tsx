@@ -159,27 +159,40 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
             </Badge>
           )}
 
-          {/* Bouton Ajouter - Apparaît au survol en bas à droite */}
+          {/* Bouton Ajouter - Toujours visible mobile, hover desktop */}
           {product.inStock && (
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleAddToCartButton}
-              className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-200"
+              className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200"
             >
               <ShoppingCart className="h-5 w-5" />
+              
+              {/* Badge quantité au panier */}
+              {cartQuantity > 0 && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+                >
+                  <span className="text-[10px] font-bold text-white">
+                    {cartQuantity}
+                  </span>
+                </motion.div>
+              )}
             </motion.button>
           )}
 
-          {/* Bouton Contacter - Apparaît au survol en bas à gauche (si ce n'est pas son produit) */}
+          {/* Bouton Contacter - Toujours visible mobile, hover desktop */}
           {user && user.id !== product.seller_id && (
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleContactSeller}
-              className="absolute bottom-3 left-3 w-10 h-10 rounded-full bg-white text-primary shadow-lg flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-200"
+              className="absolute bottom-3 left-3 w-10 h-10 rounded-full bg-white text-primary shadow-lg flex items-center justify-center z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200"
               title="Contacter le vendeur"
             >
               <MessageCircle className="h-5 w-5" />
