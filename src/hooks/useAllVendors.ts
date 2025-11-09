@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface Filters {
   search: string;
@@ -37,7 +38,8 @@ export const useAllVendors = () => {
       // Construction conditionnelle avec typage any pour éviter l'inférence TypeScript profonde
       let query: any = supabase.from('vendor_profiles').select('*', { count: 'exact' });
       
-      query = query.eq('status', 'active');
+      // ✅ Filtre 'status' retiré - colonne n'existe pas encore dans vendor_profiles
+      // TODO: Ajouter après migration DB: query = query.eq('status', 'active');
       
       if (filters.search) {
         query = query.ilike('shop_name', `%${filters.search}%`);
@@ -49,14 +51,41 @@ export const useAllVendors = () => {
         query = query.gte('total_sales', filters.minSales);
       }
       if (filters.verifiedOnly) {
-        query = query.eq('is_verified', true);
+        // ✅ Filtre 'is_verified' temporairement désactivé - colonne n'existe pas encore
+        // TODO: Ajouter après migration DB: query = query.eq('is_verified', true);
+        console.warn('[useAllVendors] is_verified filter skipped - column does not exist yet');
       }
       
       query = query.order(sort.field, { ascending: sort.direction === 'asc' });
       query = query.range(from, to);
 
       const { data: vendors, error, count } = await query;
-      if (error) throw error;
+      
+      if (error) {
+        console.error('[useAllVendors] Supabase error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          filters,
+          sort
+        });
+        
+        toast({
+          title: "❌ Erreur de chargement",
+          description: error.message || "Impossible de charger les boutiques",
+          variant: "destructive"
+        });
+        
+        throw error;
+      }
+
+      console.log('[useAllVendors] Loaded vendors:', {
+        count: vendors?.length || 0,
+        totalCount: count,
+        filters,
+        sort
+      });
 
       const vendorIds = (vendors || []).map(v => v.user_id);
       const productsCount: Record<string, number> = {};
