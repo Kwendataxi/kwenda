@@ -294,11 +294,15 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           salesCount: product.sales_count || 0,
           popularityScore: product.popularity_score || 0,
           moderation_status: product.moderation_status || 'pending',
+          created_at: product.created_at, // ✅ AJOUT pour badge NOUVEAUTÉ
         };
       });
 
       setProducts(transformedProducts);
       console.log(`✅ [Marketplace] ${transformedProducts.length} produits transformés et prêts`);
+      if (transformedProducts.length > 0) {
+        console.log('📦 [Marketplace] Premier produit transformé:', transformedProducts[0]);
+      }
     } catch (error) {
       console.error('💥 [Marketplace] CRITICAL ERROR:', error);
       setProducts([]);
@@ -459,6 +463,8 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   };
 
   // Filter products
+  console.log('🔍 [Marketplace] Début filtrage:', { productsCount: products.length, filters });
+  
   const filteredProducts = products.filter(product => {
     // Category filter
     const categoryMatch = filters.selectedCategory === 'all' || product.category === filters.selectedCategory;
@@ -542,6 +548,11 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         return (b.rating * b.reviews) - (a.rating * a.reviews);
     }
   });
+
+  console.log('✅ [Marketplace] Produits filtrés:', filteredProducts.length);
+  if (filteredProducts.length > 0) {
+    console.log('📦 [Marketplace] Premier produit filtré:', filteredProducts[0]);
+  }
 
   // Wrapper pour addToCart avec feedback visuel amélioré
   const addToCart = (product: Product, quantity: number = 1) => {
@@ -870,6 +881,23 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </motion.div>
       )}
 
+      {/* DEBUG: Fallback si filtres trop restrictifs */}
+      {!loading && products.length > 0 && filteredProducts.length === 0 && (
+        <motion.div 
+          className="text-center py-12 px-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg mx-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <h3 className="text-xl font-bold mb-2">🔍 Aucun produit ne correspond aux filtres</h3>
+          <p className="text-muted-foreground mb-4">
+            {products.length} produits chargés, mais aucun ne correspond à vos critères.
+          </p>
+          <Button onClick={handleResetFilters} variant="default">
+            Réinitialiser les filtres
+          </Button>
+        </motion.div>
+      )}
+
       {/* PRODUITS POPULAIRES - Grille 2 colonnes style AiShopper */}
       {!loading && filteredProducts.length > 0 && (
         <section className="px-4 py-6 space-y-4">
@@ -882,6 +910,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           
           <div className="grid grid-cols-2 gap-3">
             {filteredProducts.slice(0, 12).map(product => {
+              // ✅ VALIDATION des données obligatoires
+              if (!product.id || !product.title || !product.image || !product.seller?.display_name) {
+                console.error('❌ [Marketplace] Produit invalide ignoré:', product);
+                return null;
+              }
+              
               const discount = calculateDiscount(product);
               const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
               
@@ -901,7 +935,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                     stockCount: product.stockCount,
                     rating: product.rating,
                     reviews: product.reviews,
-                    created_at: product.created_at
+                    created_at: product.created_at // ✅ AJOUT pour badge NOUVEAUTÉ
                   }}
                   cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
                   onAddToCart={() => addToCart(product, 1)}
