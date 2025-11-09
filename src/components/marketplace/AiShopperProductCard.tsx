@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Package } from 'lucide-react';
+import { Heart, Package, ShoppingCart } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
@@ -87,8 +87,14 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
   };
 
   const handleCardClick = () => {
+    triggerHaptic('light');
+    onQuickView(); // Navigation vers détails au lieu d'ajouter au panier
+  };
+
+  const handleAddToCartButton = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (product.inStock) {
-      triggerHaptic('medium');
+      triggerHaptic('light');
       onAddToCart();
     }
   };
@@ -110,10 +116,7 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
     >
       <Card 
         onClick={handleCardClick}
-        className={cn(
-          "overflow-hidden bg-card border-0 shadow-sm hover:shadow-lg transition-shadow duration-300 rounded-2xl group",
-          product.inStock && "cursor-pointer"
-        )}
+        className="overflow-hidden bg-card border-0 shadow-sm hover:shadow-lg transition-shadow duration-300 rounded-2xl group cursor-pointer"
       >
         {/* Image Container - Ratio carré */}
         <div className="relative aspect-square overflow-hidden bg-muted">
@@ -128,7 +131,20 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
             </Badge>
           )}
 
-          {/* Heart Icon - Discret */}
+          {/* Bouton Ajouter - Apparaît au survol en bas à droite */}
+          {product.inStock && (
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAddToCartButton}
+              className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-200"
+            >
+              <ShoppingCart className="h-5 w-5" />
+            </motion.button>
+          )}
+
+          {/* Heart Icon - Top Right */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleToggleFavorite}

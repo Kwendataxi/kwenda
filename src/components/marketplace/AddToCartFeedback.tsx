@@ -25,7 +25,7 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
     }).format(price);
   };
 
-  // Animation produit vers panier améliorée avec trail effect
+  // Animation produit vers panier simplifiée et fluide
   const animateItemToCart = (productElement: Element, cartButton: Element) => {
     const productRect = productElement.getBoundingClientRect();
     const cartRect = cartButton.getBoundingClientRect();
@@ -38,9 +38,9 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
     flyingImage.style.width = `${productRect.width}px`;
     flyingImage.style.height = `${productRect.height}px`;
     flyingImage.style.zIndex = '9999';
-    flyingImage.style.transition = 'all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    flyingImage.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
     flyingImage.style.pointerEvents = 'none';
-    flyingImage.style.boxShadow = '0 10px 40px rgba(0,0,0,0.3)';
+    flyingImage.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
     
     const img = productElement.querySelector('img');
     if (img) {
@@ -52,63 +52,30 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
 
     document.body.appendChild(flyingImage);
 
-    // Trail effect - particules qui suivent
-    const trailCount = 5;
-    const trails: HTMLDivElement[] = [];
-    for (let i = 0; i < trailCount; i++) {
-      const trail = document.createElement('div');
-      trail.style.position = 'fixed';
-      trail.style.left = `${productRect.left + productRect.width / 2}px`;
-      trail.style.top = `${productRect.top + productRect.height / 2}px`;
-      trail.style.width = '8px';
-      trail.style.height = '8px';
-      trail.style.borderRadius = '50%';
-      trail.style.background = `linear-gradient(45deg, hsl(var(--primary)), hsl(var(--orange-500)))`;
-      trail.style.zIndex = '9998';
-      trail.style.pointerEvents = 'none';
-      trail.style.opacity = String(0.8 - i * 0.15);
-      trail.style.transition = `all ${0.7 + i * 0.1}s cubic-bezier(0.34, 1.56, 0.64, 1)`;
-      trail.style.boxShadow = '0 0 10px hsl(var(--primary) / 0.5)';
-      document.body.appendChild(trail);
-      trails.push(trail);
-    }
-
-    // Trigger animation avec bounce à l'arrivée
+    // Trigger animation
     setTimeout(() => {
       flyingImage.style.left = `${cartRect.left}px`;
       flyingImage.style.top = `${cartRect.top}px`;
       flyingImage.style.width = '0px';
       flyingImage.style.height = '0px';
       flyingImage.style.opacity = '0';
-      flyingImage.style.transform = 'scale(0) rotate(360deg)';
-
-      // Animer les trails
-      trails.forEach((trail, i) => {
-        setTimeout(() => {
-          trail.style.left = `${cartRect.left + cartRect.width / 2}px`;
-          trail.style.top = `${cartRect.top + cartRect.height / 2}px`;
-          trail.style.opacity = '0';
-          trail.style.transform = 'scale(0)';
-        }, i * 50);
-      });
+      flyingImage.style.transform = 'scale(0.3) rotate(180deg)';
     }, 10);
 
     // Cleanup
     setTimeout(() => {
       document.body.removeChild(flyingImage);
-      trails.forEach(trail => document.body.removeChild(trail));
-    }, 900);
+    }, 500);
   };
 
-  // Confettis améliorés avec couleurs Congo et formes variées
+  // Confettis réduits et plus rapides
   const triggerLightConfetti = () => {
-    const count = 50;
+    const count = 25;
     const defaults = {
       origin: { x: 0.9, y: 0.1 },
       zIndex: 9999
     };
 
-    // Couleurs du drapeau congolais + orange Kwenda
     const colors = [
       '#E8112d', // Rouge Congo
       '#F7D618', // Jaune Congo
@@ -118,33 +85,17 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
       '#F7931E', // Orange foncé
     ];
 
-    // Premier burst - confettis variés
     confetti({
       ...defaults,
-      particleCount: count / 2,
-      spread: 70,
+      particleCount: count,
+      spread: 60,
       colors,
-      ticks: 150,
-      gravity: 1,
-      scalar: 1,
-      shapes: ['circle', 'square'],
-      drift: 0.2
+      ticks: 100,
+      gravity: 1.3,
+      scalar: 0.9,
+      shapes: ['circle'],
+      drift: 0.1
     });
-
-    // Second burst décalé - étoiles
-    setTimeout(() => {
-      confetti({
-        ...defaults,
-        particleCount: count / 2,
-        spread: 90,
-        colors,
-        ticks: 120,
-        gravity: 1.2,
-        scalar: 0.8,
-        shapes: ['star'],
-        startVelocity: 45,
-      });
-    }, 150);
   };
 
   // Toast moderne avec image produit et progress bar
@@ -205,37 +156,21 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
                 </div>
               </div>
 
-              {/* Actions avec CTA commander prominant */}
-              <div className="flex gap-2 mt-3">
+              {/* Actions simplifiées */}
+              <div className="flex gap-2 mt-2">
                 {onOpenCart && (
-                  <>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        toast.dismiss(t);
-                        onOpenCart();
-                        // Auto-scroll vers checkout button
-                        setTimeout(() => {
-                          document.querySelector('[data-checkout-button]')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 300);
-                      }}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 font-bold shadow-lg text-white"
-                    >
-                      💳 Commander ({formatPrice(product.price * quantity)})
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        toast.dismiss(t);
-                        onOpenCart();
-                      }}
-                      className="flex-shrink-0 px-3"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                    </Button>
-                  </>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      toast.dismiss(t);
+                      onOpenCart();
+                    }}
+                    className="flex-1"
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Voir le panier
+                  </Button>
                 )}
                 {!onOpenCart && (
                   <Button
@@ -253,9 +188,9 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
         </div>
       </motion.div>
     ), {
-      duration: 6000,
-      position: 'top-center',
-      className: 'w-full max-w-md mx-auto',
+      duration: 3000,
+      position: 'bottom-right',
+      className: 'max-w-sm',
     });
   };
 

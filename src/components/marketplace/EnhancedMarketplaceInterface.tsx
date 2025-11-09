@@ -446,15 +446,17 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   // Wrapper pour addToCart avec feedback visuel amélioré
   const addToCart = (product: Product, quantity: number = 1) => {
-    // Utiliser le addToCart global du CartContext
     addToCartGlobal(product);
 
-    // Feedback haptique mobile - triple vibration
+    // Vibration douce - single pulse
     if (navigator.vibrate) {
-      navigator.vibrate([50, 30, 100]);
+      navigator.vibrate(50);
     }
 
-    // Feedback visuel moderne avec confetti FORCÉ
+    // Confettis conditionnels - seulement si premier article OU produit > 50000 CDF
+    const isFirstItem = cartItems.length === 0;
+    const isExpensiveItem = product.price > 50000;
+
     showFeedback(
       {
         id: product.id,
@@ -465,25 +467,24 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       quantity,
       {
         withAnimation: true,
-        withConfetti: true,  // Toujours activé
+        withConfetti: isFirstItem || isExpensiveItem,
         productElementSelector: `[data-product-id="${product.id}"]`,
         cartButtonSelector: '[data-cart-button]'
       }
     );
 
-    // Pulse sur l'icône panier
+    // Animation pulse plus subtile
     const cartIcon = document.querySelector('[data-cart-button]');
     if (cartIcon) {
-      cartIcon.classList.add('animate-bounce');
-      setTimeout(() => cartIcon.classList.remove('animate-bounce'), 600);
+      cartIcon.classList.add('animate-pulse');
+      setTimeout(() => cartIcon.classList.remove('animate-pulse'), 400);
     }
 
-    // Toast position TOP-CENTER pour visibilité maximale
+    // Toast discret
     toast({
-      title: "🎉 Ajouté au panier !",
-      description: `${product.title} • ${formatCurrency(product.price)}`,
-      duration: 2500,
-      className: "border-2 border-primary shadow-2xl"
+      title: "✓ Ajouté",
+      description: product.title,
+      duration: 2000,
     });
   };
 
