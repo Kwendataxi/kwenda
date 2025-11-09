@@ -78,8 +78,7 @@ export const QuickTransferPopup: React.FC<QuickTransferPopupProps> = ({
       
       const { data, error } = await invokeEdgeFunction({
         functionName: 'validate-transfer-recipient',
-        body: { identifier: query },
-        retryOn401: true
+        body: { identifier: query }
       });
       
       if (error) {
