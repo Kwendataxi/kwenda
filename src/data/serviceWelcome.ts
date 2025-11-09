@@ -18,7 +18,7 @@ export const serviceWelcomeSlides: ServiceSlide[] = [
     service: 'food',
     title: 'Kwenda Food',
     subtitle: 'Vos restaurants préférés livrés chez vous',
-    description: 'Découvrez les meilleurs plats de Kinshasa, Lubumbashi, Kolwezi et Abidjan.',
+    description: 'Découvrez les meilleurs plats de Kinshasa, Lubumbashi et Kolwezi.',
     lucideIcon: UtensilsCrossed,
     gradient: 'from-orange-500/20 via-amber-500/10 to-orange-600/20',
     ctaText: 'Commander maintenant',

@@ -18,7 +18,9 @@ const CITIES: City[] = [
   { name: 'Kinshasa', country: 'RDC', emoji: '🇨🇩' },
   { name: 'Lubumbashi', country: 'RDC', emoji: '🇨🇩' },
   { name: 'Kolwezi', country: 'RDC', emoji: '🇨🇩' },
-  { name: 'Abidjan', country: 'Côte d\'Ivoire', emoji: '🇨🇮' },
+  // ⚠️ ABIDJAN: Uniquement pour tests développement depuis Côte d'Ivoire
+  // Le projet Kwenda est exclusivement pour la RDC (production)
+  { name: 'Abidjan', country: 'Côte d\'Ivoire (Test)', emoji: '🇨🇮' },
 ];
 
 interface CityDropdownProps {
