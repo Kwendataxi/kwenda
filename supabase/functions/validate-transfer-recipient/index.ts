@@ -88,83 +88,113 @@ Deno.serve(async (req) => {
     let recipientEmail: string | null = null;
 
     if (isEmail) {
-      // Recherche par email dans clients
-      const { data: clientData, error: clientError } = await supabaseClient
-        .from('clients')
-        .select('user_id, display_name, email')
-        .eq('email', identifier.toLowerCase())
-        .maybeSingle();
+      // ✅ STRATÉGIE SIMPLIFIÉE: Recherche prioritaire dans auth.users
+      console.log('📧 [3.1/6] Recherche par email dans auth.users (source de vérité)');
+      
+      try {
+        const { data: authData, error: authSearchError } = await supabaseClient.rpc(
+          'get_user_by_email',
+          { p_email: identifier.toLowerCase() }
+        );
 
-      console.log('🔎 [4/6] Résultat recherche clients:', clientData ? 'Trouvé' : 'Non trouvé');
+        console.log('🔎 [4/6] Résultat auth.users:', authData ? '✅ Trouvé' : '❌ Non trouvé');
 
-      if (clientData) {
-        recipientUserId = clientData.user_id;
-        recipientName = clientData.display_name;
-        recipientEmail = clientData.email;
-      } else {
-        // Recherche dans partner_profiles
-        const { data: partnerData, error: partnerError } = await supabaseClient
-          .from('partner_profiles')
-          .select('user_id, company_name, company_email')
-          .eq('company_email', identifier.toLowerCase())
-          .maybeSingle();
+        if (authData && authData.length > 0) {
+          recipientUserId = authData[0].id;
+          recipientEmail = authData[0].email;
+          
+          console.log('👤 [4.1/6] User ID trouvé:', recipientUserId);
 
-        console.log('🔎 [4.1/6] Résultat recherche partners:', partnerData ? 'Trouvé' : 'Non trouvé');
+          // Enrichir avec le display_name depuis clients ou partner_profiles
+          try {
+            const { data: clientData } = await supabaseClient
+              .from('clients')
+              .select('display_name')
+              .eq('user_id', recipientUserId)
+              .maybeSingle();
 
-        if (partnerData) {
-          recipientUserId = partnerData.user_id;
-          recipientName = partnerData.company_name;
-          recipientEmail = partnerData.company_email;
-        } else {
-          // Recherche dans auth.users via RPC
-          const { data: authData, error: authSearchError } = await supabaseClient.rpc(
-            'get_user_by_email',
-            { p_email: identifier.toLowerCase() }
-          );
+            if (clientData?.display_name) {
+              recipientName = clientData.display_name;
+              console.log('✅ [4.2/6] Nom depuis clients:', recipientName);
+            } else {
+              // Fallback: chercher dans partner_profiles
+              const { data: partnerData } = await supabaseClient
+                .from('partner_profiles')
+                .select('company_name')
+                .eq('user_id', recipientUserId)
+                .maybeSingle();
 
-          console.log('🔎 [4.2/6] Résultat recherche auth.users:', authData ? 'Trouvé' : 'Non trouvé');
-
-          if (authData && authData.length > 0) {
-            recipientUserId = authData[0].id;
-            recipientEmail = authData[0].email;
-            
-            // Utiliser get_user_display_name pour récupérer le nom
-            const { data: nameData } = await supabaseClient.rpc(
-              'get_user_display_name',
-              { p_user_id: recipientUserId }
-            );
-            
-            recipientName = nameData || authData[0].email?.split('@')[0];
+              if (partnerData?.company_name) {
+                recipientName = partnerData.company_name;
+                console.log('✅ [4.3/6] Nom depuis partner_profiles:', recipientName);
+              } else {
+                // Fallback final: utiliser l'email comme nom
+                recipientName = authData[0].email?.split('@')[0] || 'Utilisateur';
+                console.log('⚠️ [4.4/6] Fallback nom depuis email:', recipientName);
+              }
+            }
+          } catch (enrichError) {
+            console.warn('⚠️ Erreur enrichissement nom (non bloquant):', enrichError);
+            recipientName = authData[0].email?.split('@')[0] || 'Utilisateur';
           }
+        } else {
+          console.log('❌ [4/6] Aucun utilisateur trouvé pour:', identifier);
         }
+      } catch (authError) {
+        console.error('❌ Erreur recherche auth.users:', authError);
       }
     } else {
-      // Recherche par numéro de téléphone
-      const { data: clientData, error: clientError } = await supabaseClient
-        .from('clients')
-        .select('user_id, display_name, email, phone_number')
-        .eq('phone_number', identifier)
-        .maybeSingle();
+      // ✅ RECHERCHE PAR TÉLÉPHONE
+      console.log('📱 [3.1/6] Recherche par téléphone');
 
-      console.log('🔎 [4/6] Résultat recherche par téléphone:', clientData ? 'Trouvé' : 'Non trouvé');
-
-      if (clientData) {
-        recipientUserId = clientData.user_id;
-        recipientName = clientData.display_name;
-        recipientEmail = clientData.email;
-      } else {
-        // Recherche dans partner_profiles
-        const { data: partnerData } = await supabaseClient
-          .from('partner_profiles')
-          .select('user_id, company_name, company_email, company_phone')
-          .eq('company_phone', identifier)
+      try {
+        // Chercher d'abord dans clients
+        const { data: clientData, error: clientError } = await supabaseClient
+          .from('clients')
+          .select('user_id, display_name, email, phone_number')
+          .eq('phone_number', identifier)
           .maybeSingle();
 
-        if (partnerData) {
-          recipientUserId = partnerData.user_id;
-          recipientName = partnerData.company_name;
-          recipientEmail = partnerData.company_email;
+        console.log('🔎 [4/6] Résultat clients:', clientData ? '✅ Trouvé' : '❌ Non trouvé');
+
+        if (clientData) {
+          recipientUserId = clientData.user_id;
+          recipientName = clientData.display_name;
+          recipientEmail = clientData.email;
+          console.log('✅ [4.1/6] Client trouvé:', recipientUserId, recipientName);
+        } else {
+          // Chercher dans partner_profiles
+          const { data: partnerData, error: partnerError } = await supabaseClient
+            .from('partner_profiles')
+            .select('user_id, company_name, company_phone')
+            .eq('company_phone', identifier)
+            .maybeSingle();
+
+          console.log('🔎 [4.2/6] Résultat partners:', partnerData ? '✅ Trouvé' : '❌ Non trouvé');
+
+          if (partnerData) {
+            recipientUserId = partnerData.user_id;
+            recipientName = partnerData.company_name;
+
+            // ✅ CORRECTION: Récupérer l'email depuis auth.users au lieu de company_email
+            try {
+              const { data: authData } = await supabaseClient.rpc(
+                'get_user_by_email_from_id',
+                { p_user_id: partnerData.user_id }
+              );
+              recipientEmail = authData?.email || null;
+              console.log('✅ [4.3/6] Email récupéré depuis auth.users:', recipientEmail);
+            } catch (emailError) {
+              console.warn('⚠️ Impossible de récupérer email (non bloquant):', emailError);
+            }
+
+            console.log('✅ [4.4/6] Partner trouvé:', recipientUserId, recipientName);
+          } else {
+            console.log('❌ [4.5/6] Aucun utilisateur trouvé pour téléphone:', identifier);
+          }
         }
+      } catch (phoneError) {
+        console.error('❌ Erreur recherche par téléphone:', phoneError);
       }
     }
 
