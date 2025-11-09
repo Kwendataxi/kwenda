@@ -34,48 +34,41 @@ interface TransferResponse {
 async function findRecipientByEmail(supabaseClient: any, email: string): Promise<string | null> {
   console.log('📧 Recherche par email:', email);
   
-  // 1. Clients
-  const { data: clientData } = await supabaseClient
-    .from('clients')
-    .select('user_id')
-    .eq('email', email.toLowerCase())
-    .maybeSingle();
-  
-  if (clientData?.user_id) {
-    console.log('✅ Trouvé dans clients');
-    return clientData.user_id;
-  }
-  
-  // 2. Partners
-  const { data: partnerData } = await supabaseClient
-    .from('partner_profiles')
-    .select('user_id')
-    .eq('company_email', email.toLowerCase())
-    .maybeSingle();
-  
-  if (partnerData?.user_id) {
-    console.log('✅ Trouvé dans partners');
-    return partnerData.user_id;
-  }
-  
-  // 3. Auth.users via RPC
-  const { data: authData, error: rpcError } = await supabaseClient.rpc(
-    'get_user_by_email',
-    { p_email: email.toLowerCase() }
-  );
-  
-  if (rpcError) {
-    console.error('❌ Erreur RPC:', rpcError);
+  try {
+    // 1️⃣ Clients d'abord
+    const { data: clientData } = await supabaseClient
+      .from('clients')
+      .select('user_id')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+    
+    if (clientData?.user_id) {
+      console.log('✅ Client trouvé');
+      return clientData.user_id;
+    }
+    
+    // 2️⃣ Recherche DIRECTE dans auth.users (sans company_email)
+    const { data: authData, error: rpcError } = await supabaseClient.rpc(
+      'get_user_by_email',
+      { p_email: email.toLowerCase() }
+    );
+    
+    if (rpcError) {
+      console.error('❌ Erreur RPC get_user_by_email:', rpcError);
+      return null;
+    }
+    
+    if (authData && Array.isArray(authData) && authData.length > 0) {
+      console.log('✅ Utilisateur trouvé dans auth.users via RPC');
+      return authData[0].id;
+    }
+    
+    console.log('❌ Email introuvable');
+    return null;
+  } catch (err) {
+    console.error('❌ Erreur recherche email:', err);
     return null;
   }
-  
-  if (authData && Array.isArray(authData) && authData.length > 0) {
-    console.log('✅ Trouvé dans auth.users via RPC');
-    return authData[0].id;
-  }
-  
-  console.log('❌ Email introuvable');
-  return null;
 }
 
 /**
@@ -84,32 +77,37 @@ async function findRecipientByEmail(supabaseClient: any, email: string): Promise
 async function findRecipientByPhone(supabaseClient: any, phone: string): Promise<string | null> {
   console.log('📞 Recherche par téléphone:', phone);
   
-  // 1. Clients
-  const { data: clientData } = await supabaseClient
-    .from('clients')
-    .select('user_id')
-    .eq('phone_number', phone)
-    .maybeSingle();
-  
-  if (clientData?.user_id) {
-    console.log('✅ Trouvé dans clients');
-    return clientData.user_id;
+  try {
+    // 1️⃣ Clients
+    const { data: clientData } = await supabaseClient
+      .from('clients')
+      .select('user_id')
+      .eq('phone_number', phone)
+      .maybeSingle();
+    
+    if (clientData?.user_id) {
+      console.log('✅ Client trouvé');
+      return clientData.user_id;
+    }
+    
+    // 2️⃣ Partners (par company_phone uniquement)
+    const { data: partnerData } = await supabaseClient
+      .from('partner_profiles')
+      .select('user_id')
+      .eq('company_phone', phone)
+      .maybeSingle();
+    
+    if (partnerData?.user_id) {
+      console.log('✅ Partner trouvé');
+      return partnerData.user_id;
+    }
+    
+    console.log('❌ Téléphone introuvable');
+    return null;
+  } catch (err) {
+    console.error('❌ Erreur recherche téléphone:', err);
+    return null;
   }
-  
-  // 2. Partners
-  const { data: partnerData } = await supabaseClient
-    .from('partner_profiles')
-    .select('user_id')
-    .eq('company_phone', phone)
-    .maybeSingle();
-  
-  if (partnerData?.user_id) {
-    console.log('✅ Trouvé dans partners');
-    return partnerData.user_id;
-  }
-  
-  console.log('❌ Téléphone introuvable');
-  return null;
 }
 
 Deno.serve(async (req) => {
@@ -161,6 +159,45 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // ✅ Limites de sécurité
+    const MIN_AMOUNT = 100; // 100 CDF minimum
+    const MAX_AMOUNT = 500000; // 500,000 CDF maximum par transfert
+    const MAX_DAILY_AMOUNT = 2000000; // 2M CDF par jour
+
+    if (amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
+      console.error('❌ AMOUNT OUT OF RANGE:', amount);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Montant invalide. Min: ${MIN_AMOUNT.toLocaleString()} CDF, Max: ${MAX_AMOUNT.toLocaleString()} CDF` 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Vérifier les transferts du jour (limite journalière)
+    const today = new Date().toISOString().split('T')[0];
+    const { data: todayTransfers } = await supabaseClient
+      .from('wallet_transfers')
+      .select('amount')
+      .eq('sender_id', user.id)
+      .gte('created_at', `${today}T00:00:00Z`);
+
+    const totalToday = (todayTransfers || []).reduce((sum: number, t: any) => sum + Number(t.amount), 0);
+
+    if (totalToday + amount > MAX_DAILY_AMOUNT) {
+      console.error('❌ DAILY LIMIT EXCEEDED:', { totalToday, amount, limit: MAX_DAILY_AMOUNT });
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Limite journalière atteinte (${MAX_DAILY_AMOUNT.toLocaleString()} CDF). Vous avez déjà transféré ${totalToday.toLocaleString()} CDF aujourd'hui. Réessayez demain.` 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('✅ AMOUNT VALID:', { amount, totalToday, remaining: MAX_DAILY_AMOUNT - totalToday - amount });
 
     // Trouver le destinataire
     const isEmail = recipientIdentifier.includes('@');
@@ -215,12 +252,39 @@ Deno.serve(async (req) => {
 
     console.log('✅ TRANSFER SUCCESS:', transferData);
 
+    // Logger dans activity_logs pour analytics
+    try {
+      await supabaseClient.from('activity_logs').insert([
+        {
+          user_id: user.id,
+          activity_type: 'wallet_transfer_sent',
+          description: `Transfert envoyé vers ${transferData.recipient_name || recipientUserId}`,
+          amount: -amount,
+          currency: 'CDF',
+          reference_type: 'wallet_transfer',
+          reference_id: transferData.transfer_id
+        },
+        {
+          user_id: recipientUserId,
+          activity_type: 'wallet_transfer_received',
+          description: `Transfert reçu de ${transferData.sender_name || user.id}`,
+          amount: amount,
+          currency: 'CDF',
+          reference_type: 'wallet_transfer',
+          reference_id: transferData.transfer_id
+        }
+      ]);
+      console.log('✅ ACTIVITY LOGS CREATED');
+    } catch (logError) {
+      console.warn('⚠️ ACTIVITY LOG ERROR (non-blocking):', logError);
+    }
+
     // Envoyer une notification au destinataire
     try {
       await supabaseClient.from('notifications').insert({
         user_id: recipientUserId,
         title: 'Transfert reçu',
-        message: `Vous avez reçu ${amount} CDF de ${transferData.sender_name}`,
+        message: `Vous avez reçu ${amount.toLocaleString()} CDF de ${transferData.sender_name}`,
         type: 'wallet_transfer',
         reference_id: transferData.transfer_id,
         reference_type: 'wallet_transfer'

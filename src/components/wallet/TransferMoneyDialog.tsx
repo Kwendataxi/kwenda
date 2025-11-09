@@ -5,7 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useWallet } from '@/hooks/useWallet';
+import { useAuth } from '@/hooks/useAuth';
 import { useRecipientValidation } from '@/hooks/useRecipientValidation';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Loader2, 
@@ -30,7 +33,52 @@ export const TransferMoneyDialog = ({ open, onClose }: TransferMoneyDialogProps)
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const { wallet, loading, transferFunds } = useWallet();
+  const { user } = useAuth();
   const { recipientInfo, isValidating, error, validateRecipient, clearValidation } = useRecipientValidation();
+
+  // 🎯 Récupérer les contacts récents (derniers destinataires)
+  const { data: recentContacts } = useQuery({
+    queryKey: ['recent-transfer-contacts', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // Récupérer les transferts récents avec les infos du destinataire
+      const { data: transfers } = await supabase
+        .from('wallet_transfers')
+        .select('recipient_id, created_at')
+        .eq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (!transfers || transfers.length === 0) return [];
+      
+      // Dédupliquer par recipient_id et garder les 5 plus récents
+      const uniqueRecipients = Array.from(
+        new Map(transfers.map(t => [t.recipient_id, t])).values()
+      ).slice(0, 5);
+      
+      // Récupérer les infos des destinataires depuis la table clients
+      const recipientIds = uniqueRecipients.map(t => t.recipient_id);
+      const { data: clients } = await supabase
+        .from('clients')
+        .select('user_id, display_name, phone_number, email')
+        .in('user_id', recipientIds);
+      
+      // Combiner les données
+      return uniqueRecipients
+        .map(transfer => {
+          const clientInfo = clients?.find(c => c.user_id === transfer.recipient_id);
+          return clientInfo ? {
+            recipient_id: transfer.recipient_id,
+            display_name: clientInfo.display_name,
+            phone_number: clientInfo.phone_number,
+            email: clientInfo.email
+          } : null;
+        })
+        .filter(c => c && c.display_name);
+    },
+    enabled: open && !!user?.id
+  });
 
   const handleRecipientChange = (value: string) => {
     setRecipient(value);
@@ -149,6 +197,36 @@ export const TransferMoneyDialog = ({ open, onClose }: TransferMoneyDialogProps)
               Seul votre solde principal est transférable (pas les crédits écosystème).
             </AlertDescription>
           </Alert>
+
+          {/* 🎯 Contacts récents */}
+          <AnimatePresence>
+            {recentContacts && recentContacts.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-2"
+              >
+                <Label className="text-zinc-600 dark:text-zinc-400 text-xs font-semibold">
+                  Contacts récents
+                </Label>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {recentContacts.map((contact: any) => (
+                    <Button
+                      key={contact.recipient_id}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRecipientChange(contact.email || contact.phone_number || '')}
+                      className="flex-shrink-0 rounded-full border-2 hover:border-primary hover:bg-primary/5 transition-all duration-200"
+                    >
+                      <User className="w-3 h-3 mr-1.5" />
+                      <span className="text-xs font-semibold">{contact.display_name}</span>
+                    </Button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Input destinataire avec validation */}
           <motion.div 

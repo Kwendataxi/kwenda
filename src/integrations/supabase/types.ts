@@ -14829,6 +14829,12 @@ export type Database = {
           id: string
         }[]
       }
+      get_user_by_email_from_id: {
+        Args: { p_user_id: string }
+        Returns: {
+          email: string
+        }[]
+      }
       get_user_display_name: { Args: { p_user_id: string }; Returns: string }
       get_user_role: { Args: { user_id_param: string }; Returns: string }
       get_user_role_secure:
