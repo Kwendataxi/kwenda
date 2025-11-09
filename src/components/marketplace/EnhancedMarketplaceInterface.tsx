@@ -171,13 +171,14 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const loadProducts = async () => {
     try {
       setLoading(true);
-      // ✅ FILTRE : Uniquement les produits approuvés avec info vendeurs
-      // Tri par popularité (view_count + sales_count)
+      console.log('🔍 [Marketplace] Chargement des produits...');
+      
+      // ✅ CORRECTION : LEFT JOIN au lieu de INNER pour inclure TOUS les produits
       const { data, error } = await supabase
         .from('marketplace_products')
         .select(`
           *,
-          vendor_profiles!inner(
+          vendor_profiles(
             shop_name,
             shop_logo_url,
             average_rating,
@@ -186,14 +187,17 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           )
         `)
         .eq('status', 'active')
-        .eq('moderation_status', 'approved')  // ✅ Produits approuvés uniquement
+        .eq('moderation_status', 'approved')
         .order('popularity_score', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
+      console.log(`✅ [Marketplace] ${data?.length || 0} produits chargés depuis Supabase`);
+
       // Handle empty data gracefully
       if (!data || data.length === 0) {
+        console.warn('⚠️ [Marketplace] Aucun produit trouvé dans la base de données');
         setProducts([]);
         setLoading(false);
         return;
@@ -240,7 +244,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           description: product.description || '',
           seller_id: product.seller_id,
           seller: { 
-            display_name: (product.vendor_profiles as any)?.shop_name || t('marketplace.unknown_seller')
+            display_name: (product.vendor_profiles as any)?.shop_name || 'Boutique Kwenda'
           },
           sellerLogo: (product.vendor_profiles as any)?.shop_logo_url,
           sellerRating: (product.vendor_profiles as any)?.average_rating || 0,
@@ -264,8 +268,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       });
 
       setProducts(transformedProducts);
+      console.log(`✅ [Marketplace] ${transformedProducts.length} produits transformés et prêts à l'affichage`);
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('❌ [Marketplace] Erreur chargement produits:', error);
       
       // Set empty products on error
       setProducts([]);
@@ -446,6 +451,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   // Wrapper pour addToCart avec feedback visuel amélioré
   const addToCart = (product: Product, quantity: number = 1) => {
+    console.log('🛒 [Marketplace] Ajout au panier:', product.title);
     addToCartGlobal(product);
 
     // Vibration douce - single pulse

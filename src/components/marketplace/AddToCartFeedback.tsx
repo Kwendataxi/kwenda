@@ -137,8 +137,8 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
               <div className="flex items-start gap-2 mb-1">
                 <motion.div 
                   initial={{ scale: 0 }}
-                  animate={{ scale: [0, 1.2, 1] }}
-                  transition={{ duration: 0.5, type: "spring" }}
+                  animate={{ scale: 1.1 }}
+                  transition={{ duration: 0.3, type: "spring", bounce: 0.5 }}
                   className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full"
                 >
                   <Check className="h-4 w-4 text-green-600 dark:text-green-400" />

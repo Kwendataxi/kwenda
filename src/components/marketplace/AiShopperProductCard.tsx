@@ -87,12 +87,14 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
   };
 
   const handleCardClick = () => {
+    console.log('🖱️ [ProductCard] Click sur carte:', product.title);
     triggerHaptic('light');
-    onQuickView(); // Navigation vers détails au lieu d'ajouter au panier
+    onQuickView();
   };
 
   const handleAddToCartButton = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log('🛒 [ProductCard] Click bouton panier:', product.title);
     if (product.inStock) {
       triggerHaptic('light');
       onAddToCart();
