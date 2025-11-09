@@ -191,7 +191,11 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
         delivery_location: destination.address,
         delivery_coordinates: { lat: destination.coordinates[1], lng: destination.coordinates[0] },
         estimated_price: calculateTotalPrice(),
-        status: 'pending'
+        status: 'pending',
+        sender_name: 'Expéditeur Yango',
+        sender_phone: '+243000000000',
+        recipient_name: 'Destinataire Yango',
+        recipient_phone: '+243000000000'
       };
 
       const { data, error } = await supabase

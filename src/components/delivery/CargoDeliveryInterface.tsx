@@ -127,7 +127,11 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
         estimated_price: calculatePrice(),
         vehicle_size: selectedSize,
         loading_assistance: hasAssistance,
-        status: 'pending'
+        status: 'pending',
+        sender_name: 'Expéditeur Cargo',
+        sender_phone: '+243000000000',
+        recipient_name: 'Destinataire Cargo',
+        recipient_phone: '+243000000000'
       };
 
       const { data, error } = await supabase

@@ -63,6 +63,7 @@ serve(async (req) => {
     let searchRadius = priority === 'urgent' ? 25 : priority === 'high' ? 15 : 10;
     let minRating = priority === 'urgent' ? 3.0 : priority === 'high' ? 4.0 : 4.5;
 
+    // ✅ CORRECTION: Supprimer filtre city qui n'existe pas
     const { data: drivers, error } = await supabase
       .from('driver_locations')
       .select(`
@@ -78,7 +79,6 @@ serve(async (req) => {
           total_trips
         )
       `)
-      .eq('city', city)
       .eq('is_online', true)
       .eq('is_available', true)
       .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString());

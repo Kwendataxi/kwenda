@@ -1748,11 +1748,11 @@ export type Database = {
           pickup_google_place_name: string | null
           pickup_location: string
           pickup_time: string | null
-          recipient_name: string | null
-          recipient_phone: string | null
+          recipient_name: string
+          recipient_phone: string
           recipient_signature: string | null
-          sender_name: string | null
-          sender_phone: string | null
+          sender_name: string
+          sender_phone: string
           status: string | null
           updated_at: string
           user_id: string
@@ -1796,11 +1796,11 @@ export type Database = {
           pickup_google_place_name?: string | null
           pickup_location: string
           pickup_time?: string | null
-          recipient_name?: string | null
-          recipient_phone?: string | null
+          recipient_name: string
+          recipient_phone: string
           recipient_signature?: string | null
-          sender_name?: string | null
-          sender_phone?: string | null
+          sender_name: string
+          sender_phone: string
           status?: string | null
           updated_at?: string
           user_id: string
@@ -1844,11 +1844,11 @@ export type Database = {
           pickup_google_place_name?: string | null
           pickup_location?: string
           pickup_time?: string | null
-          recipient_name?: string | null
-          recipient_phone?: string | null
+          recipient_name?: string
+          recipient_phone?: string
           recipient_signature?: string | null
-          sender_name?: string | null
-          sender_phone?: string | null
+          sender_name?: string
+          sender_phone?: string
           status?: string | null
           updated_at?: string
           user_id?: string

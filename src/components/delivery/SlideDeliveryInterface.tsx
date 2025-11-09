@@ -289,45 +289,110 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
 
 
   const handleSubmit = async () => {
-    if (!deliveryData.pickupLocation || !deliveryData.deliveryLocation) {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🚀 [SlideDeliveryInterface] handleSubmit démarré');
+    console.log('📦 État actuel deliveryData:', JSON.stringify(deliveryData, null, 2));
+    
+    // ✅ VALIDATION ULTRA-STRICTE PRE-SOUMISSION
+    
+    // 1. Vérifier les locations
+    if (!deliveryData.pickupLocation?.lat || !deliveryData.pickupLocation?.lng) {
+      logger.error('❌ Coordonnées pickup invalides:', deliveryData.pickupLocation);
       toast({
-        title: "Informations manquantes",
-        description: "Veuillez sélectionner les adresses de collecte et de livraison",
+        title: "❌ Adresse de collecte invalide",
+        description: "Veuillez sélectionner une adresse valide sur la carte",
         variant: "destructive"
       });
+      setCurrentStep('pickup');
+      return;
+    }
+    
+    if (!deliveryData.deliveryLocation?.lat || !deliveryData.deliveryLocation?.lng) {
+      logger.error('❌ Coordonnées delivery invalides:', deliveryData.deliveryLocation);
+      toast({
+        title: "❌ Adresse de livraison invalide",
+        description: "Veuillez sélectionner une adresse valide sur la carte",
+        variant: "destructive"
+      });
+      setCurrentStep('destination');
       return;
     }
 
+    // 2. Validation STRICTE des contacts avec trim
     const senderPhoneTrimmed = deliveryData.senderPhone?.trim();
     const recipientPhoneTrimmed = deliveryData.recipientPhone?.trim();
+    const senderNameTrimmed = deliveryData.senderName?.trim();
+    const recipientNameTrimmed = deliveryData.recipientName?.trim();
 
-    if (!senderPhoneTrimmed || senderPhoneTrimmed.length === 0) {
-      logger.error('Téléphone expéditeur manquant');
+    // 3. Logs de debug contacts
+    console.log('📞 Validation contacts:', {
+      senderName: senderNameTrimmed,
+      senderPhone: senderPhoneTrimmed,
+      recipientName: recipientNameTrimmed,
+      recipientPhone: recipientPhoneTrimmed
+    });
+
+    // 4. Validation expéditeur
+    if (!senderNameTrimmed || senderNameTrimmed.length < 2) {
+      logger.error('❌ Nom expéditeur invalide:', deliveryData.senderName);
       toast({
-        title: "Contact expéditeur manquant",
-        description: "Le numéro de téléphone de l'expéditeur est requis",
+        title: "❌ Nom de l'expéditeur requis",
+        description: "Le nom doit contenir au moins 2 caractères",
         variant: "destructive"
       });
       setCurrentStep('contacts');
       return;
     }
 
-    if (!recipientPhoneTrimmed || recipientPhoneTrimmed.length === 0) {
-      logger.error('Téléphone destinataire manquant');
+    if (!senderPhoneTrimmed || senderPhoneTrimmed.length < 9) {
+      logger.error('❌ Téléphone expéditeur manquant');
       toast({
-        title: "Contact destinataire manquant",
-        description: "Le numéro de téléphone du destinataire est requis",
+        title: "❌ Téléphone de l'expéditeur requis",
+        description: "Format attendu: +243XXXXXXXXX (minimum 9 chiffres)",
         variant: "destructive"
       });
       setCurrentStep('contacts');
       return;
     }
+
+    // 5. Validation destinataire
+    if (!recipientNameTrimmed || recipientNameTrimmed.length < 2) {
+      logger.error('❌ Nom destinataire invalide:', deliveryData.recipientName);
+      toast({
+        title: "❌ Nom du destinataire requis",
+        description: "Le nom doit contenir au moins 2 caractères",
+        variant: "destructive"
+      });
+      setCurrentStep('contacts');
+      return;
+    }
+
+    if (!recipientPhoneTrimmed || recipientPhoneTrimmed.length < 9) {
+      logger.error('❌ Téléphone destinataire manquant');
+      toast({
+        title: "❌ Téléphone du destinataire requis",
+        description: "Format attendu: +243XXXXXXXXX (minimum 9 chiffres)",
+        variant: "destructive"
+      });
+      setCurrentStep('contacts');
+      return;
+    }
+
+    console.log('✅ Validation pré-soumission réussie - Tous les champs sont valides');
 
     setIsSubmitting(true);
 
     try {
-      // Conversion vers le format attendu par OrderConfirmationStep/useEnhancedDeliveryOrders
-      const adaptedOrderData = {
+      // ✅ Calculer distance et durée
+      const distanceMeters = calculateDistance(
+        deliveryData.pickupLocation,
+        deliveryData.deliveryLocation
+      );
+      const distanceKm = distanceMeters / 1000;
+      const durationMinutes = Math.round(distanceKm * 2.5);
+
+      // ✅ Structure de données GARANTIE VALIDE
+      const validatedOrderData = {
         pickup: {
           location: {
             address: deliveryData.pickupLocation.address,
@@ -337,8 +402,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             }
           },
           contact: {
-            name: deliveryData.senderName?.trim() || 'Expéditeur',
-            phone: senderPhoneTrimmed // Déjà validé non-vide
+            name: senderNameTrimmed, // GARANTIE NON-VIDE
+            phone: senderPhoneTrimmed // GARANTIE NON-VIDE
           }
         },
         destination: {
@@ -350,32 +415,39 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             }
           },
           contact: {
-            name: deliveryData.recipientName?.trim() || 'Destinataire',
-            phone: recipientPhoneTrimmed // Déjà validé non-vide
+            name: recipientNameTrimmed, // GARANTIE NON-VIDE
+            phone: recipientPhoneTrimmed // GARANTIE NON-VIDE
           }
         },
         service: {
           mode: deliveryData.serviceType,
           name: SERVICE_TYPES[deliveryData.serviceType].name,
-          description: SERVICE_TYPES[deliveryData.serviceType].description
+          description: t(`delivery.${SERVICE_TYPES[deliveryData.serviceType].description}`),
+          icon: SERVICE_TYPES[deliveryData.serviceType].icon,
+          features: ['Suivi temps réel', 'Support 24/7', 'Assurance colis'],
+          estimatedTime: `${durationMinutes} min`
         },
         pricing: {
           price: deliveryData.estimatedPrice,
-          mode: deliveryData.serviceType
+          distance: distanceKm,
+          duration: durationMinutes
         },
-        packageDetails: {
-          type: deliveryData.packageType,
-          description: `Colis de type ${deliveryData.packageType}`
-        }
+        distance: distanceKm,
+        duration: durationMinutes,
+        mode: deliveryData.serviceType
       };
 
-      logger.info('Commande de livraison préparée', adaptedOrderData);
-      onSubmit(adaptedOrderData);
+      console.log('📦 Données validées et structurées:', JSON.stringify(validatedOrderData, null, 2));
+      console.log('✅ GARANTIE: Tous les contacts sont présents et valides');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Appeler onSubmit avec données garanties valides
+      onSubmit(validatedOrderData);
       
     } catch (error) {
-      logger.error('Erreur préparation commande', error);
+      logger.error('❌ Erreur préparation commande:', error);
       toast({
-        title: "Erreur",
+        title: "❌ Erreur",
         description: "Impossible de préparer la commande. Veuillez réessayer.",
         variant: "destructive"
       });

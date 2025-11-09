@@ -109,6 +109,10 @@ export const ChatCriticalScenariosPanel = () => {
           delivery_location: 'Test Delivery',
           delivery_type: 'flash',
           status: 'pending',
+          sender_name: 'Test Expéditeur',
+          sender_phone: '+243999999999',
+          recipient_name: 'Test Destinataire',
+          recipient_phone: '+243888888888'
         }])
         .select()
         .single();
