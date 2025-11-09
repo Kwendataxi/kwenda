@@ -5,8 +5,8 @@ import { z } from 'zod';
  * Validation complète côté client pour empêcher les injections et garantir l'intégrité des données
  */
 
-// Validation téléphone international (format +243...)
-const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+// Validation téléphone : accepte formats locaux ET internationaux
+const phoneRegex = /^(\+?[1-9]\d{1,14}|0\d{9,14})$/;
 
 // Étape 1: Informations entreprise
 export const companyInfoSchema = z.object({
@@ -29,8 +29,20 @@ export const companyInfoSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(phoneRegex, { message: "Numéro de téléphone invalide (format international requis)" })
-    .max(20, { message: "Le numéro de téléphone ne peut pas dépasser 20 caractères" }),
+    .max(20, { message: "Le numéro de téléphone ne peut pas dépasser 20 caractères" })
+    .regex(phoneRegex, { 
+      message: "Format invalide. Ex: +243971508000, 0971508000 ou 971508000" 
+    })
+    .transform((val) => {
+      // Auto-formater au format international
+      if (val.startsWith('0')) {
+        return '+243' + val.substring(1); // RDC par défaut
+      }
+      if (!val.startsWith('+') && val.match(/^[1-9]/)) {
+        return '+243' + val; // Ajouter +243 si manquant
+      }
+      return val;
+    }),
   
   business_type: z.enum(['individual', 'company', 'cooperative', 'association'], {
     errorMap: () => ({ message: "Type d'entreprise invalide" })

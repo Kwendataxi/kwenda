@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Mail, Phone, MapPin, ChevronRight } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, ChevronRight, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface CompanyInfoStepProps {
   data: CompanyInfoFormData;
@@ -28,6 +29,24 @@ export const CompanyInfoStep = ({ data, onNext }: CompanyInfoStepProps) => {
   });
 
   const business_type = watch('business_type');
+  const [phoneValue, setPhoneValue] = useState(data.phone || '');
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9+]/g, ''); // Garder seulement chiffres et +
+    
+    // Auto-formater si commence par 0
+    if (value.startsWith('0') && value.length > 1) {
+      value = '+243' + value.substring(1);
+    }
+    
+    // Ajouter +243 si manquant et commence par un chiffre
+    if (value.match(/^[1-9]/) && !value.startsWith('+')) {
+      value = '+243' + value;
+    }
+    
+    setPhoneValue(value);
+    setValue('phone', value);
+  };
 
   const onSubmit = (formData: CompanyInfoFormData) => {
     console.log('✅ Step 1 validated:', formData);
@@ -60,10 +79,19 @@ export const CompanyInfoStep = ({ data, onNext }: CompanyInfoStepProps) => {
           value={business_type}
           onValueChange={(value) => setValue('business_type', value as any)}
         >
-          <SelectTrigger className={errors.business_type ? 'border-red-500' : ''}>
+          <SelectTrigger className={cn(
+            "w-full",
+            errors.business_type ? 'border-red-500' : ''
+          )}>
             <SelectValue placeholder="Sélectionnez un type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent 
+            position="popper"
+            side="bottom"
+            align="start"
+            sideOffset={4}
+            className="max-w-[calc(100vw-2rem)] w-full z-50"
+          >
             <SelectItem value="individual">Entreprise individuelle</SelectItem>
             <SelectItem value="company">Société (SARL, SA, etc.)</SelectItem>
             <SelectItem value="cooperative">Coopérative</SelectItem>
@@ -102,14 +130,18 @@ export const CompanyInfoStep = ({ data, onNext }: CompanyInfoStepProps) => {
         <Input
           id="phone"
           type="tel"
-          {...register('phone')}
+          value={phoneValue}
+          onChange={handlePhoneChange}
           placeholder="+243 999 000 000"
           className={errors.phone ? 'border-red-500' : ''}
         />
         {errors.phone && (
           <p className="text-sm text-red-500">{errors.phone.message}</p>
         )}
-        <p className="text-xs text-gray-500">Format international requis (+243...)</p>
+        <p className="text-xs text-gray-500 flex items-center gap-1">
+          <Info className="w-3 h-3" />
+          Formats acceptés : +243971508000, 0971508000 ou 971508000
+        </p>
       </div>
 
       {/* Adresse */}

@@ -102,6 +102,20 @@ export const ModernRegistrationWizard = () => {
       }
     } catch (error: any) {
       console.error('Partner registration error:', error);
+      
+      if (error.message === 'EMAIL_EXISTS_USE_LOGIN') {
+        // Afficher un toast avec bouton de connexion
+        toast.error('Email déjà utilisé', {
+          description: 'Connectez-vous pour ajouter le rôle partenaire à votre compte existant',
+          action: {
+            label: 'Se connecter',
+            onClick: () => navigate('/partner/auth')
+          },
+          duration: 10000
+        });
+        return;
+      }
+      
       toast.error('Erreur lors de l\'inscription', {
         description: error.message || 'Veuillez réessayer'
       });
@@ -191,7 +205,7 @@ export const ModernRegistrationWizard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/50 dark:border-gray-700/50 shadow-2xl">
+          <Card className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/50 dark:border-gray-700/50 shadow-2xl overflow-x-hidden">
             <CardContent className="p-8">
               <AnimatePresence mode="wait">
                 <motion.div
