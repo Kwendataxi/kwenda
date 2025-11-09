@@ -203,7 +203,7 @@ export const ShopProductCard: React.FC<ShopProductCardProps> = ({
 
           {/* Prix - Plus visible */}
           <div className="pt-3 border-t border-blue-200">
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-3xl font-bold text-red-600">
               {formatCurrency(product.price)}
             </p>
           </div>

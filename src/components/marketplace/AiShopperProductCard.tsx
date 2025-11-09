@@ -150,11 +150,11 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
         <div className="relative aspect-square overflow-hidden bg-muted">
           {/* Discount Badge OU Badge Nouveauté */}
           {actualDiscount > 0 ? (
-            <Badge className="absolute top-2.5 left-2.5 z-10 bg-emerald-600 text-white font-black text-base px-3 py-1.5 rounded-lg shadow-lg">
+            <Badge className="absolute top-2.5 left-2.5 z-10 bg-red-600 text-white font-black text-base px-3 py-1.5 rounded-lg shadow-lg">
               {actualDiscount}%
             </Badge>
           ) : isNewProduct(product.created_at) && (
-            <Badge className="absolute top-2.5 left-2.5 z-10 bg-white text-emerald-600 font-bold text-xs px-2.5 py-1 rounded-md shadow-md">
+            <Badge className="absolute top-2.5 left-2.5 z-10 bg-white text-red-600 font-bold text-xs px-2.5 py-1 rounded-md shadow-md">
               NOUVEAUTÉ
             </Badge>
           )}
@@ -236,9 +236,9 @@ export const AiShopperProductCard: React.FC<AiShopperProductCardProps> = ({
 
         {/* Product Info - ULTRA MINIMALISTE */}
         <div className="p-2.5 space-y-1.5">
-          {/* 1. PRIX (grand, gras, vert) */}
+          {/* 1. PRIX (grand, gras, rouge) */}
           <div className="space-y-0.5">
-            <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400 tracking-tight">
               {formatCurrency(product.price)}
             </div>
             {/* Prix barré si promo */}

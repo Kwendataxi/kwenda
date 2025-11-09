@@ -94,7 +94,7 @@ export const DeliverySeparatePaymentDialog = ({
           <div className="space-y-3 bg-muted/50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Montant produit (payé)</span>
-              <span className="text-lg font-bold line-through text-green-600">
+              <span className="text-lg font-bold line-through text-red-600">
                 {productAmount.toLocaleString()} CDF
               </span>
             </div>

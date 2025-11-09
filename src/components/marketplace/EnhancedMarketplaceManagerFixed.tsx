@@ -373,7 +373,7 @@ export const EnhancedMarketplaceManagerFixed: React.FC<EnhancedMarketplaceManage
                     <div>
                       <p className="text-sm text-muted-foreground">Produits Actifs</p>
                       <p className="text-2xl font-bold">{realTimeStats?.activeProducts || 0}</p>
-                      <p className="text-xs text-green-600">+{realTimeStats?.todayProducts || 0} aujourd'hui</p>
+                      <p className="text-xs text-red-600">+{realTimeStats?.todayProducts || 0} aujourd'hui</p>
                     </div>
                   </div>
                 </CardContent>
@@ -382,11 +382,11 @@ export const EnhancedMarketplaceManagerFixed: React.FC<EnhancedMarketplaceManage
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-500" />
+                    <TrendingUp className="h-4 w-4 text-red-500" />
                     <div>
                       <p className="text-sm text-muted-foreground">Commandes</p>
                       <p className="text-2xl font-bold">{realTimeStats?.completedOrders || 0}</p>
-                      <p className="text-xs text-green-600">
+                      <p className="text-xs text-red-600">
                         {realTimeStats?.growthRate ? `+${realTimeStats.growthRate.toFixed(1)}%` : '+0%'}
                       </p>
                     </div>
@@ -401,7 +401,7 @@ export const EnhancedMarketplaceManagerFixed: React.FC<EnhancedMarketplaceManage
                     <div>
                       <p className="text-sm text-muted-foreground">Revenus Total</p>
                       <p className="text-2xl font-bold">{(realTimeStats?.totalRevenue || 0).toLocaleString()} FC</p>
-                      <p className="text-xs text-green-600">+{(realTimeStats?.todayRevenue || 0).toLocaleString()} FC aujourd'hui</p>
+                      <p className="text-xs text-red-600">+{(realTimeStats?.todayRevenue || 0).toLocaleString()} FC aujourd'hui</p>
                     </div>
                   </div>
                 </CardContent>

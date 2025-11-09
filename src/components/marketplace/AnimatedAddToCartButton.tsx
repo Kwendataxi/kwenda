@@ -118,7 +118,7 @@ export const AnimatedAddToCartButton: React.FC<AnimatedAddToCartButtonProps> = (
         onClick={handleClick}
         className={cn(
           "h-8 text-xs w-full relative overflow-hidden transition-all duration-300",
-          state === 'added' && "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800",
+          state === 'added' && "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800",
           className
         )}
       >
@@ -144,7 +144,7 @@ export const AnimatedAddToCartButton: React.FC<AnimatedAddToCartButtonProps> = (
               repeat: 1,
               ease: "easeOut"
             }}
-            className="absolute inset-0 bg-green-400 rounded-md pointer-events-none"
+            className="absolute inset-0 bg-red-400 rounded-md pointer-events-none"
           />
         )}
       </Button>
