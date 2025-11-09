@@ -142,13 +142,27 @@ export function useModernRentals(selectedCity?: string) {
         .eq("is_available", true)
         .eq("is_active", true)
         .eq("moderation_status", "approved")
-        .contains("available_cities", [userLocation])
         .order("created_at", { ascending: false });
       
-      console.log("🚗 [RENTAL] Vehicles fetched:", { count: data?.length || 0, error, city: userLocation });
-      
       if (error) throw error;
-      return (data || []).map((v: any) => ({
+      
+      // Filtrer en mémoire pour inclure les véhicules disponibles dans la ville sélectionnée
+      const filteredData = (data || []).filter((v: any) => {
+        const cities = Array.isArray(v.available_cities) ? v.available_cities : [];
+        return cities.includes(userLocation);
+      });
+      
+      console.log("🚗 [RENTAL] Vehicles fetched:", { 
+        totalCount: data?.length || 0, 
+        filteredCount: filteredData.length,
+        city: userLocation,
+        vehicles: filteredData.map((v: any) => ({ 
+          name: v.name, 
+          cities: v.available_cities 
+        }))
+      });
+      
+      return filteredData.map((v: any) => ({
         ...v,
         features: Array.isArray(v.features) ? v.features : [],
         images: Array.isArray(v.images) ? v.images : [],

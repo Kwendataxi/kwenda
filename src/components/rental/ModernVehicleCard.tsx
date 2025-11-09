@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Car, Users, User, Heart } from 'lucide-react';
 import { getCategoryTheme } from '@/utils/categoryThemes';
 import { getVehicleImage } from '@/utils/vehicleFallbackImages';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface ModernVehicleCardProps {
   vehicle: {
@@ -84,7 +85,7 @@ export const ModernVehicleCard: React.FC<ModernVehicleCardProps> = ({
           <div className="absolute bottom-2 left-2">
             <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1.5">
               <div className="text-primary font-bold text-lg">
-                {dailyRate.toLocaleString()} FC
+                {formatCurrency(dailyRate, 'CDF')}
               </div>
               <div className="text-xs text-muted-foreground">par jour</div>
             </div>

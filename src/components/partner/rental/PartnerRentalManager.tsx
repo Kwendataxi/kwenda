@@ -1,12 +1,12 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { usePartnerRentals, RentalVehicle } from "@/hooks/usePartnerRentals";
 import RentalVehicleForm from "./RentalVehicleForm";
 import RentalVehicleCard from "./RentalVehicleCard";
 import PartnerBookingsList from "./PartnerBookingsList";
-import { Plus, Car } from "lucide-react";
+import { Plus, Car, Clock } from "lucide-react";
 import { usePartnerTaxiVehicles, TaxiVehicle } from "@/hooks/usePartnerTaxiVehicles";
 import TaxiVehicleForm from "@/components/partner/taxi/TaxiVehicleForm";
 import TaxiVehicleCard from "@/components/partner/taxi/TaxiVehicleCard";
@@ -48,6 +48,27 @@ export default function PartnerRentalManager() {
         </TabsList>
 
         <TabsContent value="vehicles" className="space-y-4 mt-4">
+          {/* Alert véhicules en attente */}
+          {vehicles.filter(v => v.moderation_status === 'pending').length > 0 && (
+            <Card className="bg-yellow-50 border-yellow-200 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Clock className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-yellow-800">
+                      {vehicles.filter(v => v.moderation_status === 'pending').length} véhicule(s) en attente de validation
+                    </p>
+                    <p className="text-sm text-yellow-700">
+                      Vos annonces seront visibles aux clients après validation par l'admin
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <div className={`flex ${isMobile ? 'justify-center' : 'justify-end'}`}>
             <Button 
               onClick={() => { setEditing(null); setCreating(true); }}

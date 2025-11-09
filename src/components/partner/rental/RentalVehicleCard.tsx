@@ -1,11 +1,11 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff, Clock, CheckCircle, XCircle } from "lucide-react";
 import { RentalVehicle, usePartnerRentals } from "@/hooks/usePartnerRentals";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 interface Props {
   vehicle: RentalVehicle;
@@ -35,9 +35,21 @@ export default function RentalVehicleCard({ vehicle, onEdit }: Props) {
               {vehicle.name}
             </h3>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className={`${statusConfig[status].bg} ${statusConfig[status].text} ${statusConfig[status].border} border rounded-full px-3 py-1 text-xs font-medium`}>
-                {statusConfig[status].icon} {status === 'approved' ? 'Approuvé' : status === 'rejected' ? 'Rejeté' : 'En attente'}
-              </Badge>
+              {vehicle.moderation_status === 'pending' && (
+                <Badge className="bg-yellow-500 text-white border-0 rounded-full px-3 py-1 text-xs font-medium">
+                  <Clock className="w-3 h-3 mr-1" /> En attente de validation
+                </Badge>
+              )}
+              {vehicle.moderation_status === 'approved' && (
+                <Badge className="bg-green-500 text-white border-0 rounded-full px-3 py-1 text-xs font-medium">
+                  <CheckCircle className="w-3 h-3 mr-1" /> Approuvé et visible
+                </Badge>
+              )}
+              {vehicle.moderation_status === 'rejected' && (
+                <Badge className="bg-red-500 text-white border-0 rounded-full px-3 py-1 text-xs font-medium">
+                  <XCircle className="w-3 h-3 mr-1" /> Rejeté
+                </Badge>
+              )}
               {!vehicle.is_active && (
                 <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs bg-grey-100 text-grey-600 border border-grey-200">
                   Inactif
@@ -53,10 +65,10 @@ export default function RentalVehicleCard({ vehicle, onEdit }: Props) {
             <span className="font-medium">{vehicle.brand} {vehicle.model}</span> • {vehicle.year} • {vehicle.seats} places
           </div>
           <div className={`text-primary font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
-            {vehicle.daily_rate.toLocaleString()} FC/jour
+            {formatCurrency(vehicle.daily_rate, 'CDF')}/jour
           </div>
           <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
-            Caution: {vehicle.security_deposit.toLocaleString()} FC
+            Caution: {formatCurrency(vehicle.security_deposit, 'CDF')}
           </div>
           {vehicle.moderation_status === "rejected" && vehicle.rejection_reason && (
             <div className={`text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
