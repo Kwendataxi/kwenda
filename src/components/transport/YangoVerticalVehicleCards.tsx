@@ -108,6 +108,14 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
     }
   }, [loading, availableServices, city]);
 
+  // ✅ Sélectionner automatiquement le premier véhicule si aucun n'est sélectionné
+  // IMPORTANT: Ce useEffect DOIT être AVANT tout return conditionnel (règle des Hooks React)
+  useEffect(() => {
+    if (!selectedVehicleId && vehicles.length > 0) {
+      onVehicleSelect(vehicles[0].id);
+    }
+  }, [vehicles, selectedVehicleId, onVehicleSelect]);
+
   // Message si aucun véhicule disponible
   if (!loading && vehicles.length === 0) {
     return (
@@ -125,13 +133,6 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
       </div>
     );
   }
-
-  // Sélectionner automatiquement le premier véhicule si aucun n'est sélectionné
-  useEffect(() => {
-    if (!selectedVehicleId && vehicles.length > 0) {
-      onVehicleSelect(vehicles[0].id);
-    }
-  }, [vehicles, selectedVehicleId, onVehicleSelect]);
 
   return (
     <div className="space-y-3 font-montserrat" style={{ willChange: 'transform' }}>
