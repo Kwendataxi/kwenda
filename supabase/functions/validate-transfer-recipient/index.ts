@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
   try {
     console.log('🔍 [1/6] Validation destinataire démarrée');
 
-    // Initialiser le client Supabase (ANON_KEY pour valider le JWT utilisateur)
+    // Initialiser le client Supabase
     const authHeader = req.headers.get('Authorization');
     
     console.log('🔑 [1.5/6] Authorization header:', authHeader ? 'Présent' : 'Absent');
@@ -46,6 +46,9 @@ Deno.serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Extraire le JWT token du header "Bearer <token>"
+    const token = authHeader.replace('Bearer ', '');
     
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -57,8 +60,8 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Vérifier l'authentification
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    // Vérifier l'authentification avec le token extrait
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
     if (authError || !user) {
       console.error('❌ [2/6] Erreur authentification:', authError);
       return new Response(
