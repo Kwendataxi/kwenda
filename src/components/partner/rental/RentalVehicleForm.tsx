@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { usePartnerRentals, VehicleCategory, RentalVehicle } from "@/hooks/usePartnerRentals";
 import { useModernRentals } from "@/hooks/useModernRentals";
 import { useToast } from "@/hooks/use-toast";
+import RentalImageUploader from "./RentalImageUploader";
 
 interface Props {
   categories: VehicleCategory[];
@@ -81,6 +82,22 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
       toast({ title: "Nom/Marque/Modèle requis", variant: "destructive" });
       return;
     }
+    if (!payload.images || payload.images.length === 0) {
+      toast({ 
+        title: "Images requises", 
+        description: "Ajoutez au moins 1 image du véhicule",
+        variant: "destructive" 
+      });
+      return;
+    }
+    if (!payload.fuel_type || !payload.transmission) {
+      toast({ 
+        title: "Informations manquantes", 
+        description: "Carburant et transmission sont requis",
+        variant: "destructive" 
+      });
+      return;
+    }
 
     if (isEditing && initial?.id) {
       await updateVehicle.mutateAsync({ id: initial.id, updates: payload });
@@ -93,13 +110,6 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
     onSaved?.();
   };
 
-  const handleImageUpload = async (files: FileList | null) => {
-    if (!files?.length) return;
-    const uploads: string[] = [];
-    const { data: userData } = await window.supabase.auth.getUser(); // fallback if global; else use client directly
-    // Prefer client import for robust behavior:
-    // but keep minimal: we will import supabase here:
-  };
 
   return (
     <Card className="rounded-2xl border-0 shadow-elegant bg-card">
@@ -173,12 +183,32 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium">Carburant</label>
-            <Input className="mt-1" value={values.fuel_type as string} onChange={(e) => handleChange("fuel_type", e.target.value)} />
+            <label className="text-sm font-medium">Carburant *</label>
+            <Select value={values.fuel_type as string} onValueChange={(v) => handleChange("fuel_type", v)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Type de carburant" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="essence">⛽ Essence</SelectItem>
+                <SelectItem value="diesel">🛢️ Diesel</SelectItem>
+                <SelectItem value="electrique">🔋 Électrique</SelectItem>
+                <SelectItem value="hybride">⚡ Hybride</SelectItem>
+                <SelectItem value="gpl">💨 GPL</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <label className="text-sm font-medium">Transmission</label>
-            <Input className="mt-1" value={values.transmission as string} onChange={(e) => handleChange("transmission", e.target.value)} />
+            <label className="text-sm font-medium">Transmission *</label>
+            <Select value={values.transmission as string} onValueChange={(v) => handleChange("transmission", v)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Type de transmission" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manuel">🔧 Manuelle</SelectItem>
+                <SelectItem value="automatique">⚙️ Automatique</SelectItem>
+                <SelectItem value="semi-automatique">🔄 Semi-automatique</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className="text-sm font-medium">Places</label>
@@ -435,7 +465,22 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
                     .filter(Boolean)
                 )
               }
+              placeholder="Ex: Bluetooth, GPS, Caméra de recul"
             />
+          </div>
+
+          <div className="md:col-span-3">
+            <label className="text-sm font-medium">📷 Images du véhicule (max 5) *</label>
+            <RentalImageUploader
+              images={values.images || []}
+              onImagesChange={(imgs) => handleChange("images", imgs)}
+              maxImages={5}
+            />
+            {(values.images?.length || 0) === 0 && (
+              <p className="text-xs text-muted-foreground mt-2">
+                ⚠️ Au moins 1 image requise pour publier l'annonce
+              </p>
+            )}
           </div>
         </div>
 
