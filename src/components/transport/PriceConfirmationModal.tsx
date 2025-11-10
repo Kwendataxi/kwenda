@@ -1,15 +1,15 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, ArrowRight, Loader2, Users, Info } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, Loader2, Users, Minus, Plus, Info } from 'lucide-react';
 import { Car, Bike, Crown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { RideBiddingModal } from './RideBiddingModal';
-import { BiddingExplanationDialog } from './BiddingExplanationDialog';
-import ClientBiddingInterface from './ClientBiddingInterface';
 
 interface PriceConfirmationModalProps {
   open: boolean;
@@ -56,14 +56,30 @@ export default function PriceConfirmationModal({
   const [isSearching, setIsSearching] = useState(false);
   const [biddingEnabled, setBiddingEnabled] = useState(false);
   const [showBiddingModal, setShowBiddingModal] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(false);
-  const [showClientBiddingInterface, setShowClientBiddingInterface] = useState(false);
+  const [clientPrice, setClientPrice] = useState(Math.floor(calculatedPrice * 0.8));
 
   const vehicle = VEHICLE_CONFIG[vehicleType] || VEHICLE_CONFIG['taxi_eco'];
   const VehicleIcon = vehicle.icon;
 
+  // Mettre à jour le prix proposé quand le prix calculé change
+  useEffect(() => {
+    setClientPrice(Math.floor(calculatedPrice * 0.8));
+  }, [calculatedPrice]);
+
+  const minPrice = Math.floor(calculatedPrice * 0.5);
+  const maxPrice = Math.ceil(calculatedPrice * 1.5);
+
+  const handlePriceChange = (increment: number) => {
+    setClientPrice(prev => {
+      const newPrice = prev + increment;
+      return Math.max(minPrice, Math.min(maxPrice, newPrice));
+    });
+  };
+
   const handleConfirm = async () => {
-    if (biddingEnabled && bookingId) {
+    if (biddingEnabled) {
+      // Passer le prix proposé
+      onClientProposedPrice?.(clientPrice);
       // Ouvrir le modal de bidding
       setShowBiddingModal(true);
     } else {
@@ -85,22 +101,22 @@ export default function PriceConfirmationModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 50 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-gradient-to-br from-background via-background/95 to-primary/5 rounded-3xl p-4 sm:p-6 shadow-2xl border border-border/50"
+          className="bg-gradient-to-br from-background via-background/95 to-primary/5 rounded-3xl p-6 shadow-2xl border border-border/50"
         >
           {/* Header avec icône véhicule */}
-          <div className="flex items-center justify-center mb-4 sm:mb-6">
+          <div className="flex items-center justify-center mb-6">
             <motion.div
               initial={{ scale: 0.8, rotate: -10 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ delay: 0.1, type: 'spring', damping: 20 }}
-              className={`w-16 sm:w-20 h-16 sm:h-20 rounded-full bg-gradient-to-br ${vehicle.gradient} flex items-center justify-center shadow-xl`}
+              className={`w-20 h-20 rounded-full bg-gradient-to-br ${vehicle.gradient} flex items-center justify-center shadow-xl`}
             >
-              <VehicleIcon className="w-8 sm:w-10 h-8 sm:h-10 text-white" />
+              <VehicleIcon className="w-10 h-10 text-white" />
             </motion.div>
           </div>
 
           {/* Titre */}
-          <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6 text-foreground">
+          <h2 className="text-2xl font-bold text-center mb-6 text-foreground">
             {vehicle.name}
           </h2>
 
@@ -121,17 +137,17 @@ export default function PriceConfirmationModal({
           )}
 
           {/* Itinéraire */}
-          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+          <div className="space-y-3 mb-6">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-muted/30 rounded-xl"
+              className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl"
             >
-              <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0 mt-0.5" />
+              <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Départ</p>
-                <p className="text-xs sm:text-sm font-medium truncate text-foreground">{pickup.address}</p>
+                <p className="text-xs text-muted-foreground">Départ</p>
+                <p className="text-sm font-medium truncate text-foreground">{pickup.address}</p>
               </div>
             </motion.div>
 
@@ -148,18 +164,18 @@ export default function PriceConfirmationModal({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-muted/30 rounded-xl"
+              className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl"
             >
-              <Target className="w-4 sm:w-5 h-4 sm:h-5 text-primary flex-shrink-0 mt-0.5" />
+              <Target className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Arrivée</p>
-                <p className="text-xs sm:text-sm font-medium truncate text-foreground">{destination.address}</p>
+                <p className="text-xs text-muted-foreground">Arrivée</p>
+                <p className="text-sm font-medium truncate text-foreground">{destination.address}</p>
               </div>
             </motion.div>
           </div>
 
           {/* Détails de la course */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="grid grid-cols-2 gap-3 mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -192,15 +208,15 @@ export default function PriceConfirmationModal({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.7, type: 'spring', damping: 20 }}
-            className="relative mb-4 sm:mb-6 p-4 sm:p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl border-2 border-primary/20"
+            className="relative mb-6 p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl border-2 border-primary/20"
           >
-            <p className="text-xs sm:text-sm text-muted-foreground mb-1 text-center">
+            <p className="text-sm text-muted-foreground mb-1 text-center">
               Prix estimé
             </p>
-            <p className="text-3xl sm:text-4xl md:text-5xl font-black text-center bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent">
+            <p className="text-5xl font-black text-center bg-gradient-to-r from-primary via-primary to-primary/80 bg-clip-text text-transparent">
               {calculatedPrice.toLocaleString()}
             </p>
-            <p className="text-sm sm:text-base md:text-lg text-center text-muted-foreground font-medium">
+            <p className="text-lg text-center text-muted-foreground font-medium">
               CDF
             </p>
             
@@ -213,124 +229,123 @@ export default function PriceConfirmationModal({
             </div>
           </motion.div>
 
-          {/* Toggle mode bidding avec bouton info */}
+          {/* Toggle mode bidding avec tooltip */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75 }}
-            className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20"
+            className="mb-4 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20"
           >
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="bidding-toggle" className="text-sm font-semibold cursor-pointer">
-                  🎯 Mode enchères
-                </Label>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => setShowExplanation(true)}
-                >
-                  <Info className="h-3 w-3" />
-                </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="bidding-toggle" className="text-sm font-semibold cursor-pointer">
+                    🎯 Mode enchères
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="h-5 w-5 rounded-full hover:bg-muted/50 flex items-center justify-center">
+                          <Info className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">Les chauffeurs proposent leurs prix. Économisez jusqu'à 50%!</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Proposez votre prix ou recevez des offres
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Proposez votre prix ou recevez des offres
-              </p>
+              <Switch
+                id="bidding-toggle"
+                checked={biddingEnabled}
+                onCheckedChange={(checked) => {
+                  setBiddingEnabled(checked);
+                  onBiddingEnabled?.(checked);
+                }}
+                disabled={isSearching}
+              />
             </div>
-            <Switch
-              id="bidding-toggle"
-                  checked={biddingEnabled}
-                  onCheckedChange={(checked) => {
-                    setBiddingEnabled(checked);
-                    onBiddingEnabled?.(checked);
-                  }}
-              disabled={isSearching}
-            />
           </motion.div>
 
-          {/* Bouton "Proposer mon prix" si mode enchères activé */}
-          {biddingEnabled && !showClientBiddingInterface && (
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowClientBiddingInterface(true)}
-              className="w-full p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-2xl transition-all duration-300 hover:border-green-500/50 hover:shadow-glow-green"
+          {/* Input prix simple (si mode enchères activé) */}
+          {biddingEnabled && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4 p-4 bg-muted/30 rounded-xl"
             >
-              <div className="flex items-center justify-between">
-                <div className="text-left">
-                  <p className="font-bold text-lg text-foreground">💰 Proposer mon prix</p>
-                  <p className="text-xs text-muted-foreground">
-                    Économisez jusqu'à {Math.floor(calculatedPrice * 0.5).toLocaleString()} CDF
-                  </p>
-                </div>
-                <ArrowRight className="w-6 h-6 text-green-500" />
+              <Label className="text-xs text-muted-foreground mb-2 block">
+                Proposez votre prix (min: {minPrice.toLocaleString()} - max: {maxPrice.toLocaleString()} CDF)
+              </Label>
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="icon"
+                  variant="outline"
+                  onClick={() => handlePriceChange(-500)}
+                  disabled={clientPrice <= minPrice}
+                  className="h-12 w-12"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Input
+                  type="number"
+                  value={clientPrice}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    if (val >= minPrice && val <= maxPrice) {
+                      setClientPrice(val);
+                    }
+                  }}
+                  className="text-center text-2xl font-bold h-12"
+                  min={minPrice}
+                  max={maxPrice}
+                />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => handlePriceChange(500)}
+                  disabled={clientPrice >= maxPrice}
+                  className="h-12 w-12"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
-            </motion.button>
+              <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
+                <span>Économie: {(calculatedPrice - clientPrice).toLocaleString()} CDF</span>
+                <span>{Math.round(((calculatedPrice - clientPrice) / calculatedPrice) * 100)}%</span>
+              </div>
+            </motion.div>
           )}
 
-          {/* Interface de proposition de prix client avec transition fluide */}
-          <AnimatePresence mode="wait">
-            {showClientBiddingInterface ? (
-              <motion.div
-                key="bidding"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              >
-                <ClientBiddingInterface
-                  estimatedPrice={calculatedPrice}
-                  currency="CDF"
-                  onProposalSubmit={(proposedPrice) => {
-                    console.log('💰 Client proposed price:', proposedPrice);
-                    onClientProposedPrice?.(proposedPrice);
-                    setShowClientBiddingInterface(false);
-                    handleConfirm();
-                  }}
-                  onCancel={() => setShowClientBiddingInterface(false)}
-                />
-              </motion.div>
+          {/* CTA - Bouton principal */}
+          <Button
+            size="lg"
+            onClick={handleConfirm}
+            disabled={isSearching}
+            className="w-full h-16 text-xl font-bold rounded-2xl shadow-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:scale-[1.02] transition-all disabled:opacity-50"
+          >
+            {isSearching ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                Recherche en cours...
+              </span>
+            ) : biddingEnabled ? (
+              <span className="flex items-center gap-2">
+                <Zap className="w-6 h-6" />
+                Lancer l'enchère
+              </span>
             ) : (
-              /* CTA - Bouton principal */
-              <motion.div
-                key="confirm"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              >
-                <Button
-                  size="lg"
-                  onClick={handleConfirm}
-                  disabled={isSearching}
-                  className="w-full h-14 sm:h-16 text-lg sm:text-xl font-bold rounded-2xl shadow-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:scale-[1.02] transition-all disabled:opacity-50"
-                >
-                  {isSearching ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-5 sm:w-6 h-5 sm:h-6 animate-spin" />
-                      <span className="hidden sm:inline">Recherche en cours...</span>
-                      <span className="sm:hidden">Recherche...</span>
-                    </span>
-                  ) : biddingEnabled ? (
-                    <span className="flex items-center gap-2">
-                      <Zap className="w-5 sm:w-6 h-5 sm:h-6" />
-                      <span className="hidden sm:inline">Recevoir des offres</span>
-                      <span className="sm:hidden">Offres</span>
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Search className="w-5 sm:w-6 h-5 sm:h-6" />
-                      <span className="hidden sm:inline">Rechercher un chauffeur</span>
-                      <span className="sm:hidden">Rechercher</span>
-                    </span>
-                  )}
-                </Button>
-              </motion.div>
+              <span className="flex items-center gap-2">
+                <Search className="w-6 h-6" />
+                Rechercher un chauffeur
+              </span>
             )}
-          </AnimatePresence>
+          </Button>
 
           {/* Info paiement */}
           <p className="text-xs text-center text-muted-foreground mt-4">
@@ -356,22 +371,13 @@ export default function PriceConfirmationModal({
           onClose={() => setShowBiddingModal(false)}
           bookingId={bookingId}
           estimatedPrice={calculatedPrice}
+          clientProposedPrice={clientPrice}
           onOfferAccepted={(driverId) => {
             setShowBiddingModal(false);
             onOfferAccepted?.(driverId);
           }}
         />
       )}
-
-      {/* Dialog explication bidding */}
-      <BiddingExplanationDialog
-        open={showExplanation}
-        onOpenChange={setShowExplanation}
-        onActivate={() => {
-          setBiddingEnabled(true);
-          setShowExplanation(false);
-        }}
-      />
     </Dialog>
   );
 }

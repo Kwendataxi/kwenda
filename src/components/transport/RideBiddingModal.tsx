@@ -17,6 +17,7 @@ interface RideBiddingModalProps {
   onClose: () => void;
   bookingId: string;
   estimatedPrice: number;
+  clientProposedPrice?: number;
   onOfferAccepted?: (driverId: string) => void;
 }
 
@@ -25,11 +26,9 @@ export const RideBiddingModal = ({
   onClose,
   bookingId,
   estimatedPrice,
+  clientProposedPrice,
   onOfferAccepted
 }: RideBiddingModalProps) => {
-  const [biddingEnabled, setBiddingEnabled] = useState(false);
-  const [maxBudget, setMaxBudget] = useState(estimatedPrice);
-
   const {
     offers,
     biddingActive,
@@ -37,25 +36,15 @@ export const RideBiddingModal = ({
     loading,
     bestOffer,
     enableBidding,
-    acceptOffer,
-    acceptEstimatedPrice
-  } = useRideBidding({ bookingId, estimatedPrice, enabled: biddingEnabled });
+    acceptOffer
+  } = useRideBidding({ bookingId, estimatedPrice, enabled: true });
 
-  // Activer le mode bidding quand le switch est activé
-  const handleToggleBidding = async (checked: boolean) => {
-    setBiddingEnabled(checked);
-    if (checked) {
-      await enableBidding(maxBudget);
+  // Activer automatiquement le bidding à l'ouverture
+  useEffect(() => {
+    if (open && bookingId) {
+      enableBidding(clientProposedPrice || Math.floor(estimatedPrice * 0.8));
     }
-  };
-
-  // Accepter le tarif estimé directement
-  const handleAcceptEstimated = async () => {
-    const success = await acceptEstimatedPrice();
-    if (success) {
-      onClose();
-    }
-  };
+  }, [open, bookingId, enableBidding, clientProposedPrice, estimatedPrice]);
 
   // Accepter une offre de chauffeur
   const handleAcceptOffer = async (offerId: string) => {
@@ -80,7 +69,12 @@ export const RideBiddingModal = ({
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Tarification de votre course</span>
+            <div>
+              <span className="text-xl font-bold">🎯 Mode enchères actif</span>
+              <p className="text-sm font-normal text-muted-foreground mt-1">
+                {clientProposedPrice && `Votre offre: ${clientProposedPrice.toLocaleString()} CDF`}
+              </p>
+            </div>
             {biddingActive && (
               <Badge variant="outline" className="flex items-center gap-2">
                 <Clock className="h-3 w-3" />
@@ -90,74 +84,20 @@ export const RideBiddingModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Tarif estimé initial */}
-        <Card className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border-primary/20">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
+        {/* Info tarif estimé */}
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+          <div className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Tarif estimé</p>
-                <p className="text-3xl font-bold text-foreground">
-                  {estimatedPrice.toLocaleString()} <span className="text-lg">CDF</span>
+                <p className="text-xs text-muted-foreground">Tarif estimé Kwenda</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {estimatedPrice.toLocaleString()} <span className="text-base">CDF</span>
                 </p>
               </div>
-              <Zap className="h-8 w-8 text-primary" />
+              <Zap className="h-6 w-6 text-primary" />
             </div>
-
-            {!biddingActive && (
-              <Button 
-                onClick={handleAcceptEstimated} 
-                disabled={loading}
-                className="w-full"
-                size="lg"
-              >
-                <DollarSign className="h-5 w-5 mr-2" />
-                Accepter ce tarif
-              </Button>
-            )}
           </div>
         </Card>
-
-        {/* Mode bidding toggle */}
-        <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-          <div className="flex-1">
-            <Label htmlFor="bidding-mode" className="text-base font-semibold">
-              Mode enchères 🎯
-            </Label>
-            <p className="text-xs text-muted-foreground mt-1">
-              Recevoir plusieurs offres de chauffeurs à proximité
-            </p>
-          </div>
-          <Switch 
-            id="bidding-mode"
-            checked={biddingEnabled}
-            onCheckedChange={handleToggleBidding}
-            disabled={biddingActive || loading}
-          />
-        </div>
-
-        {/* Budget max slider */}
-        {biddingEnabled && !biddingActive && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="space-y-3"
-          >
-            <Label>Budget maximum (optionnel)</Label>
-            <div className="flex items-center gap-4">
-              <Slider
-                min={Math.floor(estimatedPrice * 0.7)}
-                max={Math.ceil(estimatedPrice * 1.3)}
-                step={100}
-                value={[maxBudget]}
-                onValueChange={([val]) => setMaxBudget(val)}
-                className="flex-1"
-              />
-              <Badge variant="secondary" className="min-w-[120px] justify-center text-base">
-                {maxBudget.toLocaleString()} CDF
-              </Badge>
-            </div>
-          </motion.div>
-        )}
 
         {/* Liste des offres */}
         {biddingActive && (

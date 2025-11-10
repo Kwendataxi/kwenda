@@ -263,8 +263,39 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       return;
     }
 
-    // Ouvrir le modal de confirmation
-    setShowPriceConfirm(true);
+    // ✅ CRÉER LE BOOKING IMMÉDIATEMENT
+    try {
+      const bookingData = {
+        pickupLocation: pickupLocation.address,
+        destination: destinationLocation.address,
+        pickupCoordinates: { lat: pickupLocation.lat, lng: pickupLocation.lng },
+        destinationCoordinates: { lat: destinationLocation.lat, lng: destinationLocation.lng },
+        vehicleType: selectedVehicle,
+        estimatedPrice: calculatedPrice,
+        city: currentCity?.name || 'Kinshasa',
+        bookedForOther: isForSomeoneElse,
+        beneficiaryId: selectedBeneficiary?.id,
+        beneficiaryName: selectedBeneficiary?.name,
+        beneficiaryPhone: selectedBeneficiary?.phone
+      };
+
+      const result = await createAndDispatchRide(bookingData, {
+        biddingMode: false, // On active le bidding après confirmation
+        clientProposedPrice: null,
+        biddingDuration: 300
+      });
+
+      // ✅ STOCKER L'ID pour le passer au modal
+      if (result.booking?.id) {
+        setTempBookingId(result.booking.id);
+        setShowPriceConfirm(true);
+      } else {
+        toast.error('Erreur lors de la création de la réservation');
+      }
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast.error('Erreur lors de la création de la réservation');
+    }
   };
 
   const handleConfirmBooking = async () => {
