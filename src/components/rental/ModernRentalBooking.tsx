@@ -14,6 +14,7 @@ import { useModernRentals } from '@/hooks/useModernRentals';
 import { useToast } from '@/hooks/use-toast';
 import { differenceInDays, differenceInHours, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
 
 type BookingStep = 'dates' | 'driver-choice' | 'pickup-location' | 'vehicle-equipment' | 'driver-info' | 'summary';
 
@@ -36,8 +37,82 @@ export const ModernRentalBooking = () => {
   });
   const [pickupLocation, setPickupLocation] = useState('');
   const [returnLocation, setReturnLocation] = useState('');
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [availabilityStatus, setAvailabilityStatus] = useState<'available' | 'unavailable' | null>(null);
 
   const vehicle = vehicles.find(v => v.id === vehicleId);
+
+  // Charger les dates réservées pour ce véhicule
+  useEffect(() => {
+    const fetchBookedDates = async () => {
+      if (!vehicleId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('rental_bookings')
+          .select('start_date, end_date')
+          .eq('vehicle_id', vehicleId)
+          .in('status', ['pending', 'confirmed', 'active']);
+
+        if (error) throw error;
+
+        const dates: Date[] = [];
+        data?.forEach((booking: any) => {
+          const start = new Date(booking.start_date);
+          const end = new Date(booking.end_date);
+          
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            dates.push(new Date(d));
+          }
+        });
+
+        setBookedDates(dates);
+      } catch (error) {
+        console.error('Error fetching booked dates:', error);
+      }
+    };
+
+    fetchBookedDates();
+  }, [vehicleId]);
+
+  // Vérifier disponibilité en temps réel quand les dates changent
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (!startDate || !endDate || !vehicleId) {
+        setAvailabilityStatus(null);
+        return;
+      }
+
+      setIsCheckingAvailability(true);
+      try {
+        const { data: isAvailable, error } = await supabase.rpc('check_vehicle_availability' as any, {
+          p_vehicle_id: vehicleId,
+          p_start_date: startDate.toISOString(),
+          p_end_date: endDate.toISOString()
+        } as any);
+
+        if (error) throw error;
+
+        setAvailabilityStatus(isAvailable ? 'available' : 'unavailable');
+
+        if (!isAvailable) {
+          toast({
+            title: "⚠️ Véhicule indisponible",
+            description: "Ce véhicule est déjà réservé pour ces dates",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error('Error checking availability:', error);
+        setAvailabilityStatus(null);
+      } finally {
+        setIsCheckingAvailability(false);
+      }
+    };
+
+    checkAvailability();
+  }, [startDate, endDate, vehicleId, toast]);
 
   // Auto-select driver choice based on vehicle properties
   useEffect(() => {
@@ -279,7 +354,15 @@ export const ModernRentalBooking = () => {
                       mode="single"
                       selected={startDate}
                       onSelect={setStartDate}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => {
+                        // Désactiver dates passées
+                        if (date < new Date()) return true;
+                        
+                        // Désactiver dates déjà réservées
+                        return bookedDates.some(bookedDate => 
+                          bookedDate.toDateString() === date.toDateString()
+                        );
+                      }}
                       className="w-full pointer-events-auto"
                     />
                   </div>
@@ -311,13 +394,63 @@ export const ModernRentalBooking = () => {
                       mode="single"
                       selected={endDate}
                       onSelect={setEndDate}
-                      disabled={(date) => !startDate || date <= startDate}
+                      disabled={(date) => {
+                        // Désactiver si pas de date début ou si avant date début
+                        if (!startDate || date <= startDate) return true;
+                        
+                        // Désactiver dates déjà réservées
+                        return bookedDates.some(bookedDate => 
+                          bookedDate.toDateString() === date.toDateString()
+                        );
+                      }}
                       className="w-full pointer-events-auto"
                     />
                   </div>
 
-                  {/* Récapitulatif visuel des dates sélectionnées */}
+                  {/* Indicateur de disponibilité */}
                   {startDate && endDate && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`p-3 rounded-xl border ${
+                        isCheckingAvailability
+                          ? 'bg-muted/50 border-muted'
+                          : availabilityStatus === 'available'
+                          ? 'bg-green-50 dark:bg-green-950/20 border-green-500/50'
+                          : availabilityStatus === 'unavailable'
+                          ? 'bg-red-50 dark:bg-red-950/20 border-red-500/50'
+                          : 'bg-muted/50 border-muted'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {isCheckingAvailability ? (
+                          <>
+                            <Clock className="h-4 w-4 animate-spin text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              Vérification de la disponibilité...
+                            </span>
+                          </>
+                        ) : availabilityStatus === 'available' ? (
+                          <>
+                            <Check className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                              ✅ Véhicule disponible pour ces dates
+                            </span>
+                          </>
+                        ) : availabilityStatus === 'unavailable' ? (
+                          <>
+                            <CalendarX className="h-4 w-4 text-red-600" />
+                            <span className="text-sm font-medium text-red-700 dark:text-red-400">
+                              ❌ Véhicule indisponible - Choisissez d'autres dates
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Récapitulatif visuel des dates sélectionnées */}
+                  {startDate && endDate && availabilityStatus === 'available' && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -364,10 +497,19 @@ export const ModernRentalBooking = () => {
                   <Button 
                     className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
                     onClick={handleNext}
-                    disabled={!startDate || !endDate}
+                    disabled={!startDate || !endDate || availabilityStatus !== 'available' || isCheckingAvailability}
                   >
-                    Continuer
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    {isCheckingAvailability ? (
+                      <>
+                        <Clock className="h-4 w-4 mr-2 animate-spin" />
+                        Vérification...
+                      </>
+                    ) : (
+                      <>
+                        Continuer
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>

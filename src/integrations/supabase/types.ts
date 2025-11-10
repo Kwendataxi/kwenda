@@ -14034,6 +14034,15 @@ export type Database = {
         Args: { p_role: string; p_user_id: string }
         Returns: boolean
       }
+      check_vehicle_availability: {
+        Args: {
+          p_end_date: string
+          p_exclude_booking_id?: string
+          p_start_date: string
+          p_vehicle_id: string
+        }
+        Returns: boolean
+      }
       cleanup_expired_location_cache: { Args: never; Returns: number }
       cleanup_expired_trip_links: { Args: never; Returns: number }
       cleanup_ip_geolocation_cache: { Args: never; Returns: number }
