@@ -15,6 +15,7 @@ import {
   Heart, Share2, MessageCircle, Star, Users, Car, 
   Award, MapPin, Search, Filter, Phone, Mail, Globe
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -202,13 +203,13 @@ export const PartnerRentalStoreView = () => {
   const getTierGradient = (tier: string) => {
     switch (tier) {
       case 'platinum':
-        return 'from-slate-800 via-slate-600 to-slate-900';
+        return 'from-slate-700 via-slate-500 to-slate-800';
       case 'gold':
-        return 'from-amber-600 via-yellow-500 to-amber-700';
+        return 'from-yellow-600 via-amber-500 to-orange-600';
       case 'diamond':
-        return 'from-purple-600 via-pink-500 to-blue-600';
+        return 'from-purple-600 via-fuchsia-500 to-pink-600';
       default:
-        return 'from-primary via-primary/80 to-primary/60';
+        return 'from-red-600 via-red-500 to-rose-600';
     }
   };
 
@@ -241,111 +242,214 @@ export const PartnerRentalStoreView = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Premium Banner Header with Parallax */}
+      {/* Facebook-Style Banner with Floating Particles */}
       <motion.div 
-        className="relative h-72 overflow-hidden"
+        className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
         {bannerImage ? (
-          <motion.img 
-            src={bannerImage}
-            alt={partnerData.company_name}
-            className="w-full h-full object-cover"
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 1.2, ease: 'easeOut' }}
-          />
+          <>
+            <motion.img 
+              src={bannerImage}
+              alt={partnerData.company_name}
+              className="w-full h-full object-cover"
+              initial={{ scale: 1.2, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            />
+            {/* Gradient Overlay */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            />
+          </>
         ) : (
-          <motion.div
-            className={`w-full h-full bg-gradient-to-br ${getTierGradient(tier)}`}
-            animate={{
-              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-            style={{ backgroundSize: '200% 200%' }}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        
-        {/* Logo Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 z-10">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-end gap-6">
-              <div className="relative">
-                <div className="w-32 h-32 rounded-full border-4 border-background overflow-hidden shadow-2xl">
-                  <img 
-                    src={partnerData.avatar_url || '/placeholder.svg'}
-                    alt={partnerData.company_name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute -bottom-2 -right-2">
-                  <PartnerTierBadge tier={tier} className="shadow-lg" />
-                </div>
-              </div>
-              
-              <div className="flex-1 pb-4 text-white">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">{partnerData.company_name}</h1>
-                {partnerData.slogan && (
-                  <p className="text-lg opacity-90">{partnerData.slogan}</p>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 pb-4">
-                <Button
-                  variant={isFollowing ? "secondary" : "default"}
-                  size="lg"
-                  onClick={handleFollow}
-                  disabled={followLoading}
-                  className="gap-2"
-                >
-                  <Heart className={isFollowing ? "fill-current" : ""} />
-                  {isFollowing ? 'Suivi' : 'Suivre'}
-                </Button>
-                <Button variant="outline" size="lg" onClick={handleShare} className="gap-2">
-                  <Share2 className="h-5 w-5" />
-                  Partager
-                </Button>
-                <Button variant="outline" size="lg" onClick={() => setShowRatingDialog(true)} className="gap-2">
-                  <Star className="h-5 w-5" />
-                  Noter
-                </Button>
-                {partnerData.phone && (
-                  <Button variant="outline" size="lg" onClick={handleContact} className="gap-2">
-                    <Phone className="h-5 w-5" />
-                  </Button>
-                )}
-              </div>
+          <>
+            {/* Animated Gradient Background */}
+            <motion.div
+              className={`w-full h-full bg-gradient-to-br ${getTierGradient(tier)}`}
+              animate={{
+                backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
+              }}
+              transition={{
+                duration: 15,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+              style={{ backgroundSize: '400% 400%' }}
+            />
+            {/* Glassmorphism Overlay */}
+            <div className="absolute inset-0 backdrop-blur-sm bg-black/20" />
+            {/* Floating Particles */}
+            <div className="absolute inset-0 overflow-hidden">
+              {[...Array(5)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 bg-white/30 rounded-full"
+                  style={{
+                    left: `${20 + i * 15}%`,
+                    top: `${30 + i * 10}%`,
+                  }}
+                  animate={{
+                    y: [-20, 20, -20],
+                    opacity: [0.3, 0.6, 0.3],
+                  }}
+                  transition={{
+                    duration: 3 + i,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                />
+              ))}
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </motion.div>
 
-      {/* Stats Cards Glassmorphism Ultra */}
-      <div className="max-w-7xl mx-auto px-4 mt-20">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      {/* Facebook-Style Logo Container (Overlap) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-16 sm:-mt-20 relative z-20">
+          {/* Avatar with Hover Effect */}
+          <motion.div 
+            className="relative shrink-0"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full border-4 sm:border-[6px] border-background shadow-2xl overflow-hidden bg-background">
+              <img 
+                src={partnerData.avatar_url || '/placeholder.svg'}
+                alt={partnerData.company_name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Badge Tier with Rotation Hover */}
+            <motion.div 
+              className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2"
+              whileHover={{ rotate: 12, scale: 1.1 }}
+            >
+              <PartnerTierBadge tier={tier} className="shadow-xl" />
+            </motion.div>
+          </motion.div>
+          
+          {/* Company Info */}
+          <div className="flex-1 text-center sm:text-left pb-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2">
+              {partnerData.company_name}
+            </h1>
+            {partnerData.slogan && (
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground">
+                {partnerData.slogan}
+              </p>
+            )}
+          </div>
+
+          {/* Desktop Action Buttons */}
+          <div className="hidden sm:flex gap-2 pb-4">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant={isFollowing ? "secondary" : "default"}
+                size="lg"
+                onClick={handleFollow}
+                disabled={followLoading}
+                className="gap-2 shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <motion.div
+                  animate={isFollowing ? { scale: [1, 1.2, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Heart className={isFollowing ? "fill-current" : ""} />
+                </motion.div>
+                {isFollowing ? 'Suivi' : 'Suivre'}
+              </Button>
+            </motion.div>
+            
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button variant="outline" size="lg" onClick={handleShare} className="gap-2 shadow-lg">
+                <Share2 className="h-5 w-5" />
+                Partager
+              </Button>
+            </motion.div>
+            
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button variant="outline" size="lg" onClick={() => setShowRatingDialog(true)} className="gap-2 shadow-lg">
+                <Star className="h-5 w-5" />
+                Noter
+              </Button>
+            </motion.div>
+            
+            {partnerData.phone && (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button variant="outline" size="lg" onClick={handleContact} className="gap-2 shadow-lg">
+                  <Phone className="h-5 w-5" />
+                  Appeler
+                </Button>
+              </motion.div>
+            )}
+          </div>
+        </div>
+        
+        {/* Mobile Action Buttons - Full Width */}
+        <div className="flex sm:hidden flex-col gap-2 w-full mt-4">
+          <div className="grid grid-cols-2 gap-2">
+            <Button size="lg" variant={isFollowing ? "secondary" : "default"} onClick={handleFollow} disabled={followLoading} className="w-full">
+              <Heart className={cn("mr-2", isFollowing && "fill-current")} />
+              {isFollowing ? 'Suivi' : 'Suivre'}
+            </Button>
+            <Button size="lg" variant="outline" onClick={handleShare} className="w-full">
+              <Share2 className="mr-2 h-5 w-5" />
+              Partager
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button size="lg" variant="outline" onClick={() => setShowRatingDialog(true)} className="w-full">
+              <Star className="mr-2 h-5 w-5" />
+              Noter
+            </Button>
+            {partnerData.phone && (
+              <Button size="lg" variant="outline" onClick={handleContact} className="w-full">
+                <Phone className="mr-2 h-5 w-5" />
+                Appeler
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards with 3D Effect & Shine */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            whileHover={{ 
+              y: -8,
+              rotateX: 5,
+              transition: { duration: 0.2 }
+            }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:shadow-primary/20 hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardContent className="relative p-4 text-center">
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 cursor-pointer">
+              {/* Shine Effect */}
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+              />
+              <CardContent className="relative p-3 sm:p-4 text-center">
                 <motion.div
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  animate={{ 
+                    rotate: [0, 5, -5, 0],
+                    scale: [1, 1.05, 1]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Car className="h-8 w-8 mx-auto mb-2 text-primary" />
+                  <Car className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-primary drop-shadow-lg" />
                 </motion.div>
-                <div className="text-2xl font-bold">{partnerData.stats.available_vehicles}</div>
+                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                  {partnerData.stats.available_vehicles}
+                </div>
                 <div className="text-xs text-muted-foreground">Véhicules dispos</div>
               </CardContent>
             </Card>
@@ -354,18 +458,27 @@ export const PartnerRentalStoreView = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            whileHover={{ 
+              y: -8,
+              rotateX: 5,
+              transition: { duration: 0.2 }
+            }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:shadow-yellow-500/20 hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardContent className="relative p-4 text-center">
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl hover:shadow-yellow-500/30 transition-all duration-300 cursor-pointer">
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+              />
+              <CardContent className="relative p-3 sm:p-4 text-center">
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Award className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                  <Award className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-yellow-500 drop-shadow-lg" />
                 </motion.div>
-                <div className="text-2xl font-bold">{partnerData.stats.completed_bookings}</div>
+                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent">
+                  {partnerData.stats.completed_bookings}
+                </div>
                 <div className="text-xs text-muted-foreground">Locations</div>
               </CardContent>
             </Card>
@@ -374,21 +487,28 @@ export const PartnerRentalStoreView = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            whileHover={{ 
+              y: -8,
+              rotateX: 5,
+              transition: { duration: 0.2 }
+            }}
             transition={{ delay: 0.3 }}
           >
             <Card 
-              className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:shadow-yellow-500/20 cursor-pointer hover:scale-105 transition-all duration-300"
+              className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl hover:shadow-yellow-500/30 cursor-pointer transition-all duration-300"
               onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardContent className="relative p-4 text-center">
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+              />
+              <CardContent className="relative p-3 sm:p-4 text-center">
                 <motion.div
                   animate={{ rotate: [0, 360] }}
                   transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                 >
-                  <Star className="h-8 w-8 mx-auto mb-2 text-yellow-500 fill-yellow-500" />
+                  <Star className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-yellow-500 fill-yellow-500 drop-shadow-lg" />
                 </motion.div>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent">
                   {partnerData.stats.rating_average ? partnerData.stats.rating_average.toFixed(1) : '0.0'}
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -401,18 +521,27 @@ export const PartnerRentalStoreView = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            whileHover={{ 
+              y: -8,
+              rotateX: 5,
+              transition: { duration: 0.2 }
+            }}
             transition={{ delay: 0.4 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:shadow-blue-500/20 hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardContent className="relative p-4 text-center">
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 cursor-pointer">
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+              />
+              <CardContent className="relative p-3 sm:p-4 text-center">
                 <motion.div
                   animate={{ y: [0, -5, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                  <Users className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-blue-500 drop-shadow-lg" />
                 </motion.div>
-                <div className="text-2xl font-bold">{followersCount}</div>
+                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
+                  {followersCount}
+                </div>
                 <div className="text-xs text-muted-foreground">Abonnés</div>
               </CardContent>
             </Card>
@@ -421,11 +550,18 @@ export const PartnerRentalStoreView = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            whileHover={{ 
+              y: -8,
+              rotateX: 5,
+              transition: { duration: 0.2 }
+            }}
             transition={{ delay: 0.5 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardContent className="relative p-4 text-center">
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer">
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+              />
+              <CardContent className="relative p-3 sm:p-4 text-center">
                 <PartnerTierBadge tier={tier} />
                 <div className="text-xs text-muted-foreground mt-2">Abonnement</div>
               </CardContent>
@@ -433,33 +569,51 @@ export const PartnerRentalStoreView = () => {
           </motion.div>
         </div>
 
-        {/* Description */}
+        {/* Enhanced About Section */}
         {partnerData.shop_description && (
-          <Card className="glassmorphism mb-8">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-3">À propos</h2>
-              <p className="text-muted-foreground leading-relaxed">{partnerData.shop_description}</p>
-              <div className="flex gap-4 mt-4 text-sm">
-                {partnerData.email && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    {partnerData.email}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Card className="glassmorphism mb-8 overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-500 to-purple-500" />
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <MapPin className="h-5 w-5 text-primary" />
                   </div>
-                )}
-                {partnerData.website && (
-                  <a 
-                    href={partnerData.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline"
-                  >
-                    <Globe className="h-4 w-4" />
-                    Site web
-                  </a>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  <h2 className="text-xl font-bold">À propos de {partnerData.company_name}</h2>
+                </div>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  {partnerData.shop_description}
+                </p>
+                
+                {/* Enhanced Contact Info */}
+                <div className="flex flex-wrap gap-4 text-sm">
+                  {partnerData.email && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <Mail className="h-4 w-4 text-primary" />
+                      <span>{partnerData.email}</span>
+                    </div>
+                  )}
+                  {partnerData.phone && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                      <Phone className="h-4 w-4 text-primary" />
+                      <span>{partnerData.phone}</span>
+                    </div>
+                  )}
+                  {partnerData.website && (
+                    <a href={partnerData.website} target="_blank" rel="noopener noreferrer"
+                       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-primary/10 transition-colors">
+                      <Globe className="h-4 w-4 text-primary" />
+                      <span>Site web</span>
+                    </a>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
         {/* Filters & Search */}
