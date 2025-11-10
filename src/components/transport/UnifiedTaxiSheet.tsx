@@ -76,6 +76,9 @@ export default function UnifiedTaxiSheet({
     recommended: v.isPopular
   }));
 
+  // Trouver le prix du véhicule sélectionné pour l'afficher dans le CTA
+  const selectedVehiclePrice = vehicles.find(v => v.id === selectedVehicle)?.calculatedPrice || 0;
+
   const canBook = !!destination && !!selectedVehicle && !isSearching;
 
   const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'medium') => {
@@ -179,7 +182,7 @@ export default function UnifiedTaxiSheet({
                 className="flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4" />
-                <span>Commander</span>
+                <span>Commander - {selectedVehiclePrice.toLocaleString()} CDF</span>
               </motion.div>
             )}
           </motion.button>

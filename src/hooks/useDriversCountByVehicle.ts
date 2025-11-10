@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { VEHICLE_CLASS_TO_SERVICE_TYPE } from '@/utils/pricingMapper';
 
 interface DriversCount {
   [vehicleType: string]: number;
@@ -29,26 +30,23 @@ export const useDriversCountByVehicle = (city: string = 'Kinshasa') => {
 
         if (error) throw error;
 
-        // Compter par type de véhicule
-        const vehicleCounts: DriversCount = {};
+        // Compter par vehicle_class et mapper vers service_type
+        const mappedCounts: DriversCount = {};
         
         locations?.forEach((loc: any) => {
-          const vehicleClass = loc.vehicle_class || 'standard';
-          vehicleCounts[vehicleClass] = (vehicleCounts[vehicleClass] || 0) + 1;
+          const vehicleClass = loc.vehicle_class;
+          const serviceType = VEHICLE_CLASS_TO_SERVICE_TYPE[vehicleClass];
+          
+          if (serviceType) {
+            mappedCounts[serviceType] = (mappedCounts[serviceType] || 0) + 1;
+          }
         });
-
-        // Mapper vers les types de services Kwenda
-        const mappedCounts: DriversCount = {
-          'taxi-bus': vehicleCounts['taxi-bus'] || vehicleCounts['bus'] || 0,
-          'moto': vehicleCounts['moto'] || vehicleCounts['motorcycle'] || 0,
-          'vtc': vehicleCounts['confort'] || vehicleCounts['vtc'] || vehicleCounts['standard'] || 0,
-        };
 
         setCounts(mappedCounts);
       } catch (error) {
         console.error('❌ Erreur comptage chauffeurs:', error);
         // Valeurs par défaut en cas d'erreur
-        setCounts({ 'taxi-bus': 8, 'moto': 12, 'vtc': 5 });
+        setCounts({ 'taxi_moto': 8, 'taxi_eco': 12, 'taxi_confort': 5 });
       } finally {
         setLoading(false);
       }

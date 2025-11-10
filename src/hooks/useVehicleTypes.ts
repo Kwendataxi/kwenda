@@ -80,7 +80,7 @@ export const useVehicleTypes = ({ distance = 0, city = 'Kinshasa' }: UseVehicleT
             : [],
           capacity: 4,
           available: true,
-          isPopular: config.service_type === 'confort' || config.service_type === 'moto'
+          isPopular: config.service_type === 'taxi_confort' || config.service_type === 'taxi_moto'
         };
       });
 

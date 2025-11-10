@@ -21,6 +21,7 @@ import { predictiveRouteCache } from '@/services/predictiveRouteCacheService';
 import { taxiMetrics } from '@/services/taxiMetricsService';
 import { toast } from 'sonner';
 import { debounce } from '@/utils/performanceUtils';
+import { useVehicleTypes } from '@/hooks/useVehicleTypes';
 
 interface ModernTaxiInterfaceProps {
   onSubmit?: (data: any) => void;
@@ -163,8 +164,25 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     debouncedCalculate();
   }, [pickupLocation, destinationLocation, debouncedCalculate]);
 
-  // Calculer le prix estimé
-  const calculatedPrice = distance > 0 ? Math.round(2500 + (distance * 500)) : 0;
+  // Charger les types de véhicules avec prix réels depuis la DB
+  const { vehicles } = useVehicleTypes({ 
+    distance, 
+    city: currentCity?.name || 'Kinshasa' 
+  });
+
+  // Calculer le prix basé sur le véhicule sélectionné
+  const calculatedPrice = useMemo(() => {
+    if (!selectedVehicle || vehicles.length === 0) return 0;
+    const vehicle = vehicles.find(v => v.id === selectedVehicle);
+    return vehicle?.calculatedPrice || 0;
+  }, [selectedVehicle, vehicles]);
+
+  // Auto-sélectionner le véhicule le moins cher au chargement
+  useEffect(() => {
+    if (vehicles.length > 0 && !selectedVehicle) {
+      setSelectedVehicle(vehicles[0].id);
+    }
+  }, [vehicles, selectedVehicle]);
 
   const handleVehicleSelect = useCallback((vehicleId: string) => {
     setSelectedVehicle(vehicleId);
