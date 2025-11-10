@@ -92,8 +92,7 @@ export const PartnerRentalRatingDialog = ({
         toast.success('Merci pour votre avis !');
       }
 
-      // Rafraîchir les stats
-      await supabase.rpc('refresh_partner_rental_stats');
+      // Stats se rafraîchissent automatiquement via trigger
 
       onRatingSubmitted?.();
       onOpenChange(false);

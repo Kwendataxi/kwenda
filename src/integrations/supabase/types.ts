@@ -6384,6 +6384,13 @@ export type Database = {
             foreignKeyName: "partner_rental_subscriptions_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
+            referencedRelation: "rental_vehicle_review_stats"
+            referencedColumns: ["vehicle_id"]
+          },
+          {
+            foreignKeyName: "partner_rental_subscriptions_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
             referencedRelation: "rental_vehicles"
             referencedColumns: ["id"]
           },
@@ -8344,6 +8351,13 @@ export type Database = {
             foreignKeyName: "rental_bookings_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
+            referencedRelation: "rental_vehicle_review_stats"
+            referencedColumns: ["vehicle_id"]
+          },
+          {
+            foreignKeyName: "rental_bookings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
             referencedRelation: "rental_vehicles"
             referencedColumns: ["id"]
           },
@@ -8473,6 +8487,13 @@ export type Database = {
             foreignKeyName: "rental_moderation_logs_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
+            referencedRelation: "rental_vehicle_review_stats"
+            referencedColumns: ["vehicle_id"]
+          },
+          {
+            foreignKeyName: "rental_moderation_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
             referencedRelation: "rental_vehicles"
             referencedColumns: ["id"]
           },
@@ -8507,6 +8528,88 @@ export type Database = {
           target_payment_id?: string
         }
         Relationships: []
+      }
+      rental_reviews: {
+        Row: {
+          booking_id: string
+          cleanliness_rating: number
+          comment: string | null
+          created_at: string | null
+          id: string
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_reason: string | null
+          moderation_status: string | null
+          overall_rating: number | null
+          photos: string[] | null
+          reviewer_id: string
+          reviewer_type: string
+          service_rating: number
+          updated_at: string | null
+          vehicle_id: string
+          vehicle_rating: number
+        }
+        Insert: {
+          booking_id: string
+          cleanliness_rating: number
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_reason?: string | null
+          moderation_status?: string | null
+          overall_rating?: number | null
+          photos?: string[] | null
+          reviewer_id: string
+          reviewer_type: string
+          service_rating: number
+          updated_at?: string | null
+          vehicle_id: string
+          vehicle_rating: number
+        }
+        Update: {
+          booking_id?: string
+          cleanliness_rating?: number
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_reason?: string | null
+          moderation_status?: string | null
+          overall_rating?: number | null
+          photos?: string[] | null
+          reviewer_id?: string
+          reviewer_type?: string
+          service_rating?: number
+          updated_at?: string | null
+          vehicle_id?: string
+          vehicle_rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "rental_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_reviews_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "rental_vehicle_review_stats"
+            referencedColumns: ["vehicle_id"]
+          },
+          {
+            foreignKeyName: "rental_reviews_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "rental_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rental_subscription_payments: {
         Row: {
@@ -13697,10 +13800,12 @@ export type Database = {
           available_vehicles: number | null
           completed_bookings: number | null
           followers_count: number | null
+          last_updated: string | null
           partner_id: string | null
           rating_average: number | null
           rating_count: number | null
           total_bookings: number | null
+          total_revenue: number | null
           total_vehicles: number | null
           user_id: string | null
         }
@@ -13720,6 +13825,20 @@ export type Database = {
         Row: {
           active_subscriptions: number | null
           last_updated: string | null
+        }
+        Relationships: []
+      }
+      rental_vehicle_review_stats: {
+        Row: {
+          avg_rating: number | null
+          five_stars: number | null
+          four_stars: number | null
+          last_review_at: string | null
+          one_star: number | null
+          three_stars: number | null
+          total_reviews: number | null
+          two_stars: number | null
+          vehicle_id: string | null
         }
         Relationships: []
       }
@@ -15518,7 +15637,6 @@ export type Database = {
       refresh_ai_stats: { Args: never; Returns: undefined }
       refresh_driver_status: { Args: never; Returns: undefined }
       refresh_driver_status_unified: { Args: never; Returns: undefined }
-      refresh_partner_rental_stats: { Args: never; Returns: undefined }
       refresh_security_stats: { Args: never; Returns: undefined }
       refresh_vendor_stats_cache: {
         Args: { p_vendor_id: string }

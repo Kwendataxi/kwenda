@@ -18,6 +18,7 @@ interface ReviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bookingId: string;
+  vehicleId: string;
   vehicleName: string;
   onReviewSubmitted?: () => void;
 }
@@ -26,6 +27,7 @@ export const ReviewDialog = ({
   open,
   onOpenChange,
   bookingId,
+  vehicleId,
   vehicleName,
   onReviewSubmitted,
 }: ReviewDialogProps) => {
@@ -51,23 +53,26 @@ export const ReviewDialog = ({
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('Non connecté');
 
+      // ✅ Insérer dans rental_reviews avec toutes les colonnes requises
       const { error } = await supabase
-        .from('rental_reviews' as any)
+        .from('rental_reviews')
         .insert({
           booking_id: bookingId,
+          vehicle_id: vehicleId,
           reviewer_id: user.user.id,
           reviewer_type: 'client',
           vehicle_rating: vehicleRating,
           service_rating: serviceRating,
           cleanliness_rating: cleanlinessRating,
           comment: comment.trim() || null,
-        } as any);
+          moderation_status: 'pending'
+        });
 
       if (error) throw error;
 
       toast({
         title: "Merci pour votre avis !",
-        description: "Votre évaluation a été enregistrée",
+        description: "Votre évaluation sera visible après modération",
       });
 
       onOpenChange(false);
@@ -78,13 +83,22 @@ export const ReviewDialog = ({
       setServiceRating(0);
       setCleanlinessRating(0);
       setComment('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting review:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible d'enregistrer votre avis",
-        variant: "destructive",
-      });
+      
+      if (error.message?.includes('unique_booking_review')) {
+        toast({
+          title: "Déjà évalué",
+          description: "Vous avez déjà évalué cette réservation",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Impossible d'enregistrer votre avis",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
