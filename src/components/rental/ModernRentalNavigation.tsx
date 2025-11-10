@@ -60,13 +60,13 @@ export const ModernRentalNavigation: React.FC<ModernRentalNavigationProps> = ({
         {/* Filtres contextuels sous les tabs */}
         <div className="mt-4">
           {viewMode === 'vehicles' && (
-            <ScrollArea className="w-full whitespace-nowrap">
-              <div className="flex gap-2 pb-2">
+            <div className="relative -mx-4 px-4">
+              <div className="flex gap-2 pb-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth">
                 <Button
                   variant={selectedCategory === null ? "default" : "outline"}
                   size="sm"
                   onClick={() => onCategoryChange(null)}
-                  className="rounded-full"
+                  className="rounded-full shrink-0 snap-start"
                 >
                   Tous ({vehiclesCount})
                 </Button>
@@ -80,16 +80,16 @@ export const ModernRentalNavigation: React.FC<ModernRentalNavigationProps> = ({
                       variant={selectedCategory === cat.id ? "default" : "outline"}
                       size="sm"
                       onClick={() => onCategoryChange(cat.id)}
-                      className="rounded-full gap-1"
+                      className="rounded-full gap-1 shrink-0 snap-start"
                     >
                       <span>{theme.icon}</span>
-                      <span>{cat.name}</span>
-                      <Badge variant="secondary" className="ml-1 text-xs">{count}</Badge>
+                      <span className="whitespace-nowrap">{cat.name}</span>
+                      <Badge variant="secondary" className="ml-1 text-xs shrink-0">{count}</Badge>
                     </Button>
                   );
                 })}
               </div>
-            </ScrollArea>
+            </div>
           )}
           
           {viewMode === 'partners' && (

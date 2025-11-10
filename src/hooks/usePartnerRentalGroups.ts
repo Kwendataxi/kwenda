@@ -45,20 +45,26 @@ export const usePartnerRentalGroups = (city?: string) => {
           *,
           category:rental_vehicle_categories(id, name, icon)
         `)
-        .eq('is_available', true);
-
-      if (city) {
-        query = query.eq('city', city);
-      }
+        .eq('is_available', true)
+        .eq('is_active', true)
+        .eq('moderation_status', 'approved');
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      const vehiclesWithPartner = (data || []).map(v => ({
+      let vehiclesWithPartner = (data || []).map(v => ({
         ...v,
         partner: partnersWithProfiles?.find(p => p.id === v.partner_id)
       }));
+
+      // Filtrer par ville si spécifiée (utiliser available_cities comme useModernRentals)
+      if (city) {
+        vehiclesWithPartner = vehiclesWithPartner.filter((v: any) => {
+          const cities = Array.isArray(v.available_cities) ? v.available_cities : [];
+          return cities.includes(city);
+        });
+      }
       
       return vehiclesWithPartner;
     }
