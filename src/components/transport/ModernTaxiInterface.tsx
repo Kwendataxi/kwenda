@@ -393,22 +393,25 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       />
       
       
-      {/* Sheet unifié moderne */}
+      {/* Sheet unifié moderne - SIMPLIFIÉ */}
       <UnifiedTaxiSheet
         pickup={pickupLocation}
         destination={destinationLocation}
         selectedVehicle={selectedVehicle}
         onVehicleSelect={handleVehicleSelect}
         onDestinationSelect={() => setShowDestinationSearch(true)}
+        onQuickDestinationSelect={(location) => {
+          setDestinationLocation({
+            ...location,
+            type: 'geocoded' as const
+          });
+        }}
         onBook={handleSearchDriver}
         isSearching={isSearching}
         distance={distance}
-        duration={routeData?.duration || distance * 120}
-        calculatedPrice={calculatedPrice}
         city={currentCity?.name || 'Kinshasa'}
         biddingEnabled={biddingEnabled}
         onToggleBidding={setBiddingEnabled}
-        onClientProposedPrice={setClientProposedPrice}
         isForSomeoneElse={isForSomeoneElse}
         onToggleBeneficiary={setIsForSomeoneElse}
         selectedBeneficiary={selectedBeneficiary}

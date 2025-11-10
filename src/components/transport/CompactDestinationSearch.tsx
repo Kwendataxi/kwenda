@@ -1,13 +1,14 @@
 import { Search, Home, Building, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useUserFavorites } from '@/hooks/useUserFavorites';
 
 interface CompactDestinationSearchProps {
   destination: string | null;
   onOpenSearch: () => void;
-  onSelectQuick?: (type: 'home' | 'work' | 'recent') => void;
+  onSelectQuick?: (location: { address: string; lat: number; lng: number; name: string }) => void;
+  city?: string;
   className?: string;
 }
 
@@ -15,17 +16,17 @@ export default function CompactDestinationSearch({
   destination,
   onOpenSearch,
   onSelectQuick,
+  city = 'Kinshasa',
   className
 }: CompactDestinationSearchProps) {
+  const { favorites } = useUserFavorites(city);
+
   const triggerHaptic = () => {
     if ('vibrate' in navigator) navigator.vibrate(10);
   };
 
-  const quickChips = [
-    { id: 'home', icon: Home, label: 'Maison', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-    { id: 'work', icon: Building, label: 'Travail', color: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
-    { id: 'recent', icon: MapPin, label: 'Récent', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-  ];
+  const homeFavorite = favorites.find(f => f.type === 'home');
+  const workFavorite = favorites.find(f => f.type === 'work');
 
   return (
     <div className={cn("sticky top-0 z-20 bg-background/95 backdrop-blur-md pb-3 -mx-4 px-4 pt-2", className)}>
@@ -70,31 +71,51 @@ export default function CompactDestinationSearch({
         </button>
       </motion.div>
 
-      {/* Quick access chips */}
+      {/* Quick access chips - Favoris réels */}
       {!destination && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1"
         >
-          {quickChips.map((chip) => (
+          {homeFavorite && (
             <motion.button
-              key={chip.id}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
-                onSelectQuick?.(chip.id as any);
+                onSelectQuick?.({
+                  address: homeFavorite.address,
+                  lat: homeFavorite.lat,
+                  lng: homeFavorite.lng,
+                  name: homeFavorite.name
+                });
                 triggerHaptic();
               }}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium whitespace-nowrap transition-all",
-                chip.color,
-                "hover:shadow-md active:shadow-inner"
-              )}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl border bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs font-medium whitespace-nowrap hover:shadow-md"
             >
-              <chip.icon className="w-3.5 h-3.5" />
-              {chip.label}
+              <Home className="w-3.5 h-3.5" />
+              Maison
             </motion.button>
-          ))}
+          )}
+
+          {workFavorite && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                onSelectQuick?.({
+                  address: workFavorite.address,
+                  lat: workFavorite.lat,
+                  lng: workFavorite.lng,
+                  name: workFavorite.name
+                });
+                triggerHaptic();
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl border bg-purple-500/10 text-purple-600 border-purple-500/20 text-xs font-medium whitespace-nowrap hover:shadow-md"
+            >
+              <Building className="w-3.5 h-3.5" />
+              Travail
+            </motion.button>
+          )}
+
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => {
@@ -104,7 +125,7 @@ export default function CompactDestinationSearch({
             className="flex items-center gap-2 px-3 py-2 rounded-xl border bg-primary/10 text-primary border-primary/20 text-xs font-medium whitespace-nowrap hover:shadow-md"
           >
             <Search className="w-3.5 h-3.5" />
-            Tout voir
+            Rechercher
           </motion.button>
         </motion.div>
       )}
