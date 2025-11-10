@@ -100,23 +100,23 @@ export default function UnifiedTaxiSheet({
       open={true} 
       dismissible={false}
       modal={false}
-      snapPoints={[0.35, 0.55]}
-      activeSnapPoint={0.55}
+      snapPoints={[0.5, 0.85]}
+      activeSnapPoint={0.85}
       fadeFromIndex={1}
       handleOnly={false}
     >
-      <DrawerContent className="max-h-[55vh] border-t-4 border-muted/20">
+      <DrawerContent className="max-h-[85vh] border-t-4 border-primary/10 shadow-2xl">
         {/* Handle bar */}
         <div className="flex items-center justify-center py-2 cursor-grab active:cursor-grabbing">
           <div className="w-12 h-1.5 bg-gradient-to-r from-muted/40 via-muted to-muted/40 rounded-full shadow-sm" />
         </div>
 
-        {/* Contenu scrollable - compact */}
+        {/* Contenu scrollable */}
         <ScrollArea 
-          className="px-4 font-montserrat"
-          style={{ maxHeight: 'calc(55vh - 100px)' }}
+          className="px-5 font-montserrat"
+          style={{ maxHeight: 'calc(85vh - 120px)' }}
         >
-          <div className="space-y-3 pb-4">
+          <div className="space-y-4 pb-6">
             {/* Section 1 : Destination (sticky) */}
             <CompactDestinationSearch
               destination={destination?.address || null}
@@ -152,18 +152,18 @@ export default function UnifiedTaxiSheet({
           </div>
         </ScrollArea>
 
-        {/* CTA Sticky en bas - compact */}
-        <div className="sticky bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-background via-background to-transparent border-t border-border/30">
+        {/* CTA Sticky en bas */}
+        <div className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent border-t border-border/20 shadow-lg">
           <motion.button
             whileHover={{ scale: canBook ? 1.02 : 1 }}
             whileTap={{ scale: canBook ? 0.98 : 1 }}
             onClick={handleBookClick}
             disabled={!canBook}
             className={cn(
-              "w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-300 relative overflow-hidden",
+              "w-full py-4 rounded-2xl font-bold text-base transition-all duration-300 relative overflow-hidden shadow-xl",
               canBook
-                ? "bg-gradient-to-r from-congo-red to-congo-red-electric shadow-glow-red text-white"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
+                ? "bg-gradient-to-r from-congo-red to-congo-red-electric shadow-glow-red text-white hover:shadow-2xl"
+                : "bg-muted/50 text-muted-foreground cursor-not-allowed"
             )}
           >
             {isSearching ? (
