@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Car } from 'lucide-react';
+import { Star, Car, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
 interface PartnerRentalRatingDialogProps {
   open: boolean;
@@ -31,6 +32,8 @@ export const PartnerRentalRatingDialog = ({
 
   const emojis = ['😞', '😕', '🚗', '😊', '😍'];
   const labels = ['Très mauvais', 'Mauvais', 'Moyen', 'Bien', 'Excellent'];
+  
+  const maxCharacters = 500;
 
   const handleSubmit = async () => {
     if (!user) {
@@ -75,7 +78,11 @@ export const PartnerRentalRatingDialog = ({
           .eq('id', existingRating.id);
 
         if (updateError) throw updateError;
-        toast.success('Votre note a été mise à jour');
+        
+        toast.success('Votre note a été mise à jour', {
+          description: 'Merci pour votre retour !',
+          duration: 4000
+        });
       } else {
         // Create new rating
         const { error: insertError } = await supabase
@@ -89,7 +96,26 @@ export const PartnerRentalRatingDialog = ({
           });
 
         if (insertError) throw insertError;
-        toast.success('Merci pour votre avis !');
+        
+        // 🎉 Confetti pour 5 étoiles !
+        if (rating === 5) {
+          confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#FFD700', '#FFA500', '#FF6347', '#FF69B4', '#9370DB']
+          });
+          
+          toast.success('🎉 Merci pour les 5 étoiles !', {
+            description: 'Votre avis aidera d\'autres clients à choisir cette agence',
+            duration: 5000
+          });
+        } else {
+          toast.success('Merci pour votre avis !', {
+            description: 'Votre retour aidera l\'agence à s\'améliorer',
+            duration: 4000
+          });
+        }
       }
 
       // Stats se rafraîchissent automatiquement via trigger
@@ -108,10 +134,13 @@ export const PartnerRentalRatingDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md backdrop-blur-xl bg-background/95 border-2">
         <DialogHeader>
-          <DialogTitle>Noter {partnerName}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="flex items-center gap-2 text-2xl">
+            <Sparkles className="h-6 w-6 text-yellow-500" />
+            Noter {partnerName}
+          </DialogTitle>
+          <DialogDescription className="text-base">
             Partagez votre expérience avec cette agence de location
           </DialogDescription>
         </DialogHeader>
@@ -124,18 +153,18 @@ export const PartnerRentalRatingDialog = ({
                 <motion.button
                   key={value}
                   type="button"
-                  whileHover={{ scale: 1.2 }}
+                  whileHover={{ scale: 1.2, rotate: 10 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setRating(value)}
                   onMouseEnter={() => setHoveredRating(value)}
                   onMouseLeave={() => setHoveredRating(0)}
-                  className="focus:outline-none"
+                  className="focus:outline-none relative"
                 >
                   <Star
-                    className={`h-10 w-10 transition-all ${
+                    className={`h-12 w-12 transition-all duration-300 ${
                       value <= (hoveredRating || rating)
-                        ? 'fill-yellow-500 text-yellow-500'
-                        : 'text-muted-foreground'
+                        ? 'fill-yellow-500 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]'
+                        : 'text-muted-foreground/30'
                     }`}
                   />
                 </motion.button>
@@ -145,14 +174,22 @@ export const PartnerRentalRatingDialog = ({
             {/* Emoji and label */}
             {(hoveredRating || rating) > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
                 className="text-center"
               >
-                <div className="text-5xl mb-2">
+                <motion.div 
+                  className="text-7xl mb-3"
+                  animate={{ 
+                    rotate: [0, -10, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ duration: 0.5 }}
+                >
                   {emojis[(hoveredRating || rating) - 1]} 🏎️
-                </div>
-                <p className="font-medium text-lg">
+                </motion.div>
+                <p className="font-bold text-xl bg-gradient-to-r from-primary via-blue-500 to-purple-500 bg-clip-text text-transparent">
                   {labels[(hoveredRating || rating) - 1]}
                 </p>
               </motion.div>
@@ -161,27 +198,54 @@ export const PartnerRentalRatingDialog = ({
 
           {/* Comment */}
           <div>
-            <label className="text-sm font-medium mb-2 block">
-              Votre commentaire (optionnel)
+            <label className="text-sm font-medium mb-2 flex items-center justify-between">
+              <span>Votre commentaire (optionnel)</span>
+              <span className={`text-xs ${comment.length > maxCharacters ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {comment.length}/{maxCharacters}
+              </span>
             </label>
             <Textarea
               placeholder="Partagez votre expérience de location avec cette agence..."
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= maxCharacters) {
+                  setComment(e.target.value);
+                }
+              }}
               rows={4}
-              className="resize-none"
+              className="resize-none border-2 focus:border-primary transition-all"
             />
           </div>
 
           {/* Submit button */}
-          <Button
-            onClick={handleSubmit}
-            disabled={rating === 0 || isSubmitting}
-            className="w-full"
-            size="lg"
+          <motion.div
+            whileHover={{ scale: rating > 0 ? 1.02 : 1 }}
+            whileTap={{ scale: rating > 0 ? 0.98 : 1 }}
           >
-            {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma note'}
-          </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={rating === 0 || isSubmitting}
+              className="w-full shadow-lg"
+              size="lg"
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  >
+                    ⭐
+                  </motion.div>
+                  Envoi en cours...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Envoyer ma note
+                </span>
+              )}
+            </Button>
+          </motion.div>
         </div>
       </DialogContent>
     </Dialog>

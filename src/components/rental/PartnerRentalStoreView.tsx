@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { PartnerTierBadge } from './PartnerTierBadge';
 import { PartnerRentalRatingDialog } from './PartnerRentalRatingDialog';
+import { PartnerRentalShareButtons } from './PartnerRentalShareButtons';
 import { PartnerRentalReviewsSection } from './PartnerRentalReviewsSection';
 import { 
   Heart, Share2, MessageCircle, Star, Users, Car, 
@@ -32,6 +34,7 @@ export const PartnerRentalStoreView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   // Fetch partner data with stats
   const { data: partnerData, isLoading: partnerLoading } = useQuery({
@@ -166,18 +169,6 @@ export const PartnerRentalStoreView = () => {
     return counts;
   }, [vehicles]);
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: partnerData?.company_name || 'Partenaire Location',
-        text: partnerData?.slogan || 'Découvrez nos véhicules',
-        url: window.location.href
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success('Lien copié dans le presse-papier');
-    }
-  };
 
   const handleFollow = async () => {
     await toggleFollow();
@@ -387,12 +378,35 @@ export const PartnerRentalStoreView = () => {
               </Button>
             </motion.div>
             
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="outline" size="lg" onClick={handleShare} className="gap-2 shadow-lg">
-                <Share2 className="h-5 w-5" />
-                Partager
-              </Button>
-            </motion.div>
+            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+              <DialogTrigger asChild>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="gap-2 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Share2 className="h-5 w-5" />
+                    Partager
+                  </Button>
+                </motion.div>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">Partager {partnerData.company_name}</DialogTitle>
+                  <DialogDescription>
+                    Invitez vos amis à découvrir cette agence de location
+                  </DialogDescription>
+                </DialogHeader>
+                <PartnerRentalShareButtons
+                  partnerId={partnerId || ''}
+                  partnerName={partnerData.company_name}
+                  totalVehicles={partnerData.stats.available_vehicles}
+                  rating={partnerData.stats.rating_average}
+                  slogan={partnerData.slogan}
+                />
+              </DialogContent>
+            </Dialog>
             
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button variant="outline" size="lg" onClick={() => setShowRatingDialog(true)} className="gap-2 shadow-lg">
@@ -419,10 +433,29 @@ export const PartnerRentalStoreView = () => {
               <Heart className={cn("mr-2", isFollowing && "fill-current")} />
               {isFollowing ? 'Suivi' : 'Suivre'}
             </Button>
-            <Button size="lg" variant="outline" onClick={handleShare} className="w-full">
-              <Share2 className="mr-2 h-5 w-5" />
-              Partager
-            </Button>
+            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+              <DialogTrigger asChild>
+                <Button size="lg" variant="outline" className="w-full">
+                  <Share2 className="mr-2 h-5 w-5" />
+                  Partager
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">Partager {partnerData.company_name}</DialogTitle>
+                  <DialogDescription>
+                    Invitez vos amis à découvrir cette agence de location
+                  </DialogDescription>
+                </DialogHeader>
+                <PartnerRentalShareButtons
+                  partnerId={partnerId || ''}
+                  partnerName={partnerData.company_name}
+                  totalVehicles={partnerData.stats.available_vehicles}
+                  rating={partnerData.stats.rating_average}
+                  slogan={partnerData.slogan}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <Button size="lg" variant="outline" onClick={() => setShowRatingDialog(true)} className="w-full">

@@ -8499,6 +8499,52 @@ export type Database = {
           },
         ]
       }
+      rental_partner_share_analytics: {
+        Row: {
+          created_at: string | null
+          id: string
+          partner_id: string
+          share_type: string
+          shared_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          partner_id: string
+          share_type: string
+          shared_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          partner_id?: string
+          share_type?: string
+          shared_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_partner_share_analytics_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_partner_share_analytics_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_partner_share_analytics_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
+          },
+        ]
+      }
       rental_payment_access_logs: {
         Row: {
           access_reason: string | null
