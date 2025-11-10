@@ -16,6 +16,7 @@ interface BookingData {
 
 interface CreateRideOptions {
   biddingMode?: boolean;
+  clientProposedPrice?: number; // Prix proposé par le client
   biddingDuration?: number; // en secondes
 }
 
@@ -53,7 +54,7 @@ export const useRideDispatch = () => {
       setIsSearching(true);
       setSearchProgress({ radius: 10, driversFound: 0, status: 'searching' });
       
-      const { biddingMode = false, biddingDuration = 300 } = options;
+      const { biddingMode = false, clientProposedPrice, biddingDuration = 300 } = options;
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -70,6 +71,7 @@ export const useRideDispatch = () => {
       });
 
       // 1. Créer le booking dans transport_bookings
+      // Note: Les nouveaux champs de transport_bookings nécessitent la régénération des types Supabase
       const bookingInsert: any = {
         user_id: user.id,
         pickup_location: bookingData.pickupLocation,
@@ -89,6 +91,7 @@ export const useRideDispatch = () => {
 
       if (biddingMode) {
         bookingInsert.bidding_closes_at = new Date(Date.now() + biddingDuration * 1000).toISOString();
+        bookingInsert.client_proposed_price = clientProposedPrice || Math.floor(bookingData.estimatedPrice * 0.8);
       }
 
       const { data: booking, error: bookingError } = await supabase
@@ -112,6 +115,7 @@ export const useRideDispatch = () => {
             pickupLat: bookingData.pickupCoordinates.lat,
             pickupLng: bookingData.pickupCoordinates.lng,
             estimatedPrice: bookingData.estimatedPrice,
+            clientProposedPrice: clientProposedPrice || Math.floor(bookingData.estimatedPrice * 0.8),
             vehicleType: bookingData.vehicleType,
             biddingDuration
           });

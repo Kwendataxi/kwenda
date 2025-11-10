@@ -25,6 +25,8 @@ interface PriceConfirmationModalProps {
   beneficiary?: { name: string; phone: string } | null;
   bookingId?: string;
   onOfferAccepted?: (driverId: string) => void;
+  onBiddingEnabled?: (enabled: boolean) => void;
+  onClientProposedPrice?: (price: number) => void;
 }
 
 const VEHICLE_CONFIG: Record<string, { name: string; icon: any; gradient: string }> = {
@@ -47,7 +49,9 @@ export default function PriceConfirmationModal({
   onBack,
   beneficiary,
   bookingId,
-  onOfferAccepted
+  onOfferAccepted,
+  onBiddingEnabled,
+  onClientProposedPrice
 }: PriceConfirmationModalProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [biddingEnabled, setBiddingEnabled] = useState(false);
@@ -236,8 +240,11 @@ export default function PriceConfirmationModal({
             </div>
             <Switch
               id="bidding-toggle"
-              checked={biddingEnabled}
-              onCheckedChange={setBiddingEnabled}
+                  checked={biddingEnabled}
+                  onCheckedChange={(checked) => {
+                    setBiddingEnabled(checked);
+                    onBiddingEnabled?.(checked);
+                  }}
               disabled={isSearching}
             />
           </motion.div>
@@ -269,6 +276,7 @@ export default function PriceConfirmationModal({
                 currency="CDF"
                 onProposalSubmit={(proposedPrice) => {
                   console.log('💰 Client proposed price:', proposedPrice);
+                  onClientProposedPrice?.(proposedPrice);
                   setShowClientBiddingInterface(false);
                   handleConfirm();
                 }}

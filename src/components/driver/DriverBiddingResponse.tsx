@@ -14,6 +14,8 @@ interface DriverBiddingResponseProps {
   pickupLocation: string;
   distanceToPickup: number;
   onResponseSubmitted?: () => void;
+  currency?: 'CDF' | 'XOF';
+  distance?: number;
 }
 
 export default function DriverBiddingResponse({
@@ -22,7 +24,9 @@ export default function DriverBiddingResponse({
   estimatedPrice,
   pickupLocation,
   distanceToPickup,
-  onResponseSubmitted
+  onResponseSubmitted,
+  currency = 'CDF',
+  distance = 0
 }: DriverBiddingResponseProps) {
   const [loading, setLoading] = useState(false);
   const [showCounterOffer, setShowCounterOffer] = useState(false);
@@ -53,12 +57,19 @@ export default function DriverBiddingResponse({
       if (!driver) throw new Error('Profil chauffeur non trouvé');
 
       // Créer l'offre (acceptation directe)
+      // Note: Les nouveaux champs de ride_offers nécessitent la régénération des types Supabase
       const { error: offerError } = await supabase
         .from('ride_offers')
         .insert({
-          ride_request_id: bookingId,
+          booking_id: bookingId,
           driver_id: driver.id,
-          status: 'pending'
+          offered_price: clientProposedPrice,
+          original_estimated_price: estimatedPrice,
+          is_counter_offer: false,
+          client_proposal_price: clientProposedPrice,
+          status: 'pending',
+          message: 'Offre acceptée directement',
+          distance_to_pickup: distanceToPickup
         } as any);
 
       if (offerError) throw offerError;
@@ -91,12 +102,19 @@ export default function DriverBiddingResponse({
       if (!driver) throw new Error('Profil chauffeur non trouvé');
 
       // Créer la contre-offre
+      // Note: Les nouveaux champs de ride_offers nécessitent la régénération des types Supabase
       const { error: offerError } = await supabase
         .from('ride_offers')
         .insert({
-          ride_request_id: bookingId,
+          booking_id: bookingId,
           driver_id: driver.id,
-          status: 'pending'
+          offered_price: counterOfferPrice,
+          original_estimated_price: estimatedPrice,
+          is_counter_offer: true,
+          client_proposal_price: clientProposedPrice,
+          status: 'pending',
+          message: `Contre-offre: ${counterOfferPrice} CDF`,
+          distance_to_pickup: distanceToPickup
         } as any);
 
       if (offerError) throw offerError;

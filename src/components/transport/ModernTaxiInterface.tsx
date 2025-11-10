@@ -45,6 +45,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [isForSomeoneElse, setIsForSomeoneElse] = useState(false);
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
   const [biddingEnabled, setBiddingEnabled] = useState(false);
+  const [clientProposedPrice, setClientProposedPrice] = useState<number | null>(null);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   
@@ -282,11 +283,12 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         beneficiaryPhone: selectedBeneficiary?.phone
       };
 
-      console.log('🚗 [ModernTaxiInterface] Starting ride dispatch with bidding:', biddingEnabled);
+      console.log('🚗 [ModernTaxiInterface] Starting ride dispatch with bidding:', biddingEnabled, 'Proposed price:', clientProposedPrice);
 
-      // ✅ Passer le mode bidding au dispatching
+      // ✅ Passer le mode bidding ET le prix proposé au dispatching
       const result = await createAndDispatchRide(bookingData, {
         biddingMode: biddingEnabled,
+        clientProposedPrice: clientProposedPrice || Math.floor(calculatedPrice * 0.8), // Par défaut 80% du prix estimé
         biddingDuration: 300 // 5 minutes
       });
 
@@ -454,6 +456,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             console.log('Offer accepted from driver:', driverId);
             onSubmit?.({ driver: { id: driverId }, bookingId: tempBookingId });
           }}
+          onBiddingEnabled={(enabled) => setBiddingEnabled(enabled)}
+          onClientProposedPrice={(price) => setClientProposedPrice(price)}
         />
       )}
       
