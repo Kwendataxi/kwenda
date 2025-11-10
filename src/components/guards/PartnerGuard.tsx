@@ -48,9 +48,9 @@ export const PartnerGuard = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    // ✅ Vérifier que le partenaire est approuvé et actif
-    if (profileData.verification_status !== 'approved' || !profileData.is_active) {
-      console.warn('⚠️ Partenaire non approuvé:', profileData.verification_status);
+    // ✅ Vérifier que le partenaire est vérifié et actif
+    if (profileData.verification_status !== 'verified' || !profileData.is_active) {
+      console.warn('⚠️ Partenaire non vérifié:', profileData.verification_status);
       navigate('/partner/pending-approval');
       return;
     }

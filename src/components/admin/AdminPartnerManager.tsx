@@ -23,7 +23,7 @@ interface Partner {
   service_areas?: string[];
   commission_rate: number;
   is_active: boolean;
-  verification_status: 'pending' | 'approved' | 'rejected';
+  verification_status: 'pending' | 'verified' | 'rejected';
   created_at: string;
   updated_at: string;
   company_name: string;
@@ -55,31 +55,87 @@ const AdminPartnerManager = () => {
   // Update partner status mutation
   const updatePartnerStatus = useMutation({
     mutationFn: async ({ id, status, is_active }: { id: string; status: string; is_active: boolean }) => {
-      const { error } = await supabase
+      console.log('🔄 [AdminPartnerManager] Updating partner status:', { id, status, is_active });
+      
+      const { data, error } = await supabase
         .from('partenaires')
         .update({ 
           verification_status: status,
           is_active: is_active,
           updated_at: new Date().toISOString()
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [AdminPartnerManager] Update error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+      
+      console.log('✅ [AdminPartnerManager] Partner updated:', data);
+      
+      // Envoyer la notification via Edge Function
+      if (status === 'verified' || status === 'rejected') {
+        try {
+          const { data: session } = await supabase.auth.getSession();
+          if (session?.session?.access_token) {
+            await supabase.functions.invoke('partner-validation-notification', {
+              body: {
+                partner_id: id,
+                action: status === 'verified' ? 'approved' : 'rejected',
+                reason: status === 'rejected' ? 'Rejeté par l\'administrateur' : undefined
+              }
+            });
+            console.log('✅ Notification sent to partner');
+          }
+        } catch (notifError) {
+          console.error('⚠️ Failed to send notification:', notifError);
+          // Ne pas faire échouer la mutation pour une erreur de notification
+        }
+      }
+      
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin-partners'] });
-      toast.success('Statut du partenaire mis à jour');
+      toast.success('Statut du partenaire mis à jour', {
+        description: `${data.company_name} est maintenant ${data.verification_status === 'verified' ? 'vérifié' : data.verification_status}`
+      });
     },
-    onError: (error) => {
-      console.error('Erreur mise à jour partenaire:', error);
-      toast.error('Erreur lors de la mise à jour');
+    onError: (error: any) => {
+      console.error('❌ [AdminPartnerManager] Mutation error:', error);
+      
+      let errorMessage = 'Erreur lors de la mise à jour';
+      let errorDescription = '';
+      
+      // Messages d'erreur spécifiques
+      if (error.code === '23514') {
+        errorMessage = 'Valeur de statut invalide';
+        errorDescription = 'La valeur de statut doit être: pending, verified ou rejected';
+      } else if (error.code === '42501') {
+        errorMessage = 'Permissions insuffisantes';
+        errorDescription = 'Vous n\'avez pas les droits pour modifier ce partenaire';
+      } else if (error.message) {
+        errorMessage = error.message;
+        errorDescription = error.hint || '';
+      }
+      
+      toast.error(errorMessage, {
+        description: errorDescription || 'Contactez le support si le problème persiste'
+      });
     }
   });
 
   const handleApprove = (partnerId: string) => {
     updatePartnerStatus.mutate({ 
       id: partnerId, 
-      status: 'approved', 
+      status: 'verified', 
       is_active: true 
     });
   };
@@ -95,7 +151,7 @@ const AdminPartnerManager = () => {
   const handleToggleActive = (partnerId: string, currentStatus: boolean) => {
     updatePartnerStatus.mutate({ 
       id: partnerId, 
-      status: 'approved', 
+      status: 'verified', 
       is_active: !currentStatus 
     });
   };
@@ -109,7 +165,7 @@ const AdminPartnerManager = () => {
     const matchesTab = 
       activeTab === 'all' || 
       (activeTab === 'pending' && partner.verification_status === 'pending') ||
-      (activeTab === 'approved' && partner.verification_status === 'approved') ||
+      (activeTab === 'verified' && partner.verification_status === 'verified') ||
       (activeTab === 'rejected' && partner.verification_status === 'rejected');
 
     return matchesSearch && matchesTab;
@@ -119,11 +175,11 @@ const AdminPartnerManager = () => {
     if (status === 'pending') {
       return <Badge variant="secondary">En attente</Badge>;
     }
-    if (status === 'approved' && isActive) {
+    if (status === 'verified' && isActive) {
       return <Badge variant="default" className="bg-green-600">Actif</Badge>;
     }
-    if (status === 'approved' && !isActive) {
-      return <Badge variant="outline">Approuvé (Inactif)</Badge>;
+    if (status === 'verified' && !isActive) {
+      return <Badge variant="outline">Vérifié (Inactif)</Badge>;
     }
     if (status === 'rejected') {
       return <Badge variant="destructive">Rejeté</Badge>;
@@ -207,7 +263,7 @@ const AdminPartnerManager = () => {
             </>
           )}
 
-          {partner.verification_status === 'approved' && (
+          {partner.verification_status === 'verified' && (
             <Button
               size="sm"
               variant={partner.is_active ? "destructive" : "default"}
@@ -225,7 +281,7 @@ const AdminPartnerManager = () => {
   const stats = {
     total: partners.length,
     pending: partners.filter(p => p.verification_status === 'pending').length,
-    approved: partners.filter(p => p.verification_status === 'approved').length,
+    verified: partners.filter(p => p.verification_status === 'verified').length,
     active: partners.filter(p => p.is_active).length,
   };
 
@@ -263,8 +319,8 @@ const AdminPartnerManager = () => {
             </Card>
             <Card>
               <CardContent className="p-4">
-                <div className="text-2xl font-bold text-blue-600">{stats.approved}</div>
-                <div className="text-sm text-muted-foreground">Approuvés</div>
+                <div className="text-2xl font-bold text-blue-600">{stats.verified}</div>
+                <div className="text-sm text-muted-foreground">Vérifiés</div>
               </CardContent>
             </Card>
             <Card>
@@ -290,7 +346,7 @@ const AdminPartnerManager = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="pending">En attente ({stats.pending})</TabsTrigger>
-              <TabsTrigger value="approved">Approuvés ({stats.approved})</TabsTrigger>
+              <TabsTrigger value="verified">Vérifiés ({stats.verified})</TabsTrigger>
               <TabsTrigger value="all">Tous ({stats.total})</TabsTrigger>
             </TabsList>
 

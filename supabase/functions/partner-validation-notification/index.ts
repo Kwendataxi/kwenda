@@ -55,6 +55,7 @@ serve(async (req) => {
     let notificationTitle = '';
     let notificationMessage = '';
 
+    // Note: L'action reçue est 'approved' pour le statut DB 'verified' (compatibilité)
     if (action === 'approved') {
       notificationTitle = '✅ Votre compte partenaire a été approuvé';
       notificationMessage = `Félicitations ! Votre compte partenaire "${partner.company_name}" a été validé. Vous pouvez maintenant accéder à toutes les fonctionnalités.`;
