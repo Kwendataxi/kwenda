@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import OptimizedMapView from './map/OptimizedMapView';
 import PickupLocationCard from './PickupLocationCard';
 import PickupLocationDialog from './PickupLocationDialog';
-import YangoBottomSheet from './YangoBottomSheet';
+import UnifiedTaxiSheet from './UnifiedTaxiSheet';
 import DestinationSearchDialog from './DestinationSearchDialog';
 import PriceConfirmationModal from './PriceConfirmationModal';
 import DriverSearchProgressModal from './DriverSearchProgressModal';
@@ -28,11 +28,11 @@ interface ModernTaxiInterfaceProps {
 }
 
 export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiInterfaceProps) {
-  const [bookingStep, setBookingStep] = useState<'vehicle' | 'destination' | 'confirm'>('vehicle');
   const [selectedVehicle, setSelectedVehicle] = useState('');
   const [pickupLocation, setPickupLocation] = useState<LocationData | null>(null);
   const [destinationLocation, setDestinationLocation] = useState<LocationData | null>(null);
   const [showDestinationSearch, setShowDestinationSearch] = useState(false);
+  const [showPriceConfirm, setShowPriceConfirm] = useState(false);
   const [showPickupDialog, setShowPickupDialog] = useState(false);
   const [distance, setDistance] = useState<number>(0);
   const [routeData, setRouteData] = useState<any>(null);
@@ -175,31 +175,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     });
   }, [calculatedPrice]);
 
-  const handleContinueToDestination = () => {
-    // Validation UNIQUEMENT si le switch est activé ET aucun bénéficiaire sélectionné
-    if (isForSomeoneElse && !selectedBeneficiary) {
-      toast.error('Veuillez sélectionner un bénéficiaire', {
-        description: 'Choisissez un contact ou ajoutez-en un nouveau'
-      });
-      if ('vibrate' in navigator) {
-        navigator.vibrate([100, 50, 100]);
-      }
-      return;
-    }
-    
-    // ✅ Ne pas bloquer si isForSomeoneElse est false
-    if (!selectedVehicle) {
-      toast.error('Veuillez sélectionner un véhicule');
-      return;
-    }
-    
-    setBookingStep('destination');
-    
-    if ('vibrate' in navigator) {
-      navigator.vibrate(15);
-    }
-  };
-
   const handlePlaceSelect = (place: any) => {
     const newDestination = {
       address: place.name || place.destination || place.address,
@@ -210,7 +185,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     };
     setDestinationLocation(newDestination);
     setShowDestinationSearch(false);
-    setBookingStep('confirm');
     
     // ⚡ PHASE 4: Logger la destination
     if (distance > 0) {
@@ -228,7 +202,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       type: 'geocoded' as const
     });
     setShowDestinationSearch(false);
-    setBookingStep('confirm');
   };
 
   const handlePickupSelect = (location: LocationData) => {
@@ -265,6 +238,19 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       toast.error('Veuillez compléter tous les champs');
       return;
     }
+
+    // Validation bénéficiaire
+    if (isForSomeoneElse && !selectedBeneficiary) {
+      toast.error('Veuillez sélectionner un bénéficiaire');
+      return;
+    }
+
+    // Ouvrir le modal de confirmation
+    setShowPriceConfirm(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!pickupLocation || !destinationLocation || !selectedVehicle) return;
 
     try {
       const bookingData = {
@@ -327,10 +313,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         description: 'Une erreur est survenue. Veuillez réessayer.'
       });
     }
-  };
-
-  const handleBackToDestination = () => {
-    setBookingStep('destination');
   };
 
   const handleClickPosition = useCallback(() => {
@@ -411,42 +393,41 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       />
       
       
-      {/* Bottom Sheet avec flux par étapes */}
-      <AnimatePresence mode="sync">{/* 🔧 PERF FIX: mode="sync" pour fluidité */}
-        <YangoBottomSheet
-          key={bookingStep}
-          bookingStep={bookingStep}
-          selectedVehicle={selectedVehicle}
-          onVehicleSelect={handleVehicleSelect}
-          distance={distance}
-          city={currentCity?.name || 'Kinshasa'}
-          calculatingRoute={calculatingRoute}
-          popularPlaces={popularPlaces || []}
-          onPlaceSelect={handlePlaceSelect}
-          onSearchFocus={() => setShowDestinationSearch(true)}
-          hasDestination={!!destinationLocation}
-          onSheetPositionChange={setBottomSheetHeight}
-          onContinue={handleContinueToDestination}
-          isForSomeoneElse={isForSomeoneElse}
-          onToggleBeneficiary={setIsForSomeoneElse}
-          selectedBeneficiary={selectedBeneficiary}
-          onSelectBeneficiary={setSelectedBeneficiary}
-        />
-      </AnimatePresence>
+      {/* Sheet unifié moderne */}
+      <UnifiedTaxiSheet
+        pickup={pickupLocation}
+        destination={destinationLocation}
+        selectedVehicle={selectedVehicle}
+        onVehicleSelect={handleVehicleSelect}
+        onDestinationSelect={() => setShowDestinationSearch(true)}
+        onBook={handleSearchDriver}
+        isSearching={isSearching}
+        distance={distance}
+        duration={routeData?.duration || distance * 120}
+        calculatedPrice={calculatedPrice}
+        city={currentCity?.name || 'Kinshasa'}
+        biddingEnabled={biddingEnabled}
+        onToggleBidding={setBiddingEnabled}
+        onClientProposedPrice={setClientProposedPrice}
+        isForSomeoneElse={isForSomeoneElse}
+        onToggleBeneficiary={setIsForSomeoneElse}
+        selectedBeneficiary={selectedBeneficiary}
+        onSelectBeneficiary={setSelectedBeneficiary}
+      />
 
       {/* Modal de confirmation avec prix */}
       {pickupLocation && destinationLocation && (
         <PriceConfirmationModal
-          open={bookingStep === 'confirm'}
-          onOpenChange={(open) => !open && setBookingStep('destination')}
+          open={showPriceConfirm}
+          onOpenChange={setShowPriceConfirm}
           vehicleType={selectedVehicle}
           pickup={pickupLocation}
           destination={destinationLocation}
           distance={distance}
           duration={routeData?.duration || distance * 120}
           calculatedPrice={calculatedPrice}
-          onConfirm={handleSearchDriver}
-          onBack={handleBackToDestination}
+          onConfirm={handleConfirmBooking}
+          onBack={() => setShowPriceConfirm(false)}
           beneficiary={isForSomeoneElse && selectedBeneficiary ? {
             name: selectedBeneficiary.name,
             phone: selectedBeneficiary.phone
