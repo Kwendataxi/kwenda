@@ -6212,6 +6212,58 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_ratings: {
+        Row: {
+          client_id: string
+          comment: string | null
+          created_at: string | null
+          id: string
+          partner_id: string
+          rating: number
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          partner_id: string
+          rating: number
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          partner_id?: string
+          rating?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_ratings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_ratings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_ratings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
+          },
+        ]
+      }
       partner_rental_bookings: {
         Row: {
           created_at: string

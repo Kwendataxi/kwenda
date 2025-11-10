@@ -811,15 +811,15 @@ export const PartnerRentalStoreView = () => {
         </div>
       </div>
 
-      {/* Rating Dialog */}
+      {/* Rating Sheet - Mobile First */}
       <PartnerRentalRatingDialog
         open={showRatingDialog}
         onOpenChange={setShowRatingDialog}
         partnerId={partnerId || ''}
         partnerName={partnerData.company_name}
-        onRatingSubmitted={() => {
-          setShowRatingDialog(false);
-          // Refresh data would happen automatically via query invalidation
+        onSuccess={() => {
+          // Refresh data after rating
+          window.location.reload();
         }}
       />
     </div>
