@@ -115,14 +115,39 @@ export default function AdminRentalModerationEnhanced() {
   // Mutation approbation
   const approveMutation = useMutation({
     mutationFn: async (vehicleId: string) => {
+      console.log('🚀 Appel admin-approve-vehicle pour:', vehicleId);
+      
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Non authentifié');
+      if (!session) {
+        console.error('❌ Aucune session active');
+        throw new Error('Non authentifié');
+      }
+      
+      console.log('✅ Session valide, token présent');
 
       const { data, error } = await supabase.functions.invoke('admin-approve-vehicle', {
         body: { vehicle_id: vehicleId }
       });
 
-      if (error) throw error;
+      console.log('📡 Réponse edge function:', { data, error });
+
+      // Vérifier TOUS les cas d'erreur
+      if (error) {
+        console.error('❌ Erreur invoke:', error);
+        throw new Error(error.message || 'Erreur inconnue');
+      }
+
+      if (data?.error) {
+        console.error('❌ Erreur dans data:', data.error);
+        throw new Error(data.error);
+      }
+
+      if (!data?.success) {
+        console.error('❌ Succès non confirmé:', data);
+        throw new Error('La fonction n\'a pas confirmé le succès');
+      }
+
+      console.log('✅ Véhicule approuvé:', data.vehicle);
       return data;
     },
     onSuccess: () => {
@@ -133,9 +158,10 @@ export default function AdminRentalModerationEnhanced() {
       queryClient.invalidateQueries({ queryKey: ['admin-rental-vehicles'] });
     },
     onError: (error: any) => {
+      console.error('❌ ERREUR FINALE mutation:', error);
       toast({
-        title: '❌ Erreur',
-        description: error.message,
+        title: '❌ Erreur d\'approbation',
+        description: error.message || 'Impossible d\'approuver le véhicule',
         variant: 'destructive'
       });
     }
@@ -144,14 +170,39 @@ export default function AdminRentalModerationEnhanced() {
   // Mutation rejet
   const rejectMutation = useMutation({
     mutationFn: async ({ vehicleId, reason }: { vehicleId: string; reason: string }) => {
+      console.log('🚀 Appel admin-reject-vehicle pour:', vehicleId, 'raison:', reason);
+      
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Non authentifié');
+      if (!session) {
+        console.error('❌ Aucune session active');
+        throw new Error('Non authentifié');
+      }
+      
+      console.log('✅ Session valide, token présent');
 
       const { data, error } = await supabase.functions.invoke('admin-reject-vehicle', {
         body: { vehicle_id: vehicleId, reason }
       });
 
-      if (error) throw error;
+      console.log('📡 Réponse edge function:', { data, error });
+
+      // Vérifier TOUS les cas d'erreur
+      if (error) {
+        console.error('❌ Erreur invoke:', error);
+        throw new Error(error.message || 'Erreur inconnue');
+      }
+
+      if (data?.error) {
+        console.error('❌ Erreur dans data:', data.error);
+        throw new Error(data.error);
+      }
+
+      if (!data?.success) {
+        console.error('❌ Succès non confirmé:', data);
+        throw new Error('La fonction n\'a pas confirmé le succès');
+      }
+
+      console.log('✅ Véhicule rejeté:', data.vehicle);
       return data;
     },
     onSuccess: () => {
@@ -164,9 +215,10 @@ export default function AdminRentalModerationEnhanced() {
       setVehicleToReject(null);
     },
     onError: (error: any) => {
+      console.error('❌ ERREUR FINALE mutation:', error);
       toast({
-        title: '❌ Erreur',
-        description: error.message,
+        title: '❌ Erreur de rejet',
+        description: error.message || 'Impossible de rejeter le véhicule',
         variant: 'destructive'
       });
     }

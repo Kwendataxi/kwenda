@@ -49,7 +49,11 @@ serve(async (req) => {
 
     const { vehicle_id, reason } = await req.json();
 
+    console.log('📥 Payload reçu:', JSON.stringify({ vehicle_id, reason }));
+    console.log('👤 Admin ID:', user.id);
+
     if (!vehicle_id || !reason) {
+      console.error('❌ vehicle_id ou reason manquant dans le payload');
       return new Response(JSON.stringify({ error: 'vehicle_id et reason requis' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -63,6 +67,7 @@ serve(async (req) => {
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Mettre à jour le véhicule
+    console.log('🔄 Mise à jour rental_vehicles...');
     const { data: vehicle, error: updateError } = await supabaseAdmin
       .from('rental_vehicles')
       .update({
@@ -77,7 +82,17 @@ serve(async (req) => {
       .select('*')
       .single();
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error('❌ Erreur UPDATE rental_vehicles:', {
+        code: updateError.code,
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint
+      });
+      throw updateError;
+    }
+    
+    console.log('✅ Véhicule rejeté:', vehicle.id, vehicle.name);
 
     // Fetch partner data separately
     let partnerData = null;
@@ -120,9 +135,20 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('❌ Erreur rejet véhicule:', error);
+    console.error('❌ ERREUR COMPLETE rejet véhicule:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      stack: error.stack
+    });
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'Erreur interne',
+        code: error.code,
+        details: error.details 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
