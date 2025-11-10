@@ -190,15 +190,15 @@ export const PartnerRentalRatingDialog: React.FC<PartnerRentalRatingDialogProps>
                       "relative flex items-center justify-center transition-all duration-200",
                       "w-14 h-14 sm:w-16 sm:h-16 rounded-2xl",
                       isActive 
-                        ? "bg-yellow-400 shadow-lg shadow-yellow-400/50" 
-                        : "bg-gray-200 dark:bg-gray-700"
+                        ? "bg-gradient-to-br from-yellow-400 to-amber-500 shadow-xl shadow-yellow-500/60 ring-2 ring-yellow-300" 
+                        : "bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
                     )}
                   >
                     <Star
                       className={cn(
                         "w-8 h-8 sm:w-10 sm:h-10 transition-all duration-200",
                         isActive
-                          ? "fill-white text-white drop-shadow-lg"
+                          ? "fill-white text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.5)]"
                           : "fill-none text-gray-400 dark:text-gray-500"
                       )}
                     />

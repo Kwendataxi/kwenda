@@ -8,10 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { PartnerTierBadge } from './PartnerTierBadge';
 import { PartnerRentalRatingDialog } from './PartnerRentalRatingDialog';
-import { PartnerRentalShareButtons } from './PartnerRentalShareButtons';
+import { PartnerRentalShareSheet } from './PartnerRentalShareSheet';
 import { PartnerRentalReviewsSection } from './PartnerRentalReviewsSection';
 import { 
   Heart, Share2, MessageCircle, Star, Users, Car, 
@@ -378,35 +377,17 @@ export const PartnerRentalStoreView = () => {
               </Button>
             </motion.div>
             
-            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-              <DialogTrigger asChild>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="gap-2 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <Share2 className="h-5 w-5" />
-                    Partager
-                  </Button>
-                </motion.div>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">Partager {partnerData.company_name}</DialogTitle>
-                  <DialogDescription>
-                    Invitez vos amis à découvrir cette agence de location
-                  </DialogDescription>
-                </DialogHeader>
-                <PartnerRentalShareButtons
-                  partnerId={partnerId || ''}
-                  partnerName={partnerData.company_name}
-                  totalVehicles={partnerData.stats.available_vehicles}
-                  rating={partnerData.stats.rating_average}
-                  slogan={partnerData.slogan}
-                />
-              </DialogContent>
-            </Dialog>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setShowShareDialog(true)}
+                className="gap-2 shadow-lg hover:shadow-xl transition-all"
+              >
+                <Share2 className="h-5 w-5" />
+                Partager
+              </Button>
+            </motion.div>
             
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button variant="outline" size="lg" onClick={() => setShowRatingDialog(true)} className="gap-2 shadow-lg">
@@ -433,29 +414,15 @@ export const PartnerRentalStoreView = () => {
               <Heart className={cn("mr-2", isFollowing && "fill-current")} />
               {isFollowing ? 'Suivi' : 'Suivre'}
             </Button>
-            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-              <DialogTrigger asChild>
-                <Button size="lg" variant="outline" className="w-full">
-                  <Share2 className="mr-2 h-5 w-5" />
-                  Partager
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">Partager {partnerData.company_name}</DialogTitle>
-                  <DialogDescription>
-                    Invitez vos amis à découvrir cette agence de location
-                  </DialogDescription>
-                </DialogHeader>
-                <PartnerRentalShareButtons
-                  partnerId={partnerId || ''}
-                  partnerName={partnerData.company_name}
-                  totalVehicles={partnerData.stats.available_vehicles}
-                  rating={partnerData.stats.rating_average}
-                  slogan={partnerData.slogan}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setShowShareDialog(true)}
+            >
+              <Share2 className="mr-2 h-5 w-5" />
+              Partager
+            </Button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <Button size="lg" variant="outline" onClick={() => setShowRatingDialog(true)} className="w-full">
@@ -821,6 +788,17 @@ export const PartnerRentalStoreView = () => {
           // Refresh data after rating
           window.location.reload();
         }}
+      />
+
+      {/* Share Sheet - Responsive (Drawer mobile + Dialog desktop) */}
+      <PartnerRentalShareSheet
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        partnerId={partnerId || ''}
+        partnerName={partnerData.company_name}
+        totalVehicles={partnerData.stats.available_vehicles}
+        rating={partnerData.stats.rating_average}
+        slogan={partnerData.slogan}
       />
     </div>
   );
