@@ -196,7 +196,21 @@ export const PartnerRentalStoreView = () => {
   };
 
   const tier = subscription?.plan?.tier || 'basic';
-  const bannerImage = partnerData?.banner_image || '/placeholder.svg';
+  const bannerImage = partnerData?.banner_image;
+  
+  // Gradients dynamiques par tier si pas d'image
+  const getTierGradient = (tier: string) => {
+    switch (tier) {
+      case 'platinum':
+        return 'from-slate-800 via-slate-600 to-slate-900';
+      case 'gold':
+        return 'from-amber-600 via-yellow-500 to-amber-700';
+      case 'diamond':
+        return 'from-purple-600 via-pink-500 to-blue-600';
+      default:
+        return 'from-primary via-primary/80 to-primary/60';
+    }
+  };
 
   if (partnerLoading) {
     return (
@@ -227,13 +241,36 @@ export const PartnerRentalStoreView = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Premium Banner Header */}
-      <div className="relative h-72 overflow-hidden">
-        <img 
-          src={bannerImage}
-          alt={partnerData.company_name}
-          className="w-full h-full object-cover"
-        />
+      {/* Premium Banner Header with Parallax */}
+      <motion.div 
+        className="relative h-72 overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        {bannerImage ? (
+          <motion.img 
+            src={bannerImage}
+            alt={partnerData.company_name}
+            className="w-full h-full object-cover"
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+          />
+        ) : (
+          <motion.div
+            className={`w-full h-full bg-gradient-to-br ${getTierGradient(tier)}`}
+            animate={{
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+            style={{ backgroundSize: '200% 200%' }}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         
         {/* Logo Overlay */}
@@ -289,56 +326,111 @@ export const PartnerRentalStoreView = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Stats Cards Glassmorphism */}
+      {/* Stats Cards Glassmorphism Ultra */}
       <div className="max-w-7xl mx-auto px-4 mt-20">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <Card className="glassmorphism">
-            <CardContent className="p-4 text-center">
-              <Car className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <div className="text-2xl font-bold">{partnerData.stats.available_vehicles}</div>
-              <div className="text-xs text-muted-foreground">Véhicules dispos</div>
-            </CardContent>
-          </Card>
-
-          <Card className="glassmorphism">
-            <CardContent className="p-4 text-center">
-              <Award className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-              <div className="text-2xl font-bold">{partnerData.stats.completed_bookings}</div>
-              <div className="text-xs text-muted-foreground">Locations</div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="glassmorphism cursor-pointer hover:shadow-lg transition-all"
-            onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
           >
-            <CardContent className="p-4 text-center">
-              <Star className="h-8 w-8 mx-auto mb-2 text-yellow-500 fill-yellow-500" />
-              <div className="text-2xl font-bold">
-                {partnerData.stats.rating_average ? partnerData.stats.rating_average.toFixed(1) : '0.0'}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {partnerData.stats.rating_count} avis
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:shadow-primary/20 hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardContent className="relative p-4 text-center">
+                <motion.div
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Car className="h-8 w-8 mx-auto mb-2 text-primary" />
+                </motion.div>
+                <div className="text-2xl font-bold">{partnerData.stats.available_vehicles}</div>
+                <div className="text-xs text-muted-foreground">Véhicules dispos</div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="glassmorphism">
-            <CardContent className="p-4 text-center">
-              <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-              <div className="text-2xl font-bold">{followersCount}</div>
-              <div className="text-xs text-muted-foreground">Abonnés</div>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:shadow-yellow-500/20 hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardContent className="relative p-4 text-center">
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Award className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                </motion.div>
+                <div className="text-2xl font-bold">{partnerData.stats.completed_bookings}</div>
+                <div className="text-xs text-muted-foreground">Locations</div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="glassmorphism">
-            <CardContent className="p-4 text-center">
-              <PartnerTierBadge tier={tier} />
-              <div className="text-xs text-muted-foreground mt-2">Abonnement</div>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card 
+              className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:shadow-yellow-500/20 cursor-pointer hover:scale-105 transition-all duration-300"
+              onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardContent className="relative p-4 text-center">
+                <motion.div
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                >
+                  <Star className="h-8 w-8 mx-auto mb-2 text-yellow-500 fill-yellow-500" />
+                </motion.div>
+                <div className="text-2xl font-bold">
+                  {partnerData.stats.rating_average ? partnerData.stats.rating_average.toFixed(1) : '0.0'}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {partnerData.stats.rating_count} avis
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:shadow-blue-500/20 hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardContent className="relative p-4 text-center">
+                <motion.div
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                </motion.div>
+                <div className="text-2xl font-bold">{followersCount}</div>
+                <div className="text-xs text-muted-foreground">Abonnés</div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-background/80 border-2 border-border/20 shadow-2xl hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardContent className="relative p-4 text-center">
+                <PartnerTierBadge tier={tier} />
+                <div className="text-xs text-muted-foreground mt-2">Abonnement</div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Description */}

@@ -8244,7 +8244,11 @@ export type Database = {
           created_at: string
           currency: string
           driver_choice: string | null
+          driver_email: string | null
+          driver_license: string | null
           driver_license_verified: boolean
+          driver_name: string | null
+          driver_phone: string | null
           end_date: string
           equipment_ids: string[] | null
           equipment_total: number | null
@@ -8274,7 +8278,11 @@ export type Database = {
           created_at?: string
           currency?: string
           driver_choice?: string | null
+          driver_email?: string | null
+          driver_license?: string | null
           driver_license_verified?: boolean
+          driver_name?: string | null
+          driver_phone?: string | null
           end_date: string
           equipment_ids?: string[] | null
           equipment_total?: number | null
@@ -8304,7 +8312,11 @@ export type Database = {
           created_at?: string
           currency?: string
           driver_choice?: string | null
+          driver_email?: string | null
+          driver_license?: string | null
           driver_license_verified?: boolean
+          driver_name?: string | null
+          driver_phone?: string | null
           end_date?: string
           equipment_ids?: string[] | null
           equipment_total?: number | null
