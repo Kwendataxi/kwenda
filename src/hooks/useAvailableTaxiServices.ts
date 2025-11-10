@@ -54,9 +54,20 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
     queryKey: ['available-taxi-services', city],
     queryFn: async () => {
       const timestamp = Date.now();
-      console.log(`[${timestamp}] 🚕 Fetching available taxi services for ${city}...`);
+      console.log(`[${timestamp}] 🚕 Fetching available taxi services for city:`, {
+        cityReceived: city,
+        cityType: typeof city,
+        cityValue: city || 'UNDEFINED'
+      });
 
       // 1. Récupérer les pricing_rules actifs pour cette ville
+      console.log(`[${timestamp}] 📊 Executing SQL query:`, {
+        table: 'pricing_rules',
+        filter: `.ilike('city', '${city}')`,
+        service_type: 'transport',
+        is_active: true
+      });
+
       let { data: pricingRules, error: pricingError } = await supabase
         .from('pricing_rules')
         .select('*')

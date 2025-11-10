@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { universalGeolocation } from '@/services/universalGeolocation';
+import { universalGeolocation, CityConfig } from '@/services/universalGeolocation';
 
 // Types exportés pour compatibilité
 export interface LocationData {
@@ -48,7 +48,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (réduit pour fraîcheur des donn�
 export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentCity, setCurrentCity] = useState<string>('Kinshasa');
+  const [currentCity, setCurrentCity] = useState<CityConfig | null>(null);
   const [popularPlaces, setPopularPlaces] = useState<LocationSearchResult[]>([]);
   
   const abortControllerRef = useRef<AbortController>();
@@ -58,7 +58,12 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
     const detectCity = async () => {
       try {
         const city = await universalGeolocation.detectUserCity();
-        setCurrentCity(city.name);
+        console.log('🌍 [useSmartGeolocation] Ville détectée:', { 
+          name: city.name, 
+          code: city.code, 
+          country: city.countryCode 
+        });
+        setCurrentCity(city);
         
         // 🆕 PHASE 4: Prefetch et tri intelligent des lieux populaires
         const places = await universalGeolocation.getPopularPlacesForCurrentCity();
