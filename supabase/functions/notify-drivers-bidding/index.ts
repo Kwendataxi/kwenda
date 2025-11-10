@@ -11,6 +11,7 @@ interface BiddingNotificationRequest {
   pickupLat: number;
   pickupLng: number;
   estimatedPrice: number;
+  clientProposedPrice: number; // 🆕 Prix proposé par le client
   vehicleType: string;
   biddingDuration: number;
 }
@@ -30,6 +31,7 @@ serve(async (req) => {
       pickupLat, 
       pickupLng, 
       estimatedPrice,
+      clientProposedPrice,
       vehicleType,
       biddingDuration 
     } = await req.json() as BiddingNotificationRequest;
@@ -78,10 +80,13 @@ serve(async (req) => {
     // Créer notifications pour chaque chauffeur
     const biddingClosesAt = new Date(Date.now() + biddingDuration * 1000).toISOString();
     
+    const discount = ((estimatedPrice - clientProposedPrice) / estimatedPrice * 100).toFixed(0);
+    const isLowOffer = clientProposedPrice < estimatedPrice * 0.7;
+    
     const notifications = drivers.map((driver: any) => ({
       user_id: driver.driver_id,
-      title: '🎯 Nouvelle course - Mode Enchères',
-      message: `Faites votre meilleure offre ! Tarif estimé: ${estimatedPrice} CDF • ${driver.distance_km.toFixed(1)}km`,
+      title: isLowOffer ? '🎯 Offre client (-' + discount + '%)' : '🎯 Nouvelle course - Enchères',
+      message: `Client offre: ${clientProposedPrice.toLocaleString()} CDF (Kwenda: ${estimatedPrice.toLocaleString()}) • ${driver.distance_km.toFixed(1)}km`,
       notification_type: 'ride_bidding',
       transport_booking_id: bookingId,
       is_sent: false,
@@ -89,13 +94,15 @@ serve(async (req) => {
         bookingId,
         biddingMode: true,
         estimatedPrice,
+        clientProposedPrice,
         biddingClosesAt,
         biddingDuration,
         distance: driver.distance_km,
         pickupLocation: booking.pickup_location,
         destinationLocation: booking.destination,
         vehicleType,
-        offerCount: 0
+        offerCount: 0,
+        discount: discount + '%'
       }
     }));
 
