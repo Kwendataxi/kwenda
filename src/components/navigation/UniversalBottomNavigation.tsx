@@ -114,7 +114,7 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
 
   return (
     <nav className={cn(
-      'fixed bottom-0 left-0 right-0 z-[100]',
+      'bottom-nav-standard',
       variant === 'enhanced' && 'pb-6',
       className
     )}>

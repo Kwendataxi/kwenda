@@ -633,4 +633,71 @@ All colors MUST be HSL.
   .ripple-container:active::after {
     animation: ripple-effect 0.6s ease-out;
   }
+
+  /* ===== SYSTÈME DE LAYOUT BOTTOM NAV UNIVERSEL ===== */
+
+  /* Variables globales pour bottom nav */
+  :root {
+    --bottom-nav-height: 64px; /* 16 * 4 = 64px (h-16) */
+    --bottom-nav-height-safe: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Container principal avec bottom nav */
+  .mobile-safe-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh; /* Support mobile moderne */
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Zone de contenu avec padding pour bottom nav */
+  .content-with-bottom-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: var(--bottom-nav-height-safe);
+  }
+
+  /* Zone scrollable sans padding (pour layouts complexes) */
+  .content-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Scrollable avec padding bottom nav */
+  .content-with-bottom-nav-scrollable {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--bottom-nav-height-safe);
+  }
+
+  /* Footer bottom nav standardisé */
+  .bottom-nav-standard {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid hsl(var(--border) / 0.6);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: var(--bottom-nav-height);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Variante avec safe area intégrée */
+  .bottom-nav-safe {
+    height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
 }

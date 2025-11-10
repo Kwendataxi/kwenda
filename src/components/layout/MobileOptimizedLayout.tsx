@@ -25,8 +25,7 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
 
   return (
     <div className={cn(
-      'min-h-screen bg-background flex flex-col',
-      'mobile-safe-layout',
+      'mobile-safe-layout bg-background',
       className
     )}>
       {/* Header */}
@@ -51,8 +50,7 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
 
         {/* Main Content */}
         <main className={cn(
-          'flex-1 overflow-y-auto content-scrollable',
-          footer && 'pb-20 sm:pb-24',
+          footer ? 'content-with-bottom-nav' : 'content-scrollable',
           contentClassName
         )}>
           <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -63,7 +61,7 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
 
       {/* Footer/Navigation */}
       {footer && (
-        <footer className="mt-auto">
+        <footer className="bottom-nav-standard">
           {footer}
         </footer>
       )}

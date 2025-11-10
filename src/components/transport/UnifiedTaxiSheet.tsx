@@ -89,8 +89,11 @@ export default function UnifiedTaxiSheet({
       handleOnly={false}
     >
       <DrawerContent 
-        className="h-[82vh] flex flex-col border-t-4 border-primary/10 shadow-2xl"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}
+        className="h-[85vh] max-h-[85vh] flex flex-col border-t-4 border-primary/10 shadow-2xl"
+        style={{ 
+          paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 16px), 24px)',
+          height: 'clamp(75vh, 85vh, 90vh)'
+        }}
       >
         {/* Handle bar - Fixed */}
         <div className="flex-shrink-0 flex items-center justify-center py-2 cursor-grab active:cursor-grabbing">
@@ -127,8 +130,9 @@ export default function UnifiedTaxiSheet({
         </ScrollArea>
 
         {/* CTA Button - Always visible */}
-        <div className="flex-shrink-0 bg-gradient-to-t from-background via-background/98 to-transparent pt-4 pb-5 px-4 border-t border-border/10 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+        <div className="flex-shrink-0 bg-gradient-to-t from-background via-background/98 to-transparent pt-5 pb-6 px-4 border-t border-border/20 shadow-[0_-8px_16px_rgba(0,0,0,0.08)]">
           <motion.button
+            style={{ minHeight: '56px' }}
             whileHover={{ scale: canBook ? 1.02 : 1 }}
             whileTap={{ scale: canBook ? 0.98 : 1 }}
             animate={canBook ? { 

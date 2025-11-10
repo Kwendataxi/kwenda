@@ -28,7 +28,7 @@ export const FoodFooterNav: React.FC = () => {
   return (
     <footer
       data-food-footer
-      className="fixed bottom-0 left-0 right-0 z-[200] pb-safe isolate"
+      className="bottom-nav-standard z-[110] isolate"
     >
       {/* Ligne décorative supérieure avec gradient */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />

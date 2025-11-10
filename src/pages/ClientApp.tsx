@@ -485,12 +485,14 @@ const ClientApp = () => {
   const renderHome = () => {
     console.log('Rendu de la vue home');
     return (
-      <div className="content-with-bottom-nav">
-        <ModernHomeScreen
-          onServiceSelect={handleServiceSelect}
-          onSearch={handleUniversalSearch}
-          onNavigateToTestData={() => setCurrentView('test-data')}
-        />
+      <div className="mobile-safe-layout">
+        <div className="content-with-bottom-nav">
+          <ModernHomeScreen
+            onServiceSelect={handleServiceSelect}
+            onSearch={handleUniversalSearch}
+            onNavigateToTestData={() => setCurrentView('test-data')}
+          />
+        </div>
       </div>
     );
   };

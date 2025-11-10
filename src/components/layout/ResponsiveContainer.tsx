@@ -38,13 +38,12 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
       'mx-auto w-full',
       sizeClasses[size],
       paddingClasses[padding],
-      withBottomNav && 'content-with-bottom-nav',
       withHeader && 'pt-16 sm:pt-20',
       className
     )}>
       <div className={cn(
         'w-full',
-        withBottomNav && 'content-with-bottom-nav-scrollable'
+        withBottomNav && 'pb-[var(--bottom-nav-height-safe)]'
       )}>
         {children}
       </div>

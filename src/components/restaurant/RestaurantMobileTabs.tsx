@@ -18,7 +18,7 @@ export function RestaurantMobileTabs({ currentTab, onTabChange }: RestaurantMobi
   ] as const;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border shadow-[0_-2px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_-2px_20px_rgba(0,0,0,0.3)] z-50 md:hidden safe-area-inset-bottom">
+    <div className="bottom-nav-standard md:hidden">
       <div className="grid grid-cols-6 h-16 relative">
         {/* Active indicator */}
         <motion.div

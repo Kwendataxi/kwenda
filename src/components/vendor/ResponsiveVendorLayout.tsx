@@ -4,6 +4,7 @@ import { VendorBottomNav } from './modern/VendorBottomNav';
 import { VendorDesktopSidebar } from './modern/VendorDesktopSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSwipeable } from 'react-swipeable';
+import { cn } from '@/lib/utils';
 import '@/styles/vendor-modern.css';
 
 interface VendorStats {
@@ -86,7 +87,10 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
         {/* Zone de contenu scrollable avec swipe support */}
         <main 
           {...(isMobile ? handlers : {})}
-          className="vendor-content-scrollable vendor-scrollbar"
+          className={cn(
+            isMobile ? 'content-with-bottom-nav' : 'content-scrollable',
+            'vendor-scrollbar'
+          )}
         >
           <div className="container max-w-6xl mx-auto p-4 space-y-4">
             {children}
@@ -96,14 +100,12 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
 
       {/* Footer Mobile uniquement - Ne scroll jamais */}
       {isMobile && (
-        <footer className="flex-shrink-0">
-          <div className="vendor-card-glass border-t border-border/20">
+        <footer className="bottom-nav-standard">
             <VendorBottomNav 
               activeTab={activeTab}
               onTabChange={onTabChange}
               stats={stats}
             />
-          </div>
         </footer>
       )}
     </div>
