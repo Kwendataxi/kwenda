@@ -144,6 +144,20 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
     }
   }, [vehicles, selectedVehicleId, onVehicleSelect]);
 
+  // Scroll automatique vers le véhicule sélectionné
+  useEffect(() => {
+    if (selectedVehicleId) {
+      const selectedElement = document.querySelector(`[data-vehicle-id="${selectedVehicleId}"]`);
+      if (selectedElement) {
+        selectedElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      }
+    }
+  }, [selectedVehicleId]);
+
   // Message si aucun véhicule disponible
   if (!loading && vehicles.length === 0) {
     return (
@@ -163,20 +177,21 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
   }
 
   return (
-    <div className="space-y-3 font-montserrat" style={{ willChange: 'transform' }}>
+    <div className="space-y-2.5 font-montserrat" style={{ willChange: 'transform' }}>
       {vehicles.map((vehicle, index) => {
         const isSelected = selectedVehicleId === vehicle.id;
 
         return (
           <motion.div
             key={vehicle.id}
+            data-vehicle-id={vehicle.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, duration: 0.3 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => vehicle.available && onVehicleSelect(vehicle.id)}
             className={cn(
-              "relative flex items-center gap-3 p-4 rounded-2xl border-l-4 cursor-pointer",
+              "relative flex items-center gap-3 p-3.5 rounded-2xl border-l-4 cursor-pointer",
               "transition-all duration-300 overflow-hidden",
               vehicle.borderColor,
               isSelected 

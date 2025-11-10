@@ -6,6 +6,7 @@ import BeneficiarySelector from './BeneficiarySelector';
 import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
 import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import {
   Drawer,
@@ -75,8 +76,8 @@ export default function YangoBottomSheet({
       open={true} 
       dismissible={false}
       modal={false}
-      snapPoints={[0.35, 0.65, 0.9]}
-      activeSnapPoint={bookingStep === 'vehicle' ? 0.65 : 0.9}
+      snapPoints={[0.35, 0.75, 0.9]}
+      activeSnapPoint={bookingStep === 'vehicle' ? 0.75 : 0.9}
       fadeFromIndex={2}
       handleOnly={false}
     >
@@ -86,13 +87,11 @@ export default function YangoBottomSheet({
           <div className="w-12 h-1.5 bg-gradient-to-r from-muted/40 via-muted to-muted/40 rounded-full shadow-sm" />
         </div>
 
-        {/* Contenu scrollable */}
-        <div 
-          className="px-5 pb-safe-area-inset-bottom overflow-y-auto font-montserrat overscroll-contain"
+        {/* Contenu scrollable avec ScrollArea */}
+        <ScrollArea 
+          className="px-5 pb-safe-area-inset-bottom font-montserrat"
           style={{ 
             maxHeight: 'calc(85vh - 60px)',
-            scrollBehavior: 'smooth',
-            WebkitOverflowScrolling: 'touch'
           }}
         >
         {/* ÉTAPE 1 : Sélection du véhicule */}
@@ -111,6 +110,21 @@ export default function YangoBottomSheet({
               onVehicleSelect={onVehicleSelect}
               city={city}
             />
+
+            {/* Indicateur de scroll si plus de 3 véhicules */}
+            <div className="relative -mt-2 mb-2">
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
+                <motion.div
+                  animate={{ y: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </motion.div>
+                <span className="font-medium">Faites défiler pour voir tous les véhicules</span>
+              </div>
+            </div>
 
             {/* Barre de progression */}
             <div className="flex items-center justify-center py-3">
@@ -220,7 +234,7 @@ export default function YangoBottomSheet({
             />
           </motion.div>
         )}
-      </div>
+        </ScrollArea>
       </DrawerContent>
     </Drawer>
   );
