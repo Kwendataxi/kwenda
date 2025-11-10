@@ -104,6 +104,26 @@
   animation: badge-pulse 2s ease-in-out infinite;
 }
 
+/* Gradient animation for vendor cards */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Glow effect for icons */
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
 /* Vendor Card Premium Effects */
 .vendor-card-premium {
   position: relative;
