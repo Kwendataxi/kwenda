@@ -108,13 +108,13 @@ export const usePartnerAnalytics = () => {
 
           const { data: dayRevenue } = await supabase
             .from('transport_bookings')
-            .select('price')
+            .select('actual_price, estimated_price')
             .in('driver_id', driverIds)
             .eq('status', 'completed')
             .gte('created_at', dayDate.toISOString())
             .lt('created_at', nextDay.toISOString());
 
-          const revenue = dayRevenue?.reduce((sum, b) => sum + (b.price || 0), 0) || 0;
+          const revenue = dayRevenue?.reduce((sum, b) => sum + (b.actual_price || b.estimated_price || 0), 0) || 0;
           const rides = dayRides || 0;
           const efficiency = rides > 0 ? Math.min(100, Math.round((rides / 20) * 100)) : 0;
 
@@ -140,9 +140,9 @@ export const usePartnerAnalytics = () => {
         for (const driverId of driverIds.slice(0, 5)) {
           const { data: driverProfile } = await supabase
             .from('driver_profiles')
-            .select('first_name, last_name, average_rating')
+            .select('rating_average')
             .eq('user_id', driverId)
-            .single();
+            .maybeSingle();
 
           const { count: driverRides } = await supabase
             .from('transport_bookings')
@@ -153,18 +153,18 @@ export const usePartnerAnalytics = () => {
 
           const { data: driverRevenue } = await supabase
             .from('transport_bookings')
-            .select('price')
+            .select('actual_price, estimated_price')
             .eq('driver_id', driverId)
             .eq('status', 'completed')
             .gte('created_at', firstDayOfMonth.toISOString());
 
-          const revenue = driverRevenue?.reduce((sum, b) => sum + (b.price || 0), 0) || 0;
+          const revenue = driverRevenue?.reduce((sum, b) => sum + (b.actual_price || b.estimated_price || 0), 0) || 0;
 
           if (driverProfile && (driverRides || 0) > 0) {
             topDrivers.push({
-              name: `${driverProfile.first_name} ${driverProfile.last_name}`.trim() || 'Chauffeur',
+              name: `Chauffeur ${driverId.substring(0, 8)}`,
               rides: driverRides || 0,
-              rating: driverProfile.average_rating || 0,
+              rating: driverProfile.rating_average || 0,
               revenue
             });
           }
@@ -176,11 +176,11 @@ export const usePartnerAnalytics = () => {
       if (driverIds.length > 0) {
         const { data: driverRatings } = await supabase
           .from('driver_profiles')
-          .select('average_rating')
+          .select('rating_average')
           .in('user_id', driverIds);
 
         const satisfactionScore = driverRatings && driverRatings.length > 0
-          ? driverRatings.reduce((sum, d) => sum + (d.average_rating || 0), 0) / driverRatings.length
+          ? driverRatings.reduce((sum, d) => sum + (d.rating_average || 0), 0) / driverRatings.length
           : 4.8;
 
         return {

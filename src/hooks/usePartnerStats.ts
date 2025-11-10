@@ -101,33 +101,33 @@ export const usePartnerStats = () => {
           // Today's revenue
           const { data: todayBookings } = await supabase
             .from('transport_bookings')
-            .select('price')
+            .select('actual_price, estimated_price')
             .in('driver_id', driverIds)
             .eq('status', 'completed')
             .gte('created_at', todayStart.toISOString());
 
-          realStats.todayRevenue = todayBookings?.reduce((sum, b) => sum + (b.price || 0), 0) || 0;
+          realStats.todayRevenue = todayBookings?.reduce((sum, b) => sum + (b.actual_price || b.estimated_price || 0), 0) || 0;
 
           // Monthly revenue
           const { data: monthlyBookings } = await supabase
             .from('transport_bookings')
-            .select('price')
+            .select('actual_price, estimated_price')
             .in('driver_id', driverIds)
             .eq('status', 'completed')
             .gte('created_at', monthStart.toISOString());
 
-          realStats.monthlyRevenue = monthlyBookings?.reduce((sum, b) => sum + (b.price || 0), 0) || 0;
+          realStats.monthlyRevenue = monthlyBookings?.reduce((sum, b) => sum + (b.actual_price || b.estimated_price || 0), 0) || 0;
 
           // Last month revenue for trend
           const { data: lastMonthBookings } = await supabase
             .from('transport_bookings')
-            .select('price')
+            .select('actual_price, estimated_price')
             .in('driver_id', driverIds)
             .eq('status', 'completed')
             .gte('created_at', lastMonthStart.toISOString())
             .lte('created_at', lastMonthEnd.toISOString());
 
-          const lastMonthRevenue = lastMonthBookings?.reduce((sum, b) => sum + (b.price || 0), 0) || 0;
+          const lastMonthRevenue = lastMonthBookings?.reduce((sum, b) => sum + (b.actual_price || b.estimated_price || 0), 0) || 0;
 
           // Calculate revenue trend
           if (lastMonthRevenue > 0) {
