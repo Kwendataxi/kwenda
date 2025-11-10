@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, Loader2, Users, Info } from 'lucide-react';
+import { MapPin, Target, Route, Clock, Search, Zap, ArrowLeft, ArrowRight, Loader2, Users, Info } from 'lucide-react';
 import { Car, Bike, Crown } from 'lucide-react';
 import { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
@@ -251,73 +251,86 @@ export default function PriceConfirmationModal({
 
           {/* Bouton "Proposer mon prix" si mode enchères activé */}
           {biddingEnabled && !showClientBiddingInterface && (
-            <motion.div
+            <motion.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowClientBiddingInterface(true)}
+              className="w-full p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-2xl transition-all duration-300 hover:border-green-500/50 hover:shadow-glow-green"
             >
-              <Button
-                variant="outline"
-                onClick={() => setShowClientBiddingInterface(true)}
-                className="w-full"
-              >
-                💰 Proposer mon prix
-              </Button>
-            </motion.div>
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <p className="font-bold text-lg text-foreground">💰 Proposer mon prix</p>
+                  <p className="text-xs text-muted-foreground">
+                    Économisez jusqu'à {Math.floor(calculatedPrice * 0.5).toLocaleString()} CDF
+                  </p>
+                </div>
+                <ArrowRight className="w-6 h-6 text-green-500" />
+              </div>
+            </motion.button>
           )}
 
-          {/* Interface de proposition de prix client */}
-          {showClientBiddingInterface ? (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <ClientBiddingInterface
-                estimatedPrice={calculatedPrice}
-                currency="CDF"
-                onProposalSubmit={(proposedPrice) => {
-                  console.log('💰 Client proposed price:', proposedPrice);
-                  onClientProposedPrice?.(proposedPrice);
-                  setShowClientBiddingInterface(false);
-                  handleConfirm();
-                }}
-                onCancel={() => setShowClientBiddingInterface(false)}
-              />
-            </motion.div>
-          ) : (
-            /* CTA - Bouton principal */
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <Button
-                size="lg"
-                onClick={handleConfirm}
-                disabled={isSearching}
-                className="w-full h-14 sm:h-16 text-lg sm:text-xl font-bold rounded-2xl shadow-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:scale-[1.02] transition-all disabled:opacity-50"
+          {/* Interface de proposition de prix client avec transition fluide */}
+          <AnimatePresence mode="wait">
+            {showClientBiddingInterface ? (
+              <motion.div
+                key="bidding"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               >
-                {isSearching ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-5 sm:w-6 h-5 sm:h-6 animate-spin" />
-                    <span className="hidden sm:inline">Recherche en cours...</span>
-                    <span className="sm:hidden">Recherche...</span>
-                  </span>
-                ) : biddingEnabled ? (
-                  <span className="flex items-center gap-2">
-                    <Zap className="w-5 sm:w-6 h-5 sm:h-6" />
-                    <span className="hidden sm:inline">Recevoir des offres</span>
-                    <span className="sm:hidden">Offres</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Search className="w-5 sm:w-6 h-5 sm:h-6" />
-                    <span className="hidden sm:inline">Rechercher un chauffeur</span>
-                    <span className="sm:hidden">Rechercher</span>
-                  </span>
-                )}
-              </Button>
-            </motion.div>
-          )}
+                <ClientBiddingInterface
+                  estimatedPrice={calculatedPrice}
+                  currency="CDF"
+                  onProposalSubmit={(proposedPrice) => {
+                    console.log('💰 Client proposed price:', proposedPrice);
+                    onClientProposedPrice?.(proposedPrice);
+                    setShowClientBiddingInterface(false);
+                    handleConfirm();
+                  }}
+                  onCancel={() => setShowClientBiddingInterface(false)}
+                />
+              </motion.div>
+            ) : (
+              /* CTA - Bouton principal */
+              <motion.div
+                key="confirm"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              >
+                <Button
+                  size="lg"
+                  onClick={handleConfirm}
+                  disabled={isSearching}
+                  className="w-full h-14 sm:h-16 text-lg sm:text-xl font-bold rounded-2xl shadow-2xl bg-gradient-to-r from-primary via-primary to-primary/90 hover:scale-[1.02] transition-all disabled:opacity-50"
+                >
+                  {isSearching ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-5 sm:w-6 h-5 sm:h-6 animate-spin" />
+                      <span className="hidden sm:inline">Recherche en cours...</span>
+                      <span className="sm:hidden">Recherche...</span>
+                    </span>
+                  ) : biddingEnabled ? (
+                    <span className="flex items-center gap-2">
+                      <Zap className="w-5 sm:w-6 h-5 sm:h-6" />
+                      <span className="hidden sm:inline">Recevoir des offres</span>
+                      <span className="sm:hidden">Offres</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Search className="w-5 sm:w-6 h-5 sm:h-6" />
+                      <span className="hidden sm:inline">Rechercher un chauffeur</span>
+                      <span className="sm:hidden">Rechercher</span>
+                    </span>
+                  )}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Info paiement */}
           <p className="text-xs text-center text-muted-foreground mt-4">

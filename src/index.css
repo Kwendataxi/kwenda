@@ -549,4 +549,88 @@ All colors MUST be HSL.
   .food-loading {
     animation: food-spin 2s ease-in-out infinite;
   }
+
+  /* ===== BIDDING INTERFACE MODERN STYLES ===== */
+  
+  /* Glassmorphism effect for cards */
+  .glass-card {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.3);
+    box-shadow: 0 8px 32px hsl(var(--foreground) / 0.08);
+  }
+
+  .dark .glass-card {
+    background: hsl(var(--card) / 0.4);
+    border: 1px solid hsl(var(--border) / 0.2);
+    box-shadow: 0 8px 32px hsl(var(--background) / 0.3);
+  }
+
+  /* Gradient border animated */
+  @keyframes gradient-border-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .gradient-border-animated {
+    position: relative;
+    background: linear-gradient(90deg, 
+      hsl(var(--primary)) 0%, 
+      hsl(var(--primary-glow)) 25%, 
+      hsl(var(--primary)) 50%,
+      hsl(var(--primary-glow)) 75%,
+      hsl(var(--primary)) 100%
+    );
+    background-size: 200% 200%;
+    animation: gradient-border-rotate 3s ease infinite;
+    padding: 2px;
+    border-radius: 1.5rem;
+  }
+
+  /* Shadow glow effects */
+  .shadow-glow-green {
+    box-shadow: 0 0 20px hsl(142 76% 36% / 0.4), 
+                0 0 40px hsl(142 76% 36% / 0.2);
+  }
+
+  .shadow-glow-red {
+    box-shadow: 0 0 20px hsl(0 84% 60% / 0.4), 
+                0 0 40px hsl(0 84% 60% / 0.2);
+  }
+
+  /* Ripple effect on tap */
+  @keyframes ripple-effect {
+    0% {
+      transform: scale(0);
+      opacity: 0.6;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  .ripple-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ripple-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background: hsl(var(--foreground) / 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .ripple-container:active::after {
+    animation: ripple-effect 0.6s ease-out;
+  }
 }
