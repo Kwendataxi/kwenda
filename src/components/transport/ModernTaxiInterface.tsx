@@ -8,7 +8,6 @@ import UnifiedTaxiSheet from './UnifiedTaxiSheet';
 import DestinationSearchDialog from './DestinationSearchDialog';
 import PriceConfirmationModal from './PriceConfirmationModal';
 import DriverSearchProgressModal from './DriverSearchProgressModal';
-import BeneficiarySelector from './BeneficiarySelector';
 import { NearbyDriversIndicator } from '@/components/maps/NearbyDriversIndicator';
 import { FloatingHomeButton } from '@/components/driver/FloatingHomeButton';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
@@ -41,12 +40,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [manualPosition, setManualPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [persistedUserLocation, setPersistedUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(420);
-  
-  // États pour réservation pour autrui
-  const [isForSomeoneElse, setIsForSomeoneElse] = useState(false);
-  const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
-  const [biddingEnabled, setBiddingEnabled] = useState(false);
-  const [clientProposedPrice, setClientProposedPrice] = useState<number | null>(null);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   
@@ -257,12 +250,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       return;
     }
 
-    // Validation bénéficiaire
-    if (isForSomeoneElse && !selectedBeneficiary) {
-      toast.error('Veuillez sélectionner un bénéficiaire');
-      return;
-    }
-
     // ✅ CRÉER LE BOOKING IMMÉDIATEMENT
     try {
       const bookingData = {
@@ -272,11 +259,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         destinationCoordinates: { lat: destinationLocation.lat, lng: destinationLocation.lng },
         vehicleType: selectedVehicle,
         estimatedPrice: calculatedPrice,
-        city: currentCity?.name || 'Kinshasa',
-        bookedForOther: isForSomeoneElse,
-        beneficiaryId: selectedBeneficiary?.id,
-        beneficiaryName: selectedBeneficiary?.name,
-        beneficiaryPhone: selectedBeneficiary?.phone
+        city: currentCity?.name || 'Kinshasa'
       };
 
       const result = await createAndDispatchRide(bookingData, {
@@ -309,21 +292,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         destinationCoordinates: { lat: destinationLocation.lat, lng: destinationLocation.lng },
         vehicleType: selectedVehicle,
         estimatedPrice: calculatedPrice,
-        city: currentCity?.name || 'Kinshasa',
-        
-        // Données bénéficiaire
-        bookedForOther: isForSomeoneElse,
-        beneficiaryId: selectedBeneficiary?.id,
-        beneficiaryName: selectedBeneficiary?.name,
-        beneficiaryPhone: selectedBeneficiary?.phone
+        city: currentCity?.name || 'Kinshasa'
       };
-
-      console.log('🚗 [ModernTaxiInterface] Starting ride dispatch with bidding:', biddingEnabled, 'Proposed price:', clientProposedPrice);
 
       // ✅ Passer le mode bidding ET le prix proposé au dispatching
       const result = await createAndDispatchRide(bookingData, {
-        biddingMode: biddingEnabled,
-        clientProposedPrice: clientProposedPrice || Math.floor(calculatedPrice * 0.8), // Par défaut 80% du prix estimé
+        biddingMode: false,
+        clientProposedPrice: null,
         biddingDuration: 300 // 5 minutes
       });
 
@@ -459,12 +434,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         isSearching={isSearching}
         distance={distance}
         city={currentCity?.name || 'Kinshasa'}
-        biddingEnabled={biddingEnabled}
-        onToggleBidding={setBiddingEnabled}
-        isForSomeoneElse={isForSomeoneElse}
-        onToggleBeneficiary={setIsForSomeoneElse}
-        selectedBeneficiary={selectedBeneficiary}
-        onSelectBeneficiary={setSelectedBeneficiary}
       />
 
       {/* Modal de confirmation avec prix */}
@@ -480,17 +449,11 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           calculatedPrice={calculatedPrice}
           onConfirm={handleConfirmBooking}
           onBack={() => setShowPriceConfirm(false)}
-          beneficiary={isForSomeoneElse && selectedBeneficiary ? {
-            name: selectedBeneficiary.name,
-            phone: selectedBeneficiary.phone
-          } : null}
           bookingId={tempBookingId || undefined}
           onOfferAccepted={(driverId) => {
             console.log('Offer accepted from driver:', driverId);
             onSubmit?.({ driver: { id: driverId }, bookingId: tempBookingId });
           }}
-          onBiddingEnabled={(enabled) => setBiddingEnabled(enabled)}
-          onClientProposedPrice={(price) => setClientProposedPrice(price)}
         />
       )}
       

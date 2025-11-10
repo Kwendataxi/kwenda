@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Zap, Loader2 } from 'lucide-react';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import CompactDestinationSearch from './CompactDestinationSearch';
 import SimpleVehicleGrid from './SimpleVehicleGrid';
-import InlineQuickOptions from './InlineQuickOptions';
 import { LocationData } from '@/types/location';
 import { useVehicleTypes } from '@/hooks/useVehicleTypes';
 
@@ -21,16 +20,6 @@ interface UnifiedTaxiSheetProps {
   isSearching: boolean;
   distance: number;
   city: string;
-  
-  // Options de réservation
-  biddingEnabled: boolean;
-  onToggleBidding: (enabled: boolean) => void;
-  onClientProposedPrice?: (price: number) => void;
-  
-  isForSomeoneElse: boolean;
-  onToggleBeneficiary: (enabled: boolean) => void;
-  selectedBeneficiary: any;
-  onSelectBeneficiary: (beneficiary: any) => void;
 }
 
 export default function UnifiedTaxiSheet({
@@ -43,13 +32,7 @@ export default function UnifiedTaxiSheet({
   onBook,
   isSearching,
   distance,
-  city,
-  biddingEnabled,
-  onToggleBidding,
-  isForSomeoneElse,
-  onToggleBeneficiary,
-  selectedBeneficiary,
-  onSelectBeneficiary
+  city
 }: UnifiedTaxiSheetProps) {
   // Charger les véhicules avec prix réels depuis la DB
   const { vehicles, isLoading: vehiclesLoading } = useVehicleTypes({ 
@@ -133,22 +116,13 @@ export default function UnifiedTaxiSheet({
                 ))}
               </div>
             ) : (
-              <SimpleVehicleGrid
-                vehicles={vehicleOptions}
-                selectedVehicleId={selectedVehicle}
-                onVehicleSelect={onVehicleSelect}
-                city={city}
-              />
-            )}
-
-            {/* Section 3 : Options inline (si destination) */}
-            <InlineQuickOptions
-              biddingEnabled={biddingEnabled}
-              onToggleBidding={onToggleBidding}
-              isForSomeoneElse={isForSomeoneElse}
-              onToggleBeneficiary={onToggleBeneficiary}
-              hasDestination={!!destination}
+            <SimpleVehicleGrid
+              vehicles={vehicleOptions}
+              selectedVehicleId={selectedVehicle}
+              onVehicleSelect={onVehicleSelect}
+              city={city}
             />
+            )}
           </div>
         </ScrollArea>
 
@@ -182,7 +156,7 @@ export default function UnifiedTaxiSheet({
                 className="flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4" />
-                <span>Commander - {selectedVehiclePrice.toLocaleString()} CDF</span>
+                <span>Continuer</span>
               </motion.div>
             )}
           </motion.button>
