@@ -26,9 +26,10 @@ serve(async (req) => {
     }
 
     const { data: adminCheck } = await supabase
-      .from('admins')
-      .select('id')
+      .from('user_roles')
+      .select('role')
       .eq('user_id', user.id)
+      .eq('role', 'admin')
       .eq('is_active', true)
       .single();
 
@@ -66,11 +67,12 @@ serve(async (req) => {
     }
 
     // Create notification
-    await supabase.from('delivery_notifications').insert({
+    await supabase.from('user_notifications').insert({
       user_id: partner.user_id,
       title: notificationTitle,
-      message: notificationMessage,
-      notification_type: 'partner_validation',
+      content: notificationMessage,
+      priority: action === 'approved' ? 'high' : 'normal',
+      category: 'partner_management',
       metadata: {
         partner_id,
         action,

@@ -29,7 +29,7 @@ export const FloatingNotificationButton = () => {
       try {
         // Vérifier partner
         const { data: partnerData } = await supabase
-          .from('partner_profiles')
+          .from('partenaires')
           .select('id')
           .eq('user_id', user.id)
           .maybeSingle();

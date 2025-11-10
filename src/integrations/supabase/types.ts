@@ -2173,6 +2173,13 @@ export type Database = {
             foreignKeyName: "driver_codes_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_codes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
             referencedRelation: "partner_rental_stats"
             referencedColumns: ["partner_id"]
           },
@@ -2227,6 +2234,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_codes_enhanced_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2931,6 +2945,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partenaires"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "driver_vehicle_associations_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
             referencedColumns: ["user_id"]
           },
           {
@@ -4470,6 +4491,13 @@ export type Database = {
             foreignKeyName: "lottery_prize_types_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lottery_prize_types_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
             referencedRelation: "partner_rental_stats"
             referencedColumns: ["partner_id"]
           },
@@ -5852,7 +5880,9 @@ export type Database = {
           business_type: string
           city: string | null
           commission_rate: number | null
+          company_address: string | null
           company_name: string
+          company_phone: string | null
           company_registration_number: string | null
           contact_person_name: string | null
           contact_person_phone: string | null
@@ -5864,8 +5894,10 @@ export type Database = {
           email: string
           id: string
           is_active: boolean | null
+          license_number: string | null
           phone: string | null
           phone_number: string
+          rejection_reason: string | null
           reviewed_at: string | null
           service_areas: string[] | null
           shop_description: string | null
@@ -5887,7 +5919,9 @@ export type Database = {
           business_type: string
           city?: string | null
           commission_rate?: number | null
+          company_address?: string | null
           company_name: string
+          company_phone?: string | null
           company_registration_number?: string | null
           contact_person_name?: string | null
           contact_person_phone?: string | null
@@ -5899,8 +5933,10 @@ export type Database = {
           email: string
           id?: string
           is_active?: boolean | null
+          license_number?: string | null
           phone?: string | null
           phone_number: string
+          rejection_reason?: string | null
           reviewed_at?: string | null
           service_areas?: string[] | null
           shop_description?: string | null
@@ -5922,7 +5958,9 @@ export type Database = {
           business_type?: string
           city?: string | null
           commission_rate?: number | null
+          company_address?: string | null
           company_name?: string
+          company_phone?: string | null
           company_registration_number?: string | null
           contact_person_name?: string | null
           contact_person_phone?: string | null
@@ -5934,8 +5972,10 @@ export type Database = {
           email?: string
           id?: string
           is_active?: boolean | null
+          license_number?: string | null
           phone?: string | null
           phone_number?: string
+          rejection_reason?: string | null
           reviewed_at?: string | null
           service_areas?: string[] | null
           shop_description?: string | null
@@ -5997,6 +6037,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_audit_logs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -6117,6 +6164,13 @@ export type Database = {
             foreignKeyName: "partner_driver_requests_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "partner_driver_requests_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
             referencedRelation: "partner_rental_stats"
             referencedColumns: ["user_id"]
           },
@@ -6155,54 +6209,6 @@ export type Database = {
           partner_id?: string
           status?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      partner_profiles: {
-        Row: {
-          company_address: string | null
-          company_name: string
-          company_phone: string | null
-          created_at: string
-          id: string
-          license_number: string | null
-          rejection_reason: string | null
-          tax_number: string | null
-          updated_at: string
-          user_id: string
-          validated_at: string | null
-          validated_by: string | null
-          validation_status: string
-        }
-        Insert: {
-          company_address?: string | null
-          company_name: string
-          company_phone?: string | null
-          created_at?: string
-          id?: string
-          license_number?: string | null
-          rejection_reason?: string | null
-          tax_number?: string | null
-          updated_at?: string
-          user_id: string
-          validated_at?: string | null
-          validated_by?: string | null
-          validation_status?: string
-        }
-        Update: {
-          company_address?: string | null
-          company_name?: string
-          company_phone?: string | null
-          created_at?: string
-          id?: string
-          license_number?: string | null
-          rejection_reason?: string | null
-          tax_number?: string | null
-          updated_at?: string
-          user_id?: string
-          validated_at?: string | null
-          validated_by?: string | null
-          validation_status?: string
         }
         Relationships: []
       }
@@ -6255,6 +6261,13 @@ export type Database = {
             foreignKeyName: "partner_rental_bookings_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_rental_bookings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
             referencedRelation: "partner_rental_stats"
             referencedColumns: ["partner_id"]
           },
@@ -6292,6 +6305,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_rental_followers_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -6464,6 +6484,13 @@ export type Database = {
             foreignKeyName: "partner_rental_vehicles_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_rental_vehicles_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
             referencedRelation: "partner_rental_stats"
             referencedColumns: ["partner_id"]
           },
@@ -6548,6 +6575,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_subscription_earnings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -13592,6 +13626,57 @@ export type Database = {
           page: string | null
           unique_sessions: number | null
           unique_users: number | null
+        }
+        Relationships: []
+      }
+      partner_profiles: {
+        Row: {
+          company_address: string | null
+          company_name: string | null
+          company_phone: string | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          license_number: string | null
+          rejection_reason: string | null
+          tax_number: string | null
+          updated_at: string | null
+          user_id: string | null
+          validated_at: string | null
+          validated_by: string | null
+          validation_status: string | null
+        }
+        Insert: {
+          company_address?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          license_number?: string | null
+          rejection_reason?: string | null
+          tax_number?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string | null
+        }
+        Update: {
+          company_address?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          license_number?: string | null
+          rejection_reason?: string | null
+          tax_number?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string | null
         }
         Relationships: []
       }

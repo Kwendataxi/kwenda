@@ -40,7 +40,7 @@ const PartnerApp = () => {
 
       try {
         const { data, error } = await supabase
-          .from('partner_profiles')
+          .from('partenaires')
           .select('*')
           .eq('user_id', user.id)
           .single();

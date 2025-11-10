@@ -73,7 +73,7 @@ export const useDriverCode = () => {
       if (data) {
         // Fetch partner profile separately
         const { data: partnerData } = await supabase
-          .from('partner_profiles')
+          .from('partenaires')
           .select('company_name')
           .eq('user_id', data.partner_id)
           .maybeSingle();

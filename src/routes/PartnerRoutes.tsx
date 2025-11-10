@@ -14,6 +14,7 @@ const PartnerVerifyEmail = lazy(() => import('@/pages/PartnerVerifyEmail'));
 const ModernRegistrationWizard = lazy(() => import('@/components/partner/registration/ModernRegistrationWizard'));
 const PartnerDashboard = lazy(() => import('@/pages/partner/PartnerDashboard'));
 const PartnerRentalSubscriptionManagement = lazy(() => import('@/pages/partner/PartnerRentalSubscriptionManagement'));
+const PartnerPendingApproval = lazy(() => import('@/pages/partner/PartnerPendingApproval'));
 
 export const PartnerRoutes = () => {
   if (isSpecificBuild() && !isPartnerApp()) {
@@ -53,6 +54,14 @@ export const PartnerRoutes = () => {
         } 
       />
       <Route path="/partner/register" element={<ModernRegistrationWizard />} />
+      <Route 
+        path="/partner/pending-approval" 
+        element={
+          <ProtectedRoute>
+            <PartnerPendingApproval />
+          </ProtectedRoute>
+        } 
+      />
       <Route 
         path="/partner/dashboard" 
         element={

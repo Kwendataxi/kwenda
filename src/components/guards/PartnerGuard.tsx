@@ -35,16 +35,23 @@ export const PartnerGuard = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    // ✅ Vérifier que le profil partenaire existe
+    // ✅ Vérifier que le profil partenaire existe dans 'partenaires'
     const { data: profileData, error: profileError } = await supabase
-      .from('partner_profiles')
-      .select('id, company_name')
+      .from('partenaires')
+      .select('id, company_name, verification_status, is_active')
       .eq('user_id', user.id)
       .maybeSingle();
 
     if (profileError || !profileData) {
       console.error('❌ Profil partenaire manquant:', profileError);
       navigate('/partner/register');
+      return;
+    }
+
+    // ✅ Vérifier que le partenaire est approuvé et actif
+    if (profileData.verification_status !== 'approved' || !profileData.is_active) {
+      console.warn('⚠️ Partenaire non approuvé:', profileData.verification_status);
+      navigate('/partner/pending-approval');
       return;
     }
 
