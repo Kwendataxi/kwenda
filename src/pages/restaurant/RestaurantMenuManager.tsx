@@ -104,16 +104,79 @@ export default function RestaurantMenuManager() {
     }
   };
 
+  const validateForm = (): { valid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    // Nom du plat
+    if (!formData.name.trim()) {
+      errors.push('Le nom du plat est obligatoire');
+    } else if (formData.name.length < 3) {
+      errors.push('Le nom doit contenir au moins 3 caractères');
+    } else if (formData.name.length > 100) {
+      errors.push('Le nom ne doit pas dépasser 100 caractères');
+    }
+    
+    // Catégorie
+    if (!formData.category) {
+      errors.push('Veuillez sélectionner une catégorie');
+    }
+    
+    // Prix
+    const price = parseFloat(formData.price);
+    if (!formData.price || isNaN(price)) {
+      errors.push('Le prix est obligatoire');
+    } else if (price <= 0) {
+      errors.push('Le prix doit être supérieur à 0 CDF');
+    } else if (price > 1000000) {
+      errors.push('Le prix ne peut pas dépasser 1.000.000 CDF');
+    }
+    
+    // Temps de préparation
+    const prepTime = parseInt(formData.preparation_time);
+    if (prepTime < 5) {
+      errors.push('Le temps de préparation doit être d\'au moins 5 minutes');
+    } else if (prepTime > 180) {
+      errors.push('Le temps de préparation ne peut pas dépasser 180 minutes');
+    }
+    
+    // Images (recommandé mais pas obligatoire)
+    if (productImages.length === 0) {
+      errors.push('⚠️ Recommandation : Ajoutez au moins une photo pour augmenter vos ventes');
+    }
+    
+    return { valid: errors.length === 0, errors };
+  };
+
   const handleSaveProduct = async () => {
     if (!restaurantId) return;
+
+    // Validation
+    const validation = validateForm();
+    if (!validation.valid) {
+      validation.errors.forEach(error => {
+        toast({
+          title: 'Validation échouée',
+          description: error,
+          variant: 'destructive',
+        });
+      });
+      return;
+    }
 
     try {
       setSaving(true);
 
+      console.log('📝 [MenuManager] Saving product:', {
+        name: formData.name,
+        category: formData.category,
+        price: formData.price,
+        images: productImages.length
+      });
+
       const productData = {
         restaurant_id: restaurantId,
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
         category: formData.category,
         price: parseFloat(formData.price),
         preparation_time: parseInt(formData.preparation_time),
@@ -129,33 +192,57 @@ export default function RestaurantMenuManager() {
           .update(productData)
           .eq('id', editingProduct.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Update error:', error);
+          throw error;
+        }
 
         toast({
-          title: 'Succès',
-          description: 'Plat mis à jour (en attente de modération)',
+          title: '✅ Plat mis à jour',
+          description: 'En attente de validation par l\'équipe Kwenda',
         });
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('food_products')
-          .insert(productData);
+          .insert(productData)
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Insert error:', error);
+          throw error;
+        }
+
+        console.log('✅ Product created:', data);
 
         toast({
-          title: 'Succès',
-          description: 'Plat ajouté (en attente de modération)',
+          title: '✅ Plat ajouté avec succès',
+          description: 'Il sera visible après validation (environ 24h)',
         });
       }
 
       setIsDialogOpen(false);
       resetForm();
-      // ✅ Forcer le rechargement de la liste des produits
       await loadProducts();
     } catch (error: any) {
+      console.error('❌ Save error:', error);
+      
+      let errorMessage = 'Impossible de sauvegarder le plat';
+      
+      // Messages d'erreur détaillés
+      if (error.code === '23505') {
+        errorMessage = 'Un plat avec ce nom existe déjà';
+      } else if (error.code === '23503') {
+        errorMessage = 'Erreur de référence (restaurant_id invalide)';
+      } else if (error.code === '42501') {
+        errorMessage = 'Permissions insuffisantes. Contactez le support.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: 'Erreur',
-        description: error.message || 'Impossible de sauvegarder',
+        title: 'Erreur de sauvegarde',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -253,114 +340,131 @@ export default function RestaurantMenuManager() {
                 Nouveau plat
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden flex flex-col p-0">
-              <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-2">
+            <DialogContent className="max-w-2xl h-[90vh] sm:h-[95vh] flex flex-col p-0">
+              <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
                 <DialogTitle>
                   {editingProduct ? 'Modifier le plat' : 'Nouveau plat'}
                 </DialogTitle>
               </DialogHeader>
               
-              <ScrollArea className="flex-1 px-6 pb-6">
-                <div className="space-y-4 pr-4">
-                <div>
-                  <Label>Nom du plat *</Label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Ex: Poulet Moambé"
-                  />
-                </div>
+              <ScrollArea className="flex-1 overflow-y-auto">
+                <div className="space-y-4 px-6 py-4">
+                  <div>
+                    <Label>Nom du plat *</Label>
+                    <Input
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Ex: Poulet Moambé"
+                    />
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
+                      <span>Minimum 3 caractères</span>
+                      <span className={cn(
+                        formData.name.length >= 100 && "text-destructive font-medium"
+                      )}>
+                        {formData.name.length}/100
+                      </span>
+                    </div>
+                  </div>
 
-                <div>
-                  <Label>Description</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Décrivez votre plat..."
-                    rows={3}
-                  />
-                </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Décrivez votre plat..."
+                      rows={3}
+                    />
+                  </div>
 
-                <div>
-                  <Label className="mb-3 block">Catégorie *</Label>
-                  <RadioGroup 
-                    value={formData.category} 
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
-                    className="grid grid-cols-2 gap-3"
-                  >
-                    {FOOD_CATEGORIES.map((cat) => {
-                      const Icon = cat.icon;
-                      return (
-                        <div key={cat.id}>
-                          <RadioGroupItem
-                            value={cat.id}
-                            id={cat.id}
-                            className="peer sr-only"
-                          />
-                          <Label
-                            htmlFor={cat.id}
-                            className={cn(
-                              "flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all",
-                              formData.category === cat.id && "border-primary bg-primary/10"
-                            )}
-                          >
-                            <Icon className="h-6 w-6 mb-2" />
-                            <span className="text-sm font-medium">{cat.name}</span>
-                          </Label>
-                        </div>
-                      );
-                    })}
-                  </RadioGroup>
-                </div>
+                  <div>
+                    <Label className="mb-3 block">Catégorie *</Label>
+                    <RadioGroup 
+                      value={formData.category} 
+                      onValueChange={(value) => setFormData({ ...formData, category: value })}
+                      className="grid grid-cols-2 gap-3"
+                    >
+                      {FOOD_CATEGORIES.map((cat) => {
+                        const Icon = cat.icon;
+                        return (
+                          <div key={cat.id}>
+                            <RadioGroupItem
+                              value={cat.id}
+                              id={cat.id}
+                              className="peer sr-only"
+                            />
+                            <Label
+                              htmlFor={cat.id}
+                              className={cn(
+                                "flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all",
+                                formData.category === cat.id && "border-primary bg-primary/10"
+                              )}
+                            >
+                              <Icon className="h-6 w-6 mb-2" />
+                              <span className="text-sm font-medium">{cat.name}</span>
+                            </Label>
+                          </div>
+                        );
+                      })}
+                    </RadioGroup>
+                  </div>
 
-                <div>
-                  <Label>Prix (CDF) *</Label>
-                  <Input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="5000"
-                  />
-                </div>
+                  <div>
+                    <Label>Prix (CDF) *</Label>
+                    <Input
+                      type="number"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      placeholder="5000"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Maximum 1.000.000 CDF
+                    </p>
+                  </div>
 
-                <div>
-                  <Label>Temps de préparation (min)</Label>
-                  <Input
-                    type="number"
-                    value={formData.preparation_time}
-                    onChange={(e) => setFormData({ ...formData, preparation_time: e.target.value })}
-                    placeholder="15"
-                  />
-                </div>
+                  <div>
+                    <Label>Temps de préparation (min)</Label>
+                    <Input
+                      type="number"
+                      value={formData.preparation_time}
+                      onChange={(e) => setFormData({ ...formData, preparation_time: e.target.value })}
+                      placeholder="15"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Entre 5 et 180 minutes
+                    </p>
+                  </div>
 
-                <div>
-                  <Label>Photos du produit</Label>
-                  <ProductImageUpload
-                    restaurantId={restaurantId || ''}
-                    currentImages={productImages}
-                    onImagesChange={setProductImages}
-                    maxImages={5}
-                  />
-                </div>
+                  <div>
+                    <Label>Photos du produit</Label>
+                    <ProductImageUpload
+                      restaurantId={restaurantId || ''}
+                      currentImages={productImages}
+                      onImagesChange={setProductImages}
+                      maxImages={5}
+                    />
+                  </div>
 
-                <div className="flex items-center justify-between">
-                  <Label>Disponible</Label>
-                  <Switch
-                    checked={formData.is_available}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
-                  />
-                </div>
-
-                  <Button
-                    className="w-full"
-                    onClick={handleSaveProduct}
-                    disabled={saving || !formData.name || !formData.price}
-                  >
-                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    {editingProduct ? 'Mettre à jour' : 'Ajouter'}
-                  </Button>
+                  <div className="flex items-center justify-between">
+                    <Label>Disponible</Label>
+                    <Switch
+                      checked={formData.is_available}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
+                    />
+                  </div>
                 </div>
               </ScrollArea>
+
+              {/* Footer avec bouton fixe */}
+              <div className="flex-shrink-0 border-t px-6 py-4 bg-background">
+                <Button
+                  className="w-full"
+                  onClick={handleSaveProduct}
+                  disabled={saving || !formData.name || !formData.price}
+                >
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {editingProduct ? 'Mettre à jour' : 'Ajouter le plat'}
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
         </div>

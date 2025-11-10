@@ -14054,6 +14054,16 @@ export type Database = {
         }
         Returns: Json
       }
+      create_restaurant_profile_manual: {
+        Args: {
+          p_city: string
+          p_email: string
+          p_phone: string
+          p_restaurant_name: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       create_subscription_alert: {
         Args: {
           p_alert_type: string
