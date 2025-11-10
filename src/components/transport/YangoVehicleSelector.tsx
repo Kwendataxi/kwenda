@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { useVehicleTypes } from '@/hooks/useVehicleTypes';
+import { useAvailableTaxiServices } from '@/hooks/useAvailableTaxiServices';
 import { VehicleType } from '@/types/vehicle';
 import { getYangoTheme } from '@/utils/yangoVehicleThemes';
 import { ArrowRight, Clock } from 'lucide-react';
@@ -24,7 +24,49 @@ export default function YangoVehicleSelector({
   calculatingRoute = false,
   onContinue
 }: YangoVehicleSelectorProps) {
-  const { vehicles, isLoading } = useVehicleTypes({ distance, city });
+  const { availableServices, loading } = useAvailableTaxiServices(city);
+  
+  // Convertir availableServices en VehicleType[]
+  const vehicles: VehicleType[] = useMemo(() => {
+    console.log('🔄 [YangoVehicleSelector] Converting services to vehicles:', {
+      city,
+      distance,
+      servicesCount: availableServices.length,
+      services: availableServices.map(s => s.vehicle_class)
+    });
+    
+    return availableServices.map(service => {
+      const calculatedPrice = service.base_price + (service.price_per_km * (distance / 1000));
+      const eta = Math.max(5, Math.ceil(distance / 500)); // ~30km/h
+      
+      const vehicleTypeMap: Record<string, { name: string; icon: 'Car' | 'Bike' | 'Bus' | 'Truck'; features: string[] }> = {
+        moto: { name: 'Moto', icon: 'Bike', features: ['Rapide', 'Économique'] },
+        eco: { name: service.display_name || 'Éco', icon: 'Car', features: ['Abordable', 'Confortable'] },
+        standard: { name: service.display_name || 'Standard', icon: 'Car', features: ['Confort', 'Climatisé'] },
+        premium: { name: service.display_name || 'Premium', icon: 'Car', features: ['Luxe', 'VIP'] }
+      };
+      
+      const config = vehicleTypeMap[service.vehicle_class] || vehicleTypeMap.eco;
+      
+      return {
+        id: service.vehicle_class,
+        name: config.name,
+        description: service.description || config.features.join(' • '),
+        icon: config.icon,
+        gradient: '', // Géré par getYangoTheme
+        basePrice: service.base_price,
+        pricePerKm: service.price_per_km,
+        calculatedPrice,
+        eta,
+        features: config.features,
+        capacity: service.vehicle_class === 'moto' ? 1 : 4,
+        available: true,
+        isPopular: service.vehicle_class === 'eco'
+      } as VehicleType;
+    }).sort((a, b) => a.basePrice - b.basePrice);
+  }, [availableServices, distance, city]);
+  
+  const isLoading = loading;
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'center',
     containScroll: 'trimSnaps',

@@ -78,8 +78,20 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
 
   // Charger dynamiquement les véhicules depuis availableServices
   const vehicles: YangoVehicle[] = useMemo(() => {
-    // Le filtrage is_active est déjà fait dans le hook useAvailableTaxiServices
-    return availableServices.map(service => {
+    console.log('🔍 [YangoVerticalVehicleCards] Processing services:', {
+      city,
+      distance,
+      servicesCount: availableServices.length,
+      timestamp: Date.now(),
+      rawServices: availableServices.map(s => ({
+        vehicle_class: s.vehicle_class,
+        base_price: s.base_price,
+        is_active: s.is_active,
+        display_name: s.display_name
+      }))
+    });
+    
+    const processedVehicles = availableServices.map(service => {
       const config = getVehicleDisplayConfig(service.vehicle_class);
       return {
         id: service.vehicle_class,
@@ -95,18 +107,34 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
         iconColor: config.iconColor
       };
     }).sort((a, b) => a.basePrice - b.basePrice);
-  }, [availableServices, getVehicleDisplayConfig]);
+    
+    console.log('✅ [YangoVerticalVehicleCards] Processed vehicles:', {
+      count: processedVehicles.length,
+      vehicles: processedVehicles.map(v => ({ id: v.id, name: v.name, basePrice: v.basePrice }))
+    });
+    
+    return processedVehicles;
+  }, [availableServices, getVehicleDisplayConfig, city, distance]);
 
   // Debug : Logger si aucun véhicule disponible
   useEffect(() => {
+    console.log('🔍 [YangoVerticalVehicleCards] Current state:', {
+      loading,
+      city,
+      vehiclesCount: vehicles.length,
+      servicesCount: availableServices.length,
+      timestamp: Date.now()
+    });
+    
     if (!loading && availableServices.length === 0) {
-      console.error('❌ [YangoVerticalVehicleCards] NO VEHICLES AVAILABLE', {
-        city: city,
+      console.error('❌ [YangoVerticalVehicleCards] NO VEHICLES AVAILABLE - DATABASE ISSUE', {
+        city,
+        loading,
         timestamp: Date.now(),
-        loading: loading
+        message: 'Check pricing_rules and service_configurations tables in admin'
       });
     }
-  }, [loading, availableServices, city]);
+  }, [loading, availableServices, vehicles, city]);
 
   // ✅ Sélectionner automatiquement le premier véhicule si aucun n'est sélectionné
   // IMPORTANT: Ce useEffect DOIT être AVANT tout return conditionnel (règle des Hooks React)

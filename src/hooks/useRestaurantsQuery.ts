@@ -37,12 +37,6 @@ export const useRestaurantsQuery = (city: string) => {
         }))
       });
       
-      if (data.length === 0) {
-        toast.info(`Aucun restaurant à ${city} pour le moment`);
-      } else {
-        toast.success(`${data.length} restaurant(s) trouvé(s) à ${city}`);
-      }
-      
       return (data || []) as Restaurant[];
     },
     staleTime: 0, // Force refresh - no cache
@@ -126,12 +120,6 @@ export const useRestaurantsQuery = (city: string) => {
         is_available: p.is_available
       }))
     });
-    
-    if (data && data.length === 0) {
-      toast.info('Aucun plat disponible pour le moment');
-    } else if (data) {
-      toast.success(`${data.length} plat(s) disponible(s)`);
-    }
     
     return (data || []) as FoodProduct[];
   };
