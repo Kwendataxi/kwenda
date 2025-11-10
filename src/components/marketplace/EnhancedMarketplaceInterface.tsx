@@ -55,6 +55,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { useUniversalChat } from '@/hooks/useUniversalChat';
 import { useCart } from '@/context/CartContext';
 import { useProductFavorites } from '@/hooks/useProductFavorites';
+import { useTopVendors } from '@/hooks/useTopVendors';
 
 // Utiliser les types unifiés de marketplace.ts
 import { MarketplaceProduct, CartItem as MarketplaceCartItem, HorizontalProduct, productToCartItem } from '@/types/marketplace';
@@ -92,6 +93,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { wallet } = useWallet();
   const { createOrFindConversation } = useUniversalChat();
   const { calculateDiscount, getOriginalPrice } = useProductPromotions();
+  const { vendors: topVendors, loading: vendorsLoading } = useTopVendors(10);
   
   // State management
   const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow' | 'messages'>('shop');
@@ -649,28 +651,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         .slice(0, 10)
     : [];
 
-  // Calcul des top vendeurs pour la section "Boutiques populaires"
-  const topVendors = products
-    .reduce((acc, p) => {
-      const existing = acc.find(v => v.user_id === p.seller_id);
-      if (!existing) {
-        // Accéder aux propriétés vendeur directement depuis le product
-        const vendorData = (p as any);
-        acc.push({
-          user_id: p.seller_id,
-          shop_name: p.seller.display_name,
-          shop_logo_url: vendorData.sellerLogo,
-          shop_banner_url: undefined,
-          shop_description: undefined,
-          average_rating: vendorData.sellerRating || 0,
-          total_sales: vendorData.sellerTotalSales || 0,
-          product_count: products.filter(prod => prod.seller_id === p.seller_id).length,
-        });
-      }
-      return acc;
-    }, [] as any[])
-    .sort((a, b) => (b.average_rating * b.total_sales) - (a.average_rating * a.total_sales))
-    .slice(0, 10);
+  // ✅ Les top vendeurs sont maintenant chargés via useTopVendors avec les vraies données de la DB
 
   // Gestion des favoris avec persistance
   const handleToggleFavorite = async (productId: string) => {
@@ -954,38 +935,47 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       )}
 
       {/* BOUTIQUES POPULAIRES - Section avec slider horizontal */}
-      {!loading && filteredProducts.length > 0 && topVendors.length > 0 && (
-        <section className="px-4 py-6 space-y-4 bg-muted/30">
+      {!vendorsLoading && topVendors.length > 0 && (
+        <section className="px-4 py-6 space-y-4 bg-gradient-to-br from-muted/20 via-muted/10 to-transparent">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Store className="h-6 w-6 text-primary" />
+            <motion.h2 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-2xl font-bold flex items-center gap-2"
+            >
+              <Store className="h-6 w-6 text-primary drop-shadow-glow" />
               Boutiques populaires
-            </h2>
+            </motion.h2>
             <Button 
               variant="ghost" 
               size="sm"
               onClick={() => setViewMode('all-vendors')}
-              className="text-blue-600"
+              className="text-primary hover:text-primary/80 font-semibold"
             >
-              Voir toutes les boutiques
+              Voir tout
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
           
-          {/* Slider horizontal de vendeurs */}
-          <div className="overflow-x-auto pb-4 -mx-4 px-4">
-            <div className="flex gap-4">
+          {/* Slider horizontal de vendeurs avec vraies données */}
+          <div className="overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4">
+            <motion.div 
+              className="flex gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               {topVendors.slice(0, 8).map((vendor, idx) => (
                 <div key={vendor.user_id} className="w-[280px] flex-shrink-0">
                   <VendorCard
                     vendor={vendor}
                     onVisit={(id) => navigate(`/marketplace/shop/${id}`)}
-                    badge={idx === 0 ? 'top' : undefined}
+                    badge={idx === 0 ? 'top' : idx < 3 ? 'similar' : undefined}
                     index={idx}
                   />
                 </div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
       )}
