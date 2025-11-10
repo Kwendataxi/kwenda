@@ -6389,33 +6389,6 @@ export type Database = {
           },
         ]
       }
-      partner_rental_vehicle_categories: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       partner_rental_vehicles: {
         Row: {
           category_id: string | null
@@ -6466,13 +6439,6 @@ export type Database = {
           vehicle_name?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "partner_rental_vehicles_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "partner_rental_vehicle_categories"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "partner_rental_vehicles_partner_id_fkey"
             columns: ["partner_id"]

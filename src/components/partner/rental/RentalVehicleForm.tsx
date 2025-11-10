@@ -106,12 +106,25 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
       <CardContent className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-1">
-            <label className="text-sm font-medium">Catégorie</label>
-            <Select value={values.category_id} onValueChange={(v) => handleChange("category_id" as any, v)}>
+            <label className="text-sm font-medium">Catégorie *</label>
+            <Select 
+              value={values.category_id} 
+              onValueChange={(v) => handleChange("category_id" as any, v)}
+              disabled={categories.length === 0}
+            >
               <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Sélectionner" />
+                <SelectValue placeholder={
+                  categories.length === 0 
+                    ? "Aucune catégorie disponible" 
+                    : "Sélectionner une catégorie"
+                } />
               </SelectTrigger>
               <SelectContent>
+                {categories.length === 0 && (
+                  <SelectItem value="_empty" disabled>
+                    ❌ Aucune catégorie trouvée
+                  </SelectItem>
+                )}
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
@@ -119,6 +132,11 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
                 ))}
               </SelectContent>
             </Select>
+            {categories.length === 0 && (
+              <p className="text-xs text-destructive mt-1">
+                ⚠️ Aucune catégorie disponible. Contactez le support.
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium">Nom</label>

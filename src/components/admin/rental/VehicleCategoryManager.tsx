@@ -17,12 +17,12 @@ export const VehicleCategoryManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch catégories
+  // Fetch catégories depuis rental_vehicle_categories
   const { data: categories, isLoading } = useQuery({
     queryKey: ['vehicle-categories'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('partner_rental_vehicle_categories')
+        .from('rental_vehicle_categories')
         .select('*')
         .order('name');
 
@@ -36,7 +36,7 @@ export const VehicleCategoryManager = () => {
     mutationFn: async () => {
       if (editingCategory) {
         const { error } = await supabase
-          .from('partner_rental_vehicle_categories')
+          .from('rental_vehicle_categories')
           .update({
             name: categoryName,
             description: description,
@@ -47,10 +47,11 @@ export const VehicleCategoryManager = () => {
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('partner_rental_vehicle_categories')
+          .from('rental_vehicle_categories')
           .insert({
             name: categoryName,
-            description: description
+            description: description,
+            is_active: true
           });
 
         if (error) throw error;
@@ -79,7 +80,7 @@ export const VehicleCategoryManager = () => {
   const deleteMutation = useMutation({
     mutationFn: async (categoryId: string) => {
       const { error } = await supabase
-        .from('partner_rental_vehicle_categories')
+        .from('rental_vehicle_categories')
         .delete()
         .eq('id', categoryId);
 

@@ -66,7 +66,7 @@ export const useAdminRentalStats = () => {
         
         // Seulement les catégories actives (requête simple)
         supabase
-          .from('partner_rental_vehicle_categories')
+          .from('rental_vehicle_categories')
           .select('id', { count: 'exact', head: true })
           .eq('is_active', true)
       ]);

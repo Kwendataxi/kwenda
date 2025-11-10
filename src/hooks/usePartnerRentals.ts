@@ -86,12 +86,19 @@ export function usePartnerRentals() {
   const categoriesQuery = useQuery<VehicleCategory[]>({
     queryKey: ["rental-categories"],
     queryFn: async () => {
+      console.log('🔍 [usePartnerRentals] Fetching categories...');
       const { data, error } = await supabase
         .from("rental_vehicle_categories")
         .select("*")
         .eq("is_active", true)
         .order("name");
-      if (error) throw error;
+      
+      if (error) {
+        console.error('❌ [usePartnerRentals] Categories fetch error:', error);
+        throw error;
+      }
+      
+      console.log('✅ [usePartnerRentals] Categories loaded:', data?.length || 0, data);
       return (data || []) as VehicleCategory[];
     },
     enabled: true,
