@@ -7,6 +7,7 @@ export interface PartnerStats {
   ongoingRides: number;
   todayRevenue: number;
   monthlyRevenue: number;
+  monthlyEarnings: number; // ✅ AJOUTÉ: Gains du mois en cours (commissions)
   totalFleet: number;
   availableVehicles: number;
   completedRides: number;
@@ -20,6 +21,7 @@ export const usePartnerStats = () => {
     ongoingRides: 0,
     todayRevenue: 0,
     monthlyRevenue: 0,
+    monthlyEarnings: 0,
     totalFleet: 0,
     availableVehicles: 0,
     completedRides: 0,
@@ -154,6 +156,7 @@ export const usePartnerStats = () => {
         ongoingRides,
         todayRevenue,
         monthlyRevenue,
+        monthlyEarnings: monthlyRevenue, // ✅ AJOUTÉ: Même valeur que monthlyRevenue pour cohérence
         totalFleet,
         availableVehicles: Math.max(0, availableVehicles),
         completedRides,

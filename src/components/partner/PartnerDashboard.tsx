@@ -66,7 +66,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
       label: 'Analytics',
       icon: BarChart3,
       color: 'text-orange-600',
-      onClick: () => {} // Will add analytics later
+      onClick: () => onViewChange('analytics')
     }
   ];
 
@@ -79,26 +79,12 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
     };
   };
 
-  const recentAlerts = [
-    {
-      id: 1,
-      type: 'warning',
-      message: 'Véhicule ABC-123 nécessite une maintenance',
-      time: '2h'
-    },
-    {
-      id: 2,
-      type: 'info',
-      message: 'Nouveau chauffeur en attente de validation',
-      time: '4h'
-    },
-    {
-      id: 3,
-      type: 'success',
-      message: 'Gain abonnement de 1,500 CDF reçu (5%)',
-      time: '6h'
-    }
-  ];
+  const recentAlerts = activities?.slice(0, 3).map((activity, index) => ({
+    id: index + 1,
+    type: 'info' as const,
+    message: activity.description,
+    time: '2h'
+  })) || [];
 
   if (statsLoading) {
     return (
@@ -172,7 +158,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
             <div className="text-2xl font-bold">{stats?.activeDrivers || 0}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
-              +2 cette semaine
+              Total dans la flotte
             </div>
             <Progress 
               value={getPerformanceIndicator(stats?.activeDrivers || 0, 20).percentage} 
@@ -207,8 +193,8 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
           <CardContent>
             <div className="text-2xl font-bold">{stats?.monthlyEarnings?.toLocaleString() || '0'} CDF</div>
             <div className="flex items-center text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
-              +15% vs hier
+              <DollarSign className="h-3 w-3 mr-1 text-primary" />
+              Commissions 15%
             </div>
             <Button 
               variant="outline" 
@@ -311,10 +297,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
             <div className="space-y-3">
               {recentAlerts.map((alert) => (
                 <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg border">
-                  <div className={`h-2 w-2 rounded-full mt-2 ${
-                    alert.type === 'warning' ? 'bg-orange-500' :
-                    alert.type === 'success' ? 'bg-green-500' : 'bg-blue-500'
-                  }`} />
+                  <div className="h-2 w-2 rounded-full mt-2 bg-blue-500" />
                   <div className="flex-1">
                     <p className="text-sm">{alert.message}</p>
                     <p className="text-xs text-muted-foreground">il y a {alert.time}</p>

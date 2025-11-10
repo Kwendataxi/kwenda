@@ -123,15 +123,13 @@ export const PartnerDriverManager = () => {
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center">
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Users className="h-5 w-5 text-green-600" />
+                <span className="text-xs sm:text-sm font-bold text-green-600">5%</span>
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Chauffeurs Actifs
+                  Gains Abonnements
                 </p>
-                <p className="text-xl sm:text-2xl font-bold">
-                  {drivers.filter(d => d.status === 'active').length}
-                </p>
+                <p className="text-xl sm:text-2xl font-bold">0 FC</p>
               </div>
             </div>
           </CardContent>
