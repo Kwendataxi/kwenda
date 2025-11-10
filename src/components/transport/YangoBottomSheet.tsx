@@ -76,8 +76,8 @@ export default function YangoBottomSheet({
       open={true} 
       dismissible={false}
       modal={false}
-      snapPoints={[0.35, 0.75, 0.9]}
-      activeSnapPoint={bookingStep === 'vehicle' ? 0.75 : 0.9}
+      snapPoints={[0.35, 0.85, 0.9]}
+      activeSnapPoint={bookingStep === 'vehicle' ? 0.85 : 0.9}
       fadeFromIndex={2}
       handleOnly={false}
     >
@@ -111,33 +111,6 @@ export default function YangoBottomSheet({
               city={city}
             />
 
-            {/* Indicateur de scroll si plus de 3 véhicules */}
-            <div className="relative -mt-2 mb-2">
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
-                <motion.div
-                  animate={{ y: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                </motion.div>
-                <span className="font-medium">Faites défiler pour voir tous les véhicules</span>
-              </div>
-            </div>
-
-            {/* Barre de progression */}
-            <div className="flex items-center justify-center py-3">
-              <div className="w-24 h-1 bg-grey-200 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-primary to-primary/60"
-                  initial={{ width: '0%' }}
-                  animate={{ width: '100%' }}
-                  transition={{ duration: 1.5, ease: 'easeInOut' }}
-                />
-              </div>
-            </div>
-
             {/* Bouton Continuer rouge style Yango */}
             <motion.button
               whileHover={{ scale: 1.01 }}
@@ -152,7 +125,7 @@ export default function YangoBottomSheet({
                 "bg-gradient-to-r from-congo-red to-congo-red-electric shadow-xl",
                 "hover:shadow-2xl hover:from-congo-red-electric hover:to-congo-red",
                 "transition-all duration-300 transform",
-                "disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-95",
+                "disabled:opacity-60 disabled:cursor-not-allowed",
                 "flex items-center justify-center gap-2 text-white",
                 "active:shadow-inner"
               )}
@@ -165,6 +138,13 @@ export default function YangoBottomSheet({
                 <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
               </motion.div>
             </motion.button>
+
+            {/* Message d'aide si aucun véhicule sélectionné */}
+            {!selectedVehicle && (
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Sélectionnez un véhicule ci-dessus pour continuer
+              </p>
+            )}
 
             {/* Carte Réserver pour quelqu'un d'autre */}
             {isForSomeoneElse !== undefined && onToggleBeneficiary && (

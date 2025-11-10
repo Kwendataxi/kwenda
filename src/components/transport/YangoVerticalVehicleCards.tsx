@@ -140,6 +140,7 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
   // IMPORTANT: Ce useEffect DOIT être AVANT tout return conditionnel (règle des Hooks React)
   useEffect(() => {
     if (!selectedVehicleId && vehicles.length > 0) {
+      console.log('🚗 Auto-selecting first vehicle:', vehicles[0].id);
       onVehicleSelect(vehicles[0].id);
     }
   }, [vehicles, selectedVehicleId, onVehicleSelect]);
@@ -177,7 +178,7 @@ const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
   }
 
   return (
-    <div className="space-y-2.5 font-montserrat" style={{ willChange: 'transform' }}>
+    <div className="space-y-2 font-montserrat" style={{ willChange: 'transform' }}>
       {vehicles.map((vehicle, index) => {
         const isSelected = selectedVehicleId === vehicle.id;
 

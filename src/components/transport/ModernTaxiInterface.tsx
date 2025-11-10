@@ -175,21 +175,25 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   }, [calculatedPrice]);
 
   const handleContinueToDestination = () => {
-    // Validation si réservation pour autrui
+    // Validation UNIQUEMENT si le switch est activé ET aucun bénéficiaire sélectionné
     if (isForSomeoneElse && !selectedBeneficiary) {
       toast.error('Veuillez sélectionner un bénéficiaire', {
         description: 'Choisissez un contact ou ajoutez-en un nouveau'
       });
-      // Vibration d'erreur
       if ('vibrate' in navigator) {
         navigator.vibrate([100, 50, 100]);
       }
       return;
     }
     
+    // ✅ Ne pas bloquer si isForSomeoneElse est false
+    if (!selectedVehicle) {
+      toast.error('Veuillez sélectionner un véhicule');
+      return;
+    }
+    
     setBookingStep('destination');
     
-    // Vibration de succès
     if ('vibrate' in navigator) {
       navigator.vibrate(15);
     }
