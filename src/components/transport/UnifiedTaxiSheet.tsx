@@ -83,24 +83,24 @@ export default function UnifiedTaxiSheet({
       open={true} 
       dismissible={false}
       modal={false}
-      snapPoints={[0.5, 0.85]}
-      activeSnapPoint={0.85}
+      snapPoints={[0.6, 0.95]}
+      activeSnapPoint={0.95}
       fadeFromIndex={1}
       handleOnly={false}
     >
-      <DrawerContent className="max-h-[85vh] border-t-4 border-primary/10 shadow-2xl">
-        {/* Handle bar */}
-        <div className="flex items-center justify-center py-2 cursor-grab active:cursor-grabbing">
+      <DrawerContent 
+        className="h-[90vh] flex flex-col border-t-4 border-primary/10 shadow-2xl"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        {/* Handle bar - Fixed */}
+        <div className="flex-shrink-0 flex items-center justify-center py-2 cursor-grab active:cursor-grabbing">
           <div className="w-12 h-1.5 bg-gradient-to-r from-muted/40 via-muted to-muted/40 rounded-full shadow-sm" />
         </div>
 
-        {/* Contenu scrollable */}
-        <ScrollArea 
-          className="px-5 font-montserrat"
-          style={{ maxHeight: 'calc(85vh - 120px)' }}
-        >
+        {/* Contenu scrollable - Takes remaining space */}
+        <ScrollArea className="flex-1 overflow-y-auto px-5 font-montserrat">
           <div className="space-y-4 pb-6">
-            {/* Section 1 : Destination (sticky) */}
+            {/* Section 1 : Destination */}
             <CompactDestinationSearch
               destination={destination?.address || null}
               onOpenSearch={onDestinationSelect}
@@ -126,17 +126,25 @@ export default function UnifiedTaxiSheet({
           </div>
         </ScrollArea>
 
-        {/* CTA Sticky en bas */}
-        <div className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent border-t border-border/20 shadow-lg">
+        {/* CTA Button - Always visible */}
+        <div className="flex-shrink-0 bg-gradient-to-t from-background via-background/98 to-transparent pt-3 pb-4 px-4 border-t border-border/10">
           <motion.button
             whileHover={{ scale: canBook ? 1.02 : 1 }}
             whileTap={{ scale: canBook ? 0.98 : 1 }}
+            animate={canBook ? { 
+              boxShadow: [
+                "0 0 0 0 rgba(220, 38, 38, 0)",
+                "0 0 0 8px rgba(220, 38, 38, 0.1)",
+                "0 0 0 0 rgba(220, 38, 38, 0)"
+              ]
+            } : {}}
+            transition={{ duration: 1.5, repeat: Infinity }}
             onClick={handleBookClick}
             disabled={!canBook}
             className={cn(
-              "w-full py-4 rounded-2xl font-bold text-base transition-all duration-300 relative overflow-hidden shadow-xl",
+              "w-full py-4 rounded-2xl font-bold text-base transition-all duration-300 relative overflow-hidden",
               canBook
-                ? "bg-gradient-to-r from-congo-red to-congo-red-electric shadow-glow-red text-white hover:shadow-2xl"
+                ? "bg-gradient-to-r from-congo-red to-congo-red-electric text-white hover:shadow-2xl"
                 : "bg-muted/50 text-muted-foreground cursor-not-allowed"
             )}
           >
@@ -150,14 +158,19 @@ export default function UnifiedTaxiSheet({
             ) : !selectedVehicle ? (
               <span>🚗 Sélectionnez un véhicule</span>
             ) : (
-              <motion.div
-                animate={canBook ? { scale: [1, 1.05, 1] } : {}}
-                transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-                className="flex items-center justify-center gap-2"
-              >
-                <Zap className="w-4 h-4" />
+              <div className="flex items-center justify-center gap-3">
+                <Zap className="w-5 h-5" />
                 <span>Continuer</span>
-              </motion.div>
+                {selectedVehiclePrice > 0 && (
+                  <motion.span 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="ml-1 px-3 py-1 bg-white/20 rounded-full text-sm font-extrabold"
+                  >
+                    {selectedVehiclePrice.toLocaleString()} CDF
+                  </motion.span>
+                )}
+              </div>
             )}
           </motion.button>
         </div>

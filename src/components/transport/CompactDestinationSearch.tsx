@@ -29,9 +29,11 @@ export default function CompactDestinationSearch({
   const workFavorite = favorites.find(f => f.type === 'work');
 
   return (
-    <div className={cn("sticky top-0 z-20 bg-background/95 backdrop-blur-md pb-3 -mx-4 px-4 pt-2", className)}>
+    <div className={cn("bg-background/95 backdrop-blur-md pb-3", className)}>
       {/* Barre de recherche principale */}
       <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className="glass-card rounded-2xl overflow-hidden"
@@ -41,7 +43,7 @@ export default function CompactDestinationSearch({
             onOpenSearch();
             triggerHaptic();
           }}
-          className="w-full h-14 px-4 flex items-center gap-3 text-left"
+          className="w-full h-12 px-4 flex items-center gap-3 text-left"
         >
           <motion.div
             animate={destination ? { scale: [1, 1.1, 1] } : {}}
@@ -55,12 +57,17 @@ export default function CompactDestinationSearch({
           </motion.div>
           <div className="flex-1">
             {destination ? (
-              <div>
-                <p className="text-xs text-muted-foreground">Destination</p>
-                <p className="text-sm font-semibold text-foreground truncate">{destination}</p>
-              </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <p className="text-[10px] text-muted-foreground">Destination</p>
+                <p className="text-sm font-semibold text-foreground truncate">
+                  {destination.split(',')[0]}
+                </p>
+              </motion.div>
             ) : (
-              <p className="text-base text-muted-foreground">Où allez-vous ?</p>
+              <p className="text-sm text-muted-foreground">Où allez-vous ?</p>
             )}
           </div>
           {destination && (

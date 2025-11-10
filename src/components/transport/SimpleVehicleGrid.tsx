@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { Car, Bike, Users, Crown } from 'lucide-react';
+import { Car, Bike, Users, Crown, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useDriversCountByVehicle } from '@/hooks/useDriversCountByVehicle';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 
 interface VehicleOption {
   id: string;
@@ -36,10 +37,7 @@ export default function SimpleVehicleGrid({
   city
 }: SimpleVehicleGridProps) {
   const { counts, loading } = useDriversCountByVehicle(city);
-
-  const triggerHaptic = () => {
-    if ('vibrate' in navigator) navigator.vibrate(15);
-  };
+  const { triggerHaptic } = useHapticFeedback();
 
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -52,13 +50,17 @@ export default function SimpleVehicleGrid({
           <motion.button
             key={vehicle.id}
             initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              borderColor: isSelected ? "hsl(var(--primary))" : "hsl(var(--border) / 0.5)"
+            }}
             transition={{ delay: index * 0.05 }}
             whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => {
               onVehicleSelect(vehicle.id);
-              triggerHaptic();
+              triggerHaptic('medium');
             }}
             className={cn(
               "relative p-4 rounded-2xl border-2 transition-all duration-300 text-left",
@@ -74,11 +76,16 @@ export default function SimpleVehicleGrid({
               </Badge>
             )}
 
-            {/* Badge sélectionné */}
+            {/* Badge sélectionné avec animation */}
             {isSelected && (
-              <Badge className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] px-2 py-0.5">
-                ✓ Sélectionné
-              </Badge>
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="absolute -top-2 -right-2 bg-primary text-primary-foreground p-1.5 rounded-full shadow-lg"
+              >
+                <Check className="w-3.5 h-3.5" />
+              </motion.div>
             )}
 
             {/* Icône véhicule */}
@@ -138,9 +145,13 @@ export default function SimpleVehicleGrid({
             {/* Animation pulse si sélectionné */}
             {isSelected && (
               <motion.div
-                className="absolute inset-0 border-2 border-primary rounded-2xl"
-                animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0, 0.5] }}
-                transition={{ repeat: Infinity, duration: 2 }}
+                className="absolute inset-0 border-2 border-primary rounded-2xl pointer-events-none"
+                animate={{ 
+                  scale: [1, 1.03, 1], 
+                  opacity: [0.5, 0, 0.5],
+                  borderWidth: [2, 3, 2]
+                }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               />
             )}
           </motion.button>
