@@ -167,7 +167,7 @@ export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
 
       return availableServices;
     },
-    staleTime: 30 * 1000,        // 30 secondes - cache optimisé
+    staleTime: 5 * 1000,         // 5 secondes - refetch rapide quand city change
     gcTime: 5 * 60 * 1000,        // 5 minutes - garbage collection
     refetchOnMount: true,         // true au lieu de 'always'
     refetchOnWindowFocus: false,  // false pour éviter refetch trop fréquents

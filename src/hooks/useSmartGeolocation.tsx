@@ -48,7 +48,13 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (réduit pour fraîcheur des donn�
 export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentCity, setCurrentCity] = useState<CityConfig | null>(null);
+  const [currentCity, setCurrentCity] = useState<CityConfig | null>({
+    name: 'Kinshasa',
+    code: 'KIN',
+    countryCode: 'CD',
+    coordinates: { lat: -4.3276, lng: 15.3136 },
+    currency: 'CDF'
+  } as CityConfig);
   const [popularPlaces, setPopularPlaces] = useState<LocationSearchResult[]>([]);
   
   const abortControllerRef = useRef<AbortController>();
@@ -348,6 +354,8 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
     loading,
     error,
     currentCity,
+    currentLocation: null, // Pas de currentLocation dans ce hook (utiliser getCurrentPosition)
+    source: 'smart_geolocation' as const,
     getCurrentPosition,
     searchLocations,
     getPopularPlaces,

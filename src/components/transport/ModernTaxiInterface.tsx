@@ -47,6 +47,16 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [biddingEnabled, setBiddingEnabled] = useState(false);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
+  
+  // 🔍 LOG DE DEBUG - Tracker les changements de ville
+  useEffect(() => {
+    console.log('🌍 [ModernTaxiInterface] currentCity changed:', {
+      cityObject: currentCity,
+      cityName: currentCity?.name,
+      timestamp: new Date().toISOString()
+    });
+  }, [currentCity]);
+  
   // 🔧 PERF FIX: Mémoïser popularPlaces
   const popularPlaces = useMemo(() => getPopularPlaces(), [getPopularPlaces]);
   const { 
