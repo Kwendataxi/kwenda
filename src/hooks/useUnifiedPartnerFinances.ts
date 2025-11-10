@@ -22,6 +22,7 @@ interface UnifiedFinances {
   
   // Computed
   netEarnings: number;
+  revenueTrend: number | null;
   loading: boolean;
 }
 
@@ -77,6 +78,7 @@ export const useUnifiedPartnerFinances = (range: '7d' | '30d' | 'all' = '30d') =
     pendingWithdrawals: withdrawalStats.totalPending || 0,
     availableForWithdrawal: withdrawalStats.availableBalance || 0,
     netEarnings: (earningsData?.totals.totalPartnerCommission || 0) - (withdrawalStats.totalPaid || 0),
+    revenueTrend: null, // TODO: Calculate from historical data
     loading
   };
 

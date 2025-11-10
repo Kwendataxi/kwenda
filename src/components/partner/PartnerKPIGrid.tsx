@@ -34,9 +34,9 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
   const totalFleet = stats?.totalFleet || 0;
   const availableVehicles = stats?.availableVehicles || 0;
 
-  // Calculate trends (mock data - should come from backend)
-  const driversTrend = 12;
-  const revenueTrend = 8.5;
+  // Use real trends from stats
+  const driversTrend = stats?.driversTrend || 0;
+  const revenueTrend = stats?.revenueTrend || 0;
 
   return (
     <div className="p-4 space-y-4">

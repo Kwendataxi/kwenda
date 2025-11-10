@@ -19,7 +19,7 @@ import {
   Filter
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { usePartnerEarnings } from '@/hooks/usePartnerEarnings';
+import { usePartnerAnalytics } from '@/hooks/usePartnerAnalytics';
 
 interface AnalyticsCardProps {
   title: string;
@@ -65,63 +65,37 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({
 
 export const PartnerAnalyticsDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('30d');
-  const { data: earningsData, loading } = usePartnerEarnings();
+  const { data: analyticsData, isLoading: loading } = usePartnerAnalytics();
 
-  const performanceMetrics = [
+  const performanceMetrics = analyticsData ? [
     {
       title: "Revenus Totaux",
-      value: "2,450,000 CDF",
-      change: { value: 23, type: 'increase' as const, period: 'vs mois dernier' },
+      value: `${analyticsData.totalRevenue.toLocaleString()} CDF`,
       icon: DollarSign,
       color: "text-green-600"
     },
     {
       title: "Courses Complétées",
-      value: "847",
-      change: { value: 15, type: 'increase' as const, period: 'ce mois' },
+      value: analyticsData.totalRides.toString(),
       icon: Car,
       color: "text-blue-600"
     },
     {
       title: "Taux de Satisfaction",
-      value: "4.8/5",
-      change: { value: 2, type: 'increase' as const, period: 'cette semaine' },
+      value: `${analyticsData.satisfactionScore}/5`,
       icon: Star,
       color: "text-yellow-600"
     },
     {
-      title: "Temps Réponse Moy.",
-      value: "2.4 min",
-      change: { value: 8, type: 'decrease' as const, period: 'amélioration' },
+      title: "Portefeuille",
+      value: `${analyticsData.finances.walletBalance.toLocaleString()} ${analyticsData.finances.walletCurrency}`,
       icon: Clock,
       color: "text-purple-600"
     }
-  ];
+  ] : [];
 
-  const weeklyPerformance = [
-    { day: "Lun", rides: 120, revenue: 456000, efficiency: 85 },
-    { day: "Mar", rides: 135, revenue: 523000, efficiency: 92 },
-    { day: "Mer", rides: 98, revenue: 389000, efficiency: 78 },
-    { day: "Jeu", rides: 142, revenue: 568000, efficiency: 94 },
-    { day: "Ven", rides: 156, revenue: 624000, efficiency: 98 },
-    { day: "Sam", rides: 89, revenue: 342000, efficiency: 76 },
-    { day: "Dim", rides: 67, revenue: 258000, efficiency: 68 }
-  ];
-
-  const topDrivers = [
-    { name: "Jean Kouassi", rides: 89, rating: 4.9, revenue: 234500 },
-    { name: "Marie Diallo", rides: 76, rating: 4.8, revenue: 198300 },
-    { name: "Paul Yao", rides: 65, rating: 4.7, revenue: 176800 },
-    { name: "Fatou Traoré", rides: 58, rating: 4.8, revenue: 164200 },
-    { name: "Ahmed Kone", rides: 52, rating: 4.6, revenue: 145600 }
-  ];
-
-  const costBreakdown = [
-    { category: "Carburant", amount: 185600, percentage: 38, color: "bg-red-500" },
-    { category: "Maintenance", amount: 125400, percentage: 26, color: "bg-blue-500" },
-    { category: "Assurance", amount: 95200, percentage: 20, color: "bg-green-500" },
-    { category: "Divers", amount: 79400, percentage: 16, color: "bg-yellow-500" }
-  ];
+  const weeklyPerformance = analyticsData?.weeklyPerformance || [];
+  const topDrivers = analyticsData?.topDrivers || [];
 
   if (loading) {
     return (
@@ -198,27 +172,34 @@ export const PartnerAnalyticsDashboard: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {weeklyPerformance.map((day, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium w-12">{day.day}</span>
-                        <div className="flex items-center gap-4 flex-1 mx-4">
-                          <div className="flex-1">
-                            <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                              <span>{day.rides} courses</span>
-                              <span>{day.revenue.toLocaleString()} CDF</span>
+                {weeklyPerformance.length > 0 ? (
+                  <div className="space-y-4">
+                    {weeklyPerformance.map((day, index) => {
+                      const maxRides = Math.max(...weeklyPerformance.map(d => d.rides), 1);
+                      return (
+                        <div key={index} className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium w-12">{day.day}</span>
+                            <div className="flex items-center gap-4 flex-1 mx-4">
+                              <div className="flex-1">
+                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                  <span>{day.rides} courses</span>
+                                  <span>{day.revenue.toLocaleString()} CDF</span>
+                                </div>
+                                <Progress value={(day.rides / maxRides) * 100} className="h-2" />
+                              </div>
                             </div>
-                            <Progress value={(day.rides / 156) * 100} className="h-2" />
+                            <Badge variant={day.efficiency >= 90 ? 'default' : day.efficiency >= 75 ? 'secondary' : 'destructive'}>
+                              {day.efficiency}%
+                            </Badge>
                           </div>
                         </div>
-                        <Badge variant={day.efficiency >= 90 ? 'default' : day.efficiency >= 75 ? 'secondary' : 'destructive'}>
-                          {day.efficiency}%
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">Aucune donnée disponible</p>
+                )}
               </CardContent>
             </Card>
 
@@ -275,61 +256,62 @@ export const PartnerAnalyticsDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="financial" className="space-y-6">
-            {/* Revenue vs Costs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenus Totaux</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600 mb-2">2,450,000 CDF</div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <TrendingUp className="h-4 w-4 mr-1 text-green-600" />
-                    +23% vs mois dernier
-                  </div>
-                </CardContent>
-              </Card>
+            {analyticsData ? (
+              <>
+                {/* Revenue Card */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Revenus Totaux</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-green-600 mb-2">
+                        {analyticsData.totalRevenue.toLocaleString()} CDF
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Revenus du mois en cours
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Coûts Opérationnels</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-red-500 mb-2">485,600 CDF</div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <TrendingDown className="h-4 w-4 mr-1 text-green-600" />
-                    -5% vs mois dernier
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Cost Breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Répartition des Coûts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {costBreakdown.map((cost, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">{cost.category}</span>
-                        <span className="text-sm font-bold">
-                          {cost.amount.toLocaleString()} CDF ({cost.percentage}%)
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Finances</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Commissions</span>
+                        <span className="font-bold">{analyticsData.finances.totalCommissions.toLocaleString()} CDF</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Retraits</span>
+                        <span className="font-bold">{analyticsData.finances.totalWithdrawn.toLocaleString()} CDF</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-2">
+                        <span className="text-sm font-medium">Disponible</span>
+                        <span className="font-bold text-green-600">
+                          {analyticsData.finances.availableForWithdrawal.toLocaleString()} CDF
                         </span>
                       </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${cost.color}`}
-                          style={{ width: `${cost.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Cost tracking note */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Coûts Opérationnels</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground text-center py-8">
+                      Le suivi des coûts détaillés sera bientôt disponible
+                    </p>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">Chargement des données financières...</p>
+            )}
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">
@@ -377,29 +359,33 @@ export const PartnerAnalyticsDashboard: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {topDrivers.map((driver, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="w-8 h-8 rounded-full p-0 flex items-center justify-center">
-                          {index + 1}
-                        </Badge>
-                        <div>
-                          <p className="font-semibold">{driver.name}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                            <span>{driver.rating}</span>
-                            <span>• {driver.rides} courses</span>
+                {topDrivers.length > 0 ? (
+                  <div className="space-y-4">
+                    {topDrivers.map((driver, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="w-8 h-8 rounded-full p-0 flex items-center justify-center">
+                            {index + 1}
+                          </Badge>
+                          <div>
+                            <p className="font-semibold">{driver.name}</p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                              <span>{driver.rating.toFixed(1)}</span>
+                              <span>• {driver.rides} courses</span>
+                            </div>
                           </div>
                         </div>
+                        <div className="text-right">
+                          <p className="font-bold">{driver.revenue.toLocaleString()} CDF</p>
+                          <p className="text-xs text-muted-foreground">Revenus générés</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold">{driver.revenue.toLocaleString()} CDF</p>
-                        <p className="text-xs text-muted-foreground">Revenus générés</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">Aucun chauffeur actif ce mois</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

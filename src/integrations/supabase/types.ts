@@ -8815,6 +8815,27 @@ export type Database = {
             referencedRelation: "rental_vehicle_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "rental_vehicles_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_vehicles_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_vehicles_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_stats"
+            referencedColumns: ["partner_id"]
+          },
         ]
       }
       restaurant_audit_logs: {

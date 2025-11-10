@@ -73,10 +73,21 @@ serve(async (req) => {
         updated_at: new Date().toISOString()
       })
       .eq('id', vehicle_id)
-      .select('*, partenaires!rental_vehicles_partner_id_fkey(company_name, user_id)')
+      .select('*')
       .single();
 
     if (updateError) throw updateError;
+
+    // Fetch partner data separately
+    let partnerData = null;
+    if (vehicle.partner_id) {
+      const { data } = await supabaseAdmin
+        .from('partenaires')
+        .select('company_name, user_id')
+        .eq('id', vehicle.partner_id)
+        .maybeSingle();
+      partnerData = data;
+    }
 
     // Logger l'action
     await supabaseAdmin.from('activity_logs').insert({
@@ -89,17 +100,14 @@ serve(async (req) => {
     });
 
     // Notifier le partenaire
-    if (vehicle.partenaires?.user_id) {
-      await supabaseAdmin.from('notifications').insert({
-        user_id: vehicle.partenaires.user_id,
-        user_type: 'partner',
+    if (partnerData?.user_id) {
+      await supabaseAdmin.from('user_notifications').insert({
+        user_id: partnerData.user_id,
         title: '✅ Véhicule approuvé',
         message: `Votre véhicule "${vehicle.name}" est maintenant visible par les clients`,
-        type: 'vehicle_approved',
-        priority: 'normal',
-        severity: 'success',
-        data: { vehicle_id, vehicle_name: vehicle.name },
-        is_read: false
+        type: 'success',
+        is_read: false,
+        metadata: { vehicle_id, vehicle_name: vehicle.name }
       });
     }
 

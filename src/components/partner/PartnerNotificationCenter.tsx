@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,79 +9,37 @@ import {
   CheckCircle, 
   Info, 
   X,
-  Filter,
   Settings,
   Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
-
-interface Notification {
-  id: string;
-  type: 'success' | 'warning' | 'info' | 'error';
-  title: string;
-  message: string;
-  timestamp: Date;
-  isRead: boolean;
-  actionRequired?: boolean;
-  metadata?: any;
-}
+import { usePartnerNotifications } from '@/hooks/usePartnerNotifications';
 
 export const PartnerNotificationCenter: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread' | 'important'>('all');
   const { toast } = useToast();
+  const { 
+    notifications: rawNotifications, 
+    unreadCount: apiUnreadCount,
+    loading,
+    markAsRead: apiMarkAsRead, 
+    markAllAsRead: apiMarkAllAsRead 
+  } = usePartnerNotifications();
 
-  // Mock notifications - replace with real data
-  useEffect(() => {
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'warning',
-        title: 'Maintenance Requise',
-        message: 'Le véhicule ABC-123 nécessite une révision dans 3 jours',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        isRead: false,
-        actionRequired: true
-      },
-      {
-        id: '2',
-        type: 'success',
-        title: 'Commission Versée',
-        message: 'Commission de 45,000 CDF versée pour la semaine du 18/03',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        isRead: false
-      },
-      {
-        id: '3',
-        type: 'info',
-        title: 'Nouveau Chauffeur',
-        message: 'Jean Kouassi a rejoint votre flotte et est maintenant actif',
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        isRead: true
-      },
-      {
-        id: '4',
-        type: 'error',
-        title: 'Document Expiré',
-        message: 'L\'assurance du véhicule XYZ-789 expire dans 7 jours',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        isRead: false,
-        actionRequired: true
-      },
-      {
-        id: '5',
-        type: 'info',
-        title: 'Nouvelle Fonctionnalité',
-        message: 'Analytics avancées maintenant disponibles dans votre dashboard',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        isRead: true
-      }
-    ];
-    setNotifications(mockNotifications);
-  }, []);
+  // Transform API notifications to component format
+  const notifications = rawNotifications.map(n => ({
+    id: n.id,
+    type: n.type as 'success' | 'warning' | 'info' | 'error',
+    title: n.title,
+    message: n.message,
+    timestamp: new Date(n.created_at),
+    isRead: n.is_read,
+    actionRequired: n.type === 'warning' || n.type === 'error',
+    metadata: n.metadata
+  }));
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: 'success' | 'warning' | 'info' | 'error') => {
     switch (type) {
       case 'success':
         return CheckCircle;
@@ -94,7 +52,7 @@ export const PartnerNotificationCenter: React.FC = () => {
     }
   };
 
-  const getNotificationColor = (type: Notification['type']) => {
+  const getNotificationColor = (type: 'success' | 'warning' | 'info' | 'error') => {
     switch (type) {
       case 'success':
         return 'text-green-600';
@@ -107,22 +65,16 @@ export const PartnerNotificationCenter: React.FC = () => {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => prev.map(notif => 
-      notif.id === id ? { ...notif, isRead: true } : notif
-    ));
+  const markAsRead = async (id: string) => {
+    await apiMarkAsRead(id);
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+  const markAllAsRead = async () => {
+    await apiMarkAllAsRead();
     toast({
       title: "Notifications marquées comme lues",
       description: "Toutes vos notifications ont été marquées comme lues."
     });
-  };
-
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
   const formatTimeAgo = (timestamp: Date) => {
@@ -149,8 +101,21 @@ export const PartnerNotificationCenter: React.FC = () => {
     }
   });
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = apiUnreadCount;
   const importantCount = notifications.filter(n => n.actionRequired && !n.isRead).length;
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-20 bg-muted rounded-xl" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-24 bg-muted rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -286,7 +251,6 @@ export const PartnerNotificationCenter: React.FC = () => {
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteNotification(notification.id);
                                 }}
                               >
                                 <X className="h-4 w-4" />

@@ -191,7 +191,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.monthlyEarnings?.toLocaleString() || '0'} CDF</div>
+            <div className="text-2xl font-bold">{stats?.monthlyRevenue?.toLocaleString() || '0'} CDF</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <DollarSign className="h-3 w-3 mr-1 text-primary" />
               Commissions 15%
