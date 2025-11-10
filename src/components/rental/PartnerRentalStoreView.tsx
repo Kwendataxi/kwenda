@@ -240,11 +240,23 @@ export const PartnerRentalStoreView = () => {
     );
   }
 
+  // Génère un logo fallback avec initiales si pas d'avatar
+  const generateLogoFallback = (name: string) => {
+    const initials = name.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase();
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary via-primary/80 to-primary/60">
+        <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-lg">
+          {initials}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Facebook-Style Banner with Floating Particles */}
+      {/* Facebook-Style Banner with Floating Particles - Hauteur réduite pour mobile */}
       <motion.div 
-        className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden"
+        className="relative h-40 sm:h-56 md:h-72 lg:h-80 overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
@@ -310,21 +322,25 @@ export const PartnerRentalStoreView = () => {
         )}
       </motion.div>
 
-      {/* Facebook-Style Logo Container (Overlap) */}
+      {/* Facebook-Style Logo Container (Overlap) - Marges réduites pour mobile */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-16 sm:-mt-20 relative z-20">
-          {/* Avatar with Hover Effect */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 -mt-12 sm:-mt-16 md:-mt-20 relative z-20">
+          {/* Avatar with Hover Effect & Fallback */}
           <motion.div 
             className="relative shrink-0"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full border-4 sm:border-[6px] border-background shadow-2xl overflow-hidden bg-background">
-              <img 
-                src={partnerData.avatar_url || '/placeholder.svg'}
-                alt={partnerData.company_name}
-                className="w-full h-full object-cover"
-              />
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full border-4 sm:border-[6px] border-background shadow-2xl overflow-hidden bg-white">
+              {partnerData.avatar_url ? (
+                <img 
+                  src={partnerData.avatar_url}
+                  alt={partnerData.company_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                generateLogoFallback(partnerData.company_name)
+              )}
             </div>
             {/* Badge Tier with Rotation Hover */}
             <motion.div 
@@ -336,13 +352,17 @@ export const PartnerRentalStoreView = () => {
           </motion.div>
           
           {/* Company Info */}
-          <div className="flex-1 text-center sm:text-left pb-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2">
+          <div className="flex-1 text-center sm:text-left pb-3 sm:pb-4">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 break-words">
               {partnerData.company_name}
             </h1>
-            {partnerData.slogan && (
+            {partnerData.slogan ? (
               <p className="text-sm sm:text-base md:text-lg text-muted-foreground">
                 {partnerData.slogan}
+              </p>
+            ) : (
+              <p className="text-xs sm:text-sm text-muted-foreground italic">
+                {partnerData.stats.available_vehicles} véhicule{partnerData.stats.available_vehicles > 1 ? 's' : ''} disponible{partnerData.stats.available_vehicles > 1 ? 's' : ''}
               </p>
             )}
           </div>
