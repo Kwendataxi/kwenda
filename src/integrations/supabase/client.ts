@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { supabaseCircuitBreaker } from '@/lib/circuitBreaker';
+import { logger } from '@/utils/logger';
 
 const SUPABASE_URL = "https://wddlktajnhwhyquwcdgf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZGxrdGFqbmh3aHlxdXdjZGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNDA1NjUsImV4cCI6MjA2OTcxNjU2NX0.rViBegpawtg1sFwafH_fczlB0oeA8E6V3MtDELcSIiU";
@@ -22,16 +23,31 @@ const baseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
     headers: {
       'X-Client-Info': 'kwenda-vtc/1.0.0'
     },
-    fetch: (url, options = {}) => {
-      // ✅ Timeout augmenté à 10 secondes pour éviter les timeouts prématurés
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
-      return fetch(url, {
-        ...options,
-        signal: controller.signal,
-        credentials: 'same-origin' // ✅ Inclure les cookies pour l'authentification
-      }).finally(() => clearTimeout(timeoutId));
+    fetch: async (url, options = {}) => {
+      // ✅ Wrapping avec circuit breaker pour protection cascade
+      return supabaseCircuitBreaker.execute(async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        try {
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+            credentials: 'same-origin'
+          });
+          clearTimeout(timeoutId);
+          
+          if (!response.ok && response.status >= 500) {
+            logger.warn(`⚠️ Supabase server error ${response.status}: ${url}`);
+          }
+          
+          return response;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          logger.error('❌ Supabase fetch error:', error);
+          throw error;
+        }
+      });
     }
   },
   db: {
