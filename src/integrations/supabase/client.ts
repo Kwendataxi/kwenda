@@ -24,10 +24,15 @@ const baseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
       'X-Client-Info': 'kwenda-vtc/1.0.0'
     },
     fetch: async (url, options = {}) => {
-      // ✅ Wrapping avec circuit breaker pour protection cascade
-      return supabaseCircuitBreaker.execute(async () => {
+      // BYPASS circuit breaker pour l'authentification
+      const isAuthRequest = url.includes('/auth/v1/token') || 
+                           url.includes('/auth/v1/signup') ||
+                           url.includes('/auth/v1/recover') ||
+                           url.includes('/auth/v1/user');
+      
+      const executeFetch = async () => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s au lieu de 10s
         
         try {
           const response = await fetch(url, {
@@ -47,7 +52,16 @@ const baseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
           logger.error('❌ Supabase fetch error:', error);
           throw error;
         }
-      });
+      };
+      
+      // Si authentification, bypasser le circuit breaker
+      if (isAuthRequest) {
+        logger.info('🔓 Auth request - bypassing circuit breaker');
+        return executeFetch();
+      }
+      
+      // Sinon, utiliser le circuit breaker
+      return supabaseCircuitBreaker.execute(executeFetch);
     }
   },
   db: {

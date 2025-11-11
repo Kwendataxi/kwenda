@@ -46,6 +46,8 @@ import { useServiceRealtime } from "./hooks/useServiceRealtime";
 import { autoUpdateService } from "@/services/AutoUpdateService";
 import { initVersionDebug } from "@/utils/versionDebug";
 import { migrateToDefaultLightTheme } from "@/utils/themeMigration";
+import { CircuitBreakerReset } from "@/components/debug/CircuitBreakerReset";
+import { ConnectionStatus } from "@/components/layout/ConnectionStatus";
 
 // Critical imports
 import Index from "./pages/Index";
@@ -173,6 +175,8 @@ const AppContent = () => {
                   </PerformanceOptimizer>
                   <OfflineIndicator />
                   <ClickTracker />
+                  <CircuitBreakerReset />
+                  <ConnectionStatus />
                 </DynamicTheme>
               </AppReadyProvider>
             </DegradedModeProvider>
