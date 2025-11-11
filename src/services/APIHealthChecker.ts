@@ -51,13 +51,11 @@ export class APIHealthChecker {
   }
 
   public startMonitoring() {
-    // Check immédiat
+    // ✅ OPTIMISATION : Check unique au démarrage seulement
+    // Plus de polling répétitif pour économiser batterie et bande passante
     this.checkAllEndpoints();
-
-    // Check toutes les 2 minutes
-    this.checkInterval = setInterval(() => {
-      this.checkAllEndpoints();
-    }, 120000); // 2 minutes
+    
+    // Les checks ultérieurs se feront uniquement sur demande via forceCheck()
   }
 
   private async checkAllEndpoints() {

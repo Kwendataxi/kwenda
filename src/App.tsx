@@ -48,6 +48,7 @@ import { initVersionDebug } from "@/utils/versionDebug";
 import { migrateToDefaultLightTheme } from "@/utils/themeMigration";
 import { CircuitBreakerReset } from "@/components/debug/CircuitBreakerReset";
 import { ConnectionStatus } from "@/components/layout/ConnectionStatus";
+import { PerformanceDashboard } from "@/components/debug/PerformanceDashboard";
 
 // Critical imports
 import Index from "./pages/Index";
@@ -177,6 +178,7 @@ const AppContent = () => {
                   <ClickTracker />
                   <CircuitBreakerReset />
                   <ConnectionStatus />
+                  <PerformanceDashboard />
                 </DynamicTheme>
               </AppReadyProvider>
             </DegradedModeProvider>

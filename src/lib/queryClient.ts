@@ -3,7 +3,7 @@
  * Cache intelligent, retry automatique, monitoring centralisé
  */
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryCache } from '@tanstack/react-query';
 import { logger } from '@/utils/logger';
 
 export const queryClient = new QueryClient({
@@ -33,4 +33,19 @@ export const queryClient = new QueryClient({
       },
     },
   },
+  // ✅ PHASE 4 : Monitoring des performances
+  queryCache: new QueryCache({
+    onSuccess: (data, query) => {
+      const duration = Date.now() - (query.state.dataUpdatedAt || Date.now());
+      if (duration > 1000) {
+        logger.warn(`⏱️ [React Query] Slow query (${duration}ms):`, query.queryKey);
+      }
+    },
+    onError: (error, query) => {
+      logger.error('❌ [React Query] Query error:', { 
+        queryKey: query.queryKey, 
+        error 
+      });
+    },
+  }),
 });

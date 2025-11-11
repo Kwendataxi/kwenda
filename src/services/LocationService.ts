@@ -189,19 +189,16 @@ class LocationServiceClass {
   }
 
   private async getIPFromIPInfo(): Promise<LocationData> {
-    const response = await fetch('https://ipinfo.io/json?token=demo');
-    const data = await response.json();
+    // ✅ OPTIMISATION : Utiliser le cache localStorage
+    const { IPGeolocationCache } = await import('./IPGeolocationCache');
     
-    if (!data.loc) throw new Error('IPInfo failed');
-    
-    const [lat, lng] = data.loc.split(',').map(Number);
-    
+    const cached = await IPGeolocationCache.getOrFetch();
     return {
-      address: `${data.city || 'Unknown'}, ${data.region || 'Unknown'}, ${data.country || 'Unknown'}`,
-      lat,
-      lng,
+      address: `${cached.city}, ${cached.country}`,
+      lat: cached.latitude,
+      lng: cached.longitude,
       type: 'ip',
-      accuracy: 10000
+      accuracy: cached.accuracy
     };
   }
 

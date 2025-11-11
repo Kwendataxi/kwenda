@@ -151,37 +151,21 @@ export class IPGeolocationService {
   }
 
   private async getLocationFromIPInfo(): Promise<IPLocationResult> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7000);
+    // ✅ OPTIMISATION : Utiliser le cache localStorage
+    const { IPGeolocationCache } = await import('./IPGeolocationCache');
     
     try {
-      const response = await fetch('https://ipinfo.io/json', {
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'Kwenda-App/1.0',
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (!response.ok) throw new Error(`IPInfo HTTP ${response.status}`);
-      
-      const data = await response.json();
-      
-      if (data.loc) {
-        const [lat, lng] = data.loc.split(',').map(Number);
-        return {
-          latitude: lat,
-          longitude: lng,
-          city: data.city || 'Unknown',
-          country: data.country || 'Unknown',
-          accuracy: 12000, // Optimisé pour l'Afrique
-          provider: 'ipinfo.io'
-        };
-      }
-      
-      throw new Error('Invalid response from ipinfo.io');
-    } finally {
-      clearTimeout(timeoutId);
+      const cached = await IPGeolocationCache.getOrFetch();
+      return {
+        latitude: cached.latitude,
+        longitude: cached.longitude,
+        city: cached.city,
+        country: cached.country,
+        accuracy: cached.accuracy,
+        provider: cached.provider
+      };
+    } catch (error) {
+      throw new Error('IPInfo failed with cache');
     }
   }
 

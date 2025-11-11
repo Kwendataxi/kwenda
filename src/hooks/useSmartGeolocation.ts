@@ -827,45 +827,35 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
 }
 
 async function getIPPosition(): Promise<LocationData> {
-  // Essayer plusieurs services IP en parallèle
-  const services = [
-    fetch('http://ip-api.com/json/?fields=status,lat,lon,city,country,regionName')
-      .then(res => res.json())
-      .then(data => {
-        if (data.status !== 'success') throw new Error('IPAPI failed');
-        return {
-          address: `${data.city}, ${data.regionName}, ${data.country}`,
-          lat: data.lat,
-          lng: data.lon,
-          type: 'ip' as const,
-          accuracy: 10000,
-          confidence: 0.7
-        };
-      }),
+  // ✅ OPTIMISATION : Utiliser le cache localStorage au lieu d'appels API multiples
+  const { IPGeolocationCache } = await import('@/services/IPGeolocationCache');
+  
+  try {
+    const cached = await IPGeolocationCache.getOrFetch();
+    return {
+      address: `${cached.city}, ${cached.country}`,
+      lat: cached.latitude,
+      lng: cached.longitude,
+      type: 'ip' as const,
+      accuracy: cached.accuracy,
+      confidence: 0.7
+    };
+  } catch (error) {
+    // Fallback sur ip-api.com seulement si cache échoue
+    const response = await fetch('http://ip-api.com/json/?fields=status,lat,lon,city,country,regionName');
+    const data = await response.json();
     
-    fetch('https://ipinfo.io/json')
-      .then(res => res.json())
-      .then(data => {
-        if (!data.loc) throw new Error('IPInfo failed');
-        const [lat, lng] = data.loc.split(',').map(Number);
-        return {
-          address: `${data.city || 'Unknown'}, ${data.region || 'Unknown'}, ${data.country || 'Unknown'}`,
-          lat,
-          lng,
-          type: 'ip' as const,
-          accuracy: 10000,
-          confidence: 0.7
-        };
-      })
-  ];
-
-  return Promise.race(services.map(service => service.catch(err => err)))
-    .then(result => {
-      if (result instanceof Error) {
-        throw result;
-      }
-      return result;
-    });
+    if (data.status !== 'success') throw new Error('All IP services failed');
+    
+    return {
+      address: `${data.city}, ${data.regionName}, ${data.country}`,
+      lat: data.lat,
+      lng: data.lon,
+      type: 'ip' as const,
+      accuracy: 10000,
+      confidence: 0.7
+    };
+  }
 }
 
 async function getDatabasePosition(): Promise<LocationData> {
