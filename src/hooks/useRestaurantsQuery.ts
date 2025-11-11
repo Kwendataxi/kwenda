@@ -39,10 +39,10 @@ export const useRestaurantsQuery = (city: string) => {
       
       return (data || []) as Restaurant[];
     },
-    staleTime: 0, // Force refresh - no cache
-    gcTime: 0, // No cache time (replaces cacheTime in v5)
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    staleTime: 10 * 60 * 1000, // ✅ 10 minutes - données statiques
+    gcTime: 30 * 60 * 1000, // ✅ 30 minutes
+    refetchOnMount: false, // ✅ Utiliser cache si disponible
+    refetchOnWindowFocus: false, // ✅ Pas de refetch inutile
   });
   
   const forceRefresh = () => {

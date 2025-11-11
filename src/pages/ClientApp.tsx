@@ -98,8 +98,8 @@ import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useAuth } from '@/hooks/useAuth';
-import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { dataCache } from '@/services/dataCache';
+import { useQueryClient } from '@tanstack/react-query';
 import { retryWithBackoff } from '@/utils/retryWithBackoff';
 import { logDataLoss } from '@/utils/errorLogger';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
@@ -145,13 +145,13 @@ interface PackageType {
 
 const ClientApp = () => {
   const { user } = useAuth();
-  const { isSessionValid } = useSessionGuard();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, language, setLanguage, formatCurrency } = useLanguage();
   const { compressData, decompressData } = useDataCompression();
   const { optimizations, measureLoadTime } = usePerformanceMonitor();
   const { transitionToView } = useViewTransition();
+  const queryClient = useQueryClient();
   const [currentView, setCurrentView] = useState('home');
   const [serviceType, setServiceType] = useState<'transport' | 'delivery' | 'marketplace' | 'rental' | 'food'>('transport');
   const [isLoading, setIsLoading] = useState(false);
@@ -255,6 +255,62 @@ const ClientApp = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+
+  // ✅ PHASE 2 : Prefetch stratégique des données probables
+  useEffect(() => {
+    if (!user) return;
+    
+    console.log('🚀 [ClientApp] Prefetch stratégique des données...');
+    
+    // Prefetch restaurants (l'utilisateur va probablement commander)
+    queryClient.prefetchQuery({
+      queryKey: ['restaurants', 'Kinshasa'], // TODO: Utiliser la ville de l'utilisateur
+      queryFn: async () => {
+        const { data } = await supabase
+          .from('restaurant_profiles')
+          .select('*')
+          .ilike('city', 'Kinshasa')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+        return data || [];
+      },
+      staleTime: 10 * 60 * 1000 // 10 minutes
+    });
+    
+    // Prefetch marketplace products
+    queryClient.prefetchQuery({
+      queryKey: ['all-marketplace-products', {
+        search: '',
+        categories: [],
+        priceRange: [0, 2000000],
+        conditions: [],
+        minRating: 0,
+        maxDistance: 50,
+        availableOnly: false
+      }, { field: 'popularity_score', direction: 'desc' }, 1],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from('marketplace_products')
+          .select(`
+            *,
+            vendor_profiles!inner(
+              shop_name,
+              shop_logo_url,
+              average_rating,
+              total_sales
+            )
+          `)
+          .eq('status', 'active')
+          .eq('moderation_status', 'approved')
+          .order('popularity_score', { ascending: false })
+          .range(0, 19);
+        return { products: data || [], totalCount: 0, totalPages: 0 };
+      },
+      staleTime: 10 * 60 * 1000 // 10 minutes
+    });
+    
+    console.log('✅ [ClientApp] Prefetch terminé');
+  }, [user, queryClient]);
 
   // Fetch products from Supabase - ✅ Avec cache persistant et retry logic
   useEffect(() => {
@@ -364,7 +420,7 @@ const ClientApp = () => {
     };
 
     fetchProducts();
-  }, [user?.id, isSessionValid]);
+  }, [user?.id]);
 
   // Use either real products or fallback to empty array
   const mockProducts = marketplaceProducts;

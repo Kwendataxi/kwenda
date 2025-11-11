@@ -113,7 +113,9 @@ export const useDriverDocuments = () => {
         return doc;
       });
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // ✅ 5 minutes - données utilisateur
+    gcTime: 15 * 60 * 1000 // ✅ 15 minutes
   });
 
   // Upload document

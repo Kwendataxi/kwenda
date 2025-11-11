@@ -205,5 +205,7 @@ export const usePartnerAnalytics = () => {
       };
     },
     enabled: !!user?.id,
+    staleTime: 3 * 60 * 1000, // ✅ 3 minutes - données analytics
+    gcTime: 10 * 60 * 1000 // ✅ 10 minutes
   });
 };

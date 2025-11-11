@@ -136,8 +136,8 @@ export const useAllMarketplaceProducts = () => {
         totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE)
       };
     },
-    staleTime: 30000,
-    gcTime: 60000
+    staleTime: 10 * 60 * 1000, // ✅ 10 minutes au lieu de 30s
+    gcTime: 30 * 60 * 1000 // ✅ 30 minutes au lieu de 60s
   });
 
   const updateFilters = (newFilters: Partial<Filters>) => {

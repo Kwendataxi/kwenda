@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               event: _event, 
               hasSession: !!session, 
               userId: session?.user?.id,
-              sessionReady, // ✅ AJOUTER pour debug
+              sessionReady,
               timestamp: new Date().toISOString()
             });
             setSession(session);
@@ -108,6 +108,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       authSubscription?.unsubscribe();
     };
   }, []);
+
+  // ✅ Auto-refresh session 5 minutes AVANT expiration
+  useEffect(() => {
+    if (!session?.expires_at) return;
+    
+    const expiresAt = session.expires_at * 1000; // Convert to milliseconds
+    const now = Date.now();
+    const timeUntilExpiry = expiresAt - now;
+    const refreshTime = Math.max(timeUntilExpiry - 5 * 60 * 1000, 0); // 5 min avant
+    
+    if (refreshTime > 0) {
+      logger.info(`⏰ [AuthProvider] Auto-refresh programmé dans ${Math.round(refreshTime / 1000 / 60)} minutes`);
+      
+      const refreshTimeout = setTimeout(async () => {
+        logger.info('🔄 [AuthProvider] Auto-refresh de la session...');
+        const { error } = await supabase.auth.refreshSession();
+        if (error) {
+          logger.error('❌ [AuthProvider] Erreur auto-refresh:', error);
+        } else {
+          logger.info('✅ [AuthProvider] Session rafraîchie avec succès');
+        }
+      }, refreshTime);
+      
+      return () => clearTimeout(refreshTimeout);
+    }
+  }, [session]);
 
   const signOut = async () => {
     // Récupérer le rôle AVANT la déconnexion pour redirection intelligente

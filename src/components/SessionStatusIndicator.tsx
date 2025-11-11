@@ -8,14 +8,23 @@ export const SessionStatusIndicator = () => {
   
   useEffect(() => {
     const checkSession = async () => {
+      // ✅ Utiliser le listener onAuthStateChange au lieu du polling
       const { data: { session } } = await supabase.auth.getSession();
-      setIsValid(!!session?.access_token);
+      setIsValid(!!session);
     };
-    
+
+    // ✅ Utiliser le listener onAuthStateChange au lieu du polling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 [SessionStatusIndicator] Auth state changed:', event, !!session);
+      setIsValid(!!session);
+    });
+
+    // Vérification initiale une seule fois
     checkSession();
-    const interval = setInterval(checkSession, 30000); // Vérif toutes les 30s
-    
-    return () => clearInterval(interval);
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
   
   if (!isValid) {
