@@ -3,23 +3,67 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-orange-signature",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface OrangeWebhookPayload {
-  notif_token: string;
-  order_id: string;
-  status: string; // 'SUCCESS' | 'FAILED' | 'EXPIRED' | 'PENDING'
-  amount: string;
-  pay_token: string;
-  txnid: string;
-  notif_date: string;
+  notif_token?: string;
+  order_id?: string;
+  status?: string; // 'SUCCESS' | 'FAILED' | 'EXPIRED' | 'PENDING'
+  amount?: string;
+  pay_token?: string;
+  txnid?: string;
+  notif_date?: string;
+  action?: string; // Pour le test Orange
+}
+
+// ✅ Fonction de vérification BasicAuth
+function verifyBasicAuth(req: Request): { authorized: boolean; reason?: string } {
+  const authHeader = req.headers.get('Authorization');
+  
+  // Cas 1 : Pas d'Authorization header → 401
+  if (!authHeader) {
+    return { authorized: false, reason: 'Missing Authorization header' };
+  }
+  
+  // Cas 2 : Authorization header présent mais pas Basic
+  if (!authHeader.startsWith('Basic ')) {
+    return { authorized: false, reason: 'Authorization must use Basic scheme' };
+  }
+  
+  // Cas 3 : Comparer avec le secret stocké
+  const expectedAuth = Deno.env.get('ORANGE_MONEY_BASIC_AUTH');
+  
+  if (!expectedAuth) {
+    console.error('❌ ORANGE_MONEY_BASIC_AUTH not configured!');
+    return { authorized: false, reason: 'Server configuration error' };
+  }
+  
+  // Extraire le token (après "Basic ")
+  const providedToken = authHeader.substring(6);
+  
+  // Cas 4 : Token incorrect (ou modifié avec %) → 401
+  if (providedToken !== expectedAuth) {
+    console.warn(`⚠️ Invalid BasicAuth token: ${providedToken.substring(0, 10)}...`);
+    return { authorized: false, reason: 'Invalid credentials' };
+  }
+  
+  // Cas 5 : Token valide → OK
+  return { authorized: true };
 }
 
 serve(async (req) => {
-  // ✅ Accepter tous les paths pour compatibilité Orange Money (/notifications, /, etc.)
+  // ✅ Vérifier que le path est /notifications (requis par Orange)
   const url = new URL(req.url);
-  console.log(`🔔 Orange Money Webhook received on path: ${url.pathname}`);
+  
+  if (!url.pathname.endsWith('/notifications')) {
+    return new Response(
+      JSON.stringify({ error: 'Invalid endpoint. Use /notifications' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+    );
+  }
+
+  console.log(`🔔 Orange Money Webhook received on ${url.pathname}`);
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -34,6 +78,40 @@ serve(async (req) => {
   }
 
   try {
+    // ✅ Vérifier BasicAuth AVANT tout traitement
+    const authCheck = verifyBasicAuth(req);
+
+    if (!authCheck.authorized) {
+      console.warn(`❌ BasicAuth failed: ${authCheck.reason}`);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 401 
+        }
+      );
+    }
+
+    console.log('✅ BasicAuth verified');
+
+    // ✅ Gérer le test Orange {"action":"test"}
+    const body: OrangeWebhookPayload = await req.json();
+
+    if (body.action === 'test') {
+      console.log('🧪 Orange Money test request detected');
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Webhook endpoint is properly configured' 
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
+    }
+
+    // ✅ Continuer avec le traitement normal du webhook
     console.log("📦 Processing Orange Money notification...");
 
     const supabaseService = createClient(
@@ -42,19 +120,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Vérifier la signature Orange Money (sécurité)
-    const signature = req.headers.get("x-orange-signature");
-    const webhookSecret = Deno.env.get("ORANGE_MONEY_WEBHOOK_SECRET");
-    
-    if (!signature || !webhookSecret) {
-      console.error("❌ Missing webhook signature or secret");
-      return new Response(
-        JSON.stringify({ error: "Invalid webhook signature" }),
-        { headers: corsHeaders, status: 401 }
-      );
-    }
-
-    const payload: OrangeWebhookPayload = await req.json();
+    const payload = body as OrangeWebhookPayload;
     console.log("📦 Webhook payload:", {
       order_id: payload.order_id,
       status: payload.status,
