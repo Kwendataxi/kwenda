@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Wallet, ArrowDownRight, ArrowUpRight, CreditCard, Phone, TrendingUp, Clock, DollarSign } from 'lucide-react';
+import { Wallet, ArrowDownRight, ArrowUpRight, CreditCard, Phone, TrendingUp, Clock, DollarSign, Plus } from 'lucide-react';
+import { UnifiedTopUpModal } from '@/components/wallet/UnifiedTopUpModal';
 import { useMerchantAccount } from '@/hooks/useMerchantAccount';
 
 interface WithdrawalFormData {
@@ -17,13 +18,14 @@ interface WithdrawalFormData {
 }
 
 export const VendorWalletDashboard: React.FC = () => {
-  const { merchantAccount, transactions, loading, withdrawing, requestWithdrawal, formatAmount } = useMerchantAccount();
+  const { merchantAccount, transactions, loading, withdrawing, requestWithdrawal, formatAmount, refetch } = useMerchantAccount();
   const [withdrawalForm, setWithdrawalForm] = useState<WithdrawalFormData>({
     amount: '',
     withdrawal_method: '',
     phone_number: ''
   });
   const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
+  const [isTopUpDialogOpen, setIsTopUpDialogOpen] = useState(false);
 
   const handleWithdrawal = async () => {
     if (!withdrawalForm.amount || !withdrawalForm.withdrawal_method || !withdrawalForm.phone_number) {
@@ -95,13 +97,22 @@ export const VendorWalletDashboard: React.FC = () => {
           <h1 className="text-3xl font-bold">Compte Marchand</h1>
           <p className="text-muted-foreground">Gérez vos gains de vente et vos retraits</p>
         </div>
-        <Dialog open={isWithdrawDialogOpen} onOpenChange={setIsWithdrawDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Phone className="mr-2 h-4 w-4" />
-              Retirer via Mobile Money
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setIsTopUpDialogOpen(true)}
+            variant="outline"
+            className="border-primary text-primary hover:bg-primary/10"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Recharger
+          </Button>
+          <Dialog open={isWithdrawDialogOpen} onOpenChange={setIsWithdrawDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Phone className="mr-2 h-4 w-4" />
+                Retirer via Mobile Money
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Demande de retrait</DialogTitle>
@@ -166,6 +177,7 @@ export const VendorWalletDashboard: React.FC = () => {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -314,6 +326,19 @@ export const VendorWalletDashboard: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Top-Up Modal */}
+      <UnifiedTopUpModal
+        open={isTopUpDialogOpen}
+        onClose={() => setIsTopUpDialogOpen(false)}
+        userType="vendor"
+        walletBalance={merchantAccount?.balance || 0}
+        currency="CDF"
+        onSuccess={() => {
+          refetch();
+          setIsTopUpDialogOpen(false);
+        }}
+      />
     </div>
   );
 };

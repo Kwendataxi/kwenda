@@ -134,11 +134,16 @@ export const useWallet = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('wallet-topup', {
+      const { data, error } = await supabase.functions.invoke('mobile-money-payment', {
         body: {
           amount,
           provider,
-          phone,
+          phoneNumber: phone,
+          currency: 'CDF',
+          orderType: 'wallet_topup',
+          userType: 'client'
+        }
+      });
           currency: 'CDF'
         }
       });
