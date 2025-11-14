@@ -12,7 +12,8 @@ interface PaymentRequest {
   phoneNumber: string;
   currency?: string;
   orderId?: string;
-  orderType?: 'transport' | 'delivery' | 'marketplace';
+  orderType?: 'transport' | 'delivery' | 'marketplace' | 'wallet_topup' | 'partner_credit' | 'vendor_credit';
+  userType?: 'client' | 'partner' | 'vendor' | 'restaurant';
 }
 
 interface OrangeMoneyTokenResponse {
@@ -58,7 +59,7 @@ serve(async (req) => {
       throw new Error("User not authenticated");
     }
 
-    const { amount, provider, phoneNumber, currency = "CDF", orderId, orderType }: PaymentRequest = await req.json();
+    const { amount, provider, phoneNumber, currency = "CDF", orderId, orderType, userType = 'client' }: PaymentRequest = await req.json();
 
     if (!amount || !provider || !phoneNumber) {
       throw new Error("Missing required fields: amount, provider, phoneNumber");
@@ -111,6 +112,10 @@ serve(async (req) => {
         booking_id: orderType === 'transport' ? orderId : null,
         delivery_id: orderType === 'delivery' ? orderId : null,
         product_id: orderType === 'marketplace' ? orderId : null,
+        metadata: {
+          order_type: orderType || 'wallet_topup',
+          user_type: userType
+        }
       })
       .select()
       .single();
@@ -166,9 +171,9 @@ serve(async (req) => {
           currency: 'OUV', // Orange Unit Value pour CDF
           order_id: transactionId,
           amount: amount,
-          return_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/orange-money-webhook`,
-          cancel_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/orange-money-webhook`,
-          notif_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/orange-money-webhook`,
+          return_url: `https://kwenda.app/payment-confirmation?tx=${transactionId}&status=success`,
+          cancel_url: `https://kwenda.app/payment-confirmation?tx=${transactionId}&status=cancelled`,
+          notif_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/orange-money-webhook/notifications`,
           lang: 'fr',
           reference: `KWENDA-${Date.now()}`,
         };

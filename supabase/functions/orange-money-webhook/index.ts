@@ -121,59 +121,230 @@ serve(async (req) => {
     );
 
     const payload = body as OrangeWebhookPayload;
+    
+    if (!payload.order_id || !payload.status) {
+      throw new Error('Missing required fields: order_id or status');
+    }
     console.log("📦 Webhook payload:", {
       order_id: payload.order_id,
       status: payload.status,
       amount: payload.amount,
+      txnid: payload.txnid
     });
 
-    // Trouver la transaction correspondante
-    const { data: transaction, error: findError } = await supabaseService
-      .from('payment_transactions')
-      .select('*')
-      .eq('transaction_id', payload.order_id)
+    // Récupérer la transaction avec les métadonnées
+    const { data: transaction, error: txError } = await supabaseService
+      .from("payment_transactions")
+      .select("*")
+      .eq("transaction_id", payload.order_id)
       .single();
 
-    if (findError || !transaction) {
+    if (txError || !transaction) {
       console.error("❌ Transaction not found:", payload.order_id);
+      throw new Error("Transaction not found");
+    }
+
+    console.log("📦 Transaction found:", {
+      id: transaction.id,
+      user_id: transaction.user_id,
+      metadata: transaction.metadata
+    });
+
+    if (payload.status === "SUCCESS") {
+      console.log("✅ Payment successful, crediting wallet...");
+
+      const amount = parseFloat(payload.amount || transaction.amount);
+      const userType = transaction.metadata?.user_type || 'client';
+      const orderType = transaction.metadata?.order_type || 'wallet_topup';
+
+      console.log(`💰 Crediting ${amount} ${transaction.currency} for ${userType} (${orderType})`);
+
+      // Créditer le wallet selon le type d'utilisateur
+      if (userType === 'partner' || orderType === 'partner_credit') {
+        // Créditer partner_profiles.balance
+        const { data: partner } = await supabaseService
+          .from('partner_profiles')
+          .select('balance')
+          .eq('user_id', transaction.user_id)
+          .single();
+
+        if (partner) {
+          await supabaseService
+            .from('partner_profiles')
+            .update({ 
+              balance: (partner.balance || 0) + amount,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', transaction.user_id);
+
+          // Logger dans activity_logs
+          await supabaseService.from('activity_logs').insert({
+            user_id: transaction.user_id,
+            activity_type: 'partner_wallet_topup',
+            description: `Rechargement Orange Money +${amount} ${transaction.currency}`,
+            amount: amount,
+            currency: transaction.currency,
+            reference_type: 'payment',
+            reference_id: transaction.id
+          });
+        }
+
+      } else if (userType === 'vendor' || orderType === 'vendor_credit') {
+        // Créditer vendor_wallets.balance
+        const { data: wallet } = await supabaseService
+          .from('vendor_wallets')
+          .select('balance')
+          .eq('vendor_id', transaction.user_id)
+          .eq('currency', transaction.currency)
+          .single();
+
+        if (wallet) {
+          await supabaseService
+            .from('vendor_wallets')
+            .update({ 
+              balance: (wallet.balance || 0) + amount,
+              updated_at: new Date().toISOString()
+            })
+            .eq('vendor_id', transaction.user_id)
+            .eq('currency', transaction.currency);
+
+          // Logger transaction vendeur
+          await supabaseService.from('vendor_wallet_transactions').insert({
+            vendor_id: transaction.user_id,
+            transaction_type: 'credit',
+            amount: amount,
+            currency: transaction.currency,
+            description: `Rechargement Orange Money`,
+            reference_id: transaction.id,
+            reference_type: 'payment',
+            status: 'completed'
+          });
+        }
+
+      } else {
+        // Créditer user_wallets.balance (client/restaurant)
+        const { data: wallet } = await supabaseService
+          .from('user_wallets')
+          .select('balance')
+          .eq('user_id', transaction.user_id)
+          .single();
+
+        if (wallet) {
+          await supabaseService
+            .from('user_wallets')
+            .update({ 
+              balance: (wallet.balance || 0) + amount,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', transaction.user_id);
+
+          // Logger dans wallet_transactions
+          await supabaseService.from('wallet_transactions').insert({
+            user_id: transaction.user_id,
+            amount: amount,
+            transaction_type: 'credit',
+            description: `Rechargement Orange Money`,
+            status: 'completed',
+            reference_id: transaction.id,
+            reference_type: 'payment'
+          });
+        }
+      }
+
+      // Mettre à jour le statut de la transaction
+      await supabaseService
+        .from("payment_transactions")
+        .update({
+          status: "completed",
+          updated_at: new Date().toISOString(),
+          metadata: {
+            ...transaction.metadata,
+            orange_txnid: payload.txnid,
+            completed_at: new Date().toISOString()
+          }
+        })
+        .eq("transaction_id", payload.order_id);
+
+      // Envoyer notification
+      await supabaseService.from('system_notifications').insert({
+        user_id: transaction.user_id,
+        title: '✅ Rechargement réussi',
+        message: `Votre wallet a été crédité de ${amount} ${transaction.currency} via Orange Money`,
+        type: 'wallet_topup',
+        priority: 'high',
+        data: { transaction_id: transaction.id, amount, currency: transaction.currency }
+      });
+
+      console.log("✅ Wallet credited and notification sent");
+
       return new Response(
-        JSON.stringify({ error: "Transaction not found" }),
-        { headers: corsHeaders, status: 404 }
+        JSON.stringify({
+          success: true,
+          message: "Payment processed and wallet credited",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    } else if (payload.status === "FAILED" || payload.status === "EXPIRED") {
+      console.log(`❌ Payment ${payload.status.toLowerCase()}`);
+
+      await supabaseService
+        .from("payment_transactions")
+        .update({
+          status: "failed",
+          updated_at: new Date().toISOString(),
+          metadata: {
+            ...transaction.metadata,
+            failure_reason: payload.status,
+            failed_at: new Date().toISOString()
+          }
+        })
+        .eq("transaction_id", payload.order_id);
+
+      // Notification d'échec
+      await supabaseService.from('system_notifications').insert({
+        user_id: transaction.user_id,
+        title: '❌ Rechargement échoué',
+        message: `Votre paiement Orange Money a échoué. Veuillez réessayer.`,
+        type: 'wallet_topup',
+        priority: 'high',
+        data: { transaction_id: transaction.id, status: payload.status }
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Payment failure recorded",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    } else {
+      console.log(`ℹ️ Payment status: ${payload.status}`);
+      
+      await supabaseService
+        .from("payment_transactions")
+        .update({
+          status: "processing",
+          updated_at: new Date().toISOString()
+        })
+        .eq("transaction_id", payload.order_id);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Status recorded",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
       );
     }
-
-    // Mapper le statut Orange Money vers notre système
-    let newStatus: string;
-    switch (payload.status) {
-      case 'SUCCESS':
-        newStatus = 'completed';
-        break;
-      case 'FAILED':
-      case 'EXPIRED':
-        newStatus = 'failed';
-        break;
-      case 'PENDING':
-        newStatus = 'processing';
-        break;
-      default:
-        newStatus = 'failed';
-    }
-
-    console.log(`📝 Updating transaction ${transaction.id} to status: ${newStatus}`);
-
-    // Mettre à jour la transaction
-    const { error: updateError } = await supabaseService
-      .from('payment_transactions')
-      .update({
-        status: newStatus,
-        updated_at: new Date().toISOString(),
-        metadata: {
-          orange_txnid: payload.txnid,
-          orange_pay_token: payload.pay_token,
-          orange_notif_date: payload.notif_date,
-        }
-      })
-      .eq('id', transaction.id);
 
     if (updateError) {
       console.error("❌ Error updating transaction:", updateError);

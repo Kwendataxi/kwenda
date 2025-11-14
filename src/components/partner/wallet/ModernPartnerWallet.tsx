@@ -3,15 +3,17 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wallet, Download, DollarSign, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { Wallet, Download, DollarSign, ArrowUpRight, TrendingUp, Plus } from 'lucide-react';
 import { useUnifiedPartnerFinances } from '@/hooks/useUnifiedPartnerFinances';
 import { usePartnerWithdrawals } from '@/hooks/usePartnerWithdrawals';
 import { PartnerWithdrawalDialog } from '../PartnerWithdrawalDialog';
+import { PartnerTopUpDialog } from '../PartnerTopUpDialog';
 import { formatPartnerCurrency } from '@/lib/partnerUtils';
 
 export const ModernPartnerWallet = () => {
   const [activeTab, setActiveTab] = useState('transactions');
   const [withdrawalDialogOpen, setWithdrawalDialogOpen] = useState(false);
+  const [topUpDialogOpen, setTopUpDialogOpen] = useState(false);
   
   const finances = useUnifiedPartnerFinances('30d');
   const { requestWithdrawal, withdrawals, loading: withdrawalsLoading } = usePartnerWithdrawals();
@@ -62,10 +64,25 @@ export const ModernPartnerWallet = () => {
                 <p className="text-xl font-semibold">{formatPartnerCurrency(pendingWithdrawals, currency)}</p>
               </div>
             </div>
-            <Button variant="secondary" className="w-full bg-white text-emerald-600 hover:bg-white/90" onClick={() => setWithdrawalDialogOpen(true)}>
-              <Download className="w-4 h-4 mr-2" />
-              Retirer
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                variant="secondary" 
+                className="bg-white text-emerald-600 hover:bg-white/90"
+                onClick={() => setTopUpDialogOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Recharger
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="border-white/20 text-white hover:bg-white/10"
+                onClick={() => setWithdrawalDialogOpen(true)}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Retirer
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
@@ -92,6 +109,17 @@ export const ModernPartnerWallet = () => {
         currency={currency}
         onSubmit={handleWithdrawal}
         loading={withdrawalsLoading}
+      />
+
+      <PartnerTopUpDialog
+        open={topUpDialogOpen}
+        onOpenChange={setTopUpDialogOpen}
+        currentBalance={balance}
+        currency={currency}
+        onSuccess={() => {
+          setTopUpDialogOpen(false);
+          window.location.reload();
+        }}
       />
     </div>
   );
