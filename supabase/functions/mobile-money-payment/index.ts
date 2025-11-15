@@ -166,17 +166,40 @@ serve(async (req) => {
         console.log('💳 Initiating payment...');
         const cleanPhone = phoneNumber.replace(/^\+?243/, ''); // Retirer +243
         
+        // Récupérer le POS ID depuis les variables d'environnement
+        const posId = Deno.env.get('ORANGE_MONEY_POS_ID');
+        if (!posId) {
+          console.error('❌ ORANGE_MONEY_POS_ID not configured');
+          throw new Error('Configuration Orange Money incomplète');
+        }
+        
+        // URL de base du frontend (production ou dev)
+        const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://kwenda.app';
+        
         const paymentPayload = {
+          pos_id: posId, // ✅ POS ID fourni par Orange
           merchant_key: merchantId,
           currency: 'OUV', // Orange Unit Value pour CDF
           order_id: transactionId,
           amount: amount,
-          return_url: `https://kwenda.app/payment-confirmation?tx=${transactionId}&status=success`,
-          cancel_url: `https://kwenda.app/payment-confirmation?tx=${transactionId}&status=cancelled`,
+          return_url: `${frontendUrl}/payment-confirmation?tx=${transactionId}&status=success`,
+          cancel_url: `${frontendUrl}/payment-confirmation?tx=${transactionId}&status=cancelled`,
           notif_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/orange-money-webhook/notifications`,
           lang: 'fr',
           reference: `KWENDA-${Date.now()}`,
         };
+
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          event: 'orange_money_payment_init',
+          user_id: user.id,
+          amount: amount,
+          currency: currency,
+          transaction_id: transactionId,
+          provider: 'orange',
+          pos_id: posId,
+          user_type: userType
+        }));
 
         const paymentResponse = await fetch(`${orangeApiUrl}/webpayment`, {
           method: 'POST',
