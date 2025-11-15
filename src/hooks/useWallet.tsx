@@ -144,9 +144,6 @@ export const useWallet = () => {
           userType: 'client'
         }
       });
-          currency: 'CDF'
-        }
-      });
 
       if (error) throw error;
 
