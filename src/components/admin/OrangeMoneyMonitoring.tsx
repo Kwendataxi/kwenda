@@ -1,0 +1,306 @@
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { Activity, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+
+interface OrangeMoneyStats {
+  totalTransactions: number;
+  successfulTransactions: number;
+  failedTransactions: number;
+  processingTransactions: number;
+  totalAmount: number;
+  averageAmount: number;
+  successRate: number;
+  averageProcessingTime: number;
+}
+
+interface RecentTransaction {
+  id: string;
+  transaction_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  metadata?: any;
+}
+
+export const OrangeMoneyMonitoring = () => {
+  const [stats, setStats] = useState<OrangeMoneyStats>({
+    totalTransactions: 0,
+    successfulTransactions: 0,
+    failedTransactions: 0,
+    processingTransactions: 0,
+    totalAmount: 0,
+    averageAmount: 0,
+    successRate: 0,
+    averageProcessingTime: 0
+  });
+  const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
+
+  useEffect(() => {
+    loadStats();
+    const interval = setInterval(loadStats, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, [timeRange]);
+
+  const loadStats = async () => {
+    try {
+      const now = new Date();
+      let since: Date;
+      
+      switch (timeRange) {
+        case '24h':
+          since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case '7d':
+          since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30d':
+          since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+      }
+
+      // Récupérer toutes les transactions Orange Money
+      const { data: transactions, error } = await supabase
+        .from('payment_transactions')
+        .select('*')
+        .eq('payment_provider', 'orange')
+        .gte('created_at', since.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (transactions) {
+        const successful = transactions.filter(t => t.status === 'completed');
+        const failed = transactions.filter(t => t.status === 'failed');
+        const processing = transactions.filter(t => t.status === 'processing');
+        const totalAmount = transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+        // Calculer temps moyen de traitement
+        const completedWithTime = successful.filter((t: any) => 
+          t.metadata && t.metadata.completed_at && t.created_at
+        );
+        const averageTime = completedWithTime.length > 0
+          ? completedWithTime.reduce((sum: number, t: any) => {
+              const start = new Date(t.created_at).getTime();
+              const end = new Date(t.metadata.completed_at).getTime();
+              return sum + (end - start);
+            }, 0) / completedWithTime.length
+          : 0;
+
+        setStats({
+          totalTransactions: transactions.length,
+          successfulTransactions: successful.length,
+          failedTransactions: failed.length,
+          processingTransactions: processing.length,
+          totalAmount,
+          averageAmount: transactions.length > 0 ? totalAmount / transactions.length : 0,
+          successRate: transactions.length > 0 ? (successful.length / transactions.length) * 100 : 0,
+          averageProcessingTime: averageTime / 1000 // en secondes
+        });
+
+        setRecentTransactions(transactions.slice(0, 10) as RecentTransaction[]);
+      }
+    } catch (error) {
+      console.error('Error loading Orange Money stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('fr-CD', {
+      style: 'currency',
+      currency: 'CDF',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    return `${Math.round(seconds / 60)}min ${Math.round(seconds % 60)}s`;
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'processing':
+        return <Clock className="h-4 w-4 text-orange-500" />;
+      default:
+        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, any> = {
+      completed: 'default',
+      failed: 'destructive',
+      processing: 'secondary'
+    };
+    return (
+      <Badge variant={variants[status] || 'outline'} className="capitalize">
+        {status === 'completed' ? 'Réussi' : status === 'failed' ? 'Échoué' : 'En cours'}
+      </Badge>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Monitoring Orange Money</h2>
+          <p className="text-muted-foreground">
+            Statistiques et transactions en temps réel
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {(['24h', '7d', '30d'] as const).map((range) => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                timeRange === range
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted hover:bg-muted/80'
+              }`}
+            >
+              {range === '24h' ? '24h' : range === '7d' ? '7 jours' : '30 jours'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalTransactions}</div>
+            <p className="text-xs text-muted-foreground">
+              Montant total: {formatAmount(stats.totalAmount)}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Taux de succès</CardTitle>
+            <TrendingUp className={`h-4 w-4 ${stats.successRate >= 90 ? 'text-green-500' : 'text-orange-500'}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.successRate.toFixed(1)}%</div>
+            <Progress value={stats.successRate} className="mt-2" />
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.successfulTransactions} réussies / {stats.totalTransactions} total
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Temps moyen</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatTime(stats.averageProcessingTime)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Traitement des paiements réussis
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">En cours</CardTitle>
+            <AlertCircle className={`h-4 w-4 ${stats.processingTransactions > 5 ? 'text-orange-500' : 'text-muted-foreground'}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.processingTransactions}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.failedTransactions} échouées
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Alert si taux d'échec élevé */}
+      {stats.successRate < 85 && stats.totalTransactions > 10 && (
+        <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              <CardTitle className="text-orange-700 dark:text-orange-400">
+                Taux de succès faible détecté
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-orange-600 dark:text-orange-300">
+              Le taux de succès est de {stats.successRate.toFixed(1)}%, ce qui est inférieur au seuil recommandé de 85%.
+              Vérifiez les logs des edge functions et contactez Orange si nécessaire.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent Transactions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transactions récentes</CardTitle>
+          <CardDescription>Les 10 dernières transactions Orange Money</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentTransactions.map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  {getStatusIcon(tx.status)}
+                  <div>
+                    <div className="font-mono text-sm">{tx.transaction_id}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(tx.created_at).toLocaleString('fr-FR')}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="font-semibold">{formatAmount(tx.amount)}</div>
+                    {tx.metadata?.orange_txnid && (
+                      <div className="text-xs text-muted-foreground">
+                        Orange: {tx.metadata.orange_txnid}
+                      </div>
+                    )}
+                  </div>
+                  {getStatusBadge(tx.status)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};

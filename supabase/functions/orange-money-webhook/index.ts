@@ -275,7 +275,18 @@ serve(async (req) => {
         data: { transaction_id: transaction.id, amount, currency: transaction.currency }
       });
 
-      console.log("✅ Wallet credited and notification sent");
+      // Log détaillé du succès
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        event: 'wallet_credited_success',
+        user_id: transaction.user_id,
+        user_type: transaction.metadata?.userType || 'client',
+        amount: amount,
+        currency: transaction.currency,
+        transaction_id: payload.order_id,
+        orange_txnid: payload.txnid,
+        payment_provider: 'orange'
+      }));
 
       return new Response(
         JSON.stringify({
@@ -287,8 +298,19 @@ serve(async (req) => {
           status: 200,
         }
       );
-    } else if (payload.status === "FAILED" || payload.status === "EXPIRED") {
-      console.log(`❌ Payment ${payload.status.toLowerCase()}`);
+    } else if (payload.status === "FAILED") {
+      console.log(`❌ Payment failed`);
+      
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        event: 'payment_failed',
+        user_id: transaction.user_id,
+        transaction_id: payload.order_id,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        reason: payload.status,
+        payment_provider: 'orange'
+      }));
 
       await supabaseService
         .from("payment_transactions")
@@ -297,7 +319,7 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
           metadata: {
             ...transaction.metadata,
-            failure_reason: payload.status,
+            failure_reason: 'Payment failed by user or system',
             failed_at: new Date().toISOString()
           }
         })
@@ -311,6 +333,52 @@ serve(async (req) => {
         type: 'wallet_topup',
         priority: 'high',
         data: { transaction_id: transaction.id, status: payload.status }
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Payment failure recorded",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    } else if (payload.status === "EXPIRED") {
+      console.log(`⏰ Payment expired`);
+      
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        event: 'payment_expired',
+        user_id: transaction.user_id,
+        transaction_id: payload.order_id,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        payment_provider: 'orange'
+      }));
+
+      await supabaseService
+        .from("payment_transactions")
+        .update({
+          status: "failed",
+          updated_at: new Date().toISOString(),
+          metadata: {
+            ...transaction.metadata,
+            failure_reason: 'Transaction expirée - délai de paiement dépassé',
+            expired_at: new Date().toISOString()
+          }
+        })
+        .eq("transaction_id", payload.order_id);
+
+      // Notification d'expiration
+      await supabaseService.from('system_notifications').insert({
+        user_id: transaction.user_id,
+        title: '⏰ Paiement expiré',
+        message: `Le délai de paiement Orange Money a expiré. Veuillez créer une nouvelle transaction.`,
+        type: 'wallet_topup',
+        priority: 'medium',
+        data: { transaction_id: transaction.id, status: 'expired' }
       });
 
       return new Response(
