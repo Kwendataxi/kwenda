@@ -66,6 +66,7 @@ import {
 } from "./routes";
 
 const NotFound = lazy(() => import("./pages/NotFound"));
+const PaymentConfirmation = lazy(() => import("./pages/PaymentConfirmation").then(m => ({ default: m.PaymentConfirmation })));
 
 const AppContent = () => {
   const [showSplash, setShowSplash] = useState(isPWA() || isMobileApp());
@@ -166,6 +167,9 @@ const AppContent = () => {
                             {PartnerRoutes()}
                             {AdminRoutes()}
                             {PublicRoutes()}
+                            
+                            {/* Payment confirmation */}
+                            <Route path="/payment-confirmation" element={<PaymentConfirmation />} />
                             
                             {/* 404 - Must be last */}
                             <Route path="*" element={<NotFound />} />
