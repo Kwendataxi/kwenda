@@ -21,12 +21,19 @@ const corsHeaders = {
  */
 
 serve(async (req) => {
+  const correlationId = crypto.randomUUID();
+  const startTime = Date.now();
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log("🔄 [Orange Money Retry] Starting job...");
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      correlation_id: correlationId,
+      event: 'retry_job_started'
+    }));
 
     const supabaseService = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -46,19 +53,33 @@ serve(async (req) => {
       .lt('created_at', tenMinutesAgo);
 
     if (fetchError) {
-      console.error("❌ Error fetching stuck transactions:", fetchError);
+      console.error(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        correlation_id: correlationId,
+        event: 'fetch_error',
+        error: fetchError.message
+      }));
       throw fetchError;
     }
 
     if (!stuckTransactions || stuckTransactions.length === 0) {
-      console.log("✅ No stuck transactions found. All clear!");
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        correlation_id: correlationId,
+        event: 'no_stuck_transactions'
+      }));
       return new Response(
         JSON.stringify({ success: true, message: "No stuck transactions", count: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
-    console.log(`📊 Found ${stuckTransactions.length} stuck transactions`);
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      correlation_id: correlationId,
+      event: 'stuck_transactions_found',
+      count: stuckTransactions.length
+    }));
 
     let expiredCount = 0;
     let retriedCount = 0;
@@ -69,7 +90,12 @@ serve(async (req) => {
       try {
         // Vérifier si la transaction a plus de 24h
         if (transaction.created_at < twentyFourHoursAgo) {
-          console.log(`⏰ Transaction ${transaction.transaction_id} expired (>24h)`);
+          console.log(JSON.stringify({
+            timestamp: new Date().toISOString(),
+            correlation_id: correlationId,
+            event: 'transaction_expired',
+            transaction_id: transaction.transaction_id
+          }));
           
           // Marquer comme expirée
           await supabaseService
@@ -98,11 +124,14 @@ serve(async (req) => {
 
           expiredCount++;
         } else {
-          // 🔍 TODO : Implémenter la vérification du statut auprès d'Orange Money
-          // Pour l'instant, on log juste pour surveillance manuelle
-          console.log(`⏳ Transaction ${transaction.transaction_id} still processing (${
-            Math.round((Date.now() - new Date(transaction.created_at).getTime()) / 60000)
-          } minutes)`);
+          const processingMinutes = Math.round((Date.now() - new Date(transaction.created_at).getTime()) / 60000);
+          console.log(JSON.stringify({
+            timestamp: new Date().toISOString(),
+            correlation_id: correlationId,
+            event: 'transaction_still_processing',
+            transaction_id: transaction.transaction_id,
+            processing_minutes: processingMinutes
+          }));
           
           retriedCount++;
           
@@ -111,7 +140,13 @@ serve(async (req) => {
           // et mettre à jour la transaction en conséquence
         }
       } catch (error) {
-        console.error(`❌ Error processing transaction ${transaction.transaction_id}:`, error);
+        console.error(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          correlation_id: correlationId,
+          event: 'transaction_processing_error',
+          transaction_id: transaction.transaction_id,
+          error: error.message
+        }));
         errorCount++;
       }
     }
@@ -125,7 +160,14 @@ serve(async (req) => {
       timestamp: new Date().toISOString()
     };
 
-    console.log("✅ [Orange Money Retry] Job completed:", JSON.stringify(summary));
+    const totalDuration = Date.now() - startTime;
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      correlation_id: correlationId,
+      event: 'retry_job_completed',
+      summary,
+      total_duration_ms: totalDuration
+    }));
 
     return new Response(
       JSON.stringify(summary),
@@ -136,7 +178,15 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("❌ [Orange Money Retry] Job failed:", error);
+    const totalDuration = Date.now() - startTime;
+    console.error(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      correlation_id: correlationId,
+      event: 'retry_job_failed',
+      error: error.message,
+      stack: error.stack,
+      total_duration_ms: totalDuration
+    }));
     
     return new Response(
       JSON.stringify({
