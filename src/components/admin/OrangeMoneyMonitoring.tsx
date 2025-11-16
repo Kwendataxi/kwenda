@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Activity, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Activity, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Clock, XCircle, Download, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface OrangeMoneyStats {
   totalTransactions: number;
@@ -41,7 +46,9 @@ export const OrangeMoneyMonitoring = () => {
   });
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
+  const [timeRange, setTimeRange] = useState<'today' | 'yesterday' | '7d' | '30d'>('today');
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [selectedTransaction, setSelectedTransaction] = useState<RecentTransaction | null>(null);
 
   useEffect(() => {
     loadStats();
@@ -55,8 +62,13 @@ export const OrangeMoneyMonitoring = () => {
       let since: Date;
       
       switch (timeRange) {
-        case '24h':
-          since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        case 'today':
+          since = new Date(now.setHours(0, 0, 0, 0));
+          break;
+        case 'yesterday':
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          since = new Date(yesterday.setHours(0, 0, 0, 0));
           break;
         case '7d':
           since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -106,6 +118,19 @@ export const OrangeMoneyMonitoring = () => {
         });
 
         setRecentTransactions(transactions.slice(0, 10) as RecentTransaction[]);
+        
+        // Préparer les données pour les graphiques
+        const dailyData: Record<string, { date: string; successful: number; failed: number; total: number }> = {};
+        transactions.forEach(t => {
+          const date = format(new Date(t.created_at), 'dd/MM', { locale: fr });
+          if (!dailyData[date]) {
+            dailyData[date] = { date, successful: 0, failed: 0, total: 0 };
+          }
+          dailyData[date].total++;
+          if (t.status === 'completed') dailyData[date].successful++;
+          if (t.status === 'failed') dailyData[date].failed++;
+        });
+        setChartData(Object.values(dailyData).reverse());
       }
     } catch (error) {
       console.error('Error loading Orange Money stats:', error);
