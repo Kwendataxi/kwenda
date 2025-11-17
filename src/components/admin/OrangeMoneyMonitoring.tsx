@@ -197,7 +197,7 @@ export const OrangeMoneyMonitoring = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          {(['24h', '7d', '30d'] as const).map((range) => (
+          {(['today', 'yesterday', '7d', '30d'] as const).map((range) => (
             <button
               key={range}
               onClick={() => setTimeRange(range)}
@@ -207,7 +207,7 @@ export const OrangeMoneyMonitoring = () => {
                   : 'bg-muted hover:bg-muted/80'
               }`}
             >
-              {range === '24h' ? '24h' : range === '7d' ? '7 jours' : '30 jours'}
+              {range === 'today' ? "Aujourd'hui" : range === 'yesterday' ? 'Hier' : range === '7d' ? '7 jours' : '30 jours'}
             </button>
           ))}
         </div>
