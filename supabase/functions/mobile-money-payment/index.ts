@@ -25,12 +25,12 @@ interface OrangeMoneyTokenResponse {
   expires_in: number;
 }
 
-interface OrangeMoneyPaymentResponse {
-  status: string;
-  order_id: string;
-  pay_token: string;
-  notif_token: string;
-  payment_url: string;
+interface OrangeMoneyB2BResponse {
+  transactionId: string;
+  transactionStatus: string;
+  partnerTransactionId: string;
+  amount: number;
+  currency: string;
 }
 
 serve(async (req) => {
@@ -147,27 +147,34 @@ serve(async (req) => {
 
     console.log(`Processing ${provider} payment for ${amount} ${currency} to ${phoneNumber}`);
     
-    // ===== INTÉGRATION ORANGE MONEY RÉELLE =====
+    // ===== INTÉGRATION ORANGE MONEY B2B RDC =====
     if (provider.toLowerCase() === 'orange') {
       try {
-        console.log('🍊 Starting Orange Money API integration');
+        console.log('🍊 Starting Orange Money B2B RDC API integration');
 
         const orangeApiUrl = Deno.env.get('ORANGE_MONEY_API_URL');
         const clientId = Deno.env.get('ORANGE_MONEY_CLIENT_ID');
         const clientSecret = Deno.env.get('ORANGE_MONEY_CLIENT_SECRET');
-        const authHeader = Deno.env.get('ORANGE_MONEY_AUTH_HEADER');
-        const merchantId = Deno.env.get('ORANGE_MONEY_MERCHANT_ID');
+        const posId = Deno.env.get('ORANGE_MONEY_POS_ID');
 
-        if (!orangeApiUrl || !clientId || !clientSecret || !authHeader || !merchantId) {
+        if (!orangeApiUrl || !clientId || !clientSecret || !posId) {
           throw new Error('Orange Money API configuration missing');
         }
 
-        // Étape 1 : Obtenir le token OAuth
+        // Calculer automatiquement l'auth header si non fourni
+        let authHeaderValue = Deno.env.get('ORANGE_MONEY_AUTH_HEADER');
+        if (!authHeaderValue) {
+          const basicAuth = btoa(`${clientId}:${clientSecret}`);
+          authHeaderValue = `Basic ${basicAuth}`;
+          console.log('🔑 Auth header calculated automatically');
+        }
+
+        // Étape 1 : Obtenir le token OAuth 2-legged
         console.log('🔑 Getting OAuth token...');
-        const tokenResponse = await fetch(`${orangeApiUrl}/oauth/token`, {
+        const tokenResponse = await fetch(`https://api.orange.com/oauth/v3/token`, {
           method: 'POST',
           headers: {
-            'Authorization': authHeader,
+            'Authorization': authHeaderValue,
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: 'grant_type=client_credentials',
@@ -182,46 +189,44 @@ serve(async (req) => {
         const tokenData: OrangeMoneyTokenResponse = await tokenResponse.json();
         console.log('✅ OAuth token obtained');
 
-        // Étape 2 : Initier le paiement
-        console.log('💳 Initiating payment...');
-        const cleanPhone = phoneNumber.replace(/^\+?243/, ''); // Retirer +243
+        // Étape 2 : Initier le paiement B2B RDC
+        console.log('💳 Initiating B2B payment...');
         
-        // Récupérer le POS ID depuis les variables d'environnement
-        const posId = Deno.env.get('ORANGE_MONEY_POS_ID');
-        if (!posId) {
-          console.error('❌ ORANGE_MONEY_POS_ID not configured');
-          throw new Error('Configuration Orange Money incomplète');
+        // Formater le numéro de téléphone : 243XXXXXXXXX (retirer + et espaces)
+        let formattedPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
+        if (formattedPhone.startsWith('+')) {
+          formattedPhone = formattedPhone.substring(1);
+        }
+        if (formattedPhone.startsWith('0')) {
+          formattedPhone = '243' + formattedPhone.substring(1);
+        }
+        if (!formattedPhone.startsWith('243')) {
+          formattedPhone = '243' + formattedPhone;
         }
         
-        // URL de base du frontend (production ou dev)
-        const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://kwenda.app';
-        
         const paymentPayload = {
-          pos_id: posId, // ✅ POS ID fourni par Orange
-          merchant_key: merchantId,
-          currency: 'OUV', // Orange Unit Value pour CDF
-          order_id: transactionId,
           amount: amount,
-          return_url: `${frontendUrl}/payment-confirmation?tx=${transactionId}&status=success`,
-          cancel_url: `${frontendUrl}/payment-confirmation?tx=${transactionId}&status=cancelled`,
-          notif_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/orange-money-webhook/notifications`,
-          lang: 'fr',
-          reference: `KWENDA-${Date.now()}`,
+          currency: "CDF",
+          partnerTransactionId: transactionId,
+          posId: posId,
+          peerId: formattedPhone,
+          peerIdType: "msisdn"
         };
 
         console.log(JSON.stringify({
           timestamp: new Date().toISOString(),
-          event: 'orange_money_payment_init',
+          event: 'orange_money_b2b_payment_init',
           user_id: user.id,
           amount: amount,
-          currency: currency,
+          currency: "CDF",
           transaction_id: transactionId,
           provider: 'orange',
           pos_id: posId,
+          peer_id: formattedPhone,
           user_type: userType
         }));
 
-        const paymentResponse = await fetch(`${orangeApiUrl}/webpayment`, {
+        const paymentResponse = await fetch(`${orangeApiUrl}/transactions/omdcashin`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${tokenData.access_token}`,
@@ -233,23 +238,23 @@ serve(async (req) => {
 
         if (!paymentResponse.ok) {
           const errorText = await paymentResponse.text();
-          console.error('❌ Payment initiation error:', errorText);
-          throw new Error(`Payment initiation failed: ${paymentResponse.status}`);
+          console.error('❌ B2B payment error:', errorText);
+          throw new Error(`B2B payment failed: ${paymentResponse.status}`);
         }
 
-        const paymentData: OrangeMoneyPaymentResponse = await paymentResponse.json();
-        console.log('✅ Payment initiated:', paymentData.order_id);
+        const paymentData: OrangeMoneyB2BResponse = await paymentResponse.json();
+        console.log('✅ B2B Payment initiated:', paymentData.transactionId);
 
-        // Mettre à jour la transaction avec les détails Orange
+        // Mettre à jour la transaction avec les détails Orange B2B
         const { error: updateError } = await supabaseService
           .from('payment_transactions')
           .update({
-            status: 'processing',
+            status: paymentData.transactionStatus === 'SUCCESS' ? 'completed' : 'pending',
             metadata: {
-              orange_order_id: paymentData.order_id,
-              orange_pay_token: paymentData.pay_token,
-              orange_notif_token: paymentData.notif_token,
-              orange_payment_url: paymentData.payment_url,
+              orange_transaction_id: paymentData.transactionId,
+              orange_partner_transaction_id: paymentData.partnerTransactionId,
+              orange_status: paymentData.transactionStatus,
+              peer_id: formattedPhone
             },
             updated_at: new Date().toISOString(),
           })
@@ -259,15 +264,14 @@ serve(async (req) => {
           console.error('Error updating transaction metadata:', updateError);
         }
 
-        // Retourner la réponse avec l'URL de paiement
+        // Retourner la réponse
         return new Response(
           JSON.stringify({
             success: true,
             transactionId: transactionId,
-            message: 'Paiement Orange Money initié. Suivez les instructions sur votre téléphone.',
-            status: 'processing',
-            paymentUrl: paymentData.payment_url,
-            payToken: paymentData.pay_token,
+            message: 'Paiement Orange Money B2B initié avec succès.',
+            status: paymentData.transactionStatus === 'SUCCESS' ? 'completed' : 'pending',
+            orangeTransactionId: paymentData.transactionId
           }),
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
