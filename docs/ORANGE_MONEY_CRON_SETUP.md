@@ -1,62 +1,141 @@
 # 🔄 Configuration Cron Job Orange Money Retry
 
-## Objectif
+## 📝 Vue d'ensemble
 
-Automatiser la vérification et la résolution des transactions Orange Money bloquées en statut `processing`.
+Ce guide détaille l'installation et la configuration du système de retry automatique pour les transactions Orange Money bloquées.
+
+**Objectif** : Automatiser la vérification et la résolution des transactions Orange Money en statut `processing` depuis plus de 10 minutes.
+
+**Fréquence recommandée** : Toutes les 5 minutes
 
 ---
 
 ## 📋 Prérequis
 
-1. **Extension pg_cron activée** dans Supabase
-2. **Extension pg_net activée** dans Supabase
-3. Edge function `orange-money-retry` déployée
+Avant de commencer, assurez-vous que :
+
+1. ✅ **Extensions Supabase** : `pg_cron` et `pg_net` disponibles
+2. ✅ **Edge Function** : `orange-money-retry` déployée et fonctionnelle
+3. ✅ **Secrets configurés** : `ORANGE_MONEY_API_KEY` et `ORANGE_MERCHANT_ID`
+4. ✅ **Droits d'accès** : Accès au SQL Editor de Supabase
 
 ---
 
-## 🛠️ Installation
+## 🛠️ Installation pas à pas
 
-### Étape 1 : Activer les extensions
+### Étape 1 : Vérifier les extensions disponibles
 
-Exécutez ces requêtes SQL dans l'éditeur SQL de Supabase :
+Avant d'activer les extensions, vérifiez qu'elles sont disponibles :
 
 ```sql
--- Activer pg_cron
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-
--- Activer pg_net
-CREATE EXTENSION IF NOT EXISTS pg_net;
+-- Lister toutes les extensions disponibles
+SELECT * FROM pg_available_extensions 
+WHERE name IN ('pg_cron', 'pg_net');
 ```
 
-### Étape 2 : Créer le Cron Job
+Si les extensions ne sont pas disponibles, contactez le support Supabase.
+
+### Étape 2 : Activer les extensions
+
+Exécutez ces commandes dans l'éditeur SQL de Supabase :
 
 ```sql
--- Programmer le retry toutes les 5 minutes
+-- Activer pg_cron (gestion des tâches planifiées)
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+-- Activer pg_net (requêtes HTTP depuis PostgreSQL)
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+-- Vérifier que les extensions sont bien activées
+SELECT extname, extversion FROM pg_extension 
+WHERE extname IN ('pg_cron', 'pg_net');
+```
+
+### Étape 3 : Créer le Cron Job
+
+⚠️ **IMPORTANT** : Remplacez `YOUR_PROJECT_REF` et `YOUR_ANON_KEY` par vos vraies valeurs.
+
+```sql
+-- 🔧 Script complet de création du cron job
 SELECT cron.schedule(
-  'orange-money-retry-job',  -- Nom du job
-  '*/5 * * * *',              -- Toutes les 5 minutes
+  'orange-money-retry-job',  -- Nom unique du job
+  '*/5 * * * *',              -- Cron expression : toutes les 5 minutes
   $$
   SELECT
     net.http_post(
-        url := 'https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/orange-money-retry',
-        headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZGxrdGFqbmh3aHlxdXdjZGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNDA1NjUsImV4cCI6MjA2OTcxNjU2NX0.rViBegpawtg1sFwafH_fczlB0oeA8E6V3MtDELcSIiU"}'::jsonb,
-        body := json_build_object('timestamp', now())::jsonb
+        url := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/orange-money-retry',
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'Authorization', 'Bearer YOUR_ANON_KEY'
+        ),
+        body := jsonb_build_object(
+          'timestamp', now()::text,
+          'source', 'cron_job'
+        )
     ) as request_id;
   $$
 );
 ```
 
-### Étape 3 : Vérifier que le job est actif
+**Comment trouver vos valeurs** :
+- `YOUR_PROJECT_REF` : Visible dans l'URL Supabase (`https://YOUR_PROJECT_REF.supabase.co`)
+- `YOUR_ANON_KEY` : Settings → API → Project API keys → `anon` `public`
+
+### Étape 4 : Vérifier l'installation
+
+#### 4.1 Vérifier que le job est créé
 
 ```sql
--- Lister tous les jobs cron
-SELECT * FROM cron.job;
+-- Lister tous les jobs cron actifs
+SELECT 
+  jobid,
+  jobname,
+  schedule,
+  active,
+  database
+FROM cron.job
+WHERE jobname = 'orange-money-retry-job';
+```
 
--- Vérifier l'historique d'exécution
-SELECT * FROM cron.job_run_details 
-WHERE jobname = 'orange-money-retry-job'
+**Résultat attendu** :
+| jobid | jobname | schedule | active | database |
+|-------|---------|----------|--------|----------|
+| 1 | orange-money-retry-job | */5 * * * * | t | postgres |
+
+#### 4.2 Attendre la première exécution (max 5 minutes)
+
+```sql
+-- Voir l'historique des exécutions récentes
+SELECT 
+  jobid,
+  runid,
+  start_time,
+  end_time,
+  status,
+  return_message,
+  EXTRACT(EPOCH FROM (end_time - start_time)) as duration_seconds
+FROM cron.job_run_details 
+WHERE jobid = (
+  SELECT jobid FROM cron.job WHERE jobname = 'orange-money-retry-job'
+)
 ORDER BY start_time DESC 
 LIMIT 10;
+```
+
+**Statuts possibles** :
+- ✅ `succeeded` : Exécution réussie
+- ❌ `failed` : Échec (vérifier les logs)
+- ⏳ `starting` : En cours de démarrage
+
+#### 4.3 Vérifier les logs de la fonction
+
+Allez dans **Supabase Dashboard** → **Edge Functions** → **orange-money-retry** → **Logs**
+
+Recherchez des logs comme :
+```
+🔄 AUTO-RETRY DELIVERY DISPATCH
+⏰ Timestamp: 2025-11-17T08:20:01.177Z
+✅ Aucune commande en attente nécessitant un retry
 ```
 
 ---

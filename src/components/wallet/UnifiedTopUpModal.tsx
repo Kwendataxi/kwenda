@@ -66,10 +66,14 @@ export const UnifiedTopUpModal: React.FC<UnifiedTopUpModalProps> = ({
     setSelectedQuickAmount(null);
     
     const numAmount = Number(value);
-    if (numAmount < 500) {
+    if (!value || isNaN(numAmount)) {
+      setAmountError('Montant invalide');
+    } else if (numAmount < 500) {
       setAmountError('Montant minimum : 500 CDF');
     } else if (numAmount > 500000) {
       setAmountError('Montant maximum : 500,000 CDF');
+    } else if (provider === 'orange' && numAmount % 100 !== 0) {
+      setAmountError('Orange Money : montant doit être multiple de 100');
     } else {
       setAmountError('');
     }
@@ -78,11 +82,23 @@ export const UnifiedTopUpModal: React.FC<UnifiedTopUpModalProps> = ({
   const handlePhoneChange = (value: string) => {
     setPhone(value);
     
-    const cleanPhone = value.replace(/[\s-]/g, '');
-    const phoneRegex = /^\+?243[0-9]{9}$/;
+    if (!value) {
+      setPhoneError('');
+      return;
+    }
     
-    if (value && !phoneRegex.test(cleanPhone)) {
-      setPhoneError('Format : +243XXXXXXXXX');
+    const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
+    
+    // Format DRC : +243XXXXXXXXX ou 0XXXXXXXXX
+    const phoneWithPrefixRegex = /^\+?243[0-9]{9}$/;
+    const phoneWithoutPrefixRegex = /^0[0-9]{9}$/;
+    
+    if (!phoneWithPrefixRegex.test(cleanPhone) && !phoneWithoutPrefixRegex.test(cleanPhone)) {
+      setPhoneError('Format invalide. Ex: +243991234567 ou 0991234567');
+    } else if (provider === 'orange' && !cleanPhone.match(/^(\+?243|0)(81|82|83|84|85|89|97|98)[0-9]{7}$/)) {
+      setPhoneError('Orange Money : numéro invalide (doit commencer par 81, 82, 83, 84, 85, 89, 97 ou 98)');
+    } else if (provider === 'airtel' && !cleanPhone.match(/^(\+?243|0)(97|99)[0-9]{7}$/)) {
+      setPhoneError('Airtel Money : numéro invalide (doit commencer par 97 ou 99)');
     } else {
       setPhoneError('');
     }
