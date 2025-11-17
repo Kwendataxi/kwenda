@@ -80,12 +80,29 @@ serve(async (req) => {
         throw new Error('Montant Orange Money doit être entre 500 et 500,000 CDF');
       }
 
-      // Validation format téléphone Congo (+243...)
-      const phoneRegex = /^\+?243[0-9]{9}$/;
-      const cleanPhone = phoneNumber.replace(/[\s-]/g, '');
-      if (!phoneRegex.test(cleanPhone)) {
-        throw new Error('Format téléphone invalide. Utilisez +243XXXXXXXXX');
+      // Validation format téléphone Congo (accepte +243..., 243... ou 0...)
+      const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
+      const phoneWithPrefixRegex = /^\+?243[0-9]{9}$/;
+      const phoneWithoutPrefixRegex = /^0[0-9]{9}$/;
+      
+      if (!phoneWithPrefixRegex.test(cleanPhone) && !phoneWithoutPrefixRegex.test(cleanPhone)) {
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          event: 'phone_validation_failed',
+          user_id: user.id,
+          phone_input: phoneNumber,
+          clean_phone: cleanPhone,
+          error: 'Invalid phone format'
+        }));
+        throw new Error('Format téléphone invalide. Utilisez +243XXXXXXXXX ou 0XXXXXXXXX');
       }
+      
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        event: 'phone_validation_success',
+        user_id: user.id,
+        phone_format: cleanPhone.startsWith('0') ? 'local' : 'international'
+      }));
 
       // Rate limiting : vérifier nombre de requêtes récentes
       const { data: recentTxs, error: rateLimitError } = await supabaseService
