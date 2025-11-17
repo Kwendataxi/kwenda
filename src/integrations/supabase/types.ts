@@ -6871,6 +6871,7 @@ export type Database = {
           currency: string | null
           delivery_id: string | null
           id: string
+          metadata: Json | null
           payment_method: string
           payment_provider: string | null
           product_id: string | null
@@ -6886,6 +6887,7 @@ export type Database = {
           currency?: string | null
           delivery_id?: string | null
           id?: string
+          metadata?: Json | null
           payment_method: string
           payment_provider?: string | null
           product_id?: string | null
@@ -6901,6 +6903,7 @@ export type Database = {
           currency?: string | null
           delivery_id?: string | null
           id?: string
+          metadata?: Json | null
           payment_method?: string
           payment_provider?: string | null
           product_id?: string | null
