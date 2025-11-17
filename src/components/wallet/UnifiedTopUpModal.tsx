@@ -120,6 +120,32 @@ export const UnifiedTopUpModal: React.FC<UnifiedTopUpModalProps> = ({
       return;
     }
 
+    // Re-valider le numéro avant soumission
+    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+    const phoneWithPrefixRegex = /^\+?243[0-9]{9}$/;
+    const phoneWithoutPrefixRegex = /^0[0-9]{9}$/;
+    
+    if (!phoneWithPrefixRegex.test(cleanPhone) && !phoneWithoutPrefixRegex.test(cleanPhone)) {
+      setPhoneError('Format invalide. Le numéro doit contenir 10 chiffres (ex: 0991234567)');
+      toast.error('Format de numéro invalide');
+      return;
+    }
+
+    // Validation spécifique opérateur
+    if (provider === 'orange') {
+      if (!cleanPhone.match(/^(\+?243|0)(81|82|83|84|85|89|97|98)[0-9]{7}$/)) {
+        setPhoneError('Orange Money : numéro invalide (doit commencer par 81, 82, 83, 84, 85, 89, 97 ou 98)');
+        toast.error('Numéro Orange Money invalide');
+        return;
+      }
+    } else if (provider === 'airtel') {
+      if (!cleanPhone.match(/^(\+?243|0)(97|99)[0-9]{7}$/)) {
+        setPhoneError('Airtel Money : numéro invalide (doit commencer par 97 ou 99)');
+        toast.error('Numéro Airtel Money invalide');
+        return;
+      }
+    }
+
     if (amountError || phoneError) return;
 
     try {
@@ -253,7 +279,7 @@ export const UnifiedTopUpModal: React.FC<UnifiedTopUpModalProps> = ({
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+243 XXX XXX XXX"
+                placeholder="0991234567 (10 chiffres)"
                 value={phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 className="pl-10 bg-zinc-800/50 border-zinc-600 text-white placeholder:text-zinc-400 focus:border-primary"
@@ -261,6 +287,11 @@ export const UnifiedTopUpModal: React.FC<UnifiedTopUpModalProps> = ({
             </div>
             {phoneError && (
               <p className="text-xs text-red-400 mt-1">{phoneError}</p>
+            )}
+            {!phoneError && phone && (
+              <p className="text-xs text-zinc-400 mt-1">
+                Format accepté: +243XXXXXXXXX ou 0XXXXXXXXX (10 chiffres)
+              </p>
             )}
           </div>
 
