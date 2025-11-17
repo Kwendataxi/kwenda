@@ -5,6 +5,7 @@ import { Activity, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Clock, X
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
@@ -178,6 +179,34 @@ export const OrangeMoneyMonitoring = () => {
     );
   };
 
+  const exportToCSV = () => {
+    const headers = ['Date', 'Transaction ID', 'Montant', 'Devise', 'Statut', 'User ID', 'Orange TxnID'];
+    const rows = recentTransactions.map(tx => [
+      new Date(tx.created_at).toLocaleString('fr-FR'),
+      tx.transaction_id,
+      tx.amount.toString(),
+      tx.currency,
+      tx.status,
+      tx.user_id,
+      tx.metadata?.orange_txnid || 'N/A'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `orange_money_${timeRange}_${Date.now()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -197,19 +226,29 @@ export const OrangeMoneyMonitoring = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          {(['today', 'yesterday', '7d', '30d'] as const).map((range) => (
-            <button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                timeRange === range
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted hover:bg-muted/80'
-              }`}
-            >
-              {range === 'today' ? "Aujourd'hui" : range === 'yesterday' ? 'Hier' : range === '7d' ? '7 jours' : '30 jours'}
-            </button>
-          ))}
+          <Button variant="outline" size="sm" onClick={loadStats}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Actualiser
+          </Button>
+          <Button variant="outline" size="sm" onClick={exportToCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <div className="flex gap-2">
+            {(['today', 'yesterday', '7d', '30d'] as const).map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  timeRange === range
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted hover:bg-muted/80'
+                }`}
+              >
+                {range === 'today' ? "Aujourd'hui" : range === 'yesterday' ? 'Hier' : range === '7d' ? '7 jours' : '30 jours'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -291,6 +330,50 @@ export const OrangeMoneyMonitoring = () => {
         </Card>
       )}
 
+      {/* Graphiques */}
+      {chartData.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Évolution des transactions</CardTitle>
+              <CardDescription>Transactions réussies vs échouées</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="successful" stroke="hsl(var(--chart-2))" name="Réussies" strokeWidth={2} />
+                  <Line type="monotone" dataKey="failed" stroke="hsl(var(--chart-1))" name="Échouées" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Volume quotidien</CardTitle>
+              <CardDescription>Nombre total de transactions par jour</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="total" fill="hsl(var(--primary))" name="Total" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Recent Transactions */}
       <Card>
         <CardHeader>
@@ -300,7 +383,11 @@ export const OrangeMoneyMonitoring = () => {
         <CardContent>
           <div className="space-y-4">
             {recentTransactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div 
+                key={tx.id} 
+                className="flex items-center justify-between p-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                onClick={() => setSelectedTransaction(tx)}
+              >
                 <div className="flex items-center gap-3">
                   {getStatusIcon(tx.status)}
                   <div>
@@ -326,6 +413,61 @@ export const OrangeMoneyMonitoring = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog détails transaction */}
+      {selectedTransaction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedTransaction(null)}>
+          <Card className="max-w-2xl w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <CardHeader>
+              <CardTitle>Détails de la transaction</CardTitle>
+              <CardDescription>{selectedTransaction.transaction_id}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Statut</Label>
+                  <div className="mt-1">{getStatusBadge(selectedTransaction.status)}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Montant</Label>
+                  <div className="font-semibold mt-1">{formatAmount(selectedTransaction.amount)}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Date de création</Label>
+                  <div className="text-sm mt-1">{new Date(selectedTransaction.created_at).toLocaleString('fr-FR')}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Dernière mise à jour</Label>
+                  <div className="text-sm mt-1">{new Date(selectedTransaction.updated_at).toLocaleString('fr-FR')}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">User ID</Label>
+                  <div className="text-sm font-mono mt-1">{selectedTransaction.user_id}</div>
+                </div>
+                {selectedTransaction.metadata?.orange_txnid && (
+                  <div>
+                    <Label className="text-muted-foreground">Orange Transaction ID</Label>
+                    <div className="text-sm font-mono mt-1">{selectedTransaction.metadata.orange_txnid}</div>
+                  </div>
+                )}
+              </div>
+              
+              {selectedTransaction.metadata && (
+                <div>
+                  <Label className="text-muted-foreground">Métadonnées complètes</Label>
+                  <pre className="text-xs bg-muted p-3 rounded-lg mt-2 overflow-auto max-h-40">
+                    {JSON.stringify(selectedTransaction.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+              
+              <Button onClick={() => setSelectedTransaction(null)} className="w-full">
+                Fermer
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
