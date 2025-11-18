@@ -18,20 +18,52 @@ interface OrangeMoneyWebhookPayload {
 }
 
 serve(async (req) => {
-  // Gérer le path /notifications requis par Orange
   const url = new URL(req.url);
-  if (!url.pathname.endsWith('/notifications') && req.method !== 'OPTIONS') {
+  
+  // Logger toutes les requêtes reçues pour debugging
+  console.log('🍊 [orange-money-webhook] ━━━━━━━━━━━━━━━━━━━━━');
+  console.log('🍊 [orange-money-webhook] Timestamp:', new Date().toISOString());
+  console.log('🍊 [orange-money-webhook] Method:', req.method);
+  console.log('🍊 [orange-money-webhook] Path:', url.pathname);
+  console.log('🍊 [orange-money-webhook] Expected path:', '/orange-money-webhook/notifications');
+
+  // Endpoint de santé pour tester la disponibilité
+  if (url.pathname.endsWith('/health')) {
+    console.log('🍊 [orange-money-webhook] Health check requested');
     return new Response(
-      JSON.stringify({ error: 'Invalid endpoint. Use /notifications' }),
+      JSON.stringify({ 
+        status: 'ok', 
+        service: 'orange-money-webhook',
+        timestamp: new Date().toISOString(),
+        endpoints: {
+          notifications: '/orange-money-webhook/notifications',
+          health: '/orange-money-webhook/health'
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+    );
+  }
+
+  // Gérer le path /notifications requis par Orange
+  if (!url.pathname.endsWith('/notifications') && req.method !== 'OPTIONS') {
+    console.warn('⚠️ [orange-money-webhook] Invalid endpoint accessed:', url.pathname);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Invalid endpoint. Use /notifications',
+        received_path: url.pathname,
+        expected_path: '/orange-money-webhook/notifications'
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
     );
   }
 
   if (req.method === 'OPTIONS') {
+    console.log('🍊 [orange-money-webhook] CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
+    console.warn('⚠️ [orange-money-webhook] Method not allowed:', req.method);
     return new Response(
       JSON.stringify({ error: 'Method not allowed. Use POST.' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 405 }
@@ -39,7 +71,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🍊 [orange-money-webhook] Notification reçue');
+    console.log('🍊 [orange-money-webhook] Notification POST reçue');
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -47,7 +79,11 @@ serve(async (req) => {
     );
 
     const payload: OrangeMoneyWebhookPayload = await req.json();
-    console.log('📱 [orange-money-webhook] Payload:', JSON.stringify(payload));
+    
+    // Logs détaillés du payload reçu
+    console.log('📱 [orange-money-webhook] Payload reçu:');
+    console.log('📱 [orange-money-webhook] ', JSON.stringify(payload, null, 2));
+    console.log('📱 [orange-money-webhook] Headers:', JSON.stringify(Object.fromEntries(req.headers.entries()), null, 2));
 
     const {
       partnerTransactionId,
@@ -61,8 +97,24 @@ serve(async (req) => {
     } = payload;
 
     if (!partnerTransactionId || !transactionStatus) {
-      console.error('❌ Missing required fields');
+      console.error('❌ [orange-money-webhook] Missing required fields');
+      console.error('❌ [orange-money-webhook] partnerTransactionId:', partnerTransactionId);
+      console.error('❌ [orange-money-webhook] transactionStatus:', transactionStatus);
       throw new Error('Missing partnerTransactionId or transactionStatus');
+    }
+
+    console.log('🔍 [orange-money-webhook] Searching for transaction:', partnerTransactionId);
+
+    // D'abord, vérifier combien de transactions correspondent
+    const { count, error: countError } = await supabaseClient
+      .from('payment_transactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('transaction_id', partnerTransactionId);
+
+    if (countError) {
+      console.error('❌ [orange-money-webhook] Error counting transactions:', countError);
+    } else {
+      console.log(`🔍 [orange-money-webhook] Found ${count} transaction(s) with ID: ${partnerTransactionId}`);
     }
 
     // Récupérer la transaction en attente
@@ -73,12 +125,38 @@ serve(async (req) => {
       .single();
 
     if (txError || !pendingTx) {
-      console.error('❌ [orange-money-webhook] Transaction not found:', txError);
+      console.error('❌ [orange-money-webhook] Transaction lookup failed');
+      console.error('❌ [orange-money-webhook] Search criteria:', { 
+        transaction_id: partnerTransactionId 
+      });
+      console.error('❌ [orange-money-webhook] Error details:', txError);
+      console.error('❌ [orange-money-webhook] Suggestion: Verify the transaction exists in payment_transactions table');
+      
+      // Lister quelques transactions récentes pour debugging
+      const { data: recentTxs, error: recentError } = await supabaseClient
+        .from('payment_transactions')
+        .select('transaction_id, status, payment_provider, created_at')
+        .eq('payment_provider', 'orange')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (!recentError && recentTxs) {
+        console.log('🔍 [orange-money-webhook] Recent Orange transactions in DB:');
+        recentTxs.forEach(tx => {
+          console.log(`   - ${tx.transaction_id} (${tx.status}) at ${tx.created_at}`);
+        });
+      }
+      
       // Retourner 200 quand même pour éviter les retry d'Orange
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Transaction not found but acknowledged'
+          message: 'Transaction not found but acknowledged',
+          debug: {
+            searched_id: partnerTransactionId,
+            error: txError?.message,
+            count: count
+          }
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -88,6 +166,9 @@ serve(async (req) => {
     }
 
     console.log('✅ [orange-money-webhook] Transaction found:', pendingTx.id);
+    console.log('✅ [orange-money-webhook] Current status:', pendingTx.status);
+    console.log('✅ [orange-money-webhook] User ID:', pendingTx.user_id);
+    console.log('✅ [orange-money-webhook] Amount:', pendingTx.amount, pendingTx.currency);
 
     // Traiter selon le statut
     if (transactionStatus === 'SUCCESS') {
@@ -111,7 +192,9 @@ serve(async (req) => {
         throw updateError;
       }
 
-      console.log('✅ [orange-money-webhook] Payment confirmed');
+      console.log('✅ [orange-money-webhook] Payment confirmed successfully');
+      console.log('✅ [orange-money-webhook] Transaction ID:', pendingTx.id);
+      console.log('✅ [orange-money-webhook] Orange Transaction ID:', transactionId);
 
       return new Response(
         JSON.stringify({
@@ -143,6 +226,8 @@ serve(async (req) => {
         .eq('id', pendingTx.id);
 
       console.log('❌ [orange-money-webhook] Payment failed');
+      console.log('❌ [orange-money-webhook] Error code:', errorCode);
+      console.log('❌ [orange-money-webhook] Error message:', errorMessage);
 
       return new Response(
         JSON.stringify({
