@@ -367,6 +367,60 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_subscription_earnings: {
+        Row: {
+          admin_commission_amount: number
+          admin_commission_rate: number
+          created_at: string | null
+          driver_id: string
+          id: string
+          status: string
+          subscription_amount: number
+          subscription_id: string
+          updated_at: string | null
+          wallet_transaction_id: string | null
+        }
+        Insert: {
+          admin_commission_amount: number
+          admin_commission_rate?: number
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          status?: string
+          subscription_amount: number
+          subscription_id: string
+          updated_at?: string | null
+          wallet_transaction_id?: string | null
+        }
+        Update: {
+          admin_commission_amount?: number
+          admin_commission_rate?: number
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          status?: string
+          subscription_amount?: number
+          subscription_id?: string
+          updated_at?: string | null
+          wallet_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_subscription_earnings_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "driver_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_subscription_earnings_wallet_transaction_id_fkey"
+            columns: ["wallet_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admins: {
         Row: {
           admin_level: string | null
@@ -2139,6 +2193,7 @@ export type Database = {
           id: string
           is_active: boolean
           partner_id: string | null
+          service_type: string | null
           updated_at: string
         }
         Insert: {
@@ -2149,6 +2204,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           partner_id?: string | null
+          service_type?: string | null
           updated_at?: string
         }
         Update: {
@@ -2159,6 +2215,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           partner_id?: string | null
+          service_type?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -13707,6 +13764,16 @@ export type Database = {
           status: string | null
           updated_at: string | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      admin_subscription_revenue_stats: {
+        Row: {
+          avg_commission_rate: number | null
+          month: string | null
+          subscription_count: number | null
+          total_admin_commission: number | null
+          total_subscription_revenue: number | null
         }
         Relationships: []
       }

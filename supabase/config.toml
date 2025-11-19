@@ -140,6 +140,9 @@ verify_jwt = true
 [functions.partner-subscription-commission]
 verify_jwt = false
 
+[functions.admin-subscription-commission]
+verify_jwt = false  # ✅ PHASE 2: Commission admin 10% sur abonnements chauffeurs
+
 [functions.vendor-subscription-manager]
 verify_jwt = true
 

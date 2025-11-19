@@ -263,6 +263,38 @@ export const useDriverRegistration = () => {
 
       console.log('✅ Profil chauffeur créé via RPC, driver_id:', rpcResult?.driver_id);
 
+      // ✅ PHASE 1: Générer automatiquement le code chauffeur
+      console.log('🎫 Génération automatique du code chauffeur...');
+      
+      try {
+        // Appeler la fonction RPC pour générer un code unique
+        const { data: uniqueCode, error: codeGenError } = await supabase
+          .rpc('generate_driver_code');
+
+        if (codeGenError) {
+          console.error('⚠️ Erreur génération code:', codeGenError);
+        } else if (uniqueCode) {
+          // Insérer le code dans driver_codes avec le service_type
+          const { error: codeInsertError } = await supabase
+            .from('driver_codes')
+            .insert({
+              code: uniqueCode,
+              driver_id: authData.user.id,
+              is_active: true,
+              service_type: data.serviceCategory // taxi ou delivery
+            });
+
+          if (codeInsertError) {
+            console.error('⚠️ Erreur insertion code chauffeur:', codeInsertError);
+          } else {
+            console.log(`✅ Code chauffeur généré: ${uniqueCode} (service: ${data.serviceCategory})`);
+          }
+        }
+      } catch (codeErr) {
+        console.error('⚠️ Exception génération code:', codeErr);
+        // Ne pas bloquer l'inscription si le code échoue
+      }
+
       // 4. Mettre à jour le profil avec les détails complets qui ne sont pas dans la fonction RPC
       const updateData: any = {
         license_expiry: data.licenseExpiry,
