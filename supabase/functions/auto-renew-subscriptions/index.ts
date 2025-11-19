@@ -166,6 +166,59 @@ serve(async (req) => {
             new_end_date: newEndDate.toISOString()
           });
 
+          // ✅ PHASE 2: Appeler commission admin (10%)
+          try {
+            const { error: adminCommError } = await supabase.functions.invoke(
+              'admin-subscription-commission',
+              {
+                body: {
+                  subscription_id: subscription.id,
+                  driver_id: subscription.driver_id,
+                  subscription_amount: subscription.subscription_plans?.price || 0
+                }
+              }
+            );
+
+            if (adminCommError) {
+              console.error('⚠️ Admin commission failed:', adminCommError);
+            } else {
+              console.log('✅ Admin commission processed (10%)');
+            }
+          } catch (commErr) {
+            console.error('⚠️ Admin commission error:', commErr);
+          }
+
+          // ✅ PHASE 2: Vérifier partenaire et appeler commission partenaire (5%)
+          const { data: driverCode } = await supabase
+            .from('driver_codes')
+            .select('partner_id')
+            .eq('driver_id', subscription.driver_id)
+            .maybeSingle();
+
+          if (driverCode?.partner_id) {
+            try {
+              const { error: partnerCommError } = await supabase.functions.invoke(
+                'partner-subscription-commission',
+                {
+                  body: {
+                    subscription_id: subscription.id,
+                    driver_id: subscription.driver_id,
+                    subscription_amount: subscription.subscription_plans?.price || 0,
+                    partner_id: driverCode.partner_id
+                  }
+                }
+              );
+
+              if (partnerCommError) {
+                console.error('⚠️ Partner commission failed:', partnerCommError);
+              } else {
+                console.log('✅ Partner commission processed (5%)');
+              }
+            } catch (partCommErr) {
+              console.error('⚠️ Partner commission error:', partCommErr);
+            }
+          }
+
           // Créer une alerte de succès
           await supabase.rpc('create_subscription_alert', {
             p_subscription_id: subscription.id,

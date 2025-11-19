@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DriverSubscriptionPlans } from './DriverSubscriptionPlans'
 import { RentalSubscriptionPlans } from './RentalSubscriptionPlans'
+import { AdminSubscriptionRevenue } from './AdminSubscriptionRevenue'
 import { useDriverSubscriptionPlans } from '@/hooks/useDriverSubscriptionPlans'
 import { useRentalSubscriptionPlans } from '@/hooks/useRentalSubscriptionPlans'
 import { Car, Building2 } from 'lucide-react'
@@ -23,6 +24,9 @@ export const SubscriptionPlansConfig = () => {
           Gérez les plans d'abonnement pour les chauffeurs, livreurs et partenaires de location
         </p>
       </div>
+
+      {/* ✅ PHASE 2: Affichage des revenus admin */}
+      <AdminSubscriptionRevenue />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>

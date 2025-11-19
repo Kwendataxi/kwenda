@@ -200,7 +200,32 @@ serve(async (req) => {
       console.log('ℹ️ Aucun partenaire lié à ce chauffeur')
     }
 
-    // 9. Logger l'activité avec détails de paiement
+    // 9. ✅ PHASE 2: Commission admin (10%) - TOUJOURS appliquée
+    console.log('💰 Calcul commission admin (10%)...')
+
+    try {
+      const { data: adminCommissionData, error: adminCommissionError } = await supabase.functions.invoke(
+        'admin-subscription-commission',
+        {
+          body: {
+            subscription_id: subscription.id,
+            driver_id,
+            subscription_amount: plan.price
+          }
+        }
+      )
+
+      if (adminCommissionError) {
+        console.error('❌ Erreur commission admin:', adminCommissionError)
+        // Ne pas bloquer l'abonnement si la commission échoue
+      } else {
+        console.log('✅ Commission admin créée:', adminCommissionData?.commission_amount, 'CDF')
+      }
+    } catch (adminCommErr) {
+      console.error('❌ Exception commission admin:', adminCommErr)
+    }
+
+    // 10. Logger l'activité avec détails de paiement
     await supabase
       .from('activity_logs')
       .insert({
