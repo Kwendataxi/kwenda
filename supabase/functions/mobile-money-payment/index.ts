@@ -192,16 +192,22 @@ serve(async (req) => {
         // Étape 2 : Initier le paiement B2B RDC
         console.log('💳 Initiating B2B payment...');
         
-        // Formater le numéro de téléphone : 243XXXXXXXXX (retirer + et espaces)
+        // ✅ Orange Money RDC : Format PeerID SANS code pays 243 (9 chiffres uniquement)
+        // Conformément aux exigences Orange Money : pas de "243" dans le PeerID
         let formattedPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
-        if (formattedPhone.startsWith('+')) {
-          formattedPhone = formattedPhone.substring(1);
+        
+        // Retirer tous les préfixes possibles
+        if (formattedPhone.startsWith('+243')) {
+          formattedPhone = formattedPhone.substring(4); // +243999123456 → 999123456
+        } else if (formattedPhone.startsWith('243')) {
+          formattedPhone = formattedPhone.substring(3); // 243999123456 → 999123456
+        } else if (formattedPhone.startsWith('0')) {
+          formattedPhone = formattedPhone.substring(1); // 0999123456 → 999123456
         }
-        if (formattedPhone.startsWith('0')) {
-          formattedPhone = '243' + formattedPhone.substring(1);
-        }
-        if (!formattedPhone.startsWith('243')) {
-          formattedPhone = '243' + formattedPhone;
+        
+        // Validation finale : doit être exactement 9 chiffres
+        if (!/^[0-9]{9}$/.test(formattedPhone)) {
+          throw new Error(`Format PeerID invalide pour Orange Money: ${formattedPhone}. Attendu: 9 chiffres sans préfixe 243`);
         }
         
         const paymentPayload = {
@@ -223,6 +229,8 @@ serve(async (req) => {
           provider: 'orange',
           pos_id: posId,
           peer_id: formattedPhone,
+          peer_id_format: 'no_country_code', // ✅ Format sans 243 (9 chiffres)
+          original_phone_input: phoneNumber,
           user_type: userType
         }));
 
