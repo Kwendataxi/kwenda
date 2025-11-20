@@ -92,6 +92,66 @@ Orange Money envoie ce payload après traitement du paiement :
 }
 ```
 
+## 📱 Format PeerID Orange Money RDC
+
+⚠️ **IMPORTANT** : Orange Money RDC exige un format PeerID **SANS code pays 243**.
+
+### Format attendu par Orange Money
+
+| Statut | Format | Exemple |
+|--------|--------|---------|
+| ✅ **Correct** | 9 chiffres sans préfixe | `"peerId": "999123456"` |
+| ❌ **Incorrect** | Avec code pays 243 | `"peerId": "243999123456"` |
+| ❌ **Incorrect** | Avec préfixe + | `"peerId": "+243999123456"` |
+| ❌ **Incorrect** | Avec préfixe 0 | `"peerId": "0999123456"` |
+
+### Transformations automatiques
+
+L'edge function `mobile-money-payment` normalise automatiquement les numéros :
+
+| Input utilisateur | PeerID envoyé à Orange |
+|-------------------|------------------------|
+| `+243999123456` | `999123456` ✅ |
+| `243999123456` | `999123456` ✅ |
+| `0999123456` | `999123456` ✅ |
+| `999123456` | `999123456` ✅ |
+
+### Validation
+
+Le système valide que le PeerID final :
+- ✅ Contient **exactement 9 chiffres**
+- ✅ Ne contient **aucun préfixe** (+, 243, 0)
+- ✅ Est composé **uniquement de chiffres** (0-9)
+
+Si le format est invalide, une erreur est retournée :
+```
+Format PeerID invalide pour Orange Money: {numéro}. 
+Attendu: 9 chiffres sans préfixe 243
+```
+
+### Logs de traçabilité
+
+Les logs incluent le format PeerID pour faciliter le débogage :
+
+```json
+{
+  "event": "orange_money_b2b_payment_init",
+  "peer_id": "999123456",
+  "peer_id_format": "no_country_code",
+  "original_phone_input": "+243999123456"
+}
+```
+
+### Test du format
+
+Utilisez le script de test pour vérifier les transformations :
+```bash
+chmod +x test-orange-peerId-format.sh
+./test-orange-peerId-format.sh
+```
+
+---
+
 ## 🔄 Flux de traitement
 
 1. **Réception** : Le webhook reçoit la notification POST sur `/notifications`
@@ -172,6 +232,94 @@ URL de notification : https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/oran
 Méthode : POST
 Content-Type : application/json
 ```
+
+---
+
+## 🔌 API Orange Money utilisée par Kwenda
+
+### Base URL
+```
+https://api.orange.com/orange-money-webpay/cd/v1
+```
+
+### Endpoint de paiement B2B
+```
+POST /transactions/omdcashin
+```
+
+### Headers requis
+```http
+Authorization: Bearer {access_token}
+Content-Type: application/json
+Accept: application/json
+```
+
+### Payload de paiement
+
+```json
+{
+  "amount": 5000,
+  "currency": "CDF",
+  "partnerTransactionId": "KWENDA_1755901635480_n5wj5wyd2",
+  "posId": "{ORANGE_MONEY_POS_ID}",
+  "peerId": "999123456",
+  "peerIdType": "msisdn"
+}
+```
+
+### ⚠️ Important : Format PeerID
+
+- **peerId** : **9 chiffres SANS code pays 243**
+- **Exemples valides** : `"999123456"`, `"823456789"`, `"970000000"`
+- **Exemples invalides** : `"243999123456"`, `"+243999123456"`, `"0999123456"`
+
+### Authentification OAuth 2.0
+
+**Endpoint** :
+```
+POST https://api.orange.com/oauth/v3/token
+```
+
+**Headers** :
+```http
+Authorization: Basic {base64(client_id:client_secret)}
+Content-Type: application/x-www-form-urlencoded
+```
+
+**Body** :
+```
+grant_type=client_credentials
+```
+
+**Réponse** :
+```json
+{
+  "token_type": "Bearer",
+  "access_token": "eyJhbGciOiJSUzI1...",
+  "expires_in": 7200
+}
+```
+
+### Secrets Supabase requis
+
+Les secrets suivants doivent être configurés dans Supabase :
+
+| Secret | Description | Exemple |
+|--------|-------------|---------|
+| `ORANGE_MONEY_API_URL` | Base URL API | `https://api.orange.com/orange-money-webpay/cd/v1` |
+| `ORANGE_MONEY_CLIENT_ID` | Client ID OAuth | `abc123...` |
+| `ORANGE_MONEY_CLIENT_SECRET` | Client Secret OAuth | `xyz789...` |
+| `ORANGE_MONEY_POS_ID` | Identifiant Point de Vente | `POS_KWENDA_001` |
+| `ORANGE_MONEY_MERCHANT_ID` | ID Marchand Orange | `MERCHANT_123` |
+
+### Configuration dans Supabase
+
+```bash
+# Accéder aux secrets
+https://supabase.com/dashboard/project/wddlktajnhwhyquwcdgf/settings/functions
+```
+
+---
 
 ## 🐛 Debugging
 
