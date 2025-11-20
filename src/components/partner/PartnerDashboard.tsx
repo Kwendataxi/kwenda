@@ -21,6 +21,7 @@ import {
 import { usePartnerStats } from '@/hooks/usePartnerStats';
 import { usePartnerActivity } from '@/hooks/usePartnerActivity';
 import { PartnerEarningsCard } from './PartnerEarningsCard';
+import { PartnerRideCommissions } from './PartnerRideCommissions';
 import { motion } from 'framer-motion';
 
 interface QuickAction {
@@ -239,6 +240,15 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
         transition={{ duration: 0.5, delay: 0.3 }}
       >
         <PartnerEarningsCard range="7d" />
+      </motion.div>
+
+      {/* Ride Commissions */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.35 }}
+      >
+        <PartnerRideCommissions />
       </motion.div>
 
       {/* Recent Activity & Alerts */}
