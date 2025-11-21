@@ -233,13 +233,35 @@ Méthode : POST
 Content-Type : application/json
 ```
 
+### ⚠️ Migration API B2B (Novembre 2024)
+
+Orange Money RDC a migré de l'API **WebPay** vers l'API **B2B** :
+
+| Ancienne URL (dépréciée) | Nouvelle URL (active) |
+|--------------------------|----------------------|
+| `https://api.orange.com/orange-money-webpay/cd/v1` | `https://api.orange.com/orange-money-b2b/v1/cd` |
+
+**✅ Action effectuée** : Le secret `ORANGE_MONEY_API_URL` a été mis à jour dans Supabase avec la nouvelle URL.
+
+**📝 Pour vérifier** :
+```bash
+# Lancer le script de validation
+chmod +x test-orange-api-url.sh
+./test-orange-api-url.sh
+```
+
+**🔍 Endpoints actifs** :
+- **OAuth** : `https://api.orange.com/oauth/v3/token`
+- **Paiement B2B** : `https://api.orange.com/orange-money-b2b/v1/cd/transactions/omdcashin`
+- **Webhook Kwenda** : `https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/orange-money-webhook/notifications`
+
 ---
 
 ## 🔌 API Orange Money utilisée par Kwenda
 
 ### Base URL
 ```
-https://api.orange.com/orange-money-webpay/cd/v1
+https://api.orange.com/orange-money-b2b/v1/cd
 ```
 
 ### Endpoint de paiement B2B
@@ -306,7 +328,7 @@ Les secrets suivants doivent être configurés dans Supabase :
 
 | Secret | Description | Exemple |
 |--------|-------------|---------|
-| `ORANGE_MONEY_API_URL` | Base URL API | `https://api.orange.com/orange-money-webpay/cd/v1` |
+| `ORANGE_MONEY_API_URL` | Base URL API | `https://api.orange.com/orange-money-b2b/v1/cd` |
 | `ORANGE_MONEY_CLIENT_ID` | Client ID OAuth | `abc123...` |
 | `ORANGE_MONEY_CLIENT_SECRET` | Client Secret OAuth | `xyz789...` |
 | `ORANGE_MONEY_POS_ID` | Identifiant Point de Vente | `POS_KWENDA_001` |
