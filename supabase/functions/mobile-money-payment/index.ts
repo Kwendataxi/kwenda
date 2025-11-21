@@ -192,11 +192,11 @@ serve(async (req) => {
         // Étape 2 : Initier le paiement B2B RDC
         console.log('💳 Initiating B2B payment...');
         
-        // ✅ Orange Money RDC : Format PeerID SANS code pays 243 (9 chiffres uniquement)
-        // Conformément aux exigences Orange Money : pas de "243" dans le PeerID
+        // ✅ Orange Money B2B RDC : Format receiverMSISDN AVEC code pays 243 (12 chiffres total)
+        // Documentation officielle : receiverMSISDN = 243 + 9 chiffres
         let formattedPhone = phoneNumber.replace(/[\s\-\(\)]/g, '');
         
-        // Retirer tous les préfixes possibles
+        // Retirer les préfixes existants pour normaliser
         if (formattedPhone.startsWith('+243')) {
           formattedPhone = formattedPhone.substring(4); // +243999123456 → 999123456
         } else if (formattedPhone.startsWith('243')) {
@@ -207,44 +207,48 @@ serve(async (req) => {
         
         // Validation finale : doit être exactement 9 chiffres
         if (!/^[0-9]{9}$/.test(formattedPhone)) {
-          throw new Error(`Format PeerID invalide pour Orange Money: ${formattedPhone}. Attendu: 9 chiffres sans préfixe 243`);
+          throw new Error(`Format téléphone invalide pour Orange Money: ${formattedPhone}. Attendu: 9 chiffres`);
         }
         
+        // ✅ Payload B2B RDC officiel selon documentation Orange
         const paymentPayload = {
           amount: amount,
           currency: "CDF",
           partnerTransactionId: transactionId,
-          posId: posId,
-          peerId: formattedPhone,
-          peerIdType: "msisdn"
+          receiverMSISDN: `243${formattedPhone}`, // Format international 243XXXXXXXXX
+          description: "Kwenda Cashout"
         };
 
-        const fullEndpointUrl = `${orangeApiUrl}/transactions/omdcashin`;
+        // ✅ Endpoint officiel Orange Money B2B RDC : /transactions uniquement
+        const fullEndpointUrl = `${orangeApiUrl}/transactions`;
 
         console.log(JSON.stringify({
           timestamp: new Date().toISOString(),
-          event: 'orange_money_b2b_payment_init',
+          event: 'orange_money_b2b_cashout_init',
           user_id: user.id,
           amount: amount,
           currency: "CDF",
           transaction_id: transactionId,
           provider: 'orange',
-          pos_id: posId,
-          peer_id: formattedPhone,
-          peer_id_format: 'no_country_code',
+          receiver_msisdn: `243${formattedPhone}`,
+          msisdn_format: 'international_with_243',
           original_phone_input: phoneNumber,
           user_type: userType,
-          api_url_base: orangeApiUrl,
           full_endpoint: fullEndpointUrl,
-          payload: paymentPayload
+          payload: paymentPayload,
+          headers: {
+            has_auth: true,
+            has_pos_id: true
+          }
         }));
 
+        // ✅ Requête HTTP avec headers officiels Orange Money B2B RDC
         const paymentResponse = await fetch(fullEndpointUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${tokenData.access_token}`,
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            'X-Pos-Id': posId // Header obligatoire Orange Money B2B RDC
           },
           body: JSON.stringify(paymentPayload),
         });
@@ -267,7 +271,7 @@ serve(async (req) => {
               orange_transaction_id: paymentData.transactionId,
               orange_partner_transaction_id: paymentData.partnerTransactionId,
               orange_status: paymentData.transactionStatus,
-              peer_id: formattedPhone
+              receiver_msisdn: `243${formattedPhone}`
             },
             updated_at: new Date().toISOString(),
           })
