@@ -219,6 +219,8 @@ serve(async (req) => {
           peerIdType: "msisdn"
         };
 
+        const fullEndpointUrl = `${orangeApiUrl}/transactions/omdcashin`;
+
         console.log(JSON.stringify({
           timestamp: new Date().toISOString(),
           event: 'orange_money_b2b_payment_init',
@@ -229,12 +231,15 @@ serve(async (req) => {
           provider: 'orange',
           pos_id: posId,
           peer_id: formattedPhone,
-          peer_id_format: 'no_country_code', // ✅ Format sans 243 (9 chiffres)
+          peer_id_format: 'no_country_code',
           original_phone_input: phoneNumber,
-          user_type: userType
+          user_type: userType,
+          api_url_base: orangeApiUrl,
+          full_endpoint: fullEndpointUrl,
+          payload: paymentPayload
         }));
 
-        const paymentResponse = await fetch(`${orangeApiUrl}/transactions/omdcashin`, {
+        const paymentResponse = await fetch(fullEndpointUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${tokenData.access_token}`,
