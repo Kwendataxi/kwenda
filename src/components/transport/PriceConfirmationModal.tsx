@@ -205,34 +205,38 @@ export default function PriceConfirmationModal({
             </div>
           </motion.div>
 
-          {/* Toggle mode bidding avec tooltip */}
+          {/* Toggle mode bidding AMÉLIORÉ avec badge NOUVEAU */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75 }}
-            className="mb-4 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl border border-primary/20"
+            className="mb-4 p-5 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/5 rounded-2xl border-2 border-primary/30 shadow-lg"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="bidding-toggle" className="text-sm font-semibold cursor-pointer">
-                    🎯 Mode enchères
+                <div className="flex items-center gap-2 mb-1">
+                  <Label htmlFor="bidding-toggle" className="text-base font-bold cursor-pointer flex items-center gap-2">
+                    🎯 Mode Enchères
+                    <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-primary text-primary-foreground">
+                      NOUVEAU
+                    </Badge>
                   </Label>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button className="h-5 w-5 rounded-full hover:bg-muted/50 flex items-center justify-center">
-                          <Info className="h-3 w-3 text-muted-foreground" />
+                        <button className="h-5 w-5 rounded-full hover:bg-muted/50 flex items-center justify-center transition-colors">
+                          <Info className="h-3.5 w-3.5 text-muted-foreground" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs">
-                        <p className="text-xs">Les chauffeurs proposent leurs prix. Économisez jusqu'à 50%!</p>
+                        <p className="text-xs font-medium">💡 Les chauffeurs proposent leurs meilleurs prix</p>
+                        <p className="text-xs text-muted-foreground mt-1">Économisez jusqu'à 50% sur votre course!</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Proposez votre prix ou recevez des offres
+                <p className="text-sm text-muted-foreground">
+                  Proposez votre prix et recevez des offres de chauffeurs
                 </p>
               </div>
               <Switch
@@ -240,8 +244,17 @@ export default function PriceConfirmationModal({
                 checked={biddingEnabled}
                 onCheckedChange={setBiddingEnabled}
                 disabled={isSearching}
+                className="data-[state=checked]:bg-primary scale-110"
               />
             </div>
+            
+            {/* Indicateur économie potentielle */}
+            {!biddingEnabled && (
+              <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-lg">
+                <Zap className="h-3 w-3" />
+                <span className="font-medium">Économisez jusqu'à {Math.round(calculatedPrice * 0.3).toLocaleString()} CDF avec ce mode</span>
+              </div>
+            )}
           </motion.div>
 
           {/* Input prix simple (si mode enchères activé) */}

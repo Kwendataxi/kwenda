@@ -44,21 +44,21 @@ interface DeliveryData {
 const SERVICE_TYPES = {
   flash: { 
     name: 'Flash', 
-    icon: '⚡', 
+    iconEmoji: '⚡', 
     description: 'flash_desc',
     color: 'text-red-400',
     gradient: 'from-red-400/80 to-orange-400/80'
   },
   flex: { 
     name: 'Flex', 
-    icon: '📦', 
+    iconEmoji: '📦', 
     description: 'flex_desc',
     color: 'text-blue-400',
     gradient: 'from-blue-400/80 to-cyan-400/80'
   },
   maxicharge: { 
     name: 'MaxiCharge', 
-    icon: '🚚', 
+    iconEmoji: '🚚', 
     description: 'maxicharge_desc',
     color: 'text-purple-400',
     gradient: 'from-purple-400/80 to-pink-400/80'
@@ -424,7 +424,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           mode: deliveryData.serviceType,
           name: SERVICE_TYPES[deliveryData.serviceType].name,
           description: t(`delivery.${SERVICE_TYPES[deliveryData.serviceType].description}`),
-          icon: SERVICE_TYPES[deliveryData.serviceType].icon,
+          iconEmoji: SERVICE_TYPES[deliveryData.serviceType].iconEmoji,
           features: ['Suivi temps réel', 'Support 24/7', 'Assurance colis'],
           estimatedTime: `${durationMinutes} min`
         },
@@ -637,7 +637,9 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
                             flex items-center justify-center text-white text-lg
                             shadow-md backdrop-blur-sm border border-white/10 
                             transition-transform duration-300 group-hover:scale-105 shrink-0`}>
-                            {service.icon}
+                            <span role="img" aria-label={service.name}>
+                              {service.iconEmoji}
+                            </span>
                           </div>
                           <div className="flex flex-col gap-1 pt-0.5">
                             <div className="font-semibold text-sm text-foreground leading-tight">{service.name}</div>
@@ -672,7 +674,9 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
                       {/* En-tête */}
                       <div className="flex items-center gap-2 border-b border-border/50 pb-2">
                         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center text-lg`}>
-                          {service.icon}
+                          <span role="img" aria-label={service.name}>
+                            {service.iconEmoji}
+                          </span>
                         </div>
                         <div>
                           <p className="font-bold text-sm">{service.name}</p>

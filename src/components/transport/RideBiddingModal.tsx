@@ -87,7 +87,7 @@ export const RideBiddingModal = ({
         {/* Info tarif estimé */}
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <div className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-xs text-muted-foreground">Tarif estimé Kwenda</p>
                 <p className="text-2xl font-bold text-foreground">
@@ -96,6 +96,31 @@ export const RideBiddingModal = ({
               </div>
               <Zap className="h-6 w-6 text-primary" />
             </div>
+            
+            {/* Statistiques des offres */}
+            {offers.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/20">
+                <div className="text-center">
+                  <p className="text-xl font-bold text-primary">{offers.length}</p>
+                  <p className="text-xs text-muted-foreground">Offres</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                    {bestOffer ? bestOffer.offered_price.toLocaleString() : '-'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Meilleure</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                    {offers.length > 0 
+                      ? Math.round(offers.reduce((sum, o) => sum + o.offered_price, 0) / offers.length).toLocaleString()
+                      : '-'
+                    }
+                  </p>
+                  <p className="text-xs text-muted-foreground">Moyenne</p>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 

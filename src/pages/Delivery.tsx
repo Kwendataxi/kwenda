@@ -94,7 +94,7 @@ const DeliveryPage = () => {
             name: deliveryData.service.name,
             subtitle: deliveryData.service.description,
             description: deliveryData.service.description,
-            icon: deliveryData.service.icon,
+            icon: deliveryData.service.iconEmoji,
             features: deliveryData.service.features || ['Suivi temps réel', 'Support 24/7'],
             estimatedTime: deliveryData.service.estimatedTime || '2-4h'
           }}
