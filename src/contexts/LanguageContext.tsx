@@ -810,9 +810,9 @@ export const translations = {
     'promo.discount_applied_desc': 'Réduction de {amount} CDF appliquée sur cette course',
 
     // Delivery
-    'delivery.flash_desc': 'Livraison express (1-2h)',
-    'delivery.flex_desc': 'Livraison standard (2-4h)',
-    'delivery.maxicharge_desc': 'Gros colis (4-6h)',
+    'delivery.flash_desc': 'Moto express • Colis jusqu\'à 5 kg',
+    'delivery.flex_desc': 'Camionnette • Colis moyens et volumineux',
+    'delivery.maxicharge_desc': 'Camion • Équipement lourd et déménagement',
     'delivery.package_documents': 'Documents',
     'delivery.package_electronics': 'Électronique',
     'delivery.package_clothes': 'Vêtements',
@@ -1815,9 +1815,9 @@ export const translations = {
     'promo.discount_applied_desc': 'Réduction ya {amount} CDF esalemi na voyage oyo',
 
     // Delivery
-    'delivery.flash_desc': 'Livraison rapide (1-2h)',
-    'delivery.flex_desc': 'Livraison standard (2-4h)',
-    'delivery.maxicharge_desc': 'Colis munene (4-6h)',
+    'delivery.flash_desc': 'Moto rapide • Colis jusqu\'à 5 kg',
+    'delivery.flex_desc': 'Camionnette • Colis ya moyenne',
+    'delivery.maxicharge_desc': 'Camion • Biloko minene',
     'delivery.package_documents': 'Ba documents',
     'delivery.package_electronics': 'Électronique',
     'delivery.package_clothes': 'Bilamba',
@@ -2140,9 +2140,9 @@ export const translations = {
     'promo.discount_applied_desc': 'Réduction wa {amount} CDF lusebensewe na voyage welu',
 
     // Delivery
-    'delivery.flash_desc': 'Livraison rapide (1-2h)',
-    'delivery.flex_desc': 'Livraison standard (2-4h)',
-    'delivery.maxicharge_desc': 'Colis munene (4-6h)',
+    'delivery.flash_desc': 'Moto haraka • Colis hadi 5 kg',
+    'delivery.flex_desc': 'Camionnette • Colis ya kati',
+    'delivery.maxicharge_desc': 'Camion • Vitu vikubwa',
     'delivery.package_documents': 'Ba documents',
     'delivery.package_electronics': 'Électronique',
     'delivery.package_clothes': 'Bilamba',
