@@ -810,9 +810,9 @@ export const translations = {
     'promo.discount_applied_desc': 'Réduction de {amount} CDF appliquée sur cette course',
 
     // Delivery
-    'delivery.flash_desc': '⚡ Moto • Max 5kg',
-    'delivery.flex_desc': '📦 Camionnette • Standard',
-    'delivery.maxicharge_desc': '🚚 Camion • Lourd',
+    'delivery.flash_desc': 'Moto • Max 5kg',
+    'delivery.flex_desc': 'Camionnette • Standard',
+    'delivery.maxicharge_desc': 'Camion • Lourd',
     'delivery.package_documents': 'Documents',
     'delivery.package_electronics': 'Électronique',
     'delivery.package_clothes': 'Vêtements',
@@ -1815,9 +1815,9 @@ export const translations = {
     'promo.discount_applied_desc': 'Réduction ya {amount} CDF esalemi na voyage oyo',
 
     // Delivery
-    'delivery.flash_desc': '⚡ Moto • Max 5kg',
-    'delivery.flex_desc': '📦 Camionnette • Standard',
-    'delivery.maxicharge_desc': '🚚 Camion • Monene',
+    'delivery.flash_desc': 'Moto • Max 5kg',
+    'delivery.flex_desc': 'Camionnette • Standard',
+    'delivery.maxicharge_desc': 'Camion • Monene',
     'delivery.package_documents': 'Ba documents',
     'delivery.package_electronics': 'Électronique',
     'delivery.package_clothes': 'Bilamba',
@@ -2140,9 +2140,9 @@ export const translations = {
     'promo.discount_applied_desc': 'Réduction wa {amount} CDF lusebensewe na voyage welu',
 
     // Delivery
-    'delivery.flash_desc': '⚡ Moto • Max 5kg',
-    'delivery.flex_desc': '📦 Camionnette • Kawaida',
-    'delivery.maxicharge_desc': '🚚 Camion • Kubwa',
+    'delivery.flash_desc': 'Moto • Max 5kg',
+    'delivery.flex_desc': 'Camionnette • Kawaida',
+    'delivery.maxicharge_desc': 'Camion • Kubwa',
     'delivery.package_documents': 'Ba documents',
     'delivery.package_electronics': 'Électronique',
     'delivery.package_clothes': 'Bilamba',
