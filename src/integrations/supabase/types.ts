@@ -5954,6 +5954,7 @@ export type Database = {
           license_number: string | null
           phone: string | null
           phone_number: string
+          primary_vehicle_category: string | null
           rejection_reason: string | null
           reviewed_at: string | null
           service_areas: string[] | null
@@ -5993,6 +5994,7 @@ export type Database = {
           license_number?: string | null
           phone?: string | null
           phone_number: string
+          primary_vehicle_category?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           service_areas?: string[] | null
@@ -6032,6 +6034,7 @@ export type Database = {
           license_number?: string | null
           phone?: string | null
           phone_number?: string
+          primary_vehicle_category?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           service_areas?: string[] | null
@@ -6429,6 +6432,69 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "partner_rental_stats"
             referencedColumns: ["partner_id"]
+          },
+        ]
+      }
+      partner_rental_subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          partner_id: string
+          payment_date: string | null
+          payment_method: string | null
+          payment_status: string | null
+          plan_id: string | null
+          subscription_id: string | null
+          transaction_reference: string | null
+          updated_at: string | null
+          wallet_transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          partner_id: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          plan_id?: string | null
+          subscription_id?: string | null
+          transaction_reference?: string | null
+          updated_at?: string | null
+          wallet_transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          partner_id?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          plan_id?: string | null
+          subscription_id?: string | null
+          transaction_reference?: string | null
+          updated_at?: string | null
+          wallet_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_rental_subscription_payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "rental_subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_rental_subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_subscriptions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -8828,57 +8894,96 @@ export type Database = {
       rental_subscription_plans: {
         Row: {
           analytics_access: boolean | null
-          category_id: string
+          analytics_level: string | null
+          api_access: boolean | null
+          badge_type: string | null
+          category_id: string | null
           created_at: string
           currency: string
           custom_banner: boolean | null
+          custom_branding: boolean | null
           description: string | null
           featured_in_homepage: boolean | null
+          featured_listing: boolean | null
           features: Json | null
           id: string
           is_active: boolean
+          max_photos: number | null
           max_vehicles: number | null
           monthly_price: number
           name: string
+          priority_level: number | null
           priority_support: boolean | null
+          support_level: string | null
+          support_response_time: string | null
           tier: string | null
+          tier_name: string | null
           updated_at: string
+          vehicle_category: string | null
+          video_allowed: boolean | null
+          visibility_boost: number | null
         }
         Insert: {
           analytics_access?: boolean | null
-          category_id: string
+          analytics_level?: string | null
+          api_access?: boolean | null
+          badge_type?: string | null
+          category_id?: string | null
           created_at?: string
           currency?: string
           custom_banner?: boolean | null
+          custom_branding?: boolean | null
           description?: string | null
           featured_in_homepage?: boolean | null
+          featured_listing?: boolean | null
           features?: Json | null
           id?: string
           is_active?: boolean
+          max_photos?: number | null
           max_vehicles?: number | null
           monthly_price?: number
           name: string
+          priority_level?: number | null
           priority_support?: boolean | null
+          support_level?: string | null
+          support_response_time?: string | null
           tier?: string | null
+          tier_name?: string | null
           updated_at?: string
+          vehicle_category?: string | null
+          video_allowed?: boolean | null
+          visibility_boost?: number | null
         }
         Update: {
           analytics_access?: boolean | null
-          category_id?: string
+          analytics_level?: string | null
+          api_access?: boolean | null
+          badge_type?: string | null
+          category_id?: string | null
           created_at?: string
           currency?: string
           custom_banner?: boolean | null
+          custom_branding?: boolean | null
           description?: string | null
           featured_in_homepage?: boolean | null
+          featured_listing?: boolean | null
           features?: Json | null
           id?: string
           is_active?: boolean
+          max_photos?: number | null
           max_vehicles?: number | null
           monthly_price?: number
           name?: string
+          priority_level?: number | null
           priority_support?: boolean | null
+          support_level?: string | null
+          support_response_time?: string | null
           tier?: string | null
+          tier_name?: string | null
           updated_at?: string
+          vehicle_category?: string | null
+          video_allowed?: boolean | null
+          visibility_boost?: number | null
         }
         Relationships: [
           {
