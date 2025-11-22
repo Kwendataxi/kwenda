@@ -306,9 +306,9 @@ export function useRealtimeTracking() {
 
     try {
       const { data, error } = await supabase.rpc('find_nearby_drivers', {
-        pickup_lat: state.currentLocation.lat,
-        pickup_lng: state.currentLocation.lng,
-        radius_km: radius
+        p_lat: state.currentLocation.lat,
+        p_lng: state.currentLocation.lng,
+        p_max_distance_km: radius
       });
 
       if (error) {
