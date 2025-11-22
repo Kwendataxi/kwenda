@@ -63,25 +63,45 @@ serve(async (req) => {
     let searchRadius = priority === 'urgent' ? 25 : priority === 'high' ? 15 : 10;
     let minRating = priority === 'urgent' ? 3.0 : priority === 'high' ? 4.0 : 4.5;
 
-    // ✅ CORRECTION: Supprimer filtre city qui n'existe pas
+    // ✅ CORRECTION: Utiliser chauffeurs table qui existe
     const { data: drivers, error } = await supabase
       .from('driver_locations')
       .select(`
         driver_id,
         latitude,
         longitude,
-        driver_profiles!inner(
-          full_name,
-          rating,
-          vehicle_type,
-          vehicle_model,
-          phone_number,
-          total_trips
-        )
+        is_online,
+        is_available,
+        last_ping
       `)
       .eq('is_online', true)
       .eq('is_available', true)
       .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString());
+
+    if (error) {
+      console.error('❌ Database query error:', error);
+      throw error;
+    }
+
+    console.log(`📊 Found ${drivers?.length || 0} online drivers`);
+
+    // Récupérer les infos des chauffeurs depuis la table chauffeurs
+    const driverIds = (drivers || []).map(d => d.driver_id);
+    
+    const { data: driverProfiles, error: profilesError } = await supabase
+      .from('chauffeurs')
+      .select('id, display_name, rating_average, vehicle_type, vehicle_model, phone_number, total_rides')
+      .in('id', driverIds);
+
+    if (profilesError) {
+      console.error('❌ Error fetching driver profiles:', profilesError);
+      // Continue même sans profils
+    }
+
+    // Créer un map des profils pour accès rapide
+    const profilesMap = new Map(
+      (driverProfiles || []).map(p => [p.id, p])
+    );
 
     if (error) {
       console.error('Database query error:', error);
@@ -91,6 +111,14 @@ serve(async (req) => {
     const matches: DriverMatch[] = [];
 
     for (const driver of drivers || []) {
+      const profile = profilesMap.get(driver.driver_id);
+      
+      // Skip si pas de profil trouvé
+      if (!profile) {
+        console.warn(`⚠️ No profile found for driver ${driver.driver_id}`);
+        continue;
+      }
+
       const distance = calculateDistance(
         pickup_latitude,
         pickup_longitude,
@@ -98,24 +126,26 @@ serve(async (req) => {
         driver.longitude
       );
 
-      if (distance <= searchRadius && (driver.driver_profiles as any)?.rating >= minRating) {
+      const rating = profile.rating_average || 4.0;
+
+      if (distance <= searchRadius && rating >= minRating) {
         const score = calculateDriverScore(
           distance,
-          (driver.driver_profiles as any)?.rating || 4.0,
-          (driver.driver_profiles as any)?.total_trips || 0
+          rating,
+          profile.total_rides || 0
         );
 
         matches.push({
           driver_id: driver.driver_id,
-          full_name: (driver.driver_profiles as any)?.full_name,
-          rating: (driver.driver_profiles as any)?.rating,
-          vehicle_type: (driver.driver_profiles as any)?.vehicle_type,
-          vehicle_model: (driver.driver_profiles as any)?.vehicle_model,
+          full_name: profile.display_name || 'Chauffeur',
+          rating: rating,
+          vehicle_type: profile.vehicle_type || 'unknown',
+          vehicle_model: profile.vehicle_model || 'N/A',
           distance_km: parseFloat(distance.toFixed(2)),
           score: parseFloat(score.toFixed(2)),
           latitude: driver.latitude,
           longitude: driver.longitude,
-          phone_number: (driver.driver_profiles as any)?.phone_number
+          phone_number: profile.phone_number || ''
         });
       }
     }
