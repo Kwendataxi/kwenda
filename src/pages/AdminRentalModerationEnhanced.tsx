@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Search, Filter } from 'lucide-react';
+import { invokeEdgeFunction } from '@/utils/edgeFunctionWrapper';
 
 export default function AdminRentalModerationEnhanced() {
   const { toast } = useToast();
@@ -116,22 +117,14 @@ export default function AdminRentalModerationEnhanced() {
   const approveMutation = useMutation({
     mutationFn: async (vehicleId: string) => {
       console.log('🚀 Appel admin-approve-vehicle pour:', vehicleId);
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error('❌ Aucune session active');
-        throw new Error('Non authentifié');
-      }
-      
-      console.log('✅ Session valide, token présent');
 
-      const { data, error } = await supabase.functions.invoke('admin-approve-vehicle', {
+      const { data, error } = await invokeEdgeFunction({
+        functionName: 'admin-approve-vehicle',
         body: { vehicle_id: vehicleId }
       });
 
       console.log('📡 Réponse edge function:', { data, error });
 
-      // Vérifier TOUS les cas d'erreur
       if (error) {
         console.error('❌ Erreur invoke:', error);
         throw new Error(error.message || 'Erreur inconnue');
@@ -171,22 +164,14 @@ export default function AdminRentalModerationEnhanced() {
   const rejectMutation = useMutation({
     mutationFn: async ({ vehicleId, reason }: { vehicleId: string; reason: string }) => {
       console.log('🚀 Appel admin-reject-vehicle pour:', vehicleId, 'raison:', reason);
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.error('❌ Aucune session active');
-        throw new Error('Non authentifié');
-      }
-      
-      console.log('✅ Session valide, token présent');
 
-      const { data, error } = await supabase.functions.invoke('admin-reject-vehicle', {
+      const { data, error } = await invokeEdgeFunction({
+        functionName: 'admin-reject-vehicle',
         body: { vehicle_id: vehicleId, reason }
       });
 
       console.log('📡 Réponse edge function:', { data, error });
 
-      // Vérifier TOUS les cas d'erreur
       if (error) {
         console.error('❌ Erreur invoke:', error);
         throw new Error(error.message || 'Erreur inconnue');
