@@ -20,6 +20,8 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
     // ✅ Extraire le token et le passer explicitement à getUser()
@@ -34,8 +36,9 @@ serve(async (req) => {
       });
     }
 
-    // Vérifier rôle admin
-    const { data: roles } = await supabaseClient
+    // Utiliser service role pour vérifier le rôle admin (bypass RLS)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: roles } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
@@ -63,10 +66,6 @@ serve(async (req) => {
     }
 
     console.log(`❌ Rejet véhicule ${vehicle_id} par admin ${user.id}: ${reason}`);
-
-    // Utiliser service role pour bypass RLS
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Mettre à jour le véhicule
     console.log('🔄 Mise à jour rental_vehicles...');
