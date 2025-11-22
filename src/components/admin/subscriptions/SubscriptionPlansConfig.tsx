@@ -3,25 +3,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DriverSubscriptionPlans } from './DriverSubscriptionPlans'
 import { RentalSubscriptionPlans } from './RentalSubscriptionPlans'
+import { RentalSubscriptionPlansByCategory } from './RentalSubscriptionPlansByCategory'
 import { AdminSubscriptionRevenue } from './AdminSubscriptionRevenue'
 import { useDriverSubscriptionPlans } from '@/hooks/useDriverSubscriptionPlans'
 import { useRentalSubscriptionPlans } from '@/hooks/useRentalSubscriptionPlans'
-import { Car, Building2 } from 'lucide-react'
+import { Car, Building2, Grid3x3 } from 'lucide-react'
 
 export const SubscriptionPlansConfig = () => {
   const [activeTab, setActiveTab] = useState('drivers')
   const { plans: driverPlans } = useDriverSubscriptionPlans()
   const { plans: rentalPlans } = useRentalSubscriptionPlans()
+  const rentalPlansWithCategory = rentalPlans.filter(p => p.vehicle_category)
 
   const driverActivePlans = driverPlans.filter(p => p.is_active).length
   const rentalActivePlans = rentalPlans.filter(p => p.is_active).length
+  const rentalCategoryPlans = rentalPlansWithCategory.length
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Configuration des Plans d'Abonnement</h1>
         <p className="text-muted-foreground mt-2">
-          Gérez les plans d'abonnement pour les chauffeurs, livreurs et partenaires de location
+          Gérez les plans d'abonnement : {rentalCategoryPlans} plans location professionnels par catégorie
         </p>
       </div>
 
@@ -57,14 +60,18 @@ export const SubscriptionPlansConfig = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="drivers" className="flex items-center gap-2">
             <Car className="h-4 w-4" />
             Plans Chauffeurs/Livreurs
           </TabsTrigger>
           <TabsTrigger value="rental" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
-            Plans Location
+            Plans Location (Anciens)
+          </TabsTrigger>
+          <TabsTrigger value="rental-categories" className="flex items-center gap-2">
+            <Grid3x3 className="h-4 w-4" />
+            Plans par Catégorie 🆕
           </TabsTrigger>
         </TabsList>
 
@@ -74,6 +81,10 @@ export const SubscriptionPlansConfig = () => {
 
         <TabsContent value="rental" className="mt-6">
           <RentalSubscriptionPlans />
+        </TabsContent>
+
+        <TabsContent value="rental-categories" className="mt-6">
+          <RentalSubscriptionPlansByCategory />
         </TabsContent>
       </Tabs>
     </div>
