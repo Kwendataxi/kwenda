@@ -46,9 +46,14 @@ export const TestLotteryPage = () => {
 
   const handleGenerateMultiple = async () => {
     setLoading(true);
-    await generateMultipleCards(5);
-    await loadStats();
+    for (let i = 1; i <= 5; i++) {
+      await generateTestCard();
+      toast.success(`Carte ${i}/5 générée 🎰`);
+      await loadStats();
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
     setLoading(false);
+    toast.success('🎉 5 cartes créées avec succès !');
   };
 
   const handleReset = async () => {
