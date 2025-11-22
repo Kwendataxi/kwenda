@@ -198,17 +198,17 @@ export const useEnhancedDeliveryOrders = () => {
         recipientPhone: extractedRecipientPhone
       });
 
-      // ✅ SIMPLIFICATION: Format garanti par Phase 2 validation stricte
+      // ✅ CORRECTION: Support multi-format pour compatibilité
       const normalizeDeliveryData = (data: any) => {
         console.log('🔍 [useEnhancedDeliveryOrders] normalizeDeliveryData - Données reçues:', data);
         
-        // ✅ NOUVEAU: Format garanti par Phase 2
-        const senderPhone = data.pickup.contact.phone; // GARANTI NON-VIDE
-        const recipientPhone = data.destination.contact.phone; // GARANTI NON-VIDE
-        const senderName = data.pickup.contact.name; // GARANTI NON-VIDE
-        const recipientName = data.destination.contact.name; // GARANTI NON-VIDE
+        // Extraire contacts avec fallback sur plusieurs formats possibles
+        const senderPhone = data.senderPhone || data.pickup?.contactPhone || data.pickup?.contact?.phone || '';
+        const recipientPhone = data.recipientPhone || data.destination?.contactPhone || data.destination?.contact?.phone || '';
+        const senderName = data.senderName || data.pickup?.contactName || data.pickup?.contact?.name || 'Expéditeur';
+        const recipientName = data.recipientName || data.destination?.contactName || data.destination?.contact?.name || 'Destinataire';
         
-        console.log('✅ Contacts extraits (garantis valides):', {
+        console.log('✅ Contacts extraits (multi-format):', {
           senderName,
           senderPhone,
           recipientName,
@@ -217,22 +217,22 @@ export const useEnhancedDeliveryOrders = () => {
         
         return {
           pickup: {
-            address: data.pickup.location.address,
-            lat: data.pickup.location.coordinates.lat,
-            lng: data.pickup.location.coordinates.lng,
+            address: data.pickup?.address || data.pickup?.location?.address || '',
+            lat: data.pickup?.lat || data.pickup?.location?.coordinates?.lat || 0,
+            lng: data.pickup?.lng || data.pickup?.location?.coordinates?.lng || 0,
             contactName: senderName,
             contactPhone: senderPhone
           },
           destination: {
-            address: data.destination.location.address,
-            lat: data.destination.location.coordinates.lat,
-            lng: data.destination.location.coordinates.lng,
+            address: data.destination?.address || data.destination?.location?.address || '',
+            lat: data.destination?.lat || data.destination?.location?.coordinates?.lat || 0,
+            lng: data.destination?.lng || data.destination?.location?.coordinates?.lng || 0,
             contactName: recipientName,
             contactPhone: recipientPhone
           },
           mode: data.mode || data.service?.mode,
           city: data.city || 'Kinshasa',
-          estimatedPrice: data.pricing?.price || data.estimatedPrice,
+          estimatedPrice: data.estimatedPrice || data.pricing?.price || 0,
           distance: data.distance,
           duration: data.duration
         };
