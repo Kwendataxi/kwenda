@@ -179,6 +179,28 @@ serve(async (req) => {
         reference_type: 'food_order',
         reference_id: orderData.restaurant_id
       });
+
+      // ✅ NOUVEAU : Créer escrow pour protéger les fonds du restaurant
+      const platformFee = subtotal * 0.05;
+      const restaurantAmount = subtotal - platformFee;
+
+      await supabase.from('escrow_transactions').insert({
+        order_id: null, // Sera lié après création de la commande
+        buyer_id: user.id,
+        seller_id: orderData.restaurant_id,
+        amount: subtotal, // Montant produit uniquement
+        platform_fee: platformFee,
+        seller_amount: restaurantAmount,
+        status: 'held',
+        currency: 'CDF',
+        transaction_type: 'food_order',
+        metadata: {
+          restaurant_name: restaurant.restaurant_name,
+          paid_with: bonusBalance >= totalAmount ? 'bonus' : 'main_balance'
+        }
+      });
+
+      console.log(`✅ Escrow créé : ${subtotal} CDF (restaurant: ${restaurantAmount} CDF, plateforme: ${platformFee} CDF)`);
     }
 
     const orderNumber = `FOOD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -219,6 +241,18 @@ serve(async (req) => {
       .single();
 
     if (orderError) throw orderError;
+
+    // ✅ Lier l'escrow à la commande créée (si paiement KwendaPay)
+    if (orderData.payment_method === 'kwenda_pay') {
+      await supabase
+        .from('escrow_transactions')
+        .update({ order_id: order.id })
+        .eq('buyer_id', user.id)
+        .eq('seller_id', orderData.restaurant_id)
+        .is('order_id', null)
+        .order('created_at', { ascending: false })
+        .limit(1);
+    }
 
     await supabase.from('food_order_items').insert(
       orderData.items.map(item => {
