@@ -347,7 +347,9 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <span className="text-2xl">{service.icon}</span>
+                            <span className="text-2xl" role="img" aria-label={service.name}>
+                              {service.icon}
+                            </span>
                             <div>
                               <div className={`font-medium ${service.color}`}>{service.name}</div>
                               <div className="text-sm text-muted-foreground">{service.description}</div>

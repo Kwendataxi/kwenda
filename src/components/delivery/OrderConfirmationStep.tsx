@@ -275,7 +275,8 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
     }
   };
 
-  const ServiceIcon = service.icon;
+  // L'icon est une string emoji, pas un composant
+  const serviceIconEmoji = typeof service.icon === 'string' ? service.icon : '📦';
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -304,7 +305,9 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-3 bg-primary/10 rounded-xl">
-                <ServiceIcon className="h-6 w-6 text-primary" />
+                <span className="text-2xl" role="img" aria-label={service.name}>
+                  {serviceIconEmoji}
+                </span>
               </div>
               <div>
                 <h3 className="text-xl">{service.name}</h3>
