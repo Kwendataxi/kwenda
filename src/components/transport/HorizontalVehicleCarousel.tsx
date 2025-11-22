@@ -70,11 +70,11 @@ export default function HorizontalVehicleCarousel({
 
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        scrollContainerRef.current.scrollBy({ left: 168, behavior: 'smooth' });
+        scrollContainerRef.current.scrollBy({ left: 156, behavior: 'smooth' });
         triggerHaptic('light');
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        scrollContainerRef.current.scrollBy({ left: -168, behavior: 'smooth' });
+        scrollContainerRef.current.scrollBy({ left: -156, behavior: 'smooth' });
         triggerHaptic('light');
       }
     };
@@ -155,18 +155,18 @@ export default function HorizontalVehicleCarousel({
               animate={{ 
                 opacity: 1,
                 x: 0,
-                scale: isSelected ? 1.05 : 1
+                scale: isSelected ? 1.02 : 1
               }}
               transition={{ 
                 delay: index * 0.08,
                 scale: { type: "spring", stiffness: 400, damping: 30 }
               }}
-              whileHover={{ scale: isSelected ? 1.05 : 1.02 }}
+              whileHover={{ scale: isSelected ? 1.02 : 1.01 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleVehicleSelect(vehicle.id)}
               className={cn(
-                "relative flex-shrink-0 w-40 h-40 snap-start",
-                "p-4 rounded-2xl border-2 transition-all duration-300",
+                "relative flex-shrink-0 w-36 h-36 snap-start",
+                "p-3 rounded-2xl border-2 transition-all duration-300",
                 "flex flex-col",
                 isSelected
                   ? "bg-gradient-to-br from-primary/15 to-primary/5 border-primary shadow-2xl shadow-primary/30 ring-2 ring-primary/50 z-10"
@@ -199,7 +199,7 @@ export default function HorizontalVehicleCarousel({
                 {/* Top section: Icône + Nom + ETA */}
                 <div className="flex flex-col items-center gap-2">
                   <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                    "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
                     isSelected 
                       ? "bg-primary/20" 
                       : "bg-muted/30"
@@ -217,7 +217,7 @@ export default function HorizontalVehicleCarousel({
                     )}>
                       {vehicle.name}
                     </h3>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[9px] text-muted-foreground">
                       {vehicle.time}
                     </p>
                   </div>
@@ -227,12 +227,12 @@ export default function HorizontalVehicleCarousel({
                 <div className="flex flex-col items-center gap-1">
                   <div className="space-y-1 text-center">
                     <p className={cn(
-                      "text-xl font-extrabold leading-none",
+                      "text-lg font-extrabold leading-none",
                       isSelected ? "text-primary" : "text-foreground"
                     )}>
                       {vehicle.price.toLocaleString()}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">{vehicle.pricePerKm}/km</p>
+                    <p className="text-[9px] text-muted-foreground">{vehicle.pricePerKm}/km</p>
                   </div>
 
                   {!loading && driverCount > 0 && (
