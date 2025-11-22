@@ -5,7 +5,7 @@ import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import CompactDestinationSearch from './CompactDestinationSearch';
-import SimpleVehicleGrid from './SimpleVehicleGrid';
+import HorizontalVehicleCarousel from './HorizontalVehicleCarousel';
 import { LocationData } from '@/types/location';
 import { useVehicleTypes } from '@/hooks/useVehicleTypes';
 
@@ -111,15 +111,15 @@ export default function UnifiedTaxiSheet({
               city={city}
             />
 
-            {/* Section 2 : Grid de véhicules 2x2 */}
+            {/* Section 2 : Carousel de véhicules horizontal */}
             {vehiclesLoading ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex gap-3 pb-2 overflow-x-hidden">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-32 bg-muted/20 rounded-2xl animate-pulse" />
+                  <div key={i} className="flex-shrink-0 w-40 h-36 bg-muted/20 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : (
-            <SimpleVehicleGrid
+            <HorizontalVehicleCarousel
               vehicles={vehicleOptions}
               selectedVehicleId={selectedVehicle}
               onVehicleSelect={onVehicleSelect}
