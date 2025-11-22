@@ -121,7 +121,30 @@ export const useEnhancedDeliveryOrders = () => {
     setSubmitting(true);
     
     try {
-      console.log('Création commande livraison - Données:', orderData);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🚀 [DELIVERY] Creating order:', {
+        mode: orderData.mode,
+        pickup: {
+          address: orderData.pickup?.address,
+          lat: orderData.pickup?.lat,
+          lng: orderData.pickup?.lng
+        },
+        destination: {
+          address: orderData.destination?.address,
+          lat: orderData.destination?.lat,
+          lng: orderData.destination?.lng
+        },
+        contacts: {
+          sender: orderData.senderPhone || orderData.pickup?.contact?.phone,
+          recipient: orderData.recipientPhone || orderData.destination?.contact?.phone
+        },
+        pricing: {
+          estimated: orderData.estimatedPrice,
+          distance: orderData.distance,
+          duration: orderData.duration
+        }
+      });
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       const { data: { user } } = await supabase.auth.getUser();
       
