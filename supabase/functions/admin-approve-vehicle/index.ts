@@ -38,19 +38,30 @@ serve(async (req) => {
 
     // Utiliser service role pour vérifier le rôle admin (bypass RLS)
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-    const { data: roles } = await supabaseAdmin
+    
+    console.log('🔍 Vérification rôle admin pour user:', user.id);
+    
+    const { data: roles, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .eq('role', 'admin')
-      .single();
+      .maybeSingle();
 
-    if (!roles) {
-      return new Response(JSON.stringify({ error: 'Accès refusé - Admin uniquement' }), {
+    console.log('📋 Résultat requête rôles:', { roles, roleError });
+
+    if (roleError || !roles) {
+      console.error('❌ Utilisateur non admin:', { user_id: user.id, roleError });
+      return new Response(JSON.stringify({ 
+        error: 'Accès refusé - Admin uniquement',
+        debug: { user_id: user.id, hasRole: !!roles }
+      }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+    
+    console.log('✅ Utilisateur admin confirmé');
 
     const { vehicle_id, admin_notes } = await req.json();
 
