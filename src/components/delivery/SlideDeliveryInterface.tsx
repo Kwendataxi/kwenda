@@ -618,71 +618,113 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               transition={{ delay: 0.1 + index * 0.1, duration: 0.4 }}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className={`group p-6 rounded-2xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
-                deliveryData.serviceType === key
-                  ? 'bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 border-2 border-primary shadow-2xl ring-2 ring-primary/20 scale-[1.02]'
-                  : 'bg-white/50 dark:bg-gray-900/50 border-2 border-border/30 hover:border-primary/50 hover:shadow-xl hover:scale-[1.01] shadow-md'
-              }`}
-              onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} 
-                    flex items-center justify-center text-white text-2xl
-                    shadow-xl backdrop-blur-sm border border-white/20 
-                    transition-transform duration-300 group-hover:scale-110`}>
-                    {service.icon}
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div className="font-bold text-lg text-foreground">{service.name}</div>
-                      {key === 'flash' && (
-                        <span className="px-2 py-0.5 bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-full border border-red-500/30">
-                          5-15 min
-                        </span>
-                      )}
-                      {key === 'flex' && (
-                        <span className="px-2 py-0.5 bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
-                          30-60 min
-                        </span>
-                      )}
-                      {key === 'maxicharge' && (
-                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-full border border-purple-500/30">
-                          1-3 heures
-                        </span>
-                      )}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="text-muted-foreground/50 hover:text-primary transition-colors">
-                              <Info className="h-3.5 w-3.5" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p className="text-xs">
-                              {key === 'flash' && "Livraison ultra-rapide par moto pour petits colis (max 5kg). Idéal pour documents, nourriture, petits objets."}
-                              {key === 'flex' && "Livraison standard en camionnette pour colis moyens. Parfait pour vêtements, électronique, courses."}
-                              {key === 'maxicharge' && "Livraison en camion pour gros volumes et équipement lourd. Idéal pour meubles, déménagement, matériel professionnel."}
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip delayDuration={200}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`group p-5 rounded-2xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
+                        deliveryData.serviceType === key
+                          ? 'bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 border-2 border-primary shadow-2xl ring-2 ring-primary/20 scale-[1.02]'
+                          : 'bg-white/50 dark:bg-gray-900/50 border-2 border-border/30 hover:border-primary/50 hover:shadow-xl hover:scale-[1.01] shadow-md'
+                      }`}
+                      onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-5">
+                          <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${service.gradient} 
+                            flex items-center justify-center text-white text-2xl
+                            shadow-xl backdrop-blur-sm border border-white/20 
+                            transition-transform duration-300 group-hover:scale-110`}>
+                            {service.icon}
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="font-bold text-lg text-foreground">{service.name}</div>
+                            <div className="text-sm font-medium text-muted-foreground">
+                              {t(`delivery.${service.description}`)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-extrabold text-2xl text-foreground">
+                            {servicePricing.basePrice.toLocaleString()} <span className="text-sm font-semibold text-primary/70">CDF</span>
+                          </div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">
+                            +{servicePricing.pricePerKm}/km
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                      {t(`delivery.${service.description}`)}
+                  </TooltipTrigger>
+                  
+                  <TooltipContent 
+                    side="right" 
+                    align="start"
+                    className="max-w-sm p-4 bg-card border-2 border-primary/20 shadow-2xl"
+                  >
+                    <div className="space-y-3">
+                      {/* En-tête */}
+                      <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center text-lg`}>
+                          {service.icon}
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm">{service.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {key === 'flash' && '⏱️ 5-15 minutes'}
+                            {key === 'flex' && '⏱️ 30-60 minutes'}
+                            {key === 'maxicharge' && '⏱️ 1-3 heures'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Description détaillée */}
+                      <div className="space-y-2 text-xs">
+                        <p className="font-semibold text-foreground">
+                          {key === 'flash' && '🏍️ Livraison ultra-rapide par moto'}
+                          {key === 'flex' && '🚐 Livraison standard en camionnette'}
+                          {key === 'maxicharge' && '🚚 Transport de gros volumes'}
+                        </p>
+                        <ul className="space-y-1 text-muted-foreground">
+                          {key === 'flash' && (
+                            <>
+                              <li>• Petits colis (max 5 kg)</li>
+                              <li>• Documents, nourriture, objets légers</li>
+                              <li>• Idéal pour les urgences</li>
+                            </>
+                          )}
+                          {key === 'flex' && (
+                            <>
+                              <li>• Colis moyens et volumineux</li>
+                              <li>• Vêtements, électronique, courses</li>
+                              <li>• Meilleur rapport qualité/prix</li>
+                            </>
+                          )}
+                          {key === 'maxicharge' && (
+                            <>
+                              <li>• Équipement lourd, meubles</li>
+                              <li>• Déménagement partiel/complet</li>
+                              <li>• Matériel professionnel</li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
+
+                      {/* Pricing détaillé */}
+                      <div className="bg-primary/5 rounded-lg p-2 space-y-1 text-xs border border-primary/10">
+                        <div className="flex justify-between font-semibold">
+                          <span>Prix de base</span>
+                          <span>{servicePricing.basePrice.toLocaleString()} CDF</span>
+                        </div>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Prix au kilomètre</span>
+                          <span>+{servicePricing.pricePerKm} CDF/km</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <div className="text-right space-y-1">
-                  <div className="font-extrabold text-xl text-foreground leading-none">
-                    {servicePricing.basePrice.toLocaleString()}
-                  </div>
-                  <div className="text-xs font-semibold text-primary">CDF</div>
-                  <div className="text-[10px] text-muted-foreground font-medium bg-muted/50 px-2 py-0.5 rounded-full inline-block">
-                    + {servicePricing.pricePerKm}/km
-                  </div>
-                </div>
-              </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </motion.div>
           );
         })}
