@@ -114,10 +114,10 @@ export default function EdgeFunctionTest() {
       console.log('🧪 Testing find_nearby_drivers function...');
       
       const { data, error } = await supabase.rpc('find_nearby_drivers', {
-        pickup_lat: -4.3217,
-        pickup_lng: 15.3069,
-        service_type_param: 'transport',
-        radius_km: 15
+        p_lat: -4.3217,
+        p_lng: 15.3069,
+        p_service_type: 'taxi',
+        p_max_distance_km: 15
       });
 
       if (error) throw error;

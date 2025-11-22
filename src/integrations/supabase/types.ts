@@ -14729,67 +14729,32 @@ export type Database = {
           vehicle_class: string
         }[]
       }
-      find_nearby_drivers:
-        | {
-            Args: {
-              p_lat: number
-              p_lng: number
-              p_max_distance_km?: number
-              p_service_type?: string
-              p_vehicle_class?: string
-            }
-            Returns: {
-              distance_km: number
-              driver_id: string
-              estimated_arrival_minutes: number
-              is_available: boolean
-              rating_average: number
-              rides_remaining: number
-              service_type: string
-              vehicle_class: string
-            }[]
-          }
-        | {
-            Args: {
-              p_city?: string
-              p_latitude: number
-              p_limit?: number
-              p_longitude: number
-              p_max_distance_km?: number
-              p_vehicle_class?: string
-            }
-            Returns: {
-              distance_km: number
-              driver_id: string
-              driver_name: string
-              estimated_arrival_minutes: number
-              is_available: boolean
-              last_ping: string
-              rating_average: number
-              total_rides: number
-              vehicle_class: string
-              vehicle_info: Json
-            }[]
-          }
-        | {
-            Args: {
-              pickup_lat: number
-              pickup_lng: number
-              radius_km?: number
-              service_type_param?: string
-              user_city_param?: string
-              vehicle_class_filter?: string
-            }
-            Returns: {
-              distance_km: number
-              driver_id: string
-              is_available: boolean
-              rating_average: number
-              rides_remaining: number
-              total_rides: number
-              vehicle_class: string
-            }[]
-          }
+      find_nearby_drivers: {
+        Args: {
+          p_city?: string
+          p_lat: number
+          p_lng: number
+          p_max_distance_km?: number
+          p_service_type?: string
+          p_vehicle_class?: string
+        }
+        Returns: {
+          display_name: string
+          distance_km: number
+          driver_id: string
+          is_available: boolean
+          phone_number: string
+          rating_average: number
+          rides_remaining: number
+          service_type: string
+          total_rides: number
+          vehicle_class: string
+          vehicle_color: string
+          vehicle_make: string
+          vehicle_model: string
+          vehicle_plate: string
+        }[]
+      }
       find_nearby_drivers_secure: {
         Args: {
           max_distance_km?: number
