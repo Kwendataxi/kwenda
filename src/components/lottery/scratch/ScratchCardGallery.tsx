@@ -212,19 +212,42 @@ export const ScratchCardGallery: React.FC = () => {
                 >
                   <Ticket className="h-16 w-16 mx-auto mb-4 text-primary/50" />
                 </motion.div>
-                <p className="text-base font-medium">Aucune carte à gratter</p>
-                <p className="text-sm text-muted-foreground mt-2 mb-4">
-                  Effectuez des courses ou des achats pour gagner des cartes !
+                <p className="text-lg font-semibold mb-2">Aucune carte à gratter</p>
+                <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+                  Gagnez des cartes en effectuant des <strong>courses 🚗</strong>, des <strong>livraisons 📦</strong> ou des <strong>achats 🛒</strong> sur la plateforme !
                 </p>
-                {import.meta.env.DEV && (
+                
+                <div className="space-y-3">
                   <Button 
-                    variant="outline" 
-                    size="sm"
+                    size="lg"
+                    className="w-full max-w-xs mx-auto animate-pulse"
                     onClick={() => window.location.href = '/test-lottery'}
                   >
-                    🎮 Mode test
+                    🎮 Mode Test - Générer une carte
                   </Button>
-                )}
+                  
+                  <div className="text-xs text-muted-foreground mt-4 space-y-1 max-w-xs mx-auto">
+                    <p className="font-semibold">📊 Vos chances de gagner une carte :</p>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div className="p-2 rounded bg-muted/50">
+                        <p>🚗 Course</p>
+                        <p className="font-bold text-primary">15%</p>
+                      </div>
+                      <div className="p-2 rounded bg-muted/50">
+                        <p>📦 Livraison</p>
+                        <p className="font-bold text-primary">10%</p>
+                      </div>
+                      <div className="p-2 rounded bg-muted/50">
+                        <p>🛒 Achat</p>
+                        <p className="font-bold text-primary">20%</p>
+                      </div>
+                      <div className="p-2 rounded bg-muted/50">
+                        <p>🤝 Parrainage</p>
+                        <p className="font-bold text-primary">100%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}

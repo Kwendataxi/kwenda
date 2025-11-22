@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScratchCardGallery } from './scratch/ScratchCardGallery';
 import { WinsHistory } from './history/WinsHistory';
+import { SuperLotteryDashboard } from './SuperLotteryDashboard';
 import { CompactLoyaltyWidget } from '@/components/loyalty/CompactLoyaltyWidget';
 import { useLottery } from '@/hooks/useLottery';
 import { motion } from 'framer-motion';
@@ -91,16 +92,23 @@ export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) 
         <CompactLoyaltyWidget />
       </div>
 
-      {/* Navigation simplifiée 2 onglets */}
+      {/* Navigation simplifiée 3 onglets avec Super Loterie */}
       <Tabs defaultValue="scratch" className="flex-1 flex flex-col">
         <div className="flex-shrink-0 bg-background/60 dark:bg-background/40 backdrop-blur-xl border-b border-border/50 px-3 py-2">
-          <TabsList className="w-full h-11 p-1 bg-muted/50 dark:bg-muted/20 grid grid-cols-2 rounded-xl">
+          <TabsList className="w-full h-11 p-1 bg-muted/50 dark:bg-muted/20 grid grid-cols-3 rounded-xl">
             <TabsTrigger 
               value="scratch" 
               className="text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-lg transition-all"
             >
               <Ticket className="h-4 w-4 mr-2" />
               À gratter
+            </TabsTrigger>
+            <TabsTrigger 
+              value="super" 
+              className="text-sm font-medium data-[state=active]:bg-yellow-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Super Loterie
             </TabsTrigger>
             <TabsTrigger 
               value="wins" 
@@ -118,6 +126,10 @@ export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) 
         <div className="flex-1 overflow-auto">
           <TabsContent value="scratch" className="p-3 m-0">
             <ScratchCardGallery />
+          </TabsContent>
+
+          <TabsContent value="super" className="p-3 m-0">
+            <SuperLotteryDashboard />
           </TabsContent>
 
           <TabsContent value="wins" className="p-3 m-0">
