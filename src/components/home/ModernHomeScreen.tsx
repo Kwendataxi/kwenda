@@ -11,6 +11,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { useServiceNotifications } from '@/hooks/useServiceNotifications';
 import { useServiceTransition } from '@/hooks/useServiceTransition';
 import { Skeleton } from '@/components/ui/skeleton';
+import { NotificationToastContainer } from '@/components/notifications/NotificationToastContainer';
 
 // ✅ PHASE 4: Lazy loading des composants lourds
 const PromoSlider = lazy(() => import('./PromoSliderOptimized').then(m => ({ default: m.PromoSlider })));
@@ -32,9 +33,22 @@ export const ModernHomeScreen = memo(({
   const [trendsOpen, setTrendsOpen] = useState(false);
   const [placesOpen, setPlacesOpen] = useState(false);
   const [moreServicesOpen, setMoreServicesOpen] = useState(false);
-  const { unreadCount } = useRealtimeNotifications();
+  const { unreadCount, toasts } = useRealtimeNotifications();
   const serviceNotifications = useServiceNotifications();
   const { transitionToService } = useServiceTransition();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { primaryRole, loading: roleLoading } = useUserRoles();
+
+  const handleToastAction = (id: string, url?: string) => {
+    if (url) {
+      navigate(url);
+    }
+  };
+
+  const handleToastClose = (id: string) => {
+    // Le toast sera automatiquement retiré par le hook
+  };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -50,10 +64,6 @@ export const ModernHomeScreen = memo(({
     }
   };
 
-  const { user } = useAuth();
-  const { primaryRole, loading: roleLoading } = useUserRoles();
-  const navigate = useNavigate();
-
   useEffect(() => {
     if (!roleLoading && primaryRole && primaryRole !== 'client') {
       navigate('/');
@@ -62,6 +72,14 @@ export const ModernHomeScreen = memo(({
 
   return (
     <div className="h-full flex flex-col bg-background" data-page="home" style={{ scrollBehavior: 'smooth' }}>
+      {/* Container de toasts modernes au-dessus de tout */}
+      <NotificationToastContainer
+        toasts={toasts}
+        onClose={handleToastClose}
+        onAction={handleToastAction}
+        maxVisible={3}
+      />
+      
       <ModernHeader />
       
       <div 

@@ -9,6 +9,11 @@ export { NotificationBell } from './NotificationBell';
 export { NotificationPanel } from './NotificationPanel';
 export { PushNotificationManager } from './PushNotificationManager';
 
+// Composants modernes
+export { PushNotificationToast } from './PushNotificationToast';
+export { NotificationToastContainer } from './NotificationToastContainer';
+export type { PushNotificationToastData } from './PushNotificationToast';
+
 // Composants spécialisés par rôle
 export { default as ModernNotificationCenter } from './ModernNotificationCenter';
 export { default as DriverNotificationCenter } from './DriverNotificationCenter';

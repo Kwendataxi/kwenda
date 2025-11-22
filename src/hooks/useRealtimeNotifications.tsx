@@ -3,6 +3,8 @@ import { useAuth } from './useAuth';
 import { useUserRoles } from './useUserRoles';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useModernNotifications } from './useModernNotifications';
+import { PushNotificationToastData } from '@/components/notifications/PushNotificationToast';
 
 interface Notification {
   id: string;
@@ -20,12 +22,15 @@ interface UseRealtimeNotificationsReturn {
   markAsRead: (notificationId: string) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;
+  toasts: PushNotificationToastData[];
+  showModernToast: (notification: Omit<PushNotificationToastData, 'id' | 'timestamp'>) => void;
 }
 
 export const useRealtimeNotifications = (): UseRealtimeNotificationsReturn => {
   const { user } = useAuth();
   const { hasRole, hasPermission } = useUserRoles();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { toasts, showToast, removeToast } = useModernNotifications();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -173,14 +178,28 @@ export const useRealtimeNotifications = (): UseRealtimeNotificationsReturn => {
 
     setNotifications(prev => [newNotification, ...prev.slice(0, 49)]); // Garder max 50 notifications
 
-    // Afficher un toast pour les notifications importantes
-    if (notification.type === 'error' || notification.type === 'warning') {
-      toast({
-        title: notification.title,
-        description: notification.message,
-        variant: notification.type === 'error' ? 'destructive' : 'default'
-      });
-    }
+    // Afficher un toast moderne pour toutes les notifications
+    const toastTypeMap = {
+      'info': 'system' as const,
+      'success': 'system' as const,
+      'warning': 'system' as const,
+      'error': 'system' as const
+    };
+
+    const priorityMap = {
+      'error': 'urgent' as const,
+      'warning': 'high' as const,
+      'success': 'normal' as const,
+      'info': 'low' as const
+    };
+
+    showToast({
+      type: toastTypeMap[notification.type],
+      priority: priorityMap[notification.type],
+      title: notification.title,
+      message: notification.message,
+      metadata: notification.metadata
+    });
   };
 
   const handleTransportBookingUpdate = (payload: any) => {
@@ -363,6 +382,8 @@ export const useRealtimeNotifications = (): UseRealtimeNotificationsReturn => {
     unreadCount,
     markAsRead,
     markAllAsRead,
-    clearNotifications
+    clearNotifications,
+    toasts,
+    showModernToast: showToast
   };
 };

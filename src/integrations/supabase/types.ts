@@ -12170,7 +12170,16 @@ export type Database = {
           default_payment_method: string | null
           id: string
           language: string
+          notification_dnd_end_time: string | null
+          notification_dnd_start_time: string | null
+          notification_do_not_disturb: boolean | null
+          notification_duration: number | null
+          notification_position: string | null
           notification_preferences: Json
+          notification_sound_enabled: boolean | null
+          notification_sound_volume: number | null
+          notification_toast_enabled: boolean | null
+          notification_types_enabled: Json | null
           share_location: boolean
           timezone: string
           updated_at: string
@@ -12184,7 +12193,16 @@ export type Database = {
           default_payment_method?: string | null
           id?: string
           language?: string
+          notification_dnd_end_time?: string | null
+          notification_dnd_start_time?: string | null
+          notification_do_not_disturb?: boolean | null
+          notification_duration?: number | null
+          notification_position?: string | null
           notification_preferences?: Json
+          notification_sound_enabled?: boolean | null
+          notification_sound_volume?: number | null
+          notification_toast_enabled?: boolean | null
+          notification_types_enabled?: Json | null
           share_location?: boolean
           timezone?: string
           updated_at?: string
@@ -12198,7 +12216,16 @@ export type Database = {
           default_payment_method?: string | null
           id?: string
           language?: string
+          notification_dnd_end_time?: string | null
+          notification_dnd_start_time?: string | null
+          notification_do_not_disturb?: boolean | null
+          notification_duration?: number | null
+          notification_position?: string | null
           notification_preferences?: Json
+          notification_sound_enabled?: boolean | null
+          notification_sound_volume?: number | null
+          notification_toast_enabled?: boolean | null
+          notification_types_enabled?: Json | null
           share_location?: boolean
           timezone?: string
           updated_at?: string
