@@ -36,7 +36,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { getVehicleImage } from '@/utils/vehicleFallbackImages';
-import { formatCurrency } from '@/utils/formatCurrency';
+import { formatCurrency, formatCDF } from '@/utils/formatCurrency';
 
 export const RentalVehicleDetails = () => {
   const { vehicleId } = useParams<{ vehicleId: string }>();
@@ -81,9 +81,7 @@ export const RentalVehicleDetails = () => {
     );
   }
 
-  const formatCDF = (amount: number): string => {
-    return formatCurrency(amount, 'CDF');
-  };
+  // formatCDF déjà importé de utils/formatCurrency
 
   const vehicleImages = vehicle.images?.length > 0 
     ? vehicle.images 
