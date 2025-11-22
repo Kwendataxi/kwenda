@@ -4,11 +4,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Package, Truck, ArrowLeft, ArrowRight, Check, User, Phone as PhoneIcon } from 'lucide-react';
+import { MapPin, Package, Truck, ArrowLeft, ArrowRight, Check, User, Phone as PhoneIcon, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AutocompleteLocationInput from '@/components/location/AutocompleteLocationInput';
 import { LocationData } from '@/types/location';
 import { supabase } from '@/integrations/supabase/client';
@@ -617,28 +618,69 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               transition={{ delay: 0.1 + index * 0.1, duration: 0.4 }}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className={`p-5 rounded-2xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
+              className={`group p-6 rounded-2xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
                 deliveryData.serviceType === key
-                  ? 'bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30 shadow-xl'
-                  : 'bg-white/40 dark:bg-gray-900/40 border border-white/20 hover:border-primary/40 hover:shadow-glow shadow-soft'
+                  ? 'bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 border-2 border-primary shadow-2xl ring-2 ring-primary/20 scale-[1.02]'
+                  : 'bg-white/50 dark:bg-gray-900/50 border-2 border-border/30 hover:border-primary/50 hover:shadow-xl hover:scale-[1.01] shadow-md'
               }`}
               onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${service.gradient} 
-                    flex items-center justify-center text-white text-xl
-                    shadow-lg backdrop-blur-sm border border-white/20`}>
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} 
+                    flex items-center justify-center text-white text-2xl
+                    shadow-xl backdrop-blur-sm border border-white/20 
+                    transition-transform duration-300 group-hover:scale-110`}>
                     {service.icon}
                   </div>
-                  <div>
-                    <div className="font-semibold text-foreground">{service.name}</div>
-                    <div className="text-sm text-muted-foreground">{t(`delivery.${service.description}`)}</div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="font-bold text-lg text-foreground">{service.name}</div>
+                      {key === 'flash' && (
+                        <span className="px-2 py-0.5 bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-full border border-red-500/30">
+                          5-15 min
+                        </span>
+                      )}
+                      {key === 'flex' && (
+                        <span className="px-2 py-0.5 bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
+                          30-60 min
+                        </span>
+                      )}
+                      {key === 'maxicharge' && (
+                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-full border border-purple-500/30">
+                          1-3 heures
+                        </span>
+                      )}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="text-muted-foreground/50 hover:text-primary transition-colors">
+                              <Info className="h-3.5 w-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p className="text-xs">
+                              {key === 'flash' && "Livraison ultra-rapide par moto pour petits colis (max 5kg). Idéal pour documents, nourriture, petits objets."}
+                              {key === 'flex' && "Livraison standard en camionnette pour colis moyens. Parfait pour vêtements, électronique, courses."}
+                              {key === 'maxicharge' && "Livraison en camion pour gros volumes et équipement lourd. Idéal pour meubles, déménagement, matériel professionnel."}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <div className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      {t(`delivery.${service.description}`)}
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-foreground">{servicePricing.basePrice.toLocaleString()} CDF</div>
-                  <div className="text-xs text-muted-foreground">+ {servicePricing.pricePerKm} CDF/km</div>
+                <div className="text-right space-y-1">
+                  <div className="font-extrabold text-xl text-foreground leading-none">
+                    {servicePricing.basePrice.toLocaleString()}
+                  </div>
+                  <div className="text-xs font-semibold text-primary">CDF</div>
+                  <div className="text-[10px] text-muted-foreground font-medium bg-muted/50 px-2 py-0.5 rounded-full inline-block">
+                    + {servicePricing.pricePerKm}/km
+                  </div>
                 </div>
               </div>
             </motion.div>
