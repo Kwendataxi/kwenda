@@ -36,6 +36,8 @@ export const invokeEdgeFunction = async ({
     }
     
     console.log('✅ Session rafraîchie avec succès');
+    // ⏳ Attendre que le client Supabase synchronise le nouveau token
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
   
   let attempt = 0;
@@ -54,6 +56,8 @@ export const invokeEdgeFunction = async ({
       
       if (retrySession && !refreshError) {
         console.log('✅ Session rafraîchie pour retry');
+        // ⏳ Attendre que le client Supabase synchronise le nouveau token
+        await new Promise(resolve => setTimeout(resolve, 100));
         attempt++;
         continue;
       } else {
