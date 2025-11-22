@@ -64,8 +64,26 @@ serve(async (req) => {
 
     const { amount, provider, phoneNumber, currency = "CDF", orderId, orderType, userType = 'client' }: PaymentRequest = await req.json();
 
+    console.log('💰 Mobile Money Payment Request:', {
+      amount,
+      provider,
+      phoneNumber: phoneNumber?.substring(0, 5) + '***',
+      orderId,
+      orderType
+    });
+
+    // ✅ ROUTAGE CASHIN vs CASHOUT
+    const isCashout = orderType === 'withdrawal';
+    const isCashin = ['wallet_topup', 'partner_credit', 'vendor_credit', 'marketplace', 'transport', 'delivery', 'food'].includes(orderType || 'wallet_topup');
+
+    console.log(`🔀 Type de transaction : ${isCashout ? 'CASHOUT (B2B)' : isCashin ? 'CASHIN (WebPay)' : 'UNKNOWN'}`);
+
     if (!amount || !provider || !phoneNumber) {
       throw new Error("Missing required fields: amount, provider, phoneNumber");
+    }
+
+    if (!isCashout && !isCashin) {
+      throw new Error(`Type de transaction non supporté : ${orderType}`);
     }
 
     const supportedProviders = ['airtel', 'orange', 'mpesa'];
@@ -147,10 +165,12 @@ serve(async (req) => {
 
     console.log(`Processing ${provider} payment for ${amount} ${currency} to ${phoneNumber}`);
     
-    // ===== INTÉGRATION ORANGE MONEY B2B RDC =====
+    // ===== INTÉGRATION ORANGE MONEY =====
     if (provider.toLowerCase() === 'orange') {
-      try {
-        console.log('🍊 Starting Orange Money B2B RDC API integration');
+      if (isCashout) {
+        // ✅ CASHOUT : Utiliser Orange Money B2B API
+        try {
+          console.log('🍊 Starting Orange Money B2B CASHOUT (retraits vendeurs)');
 
         const orangeApiUrl = Deno.env.get('ORANGE_MONEY_API_URL');
         const clientId = Deno.env.get('ORANGE_MONEY_CLIENT_ID');
@@ -296,10 +316,28 @@ serve(async (req) => {
           }
         );
 
-      } catch (orangeError) {
-        console.error('❌ Orange Money integration error:', orangeError);
+        } catch (orangeError) {
+          console.error('❌ Orange Money B2B CASHOUT error:', orangeError);
+          
+          // Marquer la transaction comme échouée
+          await supabaseService
+            .from('payment_transactions')
+            .update({
+              status: 'failed',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', transaction.id);
+
+          throw new Error(
+            orangeError instanceof Error 
+              ? orangeError.message 
+              : 'Erreur Orange Money CASHOUT. Veuillez réessayer.'
+          );
+        }
+      } else {
+        // ⚠️ CASHIN : Orange Money WebPay pas encore configuré
+        console.warn('⚠️ Orange Money WebPay (CASHIN) non disponible');
         
-        // Marquer la transaction comme échouée
         await supabaseService
           .from('payment_transactions')
           .update({
@@ -309,9 +347,9 @@ serve(async (req) => {
           .eq('id', transaction.id);
 
         throw new Error(
-          orangeError instanceof Error 
-            ? orangeError.message 
-            : 'Erreur Orange Money. Veuillez réessayer.'
+          '⚠️ Orange Money WebPay (CASHIN) non encore configuré. ' +
+          'L\'API B2B ne supporte que les CASHOUT (retraits). ' +
+          'Veuillez contacter Orange pour obtenir vos credentials WebPay.'
         );
       }
     }

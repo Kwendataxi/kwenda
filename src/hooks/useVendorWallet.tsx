@@ -116,32 +116,28 @@ export const useVendorWallet = () => {
         throw new Error('Solde insuffisant');
       }
 
-      // Calculer les frais (2% par défaut)
-      const feesAmount = withdrawal.amount * 0.02;
-      const netAmount = withdrawal.amount - feesAmount;
-
-      const { data, error } = await supabase
-        .from('vendor_withdrawals')
-        .insert({
-          vendor_id: user.id,
-          wallet_id: wallet.id,
+      // ✅ STANDARDISATION : Utiliser vendor-withdrawal edge function
+      const { data, error } = await supabase.functions.invoke('vendor-withdrawal', {
+        body: {
           amount: withdrawal.amount,
-          currency: 'CDF',
-          withdrawal_method: withdrawal.withdrawal_method,
-          phone_number: withdrawal.phone_number,
-          fees_amount: feesAmount,
-          net_amount: netAmount,
-          status: 'pending'
-        })
-        .select()
-        .single();
+          paymentMethod: 'mobile_money',
+          paymentDetails: {
+            provider: withdrawal.withdrawal_method,
+            phoneNumber: withdrawal.phone_number
+          }
+        }
+      });
 
       if (error) throw error;
 
-      toast({
-        title: "Demande de retrait envoyée",
-        description: `Votre demande de retrait de ${withdrawal.amount.toLocaleString()} CDF est en cours de traitement`
-      });
+      if (data?.success) {
+        toast({
+          title: "Retrait effectué",
+          description: `${data.netAmount.toLocaleString()} CDF envoyés avec succès`
+        });
+      } else {
+        throw new Error(data?.message || 'Échec du retrait');
+      }
 
       // Rafraîchir les données
       await fetchWallet();

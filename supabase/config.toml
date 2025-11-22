@@ -232,3 +232,12 @@ verify_jwt = true  # ✅ PHASE 5: Checkout sécurisé avec paiement wallet et cr
 
 [functions.approve-delivery-fee]
 verify_jwt = true  # ✅ PHASE 5: Approbation/refus frais de livraison par le client avec gestion escrow
+
+[functions.orange-money-webpay-callback]
+verify_jwt = false  # ✅ CASHIN: Callback publique après paiement WebPay client
+
+[functions.orange-money-webpay-webhook]
+verify_jwt = false  # ✅ CASHIN: Webhook serveur-à-serveur Orange Money WebPay
+
+[functions.vendor-withdrawal]
+verify_jwt = true  # ✅ CASHOUT: Retrait automatique vendeurs via Orange Money B2B

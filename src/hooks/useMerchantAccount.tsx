@@ -131,17 +131,14 @@ export const useMerchantAccount = () => {
       const fee = Math.max(withdrawal.amount * feeRate, minFee);
       const netAmount = withdrawal.amount - fee;
 
-      // Appeler la fonction Edge pour traiter le retrait
-      const { data, error } = await supabase.functions.invoke('secure-vault-management', {
+      // ✅ STANDARDISATION : Utiliser vendor-withdrawal edge function
+      const { data, error } = await supabase.functions.invoke('vendor-withdrawal', {
         body: {
-          action: 'processSecureWithdrawal',
-          data: {
-            vendorId: user.id,
-            amount: withdrawal.amount,
-            withdrawalMethod: withdrawal.withdrawal_method,
-            phoneNumber: withdrawal.phone_number,
-            fee: fee,
-            netAmount: netAmount
+          amount: withdrawal.amount,
+          paymentMethod: 'mobile_money',
+          paymentDetails: {
+            provider: withdrawal.withdrawal_method,
+            phoneNumber: withdrawal.phone_number
           }
         }
       });
