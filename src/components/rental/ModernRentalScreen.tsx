@@ -11,6 +11,7 @@ import {
 import { useModernRentals } from '@/hooks/useModernRentals';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 const getCategoryGradient = (categoryName: string) => {
   const gradients: Record<string, string> = {
@@ -321,7 +322,7 @@ export const ModernRentalScreen = () => {
                             <span>{t('rental.per_hour')}</span>
                           </div>
                           <span className="font-semibold">
-                            {calculateCityPrice(vehicle.hourly_rate, vehicle.category_id).toLocaleString()} FC
+                            {formatCurrency(calculateCityPrice(vehicle.hourly_rate, vehicle.category_id), 'CDF')}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -330,7 +331,7 @@ export const ModernRentalScreen = () => {
                             <span>{t('rental.per_day')}</span>
                           </div>
                           <span className="font-bold text-primary text-lg">
-                            {calculateCityPrice(vehicle.daily_rate, vehicle.category_id).toLocaleString()} FC
+                            {formatCurrency(calculateCityPrice(vehicle.daily_rate, vehicle.category_id), 'CDF')}
                           </span>
                         </div>
                       </div>

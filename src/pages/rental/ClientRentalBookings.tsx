@@ -90,8 +90,20 @@ export const ClientRentalBookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        console.log('📋 [BOOKINGS] User not authenticated, redirecting...');
+        toast({
+          title: "Authentification requise",
+          description: "Veuillez vous connecter pour voir vos réservations",
+          variant: "destructive"
+        });
+        navigate('/auth');
+        return;
+      }
+
+      console.log('📋 [BOOKINGS] Fetching bookings for user:', user.id);
 
       const { data, error } = await supabase
         .from('rental_bookings')
@@ -99,17 +111,18 @@ export const ClientRentalBookings = () => {
           *,
           vehicle:rental_vehicles(id, name, brand, model, year, images, seats, fuel_type, transmission)
         `)
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
+      console.log('📋 [BOOKINGS] Successfully fetched:', data?.length || 0, 'bookings');
       setBookings(data as any || []);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
+    } catch (error: any) {
+      console.error('❌ [BOOKINGS] Error:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger vos réservations",
+        description: error?.message || "Impossible de charger vos réservations",
         variant: "destructive",
       });
     } finally {
@@ -289,7 +302,7 @@ export const ClientRentalBookings = () => {
                   {differenceInDays(new Date(booking.end_date), new Date(booking.start_date))} jour(s)
                 </span>
                 <span className="text-lg font-bold text-primary">
-                  {booking.total_price.toLocaleString()} FC
+                  {booking.total_price.toLocaleString()} CDF
                 </span>
               </div>
             </div>
@@ -313,9 +326,12 @@ export const ClientRentalBookings = () => {
                 {bookings.length} réservation{bookings.length > 1 ? 's' : ''}
               </p>
             </div>
-            <Button onClick={() => navigate('/app/client')}>
+            <Button 
+              onClick={() => navigate('/rental')}
+              className="bg-gradient-to-r from-primary to-secondary"
+            >
               <Car className="h-4 w-4 mr-2" />
-              Nouvelle location
+              Explorer les véhicules
             </Button>
           </div>
 
@@ -346,8 +362,12 @@ export const ClientRentalBookings = () => {
               <p className="text-muted-foreground mb-4">
                 Vous n'avez pas encore de location dans cette catégorie
               </p>
-              <Button onClick={() => navigate('/app/client')}>
-                Découvrir les véhicules
+              <Button 
+                onClick={() => navigate('/rental')}
+                className="bg-gradient-to-r from-primary to-secondary"
+              >
+                <Car className="h-4 w-4 mr-2" />
+                Explorer les véhicules
               </Button>
             </CardContent>
           </Card>
@@ -454,16 +474,16 @@ export const ClientRentalBookings = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Prix de location</span>
-                      <span>{selectedBooking.total_price.toLocaleString()} FC</span>
+                      <span>{selectedBooking.total_price.toLocaleString()} CDF</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Dépôt de garantie</span>
-                      <span>{selectedBooking.security_deposit.toLocaleString()} FC</span>
+                      <span>{selectedBooking.security_deposit.toLocaleString()} CDF</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t pt-2">
                       <span>Total</span>
                       <span className="text-primary">
-                        {(selectedBooking.total_price + selectedBooking.security_deposit).toLocaleString()} FC
+                        {(selectedBooking.total_price + selectedBooking.security_deposit).toLocaleString()} CDF
                       </span>
                     </div>
                   </div>

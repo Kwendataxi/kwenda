@@ -26,3 +26,18 @@ export const getCurrencyByCity = (city: string): Currency => {
   }
   return 'CDF'; // Default pour RDC (Kinshasa, Lubumbashi, Kolwezi)
 };
+
+/**
+ * Fonction raccourcie pour formater en CDF (défaut RDC)
+ */
+export const formatCDF = (amount: number): string => {
+  return formatCurrency(amount, 'CDF');
+};
+
+/**
+ * Fonction qui détecte automatiquement la devise selon la ville
+ */
+export const formatPrice = (amount: number, city?: string): string => {
+  const currency = city ? getCurrencyByCity(city) : 'CDF';
+  return formatCurrency(amount, currency);
+};

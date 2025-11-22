@@ -204,6 +204,50 @@ export const ModernRentalBooking = () => {
   };
 
   const handleNext = () => {
+    // Validation étape dates
+    if (currentStep === 'dates') {
+      if (!startDate || !endDate) {
+        toast({
+          title: "Dates requises",
+          description: "Veuillez sélectionner les dates de début et de fin",
+          variant: "destructive"
+        });
+        return;
+      }
+      if (availabilityStatus !== 'available') {
+        toast({
+          title: "Véhicule indisponible",
+          description: "Ce véhicule n'est pas disponible pour ces dates",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validation pickup location
+    if (currentStep === 'pickup-location') {
+      if (!pickupLocation.trim()) {
+        toast({
+          title: "Lieu de prise en charge requis",
+          description: "Veuillez indiquer où récupérer le véhicule",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validation driver info (si sans chauffeur)
+    if (currentStep === 'driver-info') {
+      if (!driverInfo.name || !driverInfo.phone || !driverInfo.email || !driverInfo.license) {
+        toast({
+          title: "Informations conducteur requises",
+          description: "Veuillez remplir tous les champs obligatoires",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     const steps = getSteps();
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
@@ -222,6 +266,55 @@ export const ModernRentalBooking = () => {
   };
 
   const handleConfirmBooking = async () => {
+    console.log('🚗 [BOOKING] Starting booking process', {
+      vehicleId,
+      vehicleName: vehicle.name,
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+      driverChoice,
+      pickupLocation,
+      selectedEquipment,
+      totalPrice: calculateTotal(),
+      availabilityStatus
+    });
+
+    // Validation finale
+    if (!startDate || !endDate) {
+      toast({
+        title: "Dates manquantes",
+        description: "Veuillez sélectionner les dates de location",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!driverChoice) {
+      toast({
+        title: "Choix du chauffeur manquant",
+        description: "Veuillez indiquer si vous souhaitez un chauffeur",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!pickupLocation.trim()) {
+      toast({
+        title: "Lieu de prise en charge manquant",
+        description: "Veuillez indiquer où récupérer le véhicule",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (availabilityStatus !== 'available') {
+      toast({
+        title: "Véhicule indisponible",
+        description: "Ce véhicule n'est pas disponible pour les dates sélectionnées",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const equipmentTotal = selectedEquipment.reduce((total, eqId) => {
         const price = getEquipmentPrice(eqId, vehicle.city);
@@ -259,17 +352,26 @@ export const ModernRentalBooking = () => {
         security_deposit: calculateCityPrice(vehicle.security_deposit, vehicle.category_id)
       });
 
+      console.log('✅ [BOOKING] Mutation completed successfully');
+      
       toast({
-        title: "Réservation confirmée !",
+        title: "✅ Réservation confirmée !",
         description: "Votre demande de location a été enregistrée avec succès"
       });
 
       navigate('/rental/bookings');
-    } catch (error) {
-      console.error('Booking error:', error);
+    } catch (error: any) {
+      console.error('❌ [BOOKING] Error:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        stack: error?.stack
+      });
+      
       toast({
-        title: "Erreur",
-        description: "Impossible de confirmer la réservation",
+        title: "Erreur de réservation",
+        description: error?.message || "Impossible de confirmer la réservation. Veuillez réessayer.",
         variant: "destructive"
       });
     }
@@ -1057,7 +1159,14 @@ export const ModernRentalBooking = () => {
                   <Button 
                     className="w-full bg-gradient-to-r from-primary via-primary to-secondary hover:opacity-90 text-lg py-6"
                     onClick={handleConfirmBooking}
-                    disabled={createBooking.isPending}
+                    disabled={
+                      createBooking.isPending || 
+                      !startDate || 
+                      !endDate || 
+                      !driverChoice || 
+                      !pickupLocation.trim() ||
+                      availabilityStatus !== 'available'
+                    }
                   >
                     {createBooking.isPending ? (
                       <>
@@ -1067,7 +1176,7 @@ export const ModernRentalBooking = () => {
                     ) : (
                       <>
                         <Check className="h-5 w-5 mr-2" />
-                        Confirmer la réservation
+                        Confirmer la réservation • {formatCDF(calculateTotal() + calculateCityPrice(vehicle.security_deposit, vehicle.category_id))}
                       </>
                     )}
                   </Button>
