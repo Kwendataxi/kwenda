@@ -623,39 +623,39 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
                 <Tooltip delayDuration={200}>
                   <TooltipTrigger asChild>
                     <div
-                      className={`group p-6 rounded-2xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
+                      className={`group p-4 rounded-xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
                         deliveryData.serviceType === key
-                          ? 'bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 border-2 border-primary shadow-2xl ring-2 ring-primary/20 scale-[1.02]'
-                          : 'bg-white/50 dark:bg-gray-900/50 border-2 border-border/30 hover:border-primary/50 hover:shadow-xl hover:scale-[1.01] shadow-md'
+                          ? 'bg-gradient-to-br from-primary/10 via-primary/5 to-primary/3 border border-primary shadow-lg ring-1 ring-primary/20'
+                          : 'bg-white/60 dark:bg-gray-900/60 border border-border/40 hover:border-primary/40 hover:shadow-md shadow-sm'
                       }`}
                       onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
                     >
-                      <div className="flex items-start justify-between gap-6">
+                      <div className="flex items-start justify-between gap-3">
                         {/* Zone Gauche : Icône + Contenu */}
-                        <div className="flex items-start gap-4 flex-1">
-                          <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${service.gradient} 
-                            flex items-center justify-center text-white text-2xl
-                            shadow-xl backdrop-blur-sm border border-white/20 
-                            transition-transform duration-300 group-hover:scale-110 shrink-0`}>
+                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${service.gradient} 
+                            flex items-center justify-center text-white text-lg
+                            shadow-md backdrop-blur-sm border border-white/10 
+                            transition-transform duration-300 group-hover:scale-105 shrink-0`}>
                             {service.icon}
                           </div>
-                          <div className="flex flex-col gap-2 pt-1">
-                            <div className="font-bold text-xl text-foreground leading-tight">{service.name}</div>
-                            <div className="text-sm font-medium text-muted-foreground leading-tight">
+                          <div className="flex flex-col gap-1 pt-0.5">
+                            <div className="font-semibold text-sm text-foreground leading-tight">{service.name}</div>
+                            <div className="text-xs font-medium text-muted-foreground leading-tight">
                               {t(`delivery.${service.description}`)}
                             </div>
                           </div>
                         </div>
                         
                         {/* Zone Droite : Prix en colonne */}
-                        <div className="flex flex-col items-end gap-0.5 pt-1 shrink-0">
-                          <div className="font-extrabold text-3xl text-foreground leading-none">
+                        <div className="flex flex-col items-end gap-0 pt-0.5 shrink-0">
+                          <div className="font-bold text-lg text-foreground leading-none">
                             {servicePricing.basePrice.toLocaleString()}
                           </div>
-                          <div className="text-xs font-bold text-primary/80 uppercase tracking-wider">
+                          <div className="text-[10px] font-semibold text-primary/70 uppercase">
                             CDF
                           </div>
-                          <div className="text-[10px] text-muted-foreground font-medium mt-1 px-2 py-0.5 bg-muted/40 rounded-full">
+                          <div className="text-[9px] text-muted-foreground font-medium mt-0.5 px-1.5 py-0.5 bg-muted/30 rounded-md">
                             +{servicePricing.pricePerKm}/km
                           </div>
                         </div>
