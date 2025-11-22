@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays, isPast, isFuture } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { formatCDF } from '@/utils/formatCurrency';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +30,7 @@ interface RentalBooking {
   vehicle_id: string;
   start_date: string;
   end_date: string;
-  total_price: number;
+  total_amount: number;
   security_deposit: number;
   status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
   equipment: string[];
@@ -302,7 +303,7 @@ export const ClientRentalBookings = () => {
                   {differenceInDays(new Date(booking.end_date), new Date(booking.start_date))} jour(s)
                 </span>
                 <span className="text-lg font-bold text-primary">
-                  {booking.total_price.toLocaleString()} CDF
+                  {formatCDF(booking.total_amount)}
                 </span>
               </div>
             </div>
@@ -474,16 +475,16 @@ export const ClientRentalBookings = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Prix de location</span>
-                      <span>{selectedBooking.total_price.toLocaleString()} CDF</span>
+                      <span>{formatCDF(selectedBooking.total_amount)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Dépôt de garantie</span>
-                      <span>{selectedBooking.security_deposit.toLocaleString()} CDF</span>
+                      <span>{formatCDF(selectedBooking.security_deposit)}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t pt-2">
                       <span>Total</span>
                       <span className="text-primary">
-                        {(selectedBooking.total_price + selectedBooking.security_deposit).toLocaleString()} CDF
+                        {formatCDF(selectedBooking.total_amount + selectedBooking.security_deposit)}
                       </span>
                     </div>
                   </div>
