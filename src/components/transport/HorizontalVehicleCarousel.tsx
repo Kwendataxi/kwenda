@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Car, Bike, Users, Crown, Check } from 'lucide-react';
+import { Car, Bike, Users, Crown, Check, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useDriversCountByVehicle } from '@/hooks/useDriversCountByVehicle';
@@ -42,7 +42,26 @@ export default function HorizontalVehicleCarousel({
   const { triggerHaptic } = useHapticFeedback();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isFirstSelection, setIsFirstSelection] = useState(true);
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Tracking scroll indicators
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const checkScroll = () => {
+      setCanScrollLeft(container.scrollLeft > 10);
+      setCanScrollRight(
+        container.scrollLeft < container.scrollWidth - container.clientWidth - 10
+      );
+    };
+
+    container.addEventListener('scroll', checkScroll);
+    checkScroll();
+    
+    return () => container.removeEventListener('scroll', checkScroll);
+  }, [vehicles]);
 
   // Navigation clavier
   useEffect(() => {
@@ -64,30 +83,19 @@ export default function HorizontalVehicleCarousel({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [triggerHaptic]);
 
-  // Tracking scroll position pour parallax
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      setScrollPosition(container.scrollLeft);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const handleVehicleSelect = (id: string) => {
     onVehicleSelect(id);
     triggerHaptic('medium');
 
-    // Confetti sur première sélection
+    // Confetti subtil sur première sélection
     if (isFirstSelection) {
       confetti({
-        particleCount: 30,
-        spread: 50,
-        origin: { y: 0.6 },
-        colors: ['#10b981', '#22c55e', '#86efac']
+        particleCount: 20,
+        spread: 40,
+        origin: { y: 0.7 },
+        colors: ['#10b981', '#22c55e'],
+        scalar: 0.8,
+        gravity: 1.2
       });
       setIsFirstSelection(false);
     }
@@ -100,6 +108,31 @@ export default function HorizontalVehicleCarousel({
       
       {/* Gradient fade right */}
       <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+
+      {/* Scroll indicators */}
+      {canScrollLeft && (
+        <motion.div 
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-20"
+          animate={{ x: [-5, 0, -5] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >
+          <div className="w-8 h-8 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+            <ChevronLeft className="w-5 h-5 text-primary" />
+          </div>
+        </motion.div>
+      )}
+
+      {canScrollRight && (
+        <motion.div 
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-20"
+          animate={{ x: [0, 5, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >
+          <div className="w-8 h-8 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+            <ChevronRight className="w-5 h-5 text-primary" />
+          </div>
+        </motion.div>
+      )}
 
       {/* Scroll container */}
       <div
@@ -115,55 +148,38 @@ export default function HorizontalVehicleCarousel({
           const isSelected = selectedVehicleId === vehicle.id;
           const driverCount = counts[vehicle.id] || 0;
 
-          // Effet parallax subtil basé sur scroll position
-          const cardOffset = index * 168; // 160px width + 8px gap
-          const distanceFromCenter = Math.abs(scrollPosition - cardOffset);
-          const parallaxOpacity = Math.max(0.6, 1 - distanceFromCenter / 500);
-
           return (
             <motion.button
               key={vehicle.id}
               initial={{ opacity: 0, x: 50 }}
               animate={{ 
-                opacity: parallaxOpacity, 
+                opacity: 1,
                 x: 0,
                 scale: isSelected ? 1.05 : 1
               }}
               transition={{ 
                 delay: index * 0.08,
-                scale: { type: "spring", stiffness: 300, damping: 25 }
+                scale: { type: "spring", stiffness: 400, damping: 30 }
               }}
-              whileHover={{ 
-                scale: isSelected ? 1.05 : 1.02,
-                backdropFilter: 'blur(8px)'
-              }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: isSelected ? 1.05 : 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleVehicleSelect(vehicle.id)}
               className={cn(
-                "relative flex-shrink-0 w-40 h-36 p-3 rounded-2xl border-2 transition-all duration-300 snap-start",
+                "relative flex-shrink-0 w-40 h-40 snap-start",
+                "p-4 rounded-2xl border-2 transition-all duration-300",
+                "flex flex-col",
                 isSelected
-                  ? "bg-primary/10 border-primary shadow-glow-green"
-                  : "bg-card/50 border-border/50 hover:border-primary/30 hover:shadow-md"
+                  ? "bg-gradient-to-br from-primary/15 to-primary/5 border-primary shadow-2xl shadow-primary/30 ring-2 ring-primary/50 z-10"
+                  : "bg-gradient-to-br from-card to-card/95 border-border/40 hover:border-primary/50 hover:shadow-md hover:backdrop-blur-sm"
               )}
             >
-              {/* Badge recommandé animé */}
+              {/* Badge recommandé */}
               {vehicle.recommended && !isSelected && (
-                <motion.div
-                  animate={{ 
-                    scale: [1, 1.1, 1],
-                    rotate: [-5, 5, -5]
-                  }}
-                  transition={{ 
-                    repeat: Infinity, 
-                    duration: 2,
-                    ease: "easeInOut"
-                  }}
-                  className="absolute -top-2 -right-2 z-10"
-                >
-                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[8px] px-1.5 py-0.5 shadow-lg">
+                <div className="absolute top-2 right-2 z-10">
+                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] px-2 py-0.5 shadow-md">
                     ⭐ Top
                   </Badge>
-                </motion.div>
+                </div>
               )}
 
               {/* Badge sélectionné */}
@@ -172,76 +188,68 @@ export default function HorizontalVehicleCarousel({
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  className="absolute -top-2 -right-2 bg-primary text-primary-foreground p-1 rounded-full shadow-lg z-10"
+                  className="absolute top-2 right-2 bg-primary text-primary-foreground p-1.5 rounded-full shadow-lg z-20"
                 >
                   <Check className="w-3 h-3" />
                 </motion.div>
               )}
 
-              {/* Icône véhicule */}
-              <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center mb-2 transition-colors mx-auto",
-                isSelected 
-                  ? "bg-primary/20" 
-                  : "bg-muted/30"
-              )}>
-                <Icon className={cn(
-                  "w-5 h-5",
-                  isSelected ? "text-primary" : "text-foreground/70"
-                )} />
+              {/* Contenu de la carte */}
+              <div className="flex flex-col h-full justify-between">
+                {/* Top section: Icône + Nom + ETA */}
+                <div className="flex flex-col items-center gap-2">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                    isSelected 
+                      ? "bg-primary/20" 
+                      : "bg-muted/30"
+                  )}>
+                    <Icon className={cn(
+                      "w-6 h-6",
+                      isSelected ? "text-primary" : "text-foreground/70"
+                    )} />
+                  </div>
+
+                  <div className="space-y-1 text-center">
+                    <h3 className={cn(
+                      "font-bold text-sm leading-tight",
+                      isSelected ? "text-primary" : "text-foreground"
+                    )}>
+                      {vehicle.name}
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground">
+                      {vehicle.time}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bottom section: Prix + Badge */}
+                <div className="flex flex-col items-center gap-1">
+                  <div className="space-y-1 text-center">
+                    <p className={cn(
+                      "text-xl font-extrabold leading-none",
+                      isSelected ? "text-primary" : "text-foreground"
+                    )}>
+                      {vehicle.price.toLocaleString()}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">{vehicle.pricePerKm}/km</p>
+                  </div>
+
+                  {!loading && driverCount > 0 && (
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-[9px] px-1.5 py-0.5",
+                        driverCount > 5 
+                          ? "bg-green-500/10 text-green-600 border-green-500/20"
+                          : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                      )}
+                    >
+                      {driverCount} 🚗
+                    </Badge>
+                  )}
+                </div>
               </div>
-
-              {/* Nom + Temps */}
-              <div className="mb-2 text-center">
-                <h3 className={cn(
-                  "font-bold text-xs mb-0.5 truncate",
-                  isSelected ? "text-primary" : "text-foreground"
-                )}>
-                  {vehicle.name}
-                </h3>
-                <p className="text-[9px] text-muted-foreground">
-                  {vehicle.time}
-                </p>
-              </div>
-
-              {/* Prix */}
-              <div className="flex flex-col items-center">
-                <p className={cn(
-                  "text-base font-extrabold",
-                  isSelected ? "text-primary" : "text-foreground"
-                )}>
-                  {vehicle.price.toLocaleString()}
-                </p>
-                <p className="text-[8px] text-muted-foreground mb-1">{vehicle.pricePerKm}/km</p>
-
-                {/* Compteur chauffeurs */}
-                {!loading && driverCount > 0 && (
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "text-[8px] px-1 py-0",
-                      driverCount > 5 
-                        ? "bg-green-500/10 text-green-600 border-green-500/20"
-                        : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                    )}
-                  >
-                    {driverCount} 🚗
-                  </Badge>
-                )}
-              </div>
-
-              {/* Animation pulse si sélectionné */}
-              {isSelected && (
-                <motion.div
-                  className="absolute inset-0 border-2 border-primary rounded-2xl pointer-events-none"
-                  animate={{ 
-                    scale: [1, 1.03, 1], 
-                    opacity: [0.5, 0, 0.5],
-                    borderWidth: [2, 3, 2]
-                  }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                />
-              )}
             </motion.button>
           );
         })}
