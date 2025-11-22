@@ -70,7 +70,31 @@ export const usePlaces = (): UsePlacesReturn => {
 
   useEffect(() => {
     fetchPlaces();
-  }, [fetchPlaces]);
+
+    // Realtime synchronization for places changes
+    if (!user) return;
+
+    const channel = supabase
+      .channel('user_places_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_places',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          console.log('🔄 Places updated, refreshing...');
+          fetchPlaces();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchPlaces, user]);
 
   const addPlace = useCallback(async (place: Omit<UserPlace, 'id' | 'user_id' | 'usage_count' | 'created_at' | 'last_used'>) => {
     if (!user) throw new Error('Utilisateur non connecté');
