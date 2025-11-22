@@ -20,12 +20,14 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // ✅ Extraire le token et le passer explicitement à getUser()
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    
     if (userError || !user) {
+      console.error('❌ Erreur validation user:', userError);
       return new Response(JSON.stringify({ error: 'Utilisateur invalide' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
