@@ -63,6 +63,16 @@ serve(async (req) => {
     let searchRadius = priority === 'urgent' ? 25 : priority === 'high' ? 15 : 10;
     let minRating = priority === 'urgent' ? 3.0 : priority === 'high' ? 4.0 : 4.5;
 
+    // ✅ MODE TEST: Augmenter la fenêtre de temps pour les tests
+    const testMode = Deno.env.get('ENVIRONMENT') === 'test' || 
+                     Deno.env.get('ENABLE_TEST_MODE') === 'true' ||
+                     true; // Activer par défaut pour développement
+
+    const pingWindowMinutes = testMode ? 60 : 10; // 60 min en test, 10 min en prod
+    const pingThreshold = new Date(Date.now() - pingWindowMinutes * 60 * 1000).toISOString();
+
+    console.log(`🔍 Mode: ${testMode ? 'TEST' : 'PRODUCTION'}, Fenêtre last_ping: ${pingWindowMinutes} minutes`);
+
     // ✅ CORRECTION: Utiliser chauffeurs table qui existe
     const { data: drivers, error } = await supabase
       .from('driver_locations')
@@ -76,7 +86,7 @@ serve(async (req) => {
       `)
       .eq('is_online', true)
       .eq('is_available', true)
-      .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString());
+      .gte('last_ping', pingThreshold);
 
     if (error) {
       console.error('❌ Database query error:', error);
