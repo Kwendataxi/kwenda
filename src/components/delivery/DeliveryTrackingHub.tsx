@@ -4,12 +4,14 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 import { 
   MapPin, 
   Phone, 
@@ -28,7 +30,6 @@ import { useEnhancedDeliveryTracking } from '@/hooks/useEnhancedDeliveryTracking
 import { useUserRole } from '@/hooks/useUserRole';
 import DriverDeliveryActions from '@/components/driver/DriverDeliveryActions';
 import { DeliveryDriverChatModal } from './DeliveryDriverChatModal';
-// import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface DeliveryTrackingHubProps {
   orderId: string;
@@ -39,6 +40,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
   const [activeTab, setActiveTab] = useState('tracking');
   const [showChat, setShowChat] = useState(false);
   const { userRole } = useUserRole();
+  const { toast } = useToast();
   
   const {
     order,
@@ -73,17 +75,55 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
 
   const getPickupCoords = () => {
     const coords = order?.pickup_coordinates;
-    if (coords && typeof coords.lat === 'number' && typeof coords.lng === 'number') {
-      return { lat: coords.lat, lng: coords.lng };
+    if (!coords) return undefined;
+    
+    // Gérer le format {lat, lng, type: 'geocoded'}
+    if (typeof coords === 'object' && coords.lat !== undefined && coords.lng !== undefined) {
+      return { 
+        lat: typeof coords.lat === 'number' ? coords.lat : Number(coords.lat), 
+        lng: typeof coords.lng === 'number' ? coords.lng : Number(coords.lng) 
+      };
     }
+    
+    // Gérer le format JSON stringifié
+    try {
+      if (typeof coords === 'string') {
+        const parsed = JSON.parse(coords);
+        if (parsed.lat && parsed.lng) {
+          return { lat: Number(parsed.lat), lng: Number(parsed.lng) };
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing pickup coordinates:', e);
+    }
+    
     return undefined;
   };
 
   const getDestinationCoords = () => {
     const coords = order?.delivery_coordinates;
-    if (coords && typeof coords.lat === 'number' && typeof coords.lng === 'number') {
-      return { lat: coords.lat, lng: coords.lng };
+    if (!coords) return undefined;
+    
+    // Gérer le format {lat, lng, type: 'geocoded'}
+    if (typeof coords === 'object' && coords.lat !== undefined && coords.lng !== undefined) {
+      return { 
+        lat: typeof coords.lat === 'number' ? coords.lat : Number(coords.lat), 
+        lng: typeof coords.lng === 'number' ? coords.lng : Number(coords.lng) 
+      };
     }
+    
+    // Gérer le format JSON stringifié
+    try {
+      if (typeof coords === 'string') {
+        const parsed = JSON.parse(coords);
+        if (parsed.lat && parsed.lng) {
+          return { lat: Number(parsed.lat), lng: Number(parsed.lng) };
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing destination coordinates:', e);
+    }
+    
     return undefined;
   };
 
@@ -157,145 +197,281 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header avec statut principal */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full ${getStatusColor(order.status)} animate-pulse`} />
-            <div>
-              <h1 className="text-lg font-bold">{statusLabel}</h1>
-              <p className="text-sm opacity-90">Commande #{orderId.slice(-8)}</p>
-            </div>
-          </div>
-          
-          <div className="text-right">
-            <div className="text-lg font-bold">
-              {formatPrice(order.estimated_price || order.actual_price || 0)}
-            </div>
-            {estimatedArrival && (
-              <div className="text-xs opacity-90">
-                ETA: {estimatedArrival}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/10 flex flex-col">
+      {/* Header moderne avec glassmorphism */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-20 backdrop-blur-xl bg-gradient-to-r from-primary/90 to-secondary/90 border-b border-white/20 shadow-2xl"
+      >
+        <div className="p-4 space-y-4">
+          {/* Status principal avec animation */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <motion.div 
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                className={`w-3 h-3 rounded-full ${getStatusColor(order.status)} shadow-lg`}
+              />
+              <div>
+                <h1 className="text-lg font-bold text-white drop-shadow-lg">
+                  {statusLabel}
+                </h1>
+                <p className="text-sm text-white/80">
+                  Commande #{orderId.slice(-8)}
+                </p>
               </div>
-            )}
+            </div>
+            
+            <motion.div 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="text-right backdrop-blur-md bg-white/10 px-4 py-2 rounded-xl border border-white/20"
+            >
+              <div className="text-lg font-bold text-white">
+                {formatPrice(order.estimated_price || order.actual_price || 0)}
+              </div>
+              {estimatedArrival && (
+                <div className="text-xs text-white/80">
+                  ETA: {estimatedArrival}
+                </div>
+              )}
+            </motion.div>
           </div>
-        </div>
 
-        {/* Barre de progression */}
-        <div className="mt-4">
-          <Progress value={deliveryProgress} className="h-2 bg-white/20" />
-          <div className="flex justify-between text-xs mt-1 opacity-75">
-            <span>Confirmée</span>
-            <span>En route</span>
-            <span>Livrée</span>
+          {/* Barre de progression moderne */}
+          <div className="space-y-2">
+            <Progress 
+              value={deliveryProgress} 
+              className="h-3 bg-white/20 backdrop-blur-sm rounded-full overflow-hidden"
+            />
+            <div className="flex justify-between text-xs text-white/80 font-medium">
+              <span>📋 Confirmée</span>
+              <span>🚗 En route</span>
+              <span>✅ Livrée</span>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Contenu principal avec onglets */}
       <div className="flex-1 content-scrollable p-4 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-card border border-border shadow-lg sticky top-0 z-10 mb-4">
-            <TabsTrigger value="tracking" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-3 backdrop-blur-xl bg-white/10 dark:bg-gray-900/50 border border-white/20 rounded-2xl shadow-xl p-1 sticky top-0 z-10 mb-4">
+            <TabsTrigger 
+              value="tracking" 
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-lg transition-all duration-300"
+            >
               <MapPin className="w-4 h-4" />
-              <span className="hidden sm:inline">Carte</span>
+              <span className="hidden sm:inline font-medium">Carte</span>
             </TabsTrigger>
-            <TabsTrigger value="details" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="details" 
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-lg transition-all duration-300"
+            >
               <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">Détails</span>
+              <span className="hidden sm:inline font-medium">Détails</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="notifications" 
+              className="relative flex items-center gap-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-lg transition-all duration-300"
+            >
               <Bell className="w-4 h-4" />
-              <span className="hidden sm:inline">Alertes</span>
+              <span className="hidden sm:inline font-medium">Alertes</span>
               {unreadNotifications > 0 && (
-                <Badge variant="destructive" className="w-5 h-5 text-xs rounded-full">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg"
+                >
                   {unreadNotifications}
-                </Badge>
+                </motion.div>
               )}
             </TabsTrigger>
           </TabsList>
 
           {/* Onglet Carte et Suivi */}
           <TabsContent value="tracking" className="space-y-4">
-            {/* Carte interactive */}
-            <Card className="bg-card border border-border shadow-lg">
-              <CardContent className="p-0">
-                <GoogleMapsKwenda
-                  pickup={getPickupCoords()}
-                  destination={getDestinationCoords()}
-                  driverLocation={getDriverLocationForMap()}
-                  showRoute={Boolean(getPickupCoords() && getDestinationCoords())}
-                  height="300px"
-                  deliveryMode={order.delivery_type || 'flex'}
-                />
-              </CardContent>
-            </Card>
+            {/* Carte interactive avec glassmorphism */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-2 border-white/20 shadow-2xl rounded-3xl overflow-hidden">
+                <CardContent className="p-0">
+                  <GoogleMapsKwenda
+                    pickup={getPickupCoords()}
+                    destination={getDestinationCoords()}
+                    driverLocation={getDriverLocationForMap()}
+                    showRoute={Boolean(getPickupCoords() && getDestinationCoords())}
+                    height="320px"
+                    deliveryMode={order.delivery_type || 'flex'}
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            {/* Actions rapides */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Actions rapides avec animations */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="grid grid-cols-2 gap-3"
+            >
               {driverProfile?.phone_number && (
                 <Button
                   onClick={contactDriver}
-                  className="h-12 bg-card border border-primary/30 hover:border-primary shadow-lg"
+                  className="h-14 backdrop-blur-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 border-2 border-white/20 shadow-xl rounded-2xl font-semibold text-white transition-all duration-300 hover:scale-105"
                 >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Appeler le livreur
+                  <Phone className="w-5 h-5 mr-2" />
+                  Appeler
                 </Button>
               )}
               
               <Button
                 onClick={() => setShowChat(true)}
-                variant="outline"
-                className="h-12 bg-card border border-primary/30 hover:border-primary shadow-lg"
+                className="h-14 backdrop-blur-xl bg-white/10 dark:bg-gray-800/50 border-2 border-primary/30 hover:border-primary hover:bg-white/20 shadow-xl rounded-2xl font-semibold transition-all duration-300 hover:scale-105"
               >
-                <MessageCircle className="w-4 h-4 mr-2" />
+                <MessageCircle className="w-5 h-5 mr-2" />
                 Chat
               </Button>
-            </div>
+            </motion.div>
 
-            {/* Message si pas de chauffeur assigné */}
+            {/* Message recherche avec animations */}
             {!driverProfile && order.status === 'pending' && (
-              <Card className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800 shadow-lg">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-yellow-600 animate-pulse" />
-                    <div>
-                      <h3 className="font-semibold text-yellow-900 dark:text-yellow-100">
-                        Recherche de chauffeur en cours
-                      </h3>
-                      <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                        Nous recherchons le meilleur chauffeur disponible pour votre livraison
-                      </p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="backdrop-blur-xl bg-gradient-to-r from-yellow-50/90 to-orange-50/90 dark:from-yellow-950/50 dark:to-orange-950/50 border-2 border-yellow-400/40 shadow-xl rounded-2xl overflow-hidden">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-4">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                        className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center"
+                      >
+                        <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                      </motion.div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-yellow-900 dark:text-yellow-100 mb-1">
+                          🔍 Recherche de chauffeur en cours...
+                        </h3>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                          Nous recherchons le meilleur chauffeur <span className="font-semibold uppercase">{order.delivery_type}</span> disponible près de vous
+                        </p>
+                        <div className="mt-3 flex gap-1">
+                          {[0, 1, 2].map((i) => (
+                            <motion.div
+                              key={i}
+                              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                              transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.2 }}
+                              className="w-2 h-2 bg-yellow-500 rounded-full"
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
 
-            {/* Informations du livreur */}
+            {/* Informations du livreur avec glassmorphism */}
             {driverProfile && (
-              <Card className="bg-card border border-border shadow-lg">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={driverProfile.profile_photo_url} />
-                      <AvatarFallback>
-                        <Truck className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{driverProfile.display_name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {driverProfile.vehicle_make} {driverProfile.vehicle_model} • 
-                        ⭐ {driverProfile.rating_average?.toFixed(1) || 'N/A'}
-                      </p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="backdrop-blur-xl bg-gradient-to-br from-white/90 to-gray-50/90 dark:from-gray-800/90 dark:to-gray-900/90 border-2 border-white/20 shadow-2xl rounded-2xl overflow-hidden">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-4">
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        className="relative"
+                      >
+                        <Avatar className="w-16 h-16 border-4 border-white/50 shadow-xl">
+                          <AvatarImage src={driverProfile.profile_photo_url} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xl">
+                            <Truck className="w-8 h-8" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full animate-pulse" />
+                      </motion.div>
+                      
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-foreground mb-1">
+                          {driverProfile.display_name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>{driverProfile.vehicle_make} {driverProfile.vehicle_model}</span>
+                          <span>•</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-yellow-500">⭐</span>
+                            <span className="font-semibold">{driverProfile.rating_average?.toFixed(1) || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Badge 
+                        variant="secondary" 
+                        className="px-4 py-2 text-sm font-bold uppercase backdrop-blur-md bg-primary/20 border-2 border-primary/30 shadow-lg"
+                      >
+                        {order.delivery_type}
+                      </Badge>
                     </div>
-                    <Badge variant="secondary">
-                      {order.delivery_type?.toUpperCase()}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Section paiement si livraison terminée */}
+            {order.status === 'delivered' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className="backdrop-blur-xl bg-gradient-to-br from-green-50/90 to-emerald-50/90 dark:from-green-950/50 dark:to-emerald-950/50 border-2 border-green-500/40 shadow-2xl rounded-2xl overflow-hidden">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="font-bold text-lg text-green-900 dark:text-green-100">
+                          ✅ Livraison terminée !
+                        </h3>
+                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                          Votre colis a été livré avec succès
+                        </p>
+                      </div>
+                      <CheckCircle2 className="w-12 h-12 text-green-500" />
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl">
+                        <span className="font-medium">Montant final</span>
+                        <span className="text-2xl font-bold text-primary">
+                          {formatPrice(order.actual_price || order.estimated_price || 0)}
+                        </span>
+                      </div>
+                      
+                      <Button
+                        className="w-full h-14 backdrop-blur-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg shadow-xl rounded-xl transition-all duration-300 hover:scale-105"
+                        onClick={() => {
+                          toast({
+                            title: "Paiement",
+                            description: "Fonctionnalité en cours d'implémentation",
+                          });
+                        }}
+                      >
+                        💳 Payer maintenant
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )}
           </TabsContent>
 
