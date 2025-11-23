@@ -149,13 +149,7 @@ const GoogleMapsComponent: React.FC<GoogleMapsKwendaProps & { apiKey: string }> 
       if (status === google.maps.DirectionsStatus.OK && result) {
         renderer.setDirections(result);
         
-        // Afficher les informations de l'itinéraire
-        const route = result.routes[0];
-        const leg = route.legs[0];
-        toast({
-          title: "Itinéraire calculé",
-          description: `Distance: ${leg.distance?.text} - Durée: ${leg.duration?.text}`,
-        });
+        // Itinéraire calculé silencieusement (pas de toast intrusif)
       } else {
         toast({
           title: "Erreur",
