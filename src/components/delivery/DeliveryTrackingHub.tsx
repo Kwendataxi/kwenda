@@ -75,14 +75,21 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
 
   const getPickupCoords = () => {
     const coords = order?.pickup_coordinates;
-    if (!coords) return undefined;
+    console.log('🔍 [Tracking] pickup_coordinates brutes:', coords);
+    
+    if (!coords) {
+      console.warn('⚠️ Aucune coordonnée pickup trouvée');
+      return undefined;
+    }
     
     // Gérer le format {lat, lng, type: 'geocoded'}
     if (typeof coords === 'object' && coords.lat !== undefined && coords.lng !== undefined) {
-      return { 
+      const result = { 
         lat: typeof coords.lat === 'number' ? coords.lat : Number(coords.lat), 
         lng: typeof coords.lng === 'number' ? coords.lng : Number(coords.lng) 
       };
+      console.log('✅ Coordonnées pickup extraites:', result);
+      return result;
     }
     
     // Gérer le format JSON stringifié
@@ -90,26 +97,36 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
       if (typeof coords === 'string') {
         const parsed = JSON.parse(coords);
         if (parsed.lat && parsed.lng) {
-          return { lat: Number(parsed.lat), lng: Number(parsed.lng) };
+          const result = { lat: Number(parsed.lat), lng: Number(parsed.lng) };
+          console.log('✅ Coordonnées pickup parsées depuis JSON:', result);
+          return result;
         }
       }
     } catch (e) {
-      console.error('Error parsing pickup coordinates:', e);
+      console.error('❌ Erreur parsing pickup coordinates:', e);
     }
     
+    console.error('❌ Format de coordonnées pickup non reconnu:', coords);
     return undefined;
   };
 
   const getDestinationCoords = () => {
     const coords = order?.delivery_coordinates;
-    if (!coords) return undefined;
+    console.log('🔍 [Tracking] delivery_coordinates brutes:', coords);
+    
+    if (!coords) {
+      console.warn('⚠️ Aucune coordonnée destination trouvée');
+      return undefined;
+    }
     
     // Gérer le format {lat, lng, type: 'geocoded'}
     if (typeof coords === 'object' && coords.lat !== undefined && coords.lng !== undefined) {
-      return { 
+      const result = { 
         lat: typeof coords.lat === 'number' ? coords.lat : Number(coords.lat), 
         lng: typeof coords.lng === 'number' ? coords.lng : Number(coords.lng) 
       };
+      console.log('✅ Coordonnées destination extraites:', result);
+      return result;
     }
     
     // Gérer le format JSON stringifié
@@ -117,13 +134,16 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
       if (typeof coords === 'string') {
         const parsed = JSON.parse(coords);
         if (parsed.lat && parsed.lng) {
-          return { lat: Number(parsed.lat), lng: Number(parsed.lng) };
+          const result = { lat: Number(parsed.lat), lng: Number(parsed.lng) };
+          console.log('✅ Coordonnées destination parsées depuis JSON:', result);
+          return result;
         }
       }
     } catch (e) {
-      console.error('Error parsing destination coordinates:', e);
+      console.error('❌ Erreur parsing destination coordinates:', e);
     }
     
+    console.error('❌ Format de coordonnées destination non reconnu:', coords);
     return undefined;
   };
 
@@ -292,14 +312,69 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
 
           {/* Onglet Carte et Suivi */}
           <TabsContent value="tracking" className="space-y-4">
-            {/* Carte interactive avec glassmorphism */}
+            {/* Carte interactive avec glassmorphism et badge service flottant */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
+              className="relative"
             >
               <Card className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-2 border-white/20 shadow-2xl rounded-3xl overflow-hidden">
-                <CardContent className="p-0">
+                <CardContent className="p-0 relative">
+                  {/* Badge Service Flottant Moderne */}
+                  <motion.div
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2, type: "spring" }}
+                    className="absolute top-4 left-4 z-[105]"
+                  >
+                    <div className="backdrop-blur-2xl bg-white/90 dark:bg-gray-900/90 
+                      rounded-2xl shadow-2xl border-2 border-white/50 dark:border-gray-700/50
+                      px-4 py-2.5 flex items-center gap-3">
+                      <motion.div 
+                        animate={{ y: [0, -5, 0] }}
+                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                        className={`w-10 h-10 rounded-xl bg-gradient-to-br ${
+                          order.delivery_type === 'flash' ? 'from-red-400 to-orange-500' :
+                          order.delivery_type === 'maxicharge' ? 'from-purple-400 to-pink-500' :
+                          'from-blue-400 to-cyan-500'
+                        } flex items-center justify-center text-white text-lg shadow-lg`}
+                      >
+                        {order.delivery_type === 'flash' && '⚡'}
+                        {order.delivery_type === 'flex' && '📦'}
+                        {order.delivery_type === 'maxicharge' && '🚚'}
+                      </motion.div>
+                      <div>
+                        <p className="text-xs text-muted-foreground font-medium">Service</p>
+                        <p className="text-sm font-bold uppercase tracking-wide">
+                          {order.delivery_type}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Skeleton Loader pour carte */}
+                  <AnimatePresence>
+                    {!getPickupCoords() || !getDestinationCoords() ? (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-muted/50 backdrop-blur-sm 
+                          flex items-center justify-center z-[100] rounded-3xl"
+                      >
+                        <div className="text-center space-y-3">
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto"
+                          />
+                          <p className="text-sm text-muted-foreground">Chargement de la carte...</p>
+                        </div>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+
                   <GoogleMapsKwenda
                     pickup={getPickupCoords()}
                     destination={getDestinationCoords()}
@@ -379,12 +454,71 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
               </motion.div>
             )}
 
+            {/* Timeline de statut animée */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 
+                border border-white/30 rounded-2xl shadow-xl">
+                <CardContent className="p-5">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    Progression de la livraison
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    {[
+                      { status: 'pending', label: 'Commande créée', icon: '📋', done: true },
+                      { status: 'confirmed', label: 'Confirmée', icon: '✅', done: order.status !== 'pending' },
+                      { status: 'picked_up', label: 'Colis récupéré', icon: '📦', done: ['picked_up', 'in_transit', 'delivered'].includes(order.status) },
+                      { status: 'in_transit', label: 'En cours de livraison', icon: '🚚', done: ['in_transit', 'delivered'].includes(order.status) },
+                      { status: 'delivered', label: 'Livré', icon: '🎉', done: order.status === 'delivered' }
+                    ].map((step, index) => (
+                      <motion.div
+                        key={step.status}
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="flex items-start gap-3"
+                      >
+                        <div className="relative">
+                          <motion.div
+                            animate={step.done ? { scale: [1, 1.2, 1] } : {}}
+                            transition={{ duration: 1, repeat: step.done ? 0 : Infinity }}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${
+                              step.done 
+                                ? 'bg-gradient-to-br from-green-400 to-green-600'
+                                : 'bg-gray-200 dark:bg-gray-700'
+                            }`}
+                          >
+                            {step.icon}
+                          </motion.div>
+                          {index < 4 && (
+                            <div className={`absolute top-8 left-4 w-0.5 h-8 ${
+                              step.done ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+                            }`} />
+                          )}
+                        </div>
+                        <div className="flex-1 pt-1">
+                          <p className={`font-medium ${step.done ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {step.label}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
             {/* Informations du livreur avec glassmorphism */}
             {driverProfile && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.3 }}
               >
                 <Card className="backdrop-blur-xl bg-gradient-to-br from-white/90 to-gray-50/90 dark:from-gray-800/90 dark:to-gray-900/90 border-2 border-white/20 shadow-2xl rounded-2xl overflow-hidden">
                   <CardContent className="p-5">

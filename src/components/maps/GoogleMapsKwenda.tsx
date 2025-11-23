@@ -148,12 +148,12 @@ const GoogleMapsComponent: React.FC<GoogleMapsKwendaProps & { apiKey: string }> 
     }, (result, status) => {
       if (status === google.maps.DirectionsStatus.OK && result) {
         renderer.setDirections(result);
-        
-        // Itinéraire calculé silencieusement (pas de toast intrusif)
+        console.log('✅ Itinéraire calculé avec succès');
       } else {
+        console.error('❌ Erreur calcul itinéraire:', status);
         toast({
-          title: "Erreur",
-          description: "Impossible de calculer l'itinéraire",
+          title: "Erreur carte",
+          description: "Impossible de calculer l'itinéraire entre les deux points",
           variant: "destructive"
         });
       }
