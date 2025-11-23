@@ -44,15 +44,10 @@ export const useEnhancedDeliveryTracking = (orderId: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
-      // Load order details
+      // Load order details (toutes les infos sender/recipient sont dans delivery_orders)
       const { data: order, error: orderError } = await supabase
         .from('delivery_orders')
-        .select(`
-          *,
-          sender:clients!delivery_orders_sender_id_fkey(
-            id, display_name, phone_number, email
-          )
-        `)
+        .select('*')
         .eq('id', orderId)
         .single();
 
