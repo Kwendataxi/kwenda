@@ -54,11 +54,11 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const request: MatchingRequest = await req.json();
-    const { pickup_latitude, pickup_longitude, city, priority = 'normal' } = request;
+    const { pickup_latitude, pickup_longitude, city, vehicle_class, priority = 'normal' } = request;
 
     let searchRadius = priority === 'urgent' ? 25 : priority === 'high' ? 15 : 10;
     let minRating = priority === 'urgent' ? 3.0 : priority === 'high' ? 4.0 : 4.5;
@@ -94,6 +94,7 @@ serve(async (req) => {
     }
 
     console.log(`📊 Found ${drivers?.length || 0} online drivers`);
+    console.log(`🚗 Filtering by vehicle_class: ${vehicle_class || 'ALL'}`);
 
     // Récupérer les infos des chauffeurs depuis la table chauffeurs
     const driverIds = (drivers || []).map(d => d.driver_id);
@@ -126,6 +127,12 @@ serve(async (req) => {
       // Skip si pas de profil trouvé
       if (!profile) {
         console.warn(`⚠️ No profile found for driver ${driver.driver_id}`);
+        continue;
+      }
+
+      // ✅ Filtrer par vehicle_class si spécifié
+      if (vehicle_class && profile.vehicle_type !== vehicle_class) {
+        console.log(`⏭️ Skipping driver ${profile.display_name}: vehicle_type ${profile.vehicle_type} !== ${vehicle_class}`);
         continue;
       }
 
