@@ -120,12 +120,37 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
     return colors[status as keyof typeof colors] || 'bg-gray-500';
   };
 
-  if (!order) {
+  // ✅ Afficher le chargement seulement si vraiment en cours de chargement
+  const state = useEnhancedDeliveryTracking(orderId);
+  
+  if (state.loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="text-muted-foreground">Chargement du suivi...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Si pas d'order trouvé après chargement
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Package className="w-16 h-16 text-muted-foreground mx-auto" />
+          <div>
+            <h3 className="font-semibold text-lg">Commande introuvable</h3>
+            <p className="text-sm text-muted-foreground mt-2">
+              Cette commande n'existe pas ou vous n'y avez pas accès
+            </p>
+          </div>
+          {onBack && (
+            <Button onClick={onBack} variant="outline">
+              Retour
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -227,6 +252,25 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
                 Chat
               </Button>
             </div>
+
+            {/* Message si pas de chauffeur assigné */}
+            {!driverProfile && order.status === 'pending' && (
+              <Card className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-yellow-600 animate-pulse" />
+                    <div>
+                      <h3 className="font-semibold text-yellow-900 dark:text-yellow-100">
+                        Recherche de chauffeur en cours
+                      </h3>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                        Nous recherchons le meilleur chauffeur disponible pour votre livraison
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Informations du livreur */}
             {driverProfile && (

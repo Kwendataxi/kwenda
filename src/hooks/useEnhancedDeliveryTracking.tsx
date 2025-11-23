@@ -104,14 +104,16 @@ export const useEnhancedDeliveryTracking = (orderId: string) => {
         if (!locationError) driverLocation = location;
       }
 
+      // ✅ TOUJOURS retourner l'order même sans chauffeur
       setState(prev => ({
         ...prev,
-        order,
+        order: order || null, // S'assurer que order est défini
         statusHistory: statusHistory || [],
-        driverProfile,
+        driverProfile: driverProfile || null,
         recipientProfile,
-        driverLocation,
-        loading: false
+        driverLocation: driverLocation || null,
+        loading: false,
+        error: null // Clear error si succès
       }));
 
     } catch (error: any) {
