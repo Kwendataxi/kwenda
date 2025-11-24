@@ -48,19 +48,21 @@ X-Pos-Id: GeQpqUI
 
 ### Format Numéro de Téléphone
 
-**receiverMSISDN** doit TOUJOURS être au format international avec préfixe `243` :
+**⚠️ IMPORTANT : Orange Money B2B RDC n'utilise PAS le code pays "243" dans le body**
+
+**receiverMSISDN** doit être au format local (9 chiffres uniquement) :
 
 | Input Client | Normalisation | receiverMSISDN |
 |--------------|---------------|----------------|
-| `0855354014` | Retirer `0` | `243855354014` |
-| `+243855354014` | Retirer `+` | `243855354014` |
-| `243855354014` | Utiliser tel quel | `243855354014` |
+| `0855354014` | Retirer `0` | `855354014` |
+| `+243855354014` | Retirer `+243` | `855354014` |
+| `243855354014` | Retirer `243` | `855354014` |
 
 **Règles** :
-- ✅ 12 chiffres total (`243` + 9 chiffres)
-- ✅ Format : `243XXXXXXXXX`
+- ✅ **9 chiffres uniquement** (sans préfixe)
+- ✅ Format : `XXXXXXXXX`
+- ❌ **Pas de code pays "243"**
 - ❌ Pas d'espaces, tirets ou parenthèses
-- ❌ Pas de `+` devant le `243`
 
 ### Header X-Pos-Id
 

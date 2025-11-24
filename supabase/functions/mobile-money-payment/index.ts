@@ -72,11 +72,13 @@ serve(async (req) => {
       orderType
     });
 
-    // ✅ ROUTAGE CASHIN vs CASHOUT
-    const isCashout = orderType === 'withdrawal';
-    const isCashin = ['wallet_topup', 'partner_credit', 'vendor_credit', 'marketplace', 'transport', 'delivery', 'food'].includes(orderType || 'wallet_topup');
+    // ✅ ROUTAGE CASHIN vs CASHOUT (INVERSÉ selon Orange Money)
+    // CASHOUT = Client paie Kwenda (paiement marchand) - SUPPORTÉ
+    const isCashout = ['wallet_topup', 'partner_credit', 'vendor_credit', 'marketplace', 'transport', 'delivery', 'food'].includes(orderType || 'wallet_topup');
+    // CASHIN = Kwenda paie client (retrait réglementé) - NON SUPPORTÉ
+    const isCashin = orderType === 'withdrawal';
 
-    console.log(`🔀 Type de transaction : ${isCashout ? 'CASHOUT (B2B)' : isCashin ? 'CASHIN (WebPay)' : 'UNKNOWN'}`);
+    console.log(`🔀 Type de transaction : ${isCashout ? 'CASHOUT (Paiement marchand)' : isCashin ? 'CASHIN (Retrait - NON SUPPORTÉ)' : 'UNKNOWN'}`);
 
     if (!amount || !provider || !phoneNumber) {
       throw new Error("Missing required fields: amount, provider, phoneNumber");
@@ -231,11 +233,12 @@ serve(async (req) => {
         }
         
         // ✅ Payload B2B RDC officiel selon documentation Orange
+        // ⚠️ IMPORTANT: receiverMSISDN = 9 chiffres SANS préfixe 243 (confirmé par Orange)
         const paymentPayload = {
           amount: amount,
           currency: "CDF",
           partnerTransactionId: transactionId,
-          receiverMSISDN: `243${formattedPhone}`, // Format international 243XXXXXXXXX
+          receiverMSISDN: formattedPhone, // 9 chiffres uniquement (ex: 991234567)
           description: "Kwenda Cashout"
         };
 
@@ -250,8 +253,8 @@ serve(async (req) => {
           currency: "CDF",
           transaction_id: transactionId,
           provider: 'orange',
-          receiver_msisdn: `243${formattedPhone}`,
-          msisdn_format: 'international_with_243',
+          receiver_msisdn: formattedPhone,
+          msisdn_format: 'local_9_digits',
           original_phone_input: phoneNumber,
           user_type: userType,
           full_endpoint: fullEndpointUrl,
@@ -291,7 +294,7 @@ serve(async (req) => {
               orange_transaction_id: paymentData.transactionId,
               orange_partner_transaction_id: paymentData.partnerTransactionId,
               orange_status: paymentData.transactionStatus,
-              receiver_msisdn: `243${formattedPhone}`
+              receiver_msisdn: formattedPhone
             },
             updated_at: new Date().toISOString(),
           })
@@ -334,9 +337,9 @@ serve(async (req) => {
               : 'Erreur Orange Money CASHOUT. Veuillez réessayer.'
           );
         }
-      } else {
-        // ⚠️ CASHIN : Orange Money WebPay pas encore configuré
-        console.warn('⚠️ Orange Money WebPay (CASHIN) non disponible');
+      } else if (isCashin) {
+        // ❌ CASHIN : Orange Money ne supporte PAS les retraits (nécessite licence)
+        console.error('❌ Orange Money CASHIN (retraits) non supporté');
         
         await supabaseService
           .from('payment_transactions')
@@ -347,9 +350,9 @@ serve(async (req) => {
           .eq('id', transaction.id);
 
         throw new Error(
-          '⚠️ Orange Money WebPay (CASHIN) non encore configuré. ' +
-          'L\'API B2B ne supporte que les CASHOUT (retraits). ' +
-          'Veuillez contacter Orange pour obtenir vos credentials WebPay.'
+          '❌ Orange Money ne supporte pas les retraits (CASHIN). ' +
+          'Seuls les paiements marchands (CASHOUT) sont autorisés. ' +
+          'Pour les retraits, utilisez Airtel Money ou le retrait bancaire.'
         );
       }
     }
