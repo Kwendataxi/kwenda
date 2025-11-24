@@ -68,6 +68,9 @@ verify_jwt = true
 [functions.orange-money-webhook]
 verify_jwt = false
 
+[functions.orange-money-cashout-webhook]
+verify_jwt = false  # ✅ Webhook serveur-à-serveur pour confirmations CASHOUT Orange Money
+
 [functions.orange-money-retry]
 verify_jwt = false  # ✅ Cron job pour retry automatique des transactions Orange Money
 
