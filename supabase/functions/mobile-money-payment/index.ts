@@ -242,8 +242,28 @@ serve(async (req) => {
           description: "Kwenda Cashout"
         };
 
-        // ✅ Endpoint officiel Orange Money B2B RDC : /transactions uniquement
-        const fullEndpointUrl = `${orangeApiUrl}/transactions`;
+        // 🧪 VARIANTES DE PAYLOAD À TESTER SI 404 PERSISTE :
+        // const paymentPayload = {
+        //   amount: amount,
+        //   currency: "CDF",
+        //   partnerTransactionId: transactionId,
+        //   receiverMsisdn: formattedPhone, // ✅ Variante 1: Msisdn (camelCase minuscule)
+        //   description: "kwenda_cashout"
+        // };
+        
+        // const paymentPayload = {
+        //   amount: amount,
+        //   currency: "CDF",
+        //   partner_transaction_id: transactionId, // ✅ Variante 2: snake_case
+        //   receiver_msisdn: formattedPhone,
+        //   description: "recharge_wallet"
+        // };
+
+        // ✅ PHASE 1: Fix construction URL - Normaliser pour éviter double slash
+        const baseUrl = orangeApiUrl.replace(/\/+$/, ''); // Retire les / finaux
+        const fullEndpointUrl = `${baseUrl}/transactions`;
+        
+        console.log('🔗 Full endpoint URL:', fullEndpointUrl); // Debug URL exacte
 
         console.log(JSON.stringify({
           timestamp: new Date().toISOString(),
@@ -276,10 +296,47 @@ serve(async (req) => {
           body: JSON.stringify(paymentPayload),
         });
 
+        // 🧪 VARIANTES DE HEADERS À TESTER SI 404 PERSISTE :
+        // const paymentResponse = await fetch(fullEndpointUrl, {
+        //   method: 'POST',
+        //   headers: {
+        //     'Authorization': `Bearer ${tokenData.access_token}`,
+        //     'Content-Type': 'application/json',
+        //     'x-pos-id': posId // ✅ Variante 1: minuscules
+        //   },
+        //   body: JSON.stringify(paymentPayload),
+        // });
+        
+        // const paymentResponse = await fetch(fullEndpointUrl, {
+        //   method: 'POST',
+        //   headers: {
+        //     'Authorization': `Bearer ${tokenData.access_token}`,
+        //     'Content-Type': 'application/json',
+        //     'X-POS-ID': posId // ✅ Variante 2: tout en majuscules
+        //   },
+        //   body: JSON.stringify(paymentPayload),
+        // });
+
+        // ✅ PHASE 2: Logs améliorés avec détails complets
         if (!paymentResponse.ok) {
           const errorText = await paymentResponse.text();
-          console.error('❌ B2B payment error:', errorText);
-          throw new Error(`B2B payment failed: ${paymentResponse.status}`);
+          
+          // Log complet pour debug
+          console.error('❌ Orange Money B2B Error:', JSON.stringify({
+            status: paymentResponse.status,
+            statusText: paymentResponse.statusText,
+            url: fullEndpointUrl,
+            headers: {
+              authorization: `Bearer ${tokenData.access_token.substring(0, 20)}...`,
+              'x-pos-id': posId,
+              'content-type': 'application/json'
+            },
+            payload: paymentPayload,
+            response_body: errorText,
+            response_headers: Object.fromEntries(paymentResponse.headers.entries())
+          }, null, 2));
+          
+          throw new Error(`B2B payment failed: ${paymentResponse.status} - ${errorText}`);
         }
 
         const paymentData: OrangeMoneyB2BResponse = await paymentResponse.json();
