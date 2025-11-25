@@ -42,7 +42,8 @@ export const ModernBottomNavigation = ({
       className="bottom-nav-standard z-[110]"
       style={{ 
         willChange: 'transform',
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        touchAction: 'none'
       } as React.CSSProperties}
     >
       <div 

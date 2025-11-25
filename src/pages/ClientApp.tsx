@@ -743,7 +743,7 @@ const ClientApp = () => {
       );
     }
     return (
-      <div className="pb-24">
+      <div className="content-with-bottom-nav">
         <StepByStepDeliveryInterface
           onSubmit={handleModernDeliverySubmit}
           onCancel={() => setCurrentView('home')}
@@ -922,9 +922,9 @@ const ClientApp = () => {
   return (
     <>
       <ChatProvider>
-        <div className="h-screen grid grid-rows-[1fr_auto] bg-background">
+        <div className="min-h-screen flex flex-col bg-background">
           {/* Contenu scrollable */}
-          <main className="overflow-y-auto overflow-x-hidden scrollbar-hide pb-[90px]">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-[var(--bottom-nav-height-safe)]">
         {/* Connection Indicator - Hidden */}
         {/* <ConnectionIndicator /> */}
         

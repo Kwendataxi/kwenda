@@ -82,14 +82,7 @@ export const ModernHomeScreen = memo(({
       
       <ModernHeader />
       
-      <div 
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
-        style={{ 
-          touchAction: 'pan-y', 
-          WebkitOverflowScrolling: 'touch',
-          scrollBehavior: 'smooth'
-        } as React.CSSProperties}
-      >
+      <div className="flex-1">
         <div className="pt-20">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl animate-float" />
