@@ -64,8 +64,8 @@ echo ""
 echo -e "${YELLOW}💳 Étape 2/2 : Initiation du Cashout B2B...${NC}"
 echo ""
 
-# Générer un ID de transaction unique
-TRANSACTION_ID="KWENDA_TEST_$(date +%s)"
+# Générer un UUID valide (format RFC 4122 obligatoire pour Orange Money)
+TRANSACTION_ID=$(uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || echo "123e4567-e89b-12d3-a456-$(date +%s)")
 echo -e "Transaction ID: ${TRANSACTION_ID}"
 echo -e "Montant: ${AMOUNT} CDF"
 echo -e "Téléphone: ${PHONE} (9 chiffres sans préfixe)"
