@@ -3,7 +3,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Building2, Car, Sparkles, Info } from 'lucide-react';
+import { Building2, Car, Sparkles, Info, Calendar } from 'lucide-react';
 import { getCategoryTheme } from '@/utils/categoryThemes';
 
 interface Category {
@@ -12,11 +12,12 @@ interface Category {
 }
 
 interface ModernRentalNavigationProps {
-  viewMode: 'partners' | 'vehicles' | 'promos';
-  onViewModeChange: (mode: 'partners' | 'vehicles' | 'promos') => void;
+  viewMode: 'partners' | 'vehicles' | 'promos' | 'my-rentals';
+  onViewModeChange: (mode: 'partners' | 'vehicles' | 'promos' | 'my-rentals') => void;
   partnersCount: number;
   vehiclesCount: number;
   promosCount: number;
+  myRentalsCount: number;
   categories: Category[];
   selectedCategory: string | null;
   onCategoryChange: (categoryId: string | null) => void;
@@ -29,6 +30,7 @@ export const ModernRentalNavigation: React.FC<ModernRentalNavigationProps> = ({
   partnersCount,
   vehiclesCount,
   promosCount,
+  myRentalsCount,
   categories,
   selectedCategory,
   onCategoryChange,
@@ -37,7 +39,7 @@ export const ModernRentalNavigation: React.FC<ModernRentalNavigationProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 pt-4">
       <Tabs value={viewMode} onValueChange={(v) => onViewModeChange(v as any)}>
-        <TabsList className="w-full grid grid-cols-3 h-auto p-1">
+        <TabsList className="w-full grid grid-cols-4 h-auto p-1">
           <TabsTrigger value="partners" className="flex-col gap-1 py-3">
             <Building2 className="h-5 w-5" />
             <span className="text-xs font-medium">Agences</span>
@@ -54,6 +56,12 @@ export const ModernRentalNavigation: React.FC<ModernRentalNavigationProps> = ({
             <Sparkles className="h-5 w-5" />
             <span className="text-xs font-medium">Promos</span>
             {promosCount > 0 && <Badge variant="destructive" className="mt-1 text-xs px-2">{promosCount}</Badge>}
+          </TabsTrigger>
+
+          <TabsTrigger value="my-rentals" className="flex-col gap-1 py-3">
+            <Calendar className="h-5 w-5" />
+            <span className="text-xs font-medium">Mes locations</span>
+            <Badge variant="secondary" className="mt-1 text-xs px-2">{myRentalsCount}</Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -103,6 +111,13 @@ export const ModernRentalNavigation: React.FC<ModernRentalNavigationProps> = ({
             <div className="flex gap-2 text-sm text-muted-foreground">
               <Sparkles className="h-4 w-4 flex-shrink-0 text-amber-500" />
               <span>Profitez de nos offres spéciales et réductions</span>
+            </div>
+          )}
+
+          {viewMode === 'my-rentals' && (
+            <div className="flex gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4 flex-shrink-0" />
+              <span>Gérez vos réservations en cours et passées</span>
             </div>
           )}
         </div>

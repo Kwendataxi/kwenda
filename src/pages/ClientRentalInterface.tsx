@@ -1,15 +1,18 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useModernRentals } from '@/hooks/useModernRentals';
 import { usePartnerRentalGroups } from '@/hooks/usePartnerRentalGroups';
+import { useRentalBookings } from '@/hooks/useRentalBookings';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Car } from 'lucide-react';
+import { Building2, Car, Calendar } from 'lucide-react';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import { ModernRentalHeader } from '@/components/rental/ModernRentalHeader';
 import { ModernRentalNavigation } from '@/components/rental/ModernRentalNavigation';
 import { PremiumPartnersCarousel } from '@/components/rental/PremiumPartnersCarousel';
 import { ModernPartnerCard } from '@/components/rental/ModernPartnerCard';
 import { ModernVehicleCard } from '@/components/rental/ModernVehicleCard';
+import { MyRentalCard } from '@/components/rental/MyRentalCard';
+import { toast } from 'sonner';
 
 export const ClientRentalInterface = () => {
   const navigate = useNavigate();
@@ -24,10 +27,38 @@ export const ClientRentalInterface = () => {
   } = useModernRentals();
 
   const { partnerGroups, premiumPartners, isLoading: partnersLoading } = usePartnerRentalGroups(userLocation);
+  const { getUserRentalBookings, cancelRentalBooking } = useRentalBookings();
 
-  const [viewMode, setViewMode] = useState<'partners' | 'vehicles' | 'promos'>('partners');
+  const [viewMode, setViewMode] = useState<'partners' | 'vehicles' | 'promos' | 'my-rentals'>('partners');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [myRentals, setMyRentals] = useState<any[]>([]);
+  const [rentalsLoading, setRentalsLoading] = useState(false);
+
+  // Charger les locations de l'utilisateur
+  useEffect(() => {
+    if (viewMode === 'my-rentals') {
+      loadMyRentals();
+    }
+  }, [viewMode]);
+
+  const loadMyRentals = async () => {
+    setRentalsLoading(true);
+    const bookings = await getUserRentalBookings();
+    setMyRentals(bookings);
+    setRentalsLoading(false);
+  };
+
+  const handleCancelBooking = async (bookingId: string) => {
+    const confirmed = window.confirm('Êtes-vous sûr de vouloir annuler cette réservation ?');
+    if (!confirmed) return;
+
+    const success = await cancelRentalBooking(bookingId);
+    if (success) {
+      await loadMyRentals();
+      toast.success('Réservation annulée avec succès');
+    }
+  };
 
   // Calcul des compteurs de véhicules par catégorie
   const vehicleCountsMap = useMemo(() => {
@@ -125,6 +156,7 @@ export const ClientRentalInterface = () => {
         partnersCount={partnerGroups.length}
         vehiclesCount={vehicles.length}
         promosCount={0}
+        myRentalsCount={myRentals.length}
         categories={categories}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
@@ -218,6 +250,41 @@ export const ClientRentalInterface = () => {
           </div>
         )}
           </div>
+        ) : viewMode === 'my-rentals' ? (
+          /* My Rentals Tab */
+          rentalsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map(i => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="h-20 bg-muted rounded" />
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-16 bg-muted rounded" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : myRentals.length === 0 ? (
+            <Card>
+              <CardContent className="py-16 text-center">
+                <Calendar className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-bold mb-2">Aucune location</h3>
+                <p className="text-muted-foreground">
+                  Vous n'avez pas encore de réservation. Explorez nos véhicules disponibles !
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {myRentals.map((booking) => (
+                <MyRentalCard
+                  key={booking.id}
+                  booking={booking}
+                  onCancel={handleCancelBooking}
+                />
+              ))}
+            </div>
+          )
         ) : (
           /* Promos Tab - Coming soon */
           <Card>
