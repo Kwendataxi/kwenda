@@ -68,24 +68,25 @@ echo ""
 TRANSACTION_ID="KWENDA_TEST_$(date +%s)"
 echo -e "Transaction ID: ${TRANSACTION_ID}"
 echo -e "Montant: ${AMOUNT} CDF"
-echo -e "Téléphone: ${PHONE}"
-echo -e "POS ID: ${POS_ID}"
+echo -e "Téléphone: ${PHONE} (9 chiffres sans préfixe)"
+echo -e "POS ID: ${POS_ID} (dans le body)"
 echo ""
 
-# ===== REQUÊTE CASHOUT B2B =====
+# ===== REQUÊTE CASHOUT B2B (FORMAT OFFICIEL) =====
 echo -e "${YELLOW}📡 Envoi de la requête à Orange...${NC}"
 echo ""
 
-CASHOUT_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST 'https://api.orange.com/orange-money-b2b/v1/cd/transactions' \
+CASHOUT_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST 'https://api.orange.com/orange-money-b2b/v1/cd/transactions/cashout' \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'Accept: application/json' \
   -H 'Content-Type: application/json' \
-  -H "X-Pos-Id: $POS_ID" \
   -d "{
+    \"peerId\": \"$PHONE\",
+    \"peerIdType\": \"msisdn\",
     \"amount\": $AMOUNT,
     \"currency\": \"CDF\",
-    \"partnerTransactionId\": \"$TRANSACTION_ID\",
-    \"receiverMSISDN\": \"$PHONE\",
-    \"description\": \"Kwenda Cashout Test\"
+    \"posId\": \"$POS_ID\",
+    \"transactionId\": \"$TRANSACTION_ID\"
   }")
 
 # Extraire le code HTTP et le body
@@ -150,23 +151,34 @@ fi
 echo ""
 echo -e "${BLUE}--------------------------------------------${NC}"
 echo -e "${BLUE}📊 URL testée:${NC}"
-echo "https://api.orange.com/orange-money-b2b/v1/cd/transactions"
+echo "https://api.orange.com/orange-money-b2b/v1/cd/transactions/cashout"
 echo ""
-echo -e "${BLUE}📋 Payload envoyé:${NC}"
+echo -e "${BLUE}📋 Payload envoyé (format officiel):${NC}"
 cat << EOF | jq '.'
 {
+  "peerId": "$PHONE",
+  "peerIdType": "msisdn",
   "amount": $AMOUNT,
   "currency": "CDF",
-  "partnerTransactionId": "$TRANSACTION_ID",
-  "receiverMSISDN": "$PHONE",
-  "description": "Kwenda Cashout Test"
+  "posId": "$POS_ID",
+  "transactionId": "$TRANSACTION_ID"
 }
 EOF
 echo ""
 echo -e "${BLUE}🔑 Headers envoyés:${NC}"
 echo "Authorization: Bearer ${ACCESS_TOKEN:0:30}..."
+echo "Accept: application/json"
 echo "Content-Type: application/json"
-echo "X-Pos-Id: $POS_ID"
+echo ""
+echo -e "${BLUE}✅ Changements par rapport à l'ancienne version:${NC}"
+echo "  - URL: /transactions → /transactions/cashout"
+echo "  - Body: receiverMSISDN → peerId"
+echo "  - Body: partnerTransactionId → transactionId"
+echo "  - Body: Ajout de peerIdType: \"msisdn\""
+echo "  - Body: Ajout de posId (retiré du header)"
+echo "  - Body: Suppression de description"
+echo "  - Header: Ajout de Accept: application/json"
+echo "  - Header: Suppression de X-Pos-Id"
 echo ""
 echo -e "${BLUE}============================================${NC}"
 

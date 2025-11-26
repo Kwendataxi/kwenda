@@ -7,32 +7,33 @@
 ORANGE_MONEY_API_URL=https://api.orange.com/orange-money-b2b/v1/cd
 ```
 
-### Endpoint Unique
+### Endpoints avec serviceName
 ```http
-POST https://api.orange.com/orange-money-b2b/v1/cd/transactions
+POST https://api.orange.com/orange-money-b2b/v1/cd/transactions/{serviceName}
 ```
 
-**⚠️ IMPORTANT** : Il n'y a qu'UN SEUL endpoint `/transactions` pour Orange Money B2B RDC.
-- ❌ Pas de `/cashout`
-- ❌ Pas de `/cashin`
-- ❌ Pas de `/omdcashin`
-- ✅ Uniquement `/transactions`
+**Services disponibles** :
+- ✅ `cashout` : Client paie Kwenda (paiement marchand)
+- ✅ `cashin` : Kwenda paie client (retrait - licence requise)
+
+**⚠️ IMPORTANT** : Le `{serviceName}` est OBLIGATOIRE dans l'URL
 
 ### Headers Requis
 ```http
 Authorization: Bearer <access_token>
+Accept: application/json
 Content-Type: application/json
-X-Pos-Id: GeQpqUI
 ```
 
 ### Body Request (Cashout)
 ```json
 {
+  "peerId": "855354014",
+  "peerIdType": "msisdn",
   "amount": 10000,
   "currency": "CDF",
-  "partnerTransactionId": "KWENDA_1234567890_ABC123",
-  "receiverMSISDN": "243999123456",
-  "description": "Kwenda Cashout"
+  "posId": "GeQpqUI",
+  "transactionId": "KWENDA_1234567890_ABC123"
 }
 ```
 
@@ -40,20 +41,21 @@ X-Pos-Id: GeQpqUI
 
 | Champ | Type | Description | Exemple |
 |-------|------|-------------|---------|
+| `peerId` | string | Numéro local 9 chiffres (SANS 243) | `"855354014"` |
+| `peerIdType` | string | Type d'identifiant (toujours "msisdn") | `"msisdn"` |
 | `amount` | number | Montant en CDF (500-500000) | `10000` |
 | `currency` | string | Devise (toujours "CDF") | `"CDF"` |
-| `partnerTransactionId` | string | ID unique transaction partenaire | `"KWENDA_1234_ABC"` |
-| `receiverMSISDN` | string | Numéro avec préfixe 243 (12 chiffres) | `"243999123456"` |
-| `description` | string | Description de la transaction | `"Kwenda Cashout"` |
+| `posId` | string | POS ID (dans le BODY, pas header) | `"GeQpqUI"` |
+| `transactionId` | string | ID unique transaction Kwenda | `"KWENDA_1234_ABC"` |
 
 ### Format Numéro de Téléphone
 
-**⚠️ IMPORTANT : Orange Money B2B RDC n'utilise PAS le code pays "243" dans le body**
+**⚠️ IMPORTANT : Orange Money B2B RDC utilise le format local (9 chiffres SANS 243)**
 
-**receiverMSISDN** doit être au format local (9 chiffres uniquement) :
+**peerId** doit être au format local (9 chiffres uniquement) :
 
-| Input Client | Normalisation | receiverMSISDN |
-|--------------|---------------|----------------|
+| Input Client | Normalisation | peerId |
+|--------------|---------------|--------|
 | `0855354014` | Retirer `0` | `855354014` |
 | `+243855354014` | Retirer `+243` | `855354014` |
 | `243855354014` | Retirer `243` | `855354014` |
@@ -64,36 +66,50 @@ X-Pos-Id: GeQpqUI
 - ❌ **Pas de code pays "243"**
 - ❌ Pas d'espaces, tirets ou parenthèses
 
-### Header X-Pos-Id
+### Position du posId
 
-Le `POS_ID` (`GeQpqUI`) doit être dans le **header** `X-Pos-Id`, **PAS dans le body**.
+Le `POS_ID` (`GeQpqUI`) doit être dans le **BODY**, **PAS dans un header X-Pos-Id**.
 
 ```typescript
-// ✅ CORRECT
-headers: {
-  'Authorization': `Bearer ${token}`,
-  'Content-Type': 'application/json',
-  'X-Pos-Id': 'GeQpqUI'
+// ✅ CORRECT (selon documentation officielle)
+body: {
+  peerId: "855354014",
+  peerIdType: "msisdn",
+  amount: 10000,
+  currency: "CDF",
+  posId: "GeQpqUI", // ✅ Dans le body
+  transactionId: "KWENDA_123"
 }
 
-// ❌ INCORRECT
-body: {
-  amount: 10000,
-  posId: 'GeQpqUI' // ❌ Pas dans le body !
+headers: {
+  'Authorization': `Bearer ${token}`,
+  'Accept': 'application/json',
+  'Content-Type': 'application/json'
+  // ❌ Pas de X-Pos-Id header
 }
 ```
 
-### Response Success (200/201)
+### Response Success (202 Accepted - Mode Asynchrone)
 
 ```json
 {
-  "transactionId": "MP240123.1234.A12345",
-  "transactionStatus": "SUCCESS",
-  "partnerTransactionId": "KWENDA_1234567890_ABC123",
-  "amount": 10000,
-  "currency": "CDF"
+  "status": "PENDING",
+  "message": "<optional message>",
+  "transactionData": {
+    "type": "cashout",
+    "peerId": "855354014",
+    "peerIdType": "msisdn",
+    "amount": 10000,
+    "currency": "CDF",
+    "posId": "GeQpqUI",
+    "transactionId": "KWENDA_1234567890_ABC123",
+    "txnId": "MP240123.1234.A12345"
+  }
 }
 ```
+
+**⚠️ IMPORTANT** : L'API retourne `202 Accepted` avec `status: "PENDING"` car le traitement est **asynchrone**.
+Le statut final sera notifié via le `callbackURL` configuré lors de la souscription à l'API.
 
 ### Response Error (400/401/404/500)
 

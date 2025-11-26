@@ -26,11 +26,18 @@ interface OrangeMoneyTokenResponse {
 }
 
 interface OrangeMoneyB2BResponse {
-  transactionId: string;
-  transactionStatus: string;
-  partnerTransactionId: string;
-  amount: number;
-  currency: string;
+  status: 'PENDING' | 'SUCCESS' | 'FAILED';
+  message?: string;
+  transactionData: {
+    type: string;
+    peerId: string;
+    peerIdType: string;
+    amount: number;
+    currency: string;
+    posId: string;
+    transactionId: string;
+    txnId?: string;
+  };
 }
 
 serve(async (req) => {
@@ -232,14 +239,15 @@ serve(async (req) => {
           throw new Error(`Format téléphone invalide pour Orange Money: ${formattedPhone}. Attendu: 9 chiffres`);
         }
         
-        // ✅ Payload B2B RDC officiel selon documentation Orange
-        // ⚠️ IMPORTANT: receiverMSISDN = 9 chiffres SANS préfixe 243 (confirmé par Orange)
+        // ✅ Payload B2B RDC officiel selon documentation Orange Money B2B
+        // Documentation: peerId + peerIdType + posId + transactionId
         const paymentPayload = {
+          peerId: formattedPhone,       // 9 chiffres uniquement (ex: 991234567)
+          peerIdType: "msisdn",         // Type d'identifiant (toujours "msisdn")
           amount: amount,
           currency: "CDF",
-          partnerTransactionId: transactionId,
-          receiverMSISDN: formattedPhone, // 9 chiffres uniquement (ex: 991234567)
-          description: "Kwenda Cashout"
+          posId: posId,                 // POS ID dans le body (pas dans header)
+          transactionId: transactionId  // ID unique Kwenda
         };
 
         // 🧪 VARIANTES DE PAYLOAD À TESTER SI 404 PERSISTE :
@@ -259,9 +267,12 @@ serve(async (req) => {
         //   description: "recharge_wallet"
         // };
 
-        // ✅ PHASE 1: Fix construction URL - Normaliser pour éviter double slash
+        // ✅ PHASE 1: Fix construction URL avec serviceName selon documentation
+        // cashout = client paie Kwenda (paiement marchand)
+        // cashin = Kwenda paie client (retrait - non supporté)
         const baseUrl = orangeApiUrl.replace(/\/+$/, ''); // Retire les / finaux
-        const fullEndpointUrl = `${baseUrl}/transactions`;
+        const serviceName = isCashin ? 'cashin' : 'cashout';
+        const fullEndpointUrl = `${baseUrl}/transactions/${serviceName}`;
         
         console.log('🔗 Full endpoint URL:', fullEndpointUrl); // Debug URL exacte
 
@@ -290,8 +301,9 @@ serve(async (req) => {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${tokenData.access_token}`,
-            'Content-Type': 'application/json',
-            'X-Pos-Id': posId // Header obligatoire Orange Money B2B RDC
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+            // X-Pos-Id retiré : posId est maintenant dans le body
           },
           body: JSON.stringify(paymentPayload),
         });
@@ -317,8 +329,8 @@ serve(async (req) => {
         //   body: JSON.stringify(paymentPayload),
         // });
 
-        // ✅ PHASE 2: Logs améliorés avec détails complets
-        if (!paymentResponse.ok) {
+        // ✅ PHASE 2: Gestion réponse 202 Accepted (mode asynchrone)
+        if (!paymentResponse.ok && paymentResponse.status !== 202) {
           const errorText = await paymentResponse.text();
           
           // Log complet pour debug
@@ -328,7 +340,7 @@ serve(async (req) => {
             url: fullEndpointUrl,
             headers: {
               authorization: `Bearer ${tokenData.access_token.substring(0, 20)}...`,
-              'x-pos-id': posId,
+              'accept': 'application/json',
               'content-type': 'application/json'
             },
             payload: paymentPayload,
@@ -340,17 +352,22 @@ serve(async (req) => {
         }
 
         const paymentData: OrangeMoneyB2BResponse = await paymentResponse.json();
-        console.log('✅ B2B Payment initiated:', paymentData.transactionId);
+        console.log('✅ B2B Payment initiated:', JSON.stringify(paymentData));
+        
+        // La réponse est 202 Accepted avec status PENDING (asynchrone)
+        const isPending = paymentData.status === 'PENDING';
+        const isSuccess = paymentData.status === 'SUCCESS';
 
         // Mettre à jour la transaction avec les détails Orange B2B
         const { error: updateError } = await supabaseService
           .from('payment_transactions')
           .update({
-            status: paymentData.transactionStatus === 'SUCCESS' ? 'completed' : 'pending',
+            status: isSuccess ? 'completed' : 'pending',
             metadata: {
-              orange_transaction_id: paymentData.transactionId,
-              orange_partner_transaction_id: paymentData.partnerTransactionId,
-              orange_status: paymentData.transactionStatus,
+              orange_transaction_id: paymentData.transactionData.transactionId,
+              orange_txn_id: paymentData.transactionData.txnId,
+              orange_status: paymentData.status,
+              orange_peer_id: paymentData.transactionData.peerId,
               receiver_msisdn: formattedPhone
             },
             updated_at: new Date().toISOString(),
@@ -361,18 +378,21 @@ serve(async (req) => {
           console.error('Error updating transaction metadata:', updateError);
         }
 
-        // Retourner la réponse
+        // Retourner la réponse (202 pour pending, 200 pour success)
         return new Response(
           JSON.stringify({
             success: true,
             transactionId: transactionId,
-            message: 'Paiement Orange Money B2B initié avec succès.',
-            status: paymentData.transactionStatus === 'SUCCESS' ? 'completed' : 'pending',
-            orangeTransactionId: paymentData.transactionId
+            message: isPending 
+              ? 'Paiement Orange Money B2B en cours de traitement.'
+              : 'Paiement Orange Money B2B effectué avec succès.',
+            status: paymentData.status.toLowerCase(),
+            orangeTransactionId: paymentData.transactionData.transactionId,
+            orangeTxnId: paymentData.transactionData.txnId
           }),
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
+            status: isPending ? 202 : 200,
           }
         );
 
