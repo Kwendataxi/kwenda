@@ -33,7 +33,7 @@ Content-Type: application/json
   "amount": 10000,
   "currency": "CDF",
   "posId": "GeQpqUI",
-  "transactionId": "KWENDA_1234567890_ABC123"
+  "transactionId": "123e4567-e89b-12d3-a456-426614174000"
 }
 ```
 
@@ -46,7 +46,7 @@ Content-Type: application/json
 | `amount` | number | Montant en CDF (500-500000) | `10000` |
 | `currency` | string | Devise (toujours "CDF") | `"CDF"` |
 | `posId` | string | POS ID (dans le BODY, pas header) | `"GeQpqUI"` |
-| `transactionId` | string | ID unique transaction Kwenda | `"KWENDA_1234_ABC"` |
+| `transactionId` | string | UUID RFC 4122 (format obligatoire) | `"123e4567-e89b-12d3-a456-426614174000"` |
 
 ### Format Numéro de Téléphone
 

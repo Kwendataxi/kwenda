@@ -144,7 +144,9 @@ serve(async (req) => {
       }
     }
 
-    const transactionId = `KWENDA_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    // ✅ Orange Money B2B exige un UUID au format RFC 4122
+    // Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const transactionId = crypto.randomUUID();
 
     const { data: transaction, error: insertError } = await supabaseService
       .from('payment_transactions')
