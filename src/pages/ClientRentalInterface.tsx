@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Building2, Car, Calendar } from 'lucide-react';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import { ModernRentalHeader } from '@/components/rental/ModernRentalHeader';
-import { ModernRentalNavigation } from '@/components/rental/ModernRentalNavigation';
+import { ModernRentalNavigationV2 } from '@/components/rental/ModernRentalNavigationV2';
 import { PremiumPartnersCarousel } from '@/components/rental/PremiumPartnersCarousel';
 import { ModernPartnerCard } from '@/components/rental/ModernPartnerCard';
 import { ModernVehicleCard } from '@/components/rental/ModernVehicleCard';
@@ -149,8 +149,8 @@ export const ClientRentalInterface = () => {
         premiumPartners={premiumPartners.filter(p => p.tier === 'gold' || p.tier === 'platinum')} 
       />
 
-      {/* Navigation unifiée moderne */}
-      <ModernRentalNavigation
+      {/* Navigation unifiée moderne V2 avec animations */}
+      <ModernRentalNavigationV2
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         partnersCount={partnerGroups.length}
