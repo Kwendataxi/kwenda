@@ -10,11 +10,14 @@ interface RentalBooking {
   id: string;
   start_date: string;
   end_date: string;
-  total_price: number;
+  total_price?: number;      // Mappé depuis total_amount
+  total_amount?: number;     // Nom réel DB
   status: string;
   payment_status: string;
   pickup_location?: string;
-  dropoff_location?: string;
+  dropoff_location?: string; // Mappé depuis return_location
+  return_location?: string;  // Nom réel DB
+  special_requests?: string;
   created_at: string;
   rental_vehicles?: {
     id: string;
@@ -58,6 +61,10 @@ export const MyRentalCard: React.FC<MyRentalCardProps> = ({ booking, onCancel })
   
   const canCancel = booking.status === 'pending' || booking.status === 'confirmed';
   const isUpcoming = startDate > new Date();
+  
+  // Compatibilité avec les deux formats de colonnes
+  const totalPrice = booking.total_price || booking.total_amount || 0;
+  const returnLocation = booking.dropoff_location || booking.return_location;
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
@@ -105,7 +112,7 @@ export const MyRentalCard: React.FC<MyRentalCardProps> = ({ booking, onCancel })
         </div>
 
         {/* Lieux */}
-        {(booking.pickup_location || booking.dropoff_location) && (
+        {(booking.pickup_location || returnLocation) && (
           <div className="space-y-1 mb-4 text-sm">
             {booking.pickup_location && (
               <div className="flex items-start gap-2">
@@ -115,11 +122,11 @@ export const MyRentalCard: React.FC<MyRentalCardProps> = ({ booking, onCancel })
                 </span>
               </div>
             )}
-            {booking.dropoff_location && (
+            {returnLocation && (
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                 <span className="text-muted-foreground line-clamp-1">
-                  {booking.dropoff_location}
+                  {returnLocation}
                 </span>
               </div>
             )}
@@ -130,7 +137,7 @@ export const MyRentalCard: React.FC<MyRentalCardProps> = ({ booking, onCancel })
         <div className="flex items-center justify-between pt-3 border-t">
           <div>
             <p className="text-2xl font-bold text-primary">
-              {booking.total_price.toLocaleString()} CDF
+              {totalPrice.toLocaleString()} CDF
             </p>
             {vehicle && (
               <p className="text-xs text-muted-foreground">

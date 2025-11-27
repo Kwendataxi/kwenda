@@ -78,7 +78,16 @@ export const useRentalBookings = () => {
       const { data, error } = await supabase
         .from('rental_bookings')
         .select(`
-          *,
+          id,
+          start_date,
+          end_date,
+          total_amount,
+          status,
+          payment_status,
+          pickup_location,
+          return_location,
+          special_requests,
+          created_at,
           rental_vehicles (
             id,
             brand,
@@ -87,11 +96,16 @@ export const useRentalBookings = () => {
             daily_rate
           )
         `)
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Mapper les colonnes pour compatibilité avec le composant
+      return (data || []).map(booking => ({
+        ...booking,
+        total_price: booking.total_amount,
+        dropoff_location: booking.return_location
+      }));
     } catch (error) {
       console.error('Erreur récupération réservations:', error);
       toast.error('Impossible de charger les réservations');
