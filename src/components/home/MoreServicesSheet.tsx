@@ -5,7 +5,7 @@ import {
   SheetTitle, 
   SheetDescription 
 } from '@/components/ui/sheet';
-import { Gift, Send, Gamepad2, Ticket } from 'lucide-react';
+import { Gift, Send, Gamepad2, Ticket, Briefcase } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 
@@ -41,12 +41,13 @@ export const MoreServicesSheet = ({
       comingSoon: true
     },
     {
-      id: 'transfer',
-      name: t('home.services.transfer'),
-      icon: Send,
-      gradient: 'hsl(280, 90%, 58%), hsl(330, 81%, 60%), hsl(350, 89%, 60%)',
-      iconColor: 'hsl(280, 90%, 58%)',
-      comingSoon: false
+      id: 'job',
+      name: t('home.services.job'),
+      icon: Briefcase,
+      gradient: 'hsl(220, 90%, 50%), hsl(260, 85%, 55%), hsl(280, 90%, 58%)',
+      iconColor: 'hsl(220, 90%, 50%)',
+      comingSoon: false,
+      popular: true
     },
     {
       id: 'games',

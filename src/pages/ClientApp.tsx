@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { JobInterface } from '@/components/job/JobInterface';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { FloatingChatButton as MarketplaceFloatingChatButton } from '@/components/marketplace/FloatingChatButton';
@@ -469,6 +470,14 @@ const ClientApp = () => {
     // ✅ Gestion lottery
     if (service === 'lottery' || service === 'tombola') {
       setCurrentView('lottery');
+      return;
+    }
+    
+    // ✅ Gestion job
+    if (service === 'job') {
+      setServiceType('job');
+      setCurrentView('service');
+      setActiveTab('home');
       return;
     }
     

@@ -4114,6 +4114,257 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          cover_letter: string | null
+          id: string
+          job_id: string
+          resume_url: string | null
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cover_letter?: string | null
+          id?: string
+          job_id: string
+          resume_url?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cover_letter?: string | null
+          id?: string
+          job_id?: string
+          resume_url?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_categories: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      job_companies: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_verified: boolean | null
+          logo_url: string | null
+          name: string
+          owner_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_verified?: boolean | null
+          logo_url?: string | null
+          name: string
+          owner_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_verified?: boolean | null
+          logo_url?: string | null
+          name?: string
+          owner_user_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      job_messages: {
+        Row: {
+          application_id: string
+          created_at: string | null
+          from_user_id: string
+          id: string
+          is_read: boolean | null
+          message: string
+          to_user_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string | null
+          from_user_id: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          to_user_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string | null
+          from_user_id?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_messages_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_saved: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_saved_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          category: string
+          company_id: string | null
+          created_at: string | null
+          currency: string | null
+          description: string
+          employment_type: string
+          end_date: string | null
+          id: string
+          is_featured: boolean | null
+          is_remote: boolean | null
+          location_city: string
+          moderation_status: string | null
+          posted_by_user_id: string
+          salary_max: number | null
+          salary_min: number | null
+          skills: string[] | null
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          category: string
+          company_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description: string
+          employment_type: string
+          end_date?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_remote?: boolean | null
+          location_city: string
+          moderation_status?: string | null
+          posted_by_user_id: string
+          salary_max?: number | null
+          salary_min?: number | null
+          skills?: string[] | null
+          start_date?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          category?: string
+          company_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string
+          employment_type?: string
+          end_date?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_remote?: boolean | null
+          location_city?: string
+          moderation_status?: string | null
+          posted_by_user_id?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          skills?: string[] | null
+          start_date?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "job_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       location_access_audit: {
         Row: {
           access_type: string
@@ -15494,6 +15745,7 @@ export type Database = {
         Args: { beneficiary_id: string }
         Returns: undefined
       }
+      increment_job_views: { Args: { job_id: string }; Returns: undefined }
       insert_booking_report: {
         Args: {
           p_booking_id: string
