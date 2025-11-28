@@ -71,7 +71,7 @@ export const ModernHomeScreen = memo(({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="h-full flex flex-col bg-background" data-page="home" style={{ scrollBehavior: 'smooth' }}>
+    <div className="min-h-screen bg-background pb-[calc(5rem+env(safe-area-inset-bottom,0px))]" data-page="home" style={{ scrollBehavior: 'smooth' }}>
       {/* Container de toasts modernes au-dessus de tout */}
       <NotificationToastContainer
         toasts={toasts}

@@ -3,6 +3,7 @@ import { X, Download, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { isMobileApp } from "@/services/platformDetection";
 
 const BANNER_DISMISSED_KEY = 'kwenda-install-banner-dismissed';
 const BANNER_DISMISS_DAYS = 7;
@@ -16,8 +17,14 @@ export const InstallBanner = () => {
     // Ne pas afficher si déjà installé
     if (isInstalled) return;
 
+    // Ne pas afficher dans l'app Capacitor native
+    if (isMobileApp()) return;
+
     // Ne plus afficher sur la landing page "/" (géré par AppDownloadTopBanner)
     if (window.location.pathname === '/') return;
+
+    // Ne pas afficher sur les routes /app/* (utilisateur déjà dans l'app)
+    if (window.location.pathname.startsWith('/app')) return;
 
     // Vérifier si le banner a été fermé récemment
     const dismissedUntil = localStorage.getItem(BANNER_DISMISSED_KEY);
