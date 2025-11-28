@@ -450,6 +450,13 @@ All colors MUST be HSL.
     animation: particle-burst 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
+  /* Garantir l'espace pour bottom nav sur toutes les pages */
+  .page-with-bottom-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
   /* ===== KWENDA FOOD FOOTER SECURITY ===== */
   
   /* Force le positionnement correct du footer Food */

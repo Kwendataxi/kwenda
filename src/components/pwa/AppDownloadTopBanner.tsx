@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Smartphone, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
+import { isMobileApp } from '@/services/platformDetection';
 
 const DISMISS_KEY = 'kwenda-top-banner-dismissed';
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 jours
@@ -12,8 +13,20 @@ export const AppDownloadTopBanner = () => {
   const { canInstall, isStandalone, platform, install } = useInstallPrompt();
 
   useEffect(() => {
-    // Ne pas afficher si déjà installé
+    // Ne pas afficher dans l'app Capacitor native
+    if (isMobileApp()) {
+      setIsVisible(false);
+      return;
+    }
+
+    // Ne pas afficher si déjà installé (PWA)
     if (isStandalone) {
+      setIsVisible(false);
+      return;
+    }
+
+    // Afficher UNIQUEMENT sur la landing page "/"
+    if (window.location.pathname !== '/') {
       setIsVisible(false);
       return;
     }

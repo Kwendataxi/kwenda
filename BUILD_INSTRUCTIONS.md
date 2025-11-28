@@ -1,428 +1,362 @@
-# 🏗️ Instructions de Build Multi-Apps Kwenda
+# 📱 Guide de Build Kwenda pour Play Store & App Store
 
-Ce guide explique comment construire et déployer les 3 applications mobiles Kwenda à partir de cette codebase unique.
+## 🎯 Prérequis
 
-## 📱 Applications Disponibles
+### Outils nécessaires
+- **Node.js** 18+ et npm
+- **Git** pour cloner le projet
+- **Android Studio** (pour Android)
+- **Xcode 15+** (pour iOS, Mac uniquement)
 
-1. **Kwenda Client** (`cd.kwenda.client`) - App grand public
-2. **Kwenda Driver** (`cd.kwenda.driver`) - App chauffeurs/livreurs
-3. **Kwenda Partner** (`cd.kwenda.partner`) - App partenaires/gestionnaires
-
----
-
-## 🚀 Build Rapide
-
-### Build Automatique des 3 Apps
-
-```bash
-# Rendre le script exécutable (une seule fois)
-chmod +x scripts/build-all.sh
-
-# Lancer le build des 3 apps
-./scripts/build-all.sh
-```
-
-### Build Manuel App par App
-
-#### 1. Kwenda Client (Rouge)
-
-```bash
-# Build web
-npm run build -- --mode client
-
-# Copier la config Capacitor
-cp capacitor.config.client.ts capacitor.config.ts
-
-# Sync native
-npx cap sync
-
-# Ouvrir dans l'IDE
-npx cap open android  # ou ios
-```
-
-#### 2. Kwenda Driver (Jaune)
-
-```bash
-# Build web
-npm run build -- --mode driver
-
-# Copier la config Capacitor
-cp capacitor.config.driver.ts capacitor.config.ts
-
-# Sync native
-npx cap sync
-
-# Ouvrir dans l'IDE
-npx cap open android  # ou ios
-```
-
-#### 3. Kwenda Partner (Vert)
-
-```bash
-# Build web
-npm run build -- --mode partner
-
-# Copier la config Capacitor
-cp capacitor.config.partner.ts capacitor.config.ts
-
-# Sync native
-npx cap sync
-
-# Ouvrir dans l'IDE
-npx cap open android  # ou ios
-```
+### Comptes développeur requis
+- **Google Play Console** (pour Android)
+- **Apple Developer Program** (pour iOS, 99$/an)
 
 ---
 
-## 🛠️ Prérequis
-
-### Tous les builds
+## 📥 Étape 1 : Cloner et installer le projet
 
 ```bash
+# Cloner depuis GitHub
+git clone https://github.com/votre-repo/kwenda.git
+cd kwenda
+
+# Installer les dépendances
 npm install
 ```
 
-### Android
+---
 
-- **Android Studio** installé
-- **Java JDK 11+**
-- **Android SDK** avec API 21+
-- Gradle configuré
+## 🏗️ Étape 2 : Build du projet web
 
-### iOS (Mac uniquement)
+```bash
+# Build de production
+npm run build
 
-- **Xcode 14+** installé
-- **CocoaPods** : `sudo gem install cocoapods`
-- Compte Apple Developer
+# Vérifier que le dossier dist/ a été créé
+ls -la dist/
+```
 
 ---
 
-## 📋 Workflow Détaillé
+## 📱 Étape 3 : Ajouter les plateformes natives
 
-### Étape 1 : Développement Web
-
-Pendant le développement, l'app se comporte comme l'app complète (toutes routes disponibles) :
+### Première fois uniquement
 
 ```bash
-npm run dev
+# Ajouter Android
+npx cap add android
+
+# Ajouter iOS (Mac uniquement)
+npx cap add ios
 ```
 
-### Étape 2 : Build Spécifique
+> **Note** : Ces commandes créent les dossiers `android/` et `ios/` avec la configuration native.
 
-Choisir l'app à build en utilisant le mode Vite :
+---
 
-```bash
-# Client
-npm run build -- --mode client
+## 🔄 Étape 4 : Synchroniser le code web avec les apps natives
 
-# Driver
-npm run build -- --mode driver
-
-# Partner
-npm run build -- --mode partner
-```
-
-**Ce que fait le build spécifique** :
-- Charge les variables d'environnement `.env.{client|driver|partner}`
-- Configure `APP_CONFIG` avec le type d'app
-- Filtre les routes dans `App.tsx` (seules les routes de l'app sont incluses)
-- Génère un bundle optimisé
-
-### Étape 3 : Copier Assets Spécifiques
+À faire **après chaque modification du code web** :
 
 ```bash
-# Automatique via prebuild scripts
-VITE_APP_TYPE=client node scripts/copy-assets.js
-VITE_APP_TYPE=client node scripts/generate-manifest.js
-```
-
-### Étape 4 : Configuration Capacitor
-
-```bash
-# Copier la bonne config
-cp capacitor.config.client.ts capacitor.config.ts
-
-# Synchroniser
+# Synchroniser les changements
 npx cap sync
+
+# Ou synchroniser une plateforme spécifique
+npx cap sync android
+npx cap sync ios
 ```
 
-### Étape 5 : Build Native
+> **Important** : `npx cap sync` copie le build web dans les projets natifs et met à jour les plugins.
 
-#### Android
+---
+
+## 🤖 Étape 5 : Build Android pour Google Play Store
+
+### 5.1 - Ouvrir le projet dans Android Studio
 
 ```bash
-# Ouvrir dans Android Studio
 npx cap open android
-
-# Ou build en ligne de commande
-cd android
-./gradlew assembleRelease
-
-# APK généré dans:
-# android/app/build/outputs/apk/release/app-release.apk
 ```
 
-#### iOS
+### 5.2 - Configurer le signing
+
+1. Dans Android Studio, aller dans **Build** → **Generate Signed Bundle/APK**
+2. Sélectionner **Android App Bundle (AAB)**
+3. Créer ou choisir un keystore :
+   - **Key store path** : `kwenda-release-key.jks`
+   - **Key store password** : Votre mot de passe
+   - **Key alias** : `kwenda`
+   - **Key password** : Votre mot de passe
+
+> **Sauvegarder** : Conservez précieusement votre keystore et vos mots de passe !
+
+### 5.3 - Générer l'AAB de production
+
+1. Cliquer sur **Next**
+2. Sélectionner **release** comme Build Variant
+3. Cocher **V1 (Jar Signature)** et **V2 (Full APK Signature)**
+4. Cliquer sur **Finish**
+
+Le fichier AAB sera généré dans :
+```
+android/app/release/app-release.aab
+```
+
+### 5.4 - Tester l'AAB localement (optionnel)
 
 ```bash
-# Ouvrir dans Xcode
+# Installer bundletool
+curl -LO https://github.com/google/bundletool/releases/latest/download/bundletool-all.jar
+
+# Générer un APK universel pour tester
+java -jar bundletool-all.jar build-apks \
+  --bundle=android/app/release/app-release.aab \
+  --output=kwenda.apks \
+  --mode=universal
+
+# Extraire l'APK
+unzip kwenda.apks -d apk/
+
+# Installer sur un appareil connecté
+adb install apk/universal.apk
+```
+
+### 5.5 - Uploader sur Google Play Console
+
+1. Aller sur [Google Play Console](https://play.google.com/console)
+2. Sélectionner votre application ou créer une nouvelle application
+3. Aller dans **Production** → **Créer une version**
+4. Uploader le fichier `app-release.aab`
+5. Remplir les informations (notes de version, captures d'écran, etc.)
+6. Soumettre pour révision
+
+---
+
+## 🍎 Étape 6 : Build iOS pour Apple App Store
+
+### 6.1 - Ouvrir le projet dans Xcode
+
+```bash
 npx cap open ios
-
-# Dans Xcode:
-# 1. Sélectionner le scheme "App"
-# 2. Product > Archive
-# 3. Distribuer sur App Store ou AdHoc
 ```
+
+### 6.2 - Configurer le projet iOS
+
+1. Sélectionner le projet `App` dans la sidebar
+2. Onglet **Signing & Capabilities** :
+   - Cocher **Automatically manage signing**
+   - Sélectionner votre **Team** (Apple Developer)
+   - Vérifier le **Bundle Identifier** : `cd.kwenda.client`
+
+### 6.3 - Configurer les capabilities requises
+
+Dans Xcode, onglet **Signing & Capabilities**, ajouter :
+- ✅ Background Modes → Location updates
+- ✅ Push Notifications
+- ✅ Maps
+
+### 6.4 - Créer une Archive
+
+1. Sélectionner **Any iOS Device** dans la barre d'outils
+2. Menu **Product** → **Archive**
+3. Attendre la fin du processus (peut prendre 5-10 min)
+
+### 6.5 - Distribuer sur App Store Connect
+
+1. Une fois l'archive créée, la fenêtre **Organizer** s'ouvre
+2. Sélectionner votre archive
+3. Cliquer sur **Distribute App**
+4. Choisir **App Store Connect**
+5. Suivre les étapes :
+   - Upload → Next
+   - Automatically manage signing → Next
+   - Upload
+
+### 6.6 - Finaliser sur App Store Connect
+
+1. Aller sur [App Store Connect](https://appstoreconnect.apple.com)
+2. Sélectionner votre application
+3. Dans **TestFlight**, vérifier que le build apparaît (après traitement)
+4. Aller dans **App Store** → **Préparer pour soumission**
+5. Remplir toutes les informations requises :
+   - Captures d'écran (iPhone 6.7", 6.5", 5.5")
+   - Description
+   - Mots-clés
+   - Support URL
+   - Privacy Policy URL
+6. Soumettre pour révision
 
 ---
 
-## 🎨 Personnalisation par App
-
-### Variables d'Environnement
-
-Chaque app a son fichier `.env.{type}` :
-
-```env
-# .env.client
-VITE_APP_TYPE=client
-VITE_APP_NAME=Kwenda Client
-VITE_APP_ID=cd.kwenda.client
-VITE_PRIMARY_COLOR=#DC2626
-VITE_DEFAULT_ROUTE=/client
-VITE_AUTH_ROUTE=/auth
-```
-
-### Assets Personnalisés
-
-Structure :
-
-```
-public/icons/
-├── client/
-│   ├── icon-192.png (rouge)
-│   ├── icon-512.png
-│   ├── icon-1024.png
-│   └── splash.png
-├── driver/
-│   ├── icon-192.png (jaune)
-│   └── ...
-└── partner/
-    ├── icon-192.png (vert)
-    └── ...
-```
-
-### Capacitor Config
-
-Chaque app a sa config :
-
-- **Client** : `capacitor.config.client.ts` - Permissions basiques
-- **Driver** : `capacitor.config.driver.ts` - GPS background activé
-- **Partner** : `capacitor.config.partner.ts` - Permissions réduites
-
----
-
-## 🧪 Tests Avant Soumission
-
-### Checklist par App
-
-- [ ] Build réussit sans erreurs
-- [ ] Taille du bundle raisonnable (<20MB)
-- [ ] Routes non pertinentes sont absentes
-- [ ] Icônes et splash screen corrects
-- [ ] Manifest.json adapté
-- [ ] Permissions natives appropriées
-- [ ] Tests sur émulateur Android
-- [ ] Tests sur simulateur iOS
-- [ ] Tests sur device physique
-
-### Commandes de Test
-
-```bash
-# Tester le build
-npm run build -- --mode client
-npm run build -- --mode driver
-npm run build -- --mode partner
-
-# Vérifier la taille des bundles
-ls -lh dist/assets/
-
-# Analyser les bundles
-npm run build -- --mode client -- --sourcemap
-```
-
----
-
-## 📦 Génération des APK/AAB Finaux
-
-### Android Release
-
-#### APK (pour tests)
-
-```bash
-cd android
-./gradlew assembleRelease
-```
-
-APK généré dans : `android/app/build/outputs/apk/release/`
-
-#### AAB (pour Google Play)
-
-```bash
-cd android
-./gradlew bundleRelease
-```
-
-AAB généré dans : `android/app/build/outputs/bundle/release/`
-
-### iOS Release
-
-```bash
-# Ouvrir Xcode
-npx cap open ios
-
-# Dans Xcode:
-# 1. Sélectionner "Any iOS Device"
-# 2. Product > Archive
-# 3. Window > Organizer
-# 4. Distribute App > App Store Connect
-```
-
----
-
-## 🔐 Signature des Apps
+## 🎨 Étape 7 : Préparer les assets (icônes et splash screens)
 
 ### Android
 
-Créer un keystore (une fois) :
+Les icônes sont dans `android/app/src/main/res/` :
 
-```bash
-keytool -genkey -v -keystore kwenda-release.keystore \
-  -alias kwenda -keyalg RSA -keysize 2048 -validity 10000
 ```
-
-Configurer dans `android/app/build.gradle` :
-
-```gradle
-android {
-    signingConfigs {
-        release {
-            storeFile file("../../kwenda-release.keystore")
-            storePassword "VOTRE_PASSWORD"
-            keyAlias "kwenda"
-            keyPassword "VOTRE_PASSWORD"
-        }
-    }
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-        }
-    }
-}
+mipmap-hdpi/ic_launcher.png (72x72)
+mipmap-mdpi/ic_launcher.png (48x48)
+mipmap-xhdpi/ic_launcher.png (96x96)
+mipmap-xxhdpi/ic_launcher.png (144x144)
+mipmap-xxxhdpi/ic_launcher.png (192x192)
 ```
 
 ### iOS
 
-Configurer dans Xcode :
+Les icônes sont dans `ios/App/App/Assets.xcassets/AppIcon.appiconset/` :
 
-1. Signing & Capabilities
-2. Sélectionner votre Team
-3. Automatic Signing recommandé
+- Icône requise : 1024x1024 (App Store)
+- Générer toutes les tailles dans Xcode
 
----
+### Splash Screens
 
-## 📊 Différences entre les Builds
+Configurer dans `capacitor.config.ts` :
 
-| Fonctionnalité | Client | Driver | Partner |
-|---|---|---|---|
-| **App ID** | cd.kwenda.client | cd.kwenda.driver | cd.kwenda.partner |
-| **Couleur** | Rouge #DC2626 | Jaune #F59E0B | Vert #10B981 |
-| **Routes Client** | ✅ | ❌ | ❌ |
-| **Routes Driver** | ❌ | ✅ | ❌ |
-| **Routes Partner** | ❌ | ❌ | ✅ |
-| **GPS Background** | ❌ | ✅ | ❌ |
-| **Marketplace** | ✅ | ❌ | ❌ |
-| **Gestion Flotte** | ❌ | ❌ | ✅ |
-| **Taille Bundle** | ~15MB | ~12MB | ~10MB |
-
----
-
-## 🐛 Troubleshooting
-
-### Build échoue
-
-```bash
-# Nettoyer le cache
-rm -rf node_modules dist .vite
-npm install
-npm run build -- --mode client
+```typescript
+{
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#ffffff",
+      androidSplashResourceName: "splash",
+      iosLaunchAnimation: "fade"
+    }
+  }
+}
 ```
 
-### Capacitor Sync échoue
+---
+
+## 📋 Checklist avant soumission
+
+### Configuration Capacitor
+- ✅ `appId` configuré : `cd.kwenda.client`
+- ✅ `appName` défini : `Kwenda`
+- ✅ Permissions géolocalisation configurées
+- ✅ Push notifications configurées
+- ✅ Clés API Google Maps ajoutées
+
+### Android
+- ✅ Version code incrémentée dans `android/app/build.gradle`
+- ✅ Version name mise à jour (ex: 1.0.0 → 1.0.1)
+- ✅ Keystore configuré et sauvegardé
+- ✅ AAB généré en mode release
+- ✅ Captures d'écran préparées (720x1280, 1080x1920)
+
+### iOS
+- ✅ Version incrémentée dans Xcode (Build et Version)
+- ✅ Bundle ID vérifié : `cd.kwenda.client`
+- ✅ Certificats et profils de provisioning valides
+- ✅ Capabilities configurées (Location, Push, Maps)
+- ✅ Captures d'écran préparées (iPhone 6.7", 6.5", 5.5")
+
+### Stores
+- ✅ Description app traduite FR/EN
+- ✅ Mots-clés SEO définis
+- ✅ Privacy Policy URL valide
+- ✅ Support URL/Email configuré
+- ✅ Vidéo de démo (optionnel mais recommandé)
+
+---
+
+## 🔄 Workflow de mise à jour
+
+Pour publier une nouvelle version après des changements :
 
 ```bash
-# Supprimer les dossiers natifs
-rm -rf android ios
+# 1. Pull des dernières modifications
+git pull origin main
+
+# 2. Installer les dépendances si nécessaire
+npm install
+
+# 3. Build du projet web
+npm run build
+
+# 4. Synchroniser avec les plateformes natives
+npx cap sync
+
+# 5. Incrémenter les versions
+# Android : android/app/build.gradle
+#   versionCode 2 → 3
+#   versionName "1.0.0" → "1.0.1"
+# iOS : Xcode → General → Version et Build
+
+# 6. Ouvrir dans l'IDE et rebuild
+npx cap open android  # ou ios
+
+# 7. Générer AAB/IPA et uploader
+```
+
+---
+
+## 🆘 Problèmes courants
+
+### Android : "App not installed"
+```bash
+# Désinstaller l'ancienne version
+adb uninstall cd.kwenda.client
+
+# Réinstaller
+adb install app-release.apk
+```
+
+### iOS : "Signing certificate expired"
+1. Aller dans Xcode → Preferences → Accounts
+2. Télécharger les certificats manuellement
+3. Re-signer le projet
+
+### Capacitor : "Plugin not found"
+```bash
+# Réinstaller les plugins
+npm install
+npx cap sync
+```
+
+### Build web ne se met pas à jour
+```bash
+# Nettoyer et rebuild
+rm -rf dist/
+npm run build
+npx cap copy
+```
+
+---
+
+## 📚 Ressources officielles
+
+- **Capacitor** : https://capacitorjs.com/docs
+- **Google Play Console** : https://play.google.com/console/developers
+- **App Store Connect** : https://appstoreconnect.apple.com
+- **Kwenda Docs** : Voir `STORE_CLIENT.md`, `STORE_DRIVER.md`, `STORE_PARTNER.md`
+
+---
+
+## ✅ Résumé des commandes essentielles
+
+```bash
+# Setup initial
+npm install
+npm run build
 npx cap add android
 npx cap add ios
+
+# Développement
+npm run build
 npx cap sync
-```
+npx cap open android
+npx cap open ios
 
-### Assets manquants
-
-```bash
-# Regénérer les assets
-VITE_APP_TYPE=client node scripts/copy-assets.js
-VITE_APP_TYPE=client node scripts/generate-manifest.js
-```
-
-### Mauvaise app affichée
-
-Vérifier que :
-1. La bonne config Capacitor est copiée
-2. Le mode Vite est correct
-3. `npx cap sync` a été exécuté après le build
-
----
-
-## 🚀 Workflow de Production
-
-### Scénario : Publier les 3 apps
-
-```bash
-# 1. Version bump (package.json et Capacitor configs)
-# Incrémenter manuellement les versions
-
-# 2. Build des 3 apps
-./scripts/build-all.sh
-
-# 3. Pour chaque app, copier la bonne config et générer
-# CLIENT
-cp capacitor.config.client.ts capacitor.config.ts
+# Mise à jour
+git pull
+npm install
+npm run build
 npx cap sync
-npx cap open android  # Build & sign
-npx cap open ios      # Archive & upload
-
-# DRIVER
-cp capacitor.config.driver.ts capacitor.config.ts
-npx cap sync
-# ... répéter
-
-# PARTNER
-cp capacitor.config.partner.ts capacitor.config.ts
-npx cap sync
-# ... répéter
 ```
 
 ---
 
-## 📞 Support
-
-Pour toute question sur le build :
-
-- **Documentation** : Voir `STORE_CLIENT.md`, `STORE_DRIVER.md`, `STORE_PARTNER.md`
-- **Capacitor Docs** : https://capacitorjs.com
-- **Vite Docs** : https://vitejs.dev
-
----
-
-**🎉 Bonne chance pour vos soumissions sur les stores !**
+**🎉 Bon courage pour la publication de Kwenda sur les stores !**
