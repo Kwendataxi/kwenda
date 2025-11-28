@@ -9,18 +9,21 @@ import { MyApplicationsScreen } from './MyApplicationsScreen';
 import { useJobs, useJobDetails, useJobActions, useJobApplications } from '@/hooks/useJobs';
 import { Job } from '@/types/jobs';
 import { Button } from '@/components/ui/button';
-import { Briefcase, FileText } from 'lucide-react';
+import { Briefcase, FileText, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface JobInterfaceProps {
   onBack: () => void;
 }
 
 export const JobInterface = ({ onBack }: JobInterfaceProps) => {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [location, setLocation] = useState('');
   const [view, setView] = useState<'list' | 'applications'>('list');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -35,6 +38,12 @@ export const JobInterface = ({ onBack }: JobInterfaceProps) => {
   const { job: selectedJob, loading: jobLoading } = useJobDetails(selectedJobId);
   const { applications, loading: appsLoading } = useJobApplications();
   const { applyToJob, saveJob, applying } = useJobActions();
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['jobs'] });
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   const handleJobClick = (job: Job) => {
     setSelectedJobId(job.id);
@@ -86,13 +95,26 @@ export const JobInterface = ({ onBack }: JobInterfaceProps) => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center h-64 text-center px-4"
+                className="flex flex-col items-center justify-center min-h-[400px] text-center px-6 py-8"
               >
-                <Briefcase className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Aucune offre trouvée</h3>
-                <p className="text-sm text-muted-foreground">
-                  Essayez de modifier vos filtres de recherche
+                <div className="bg-primary/10 p-6 rounded-full mb-6">
+                  <Briefcase className="h-12 w-12 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">Aucune offre disponible</h3>
+                <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                  {searchQuery || location || selectedCategory !== 'all' 
+                    ? "Aucune offre ne correspond à vos critères. Essayez de modifier vos filtres." 
+                    : "Les offres d'emploi seront bientôt disponibles. Revenez plus tard ou modifiez vos filtres."}
                 </p>
+                <Button 
+                  onClick={handleRefresh}
+                  variant="outline"
+                  className="gap-2"
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Rafraîchir les offres
+                </Button>
               </motion.div>
             ) : (
               <div className="space-y-1 pt-2">
