@@ -154,7 +154,7 @@ const ClientApp = () => {
   const { transitionToView } = useViewTransition();
   const queryClient = useQueryClient();
   const [currentView, setCurrentView] = useState('home');
-  const [serviceType, setServiceType] = useState<'transport' | 'delivery' | 'marketplace' | 'rental' | 'food'>('transport');
+  const [serviceType, setServiceType] = useState<'transport' | 'delivery' | 'marketplace' | 'rental' | 'food' | 'job'>('transport');
   const [isLoading, setIsLoading] = useState(false);
   
   // Bottom navigation state
@@ -982,6 +982,8 @@ const ClientApp = () => {
                   onBack={() => setCurrentView('home')}
                 />
               );
+            case 'job':
+              return <JobInterface onBack={() => setCurrentView('home')} />;
             default:
               return renderHome();
           }
