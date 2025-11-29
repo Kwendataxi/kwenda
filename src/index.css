@@ -645,7 +645,7 @@ All colors MUST be HSL.
 
   /* Variables globales pour bottom nav */
   :root {
-    --bottom-nav-height: 64px; /* 16 * 4 = 64px (h-16) */
+    --bottom-nav-height: 72px; /* Hauteur réelle du composant nav */
     --bottom-nav-height-safe: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
 
@@ -695,16 +695,14 @@ All colors MUST be HSL.
     right: 0;
     z-index: 110;
     background: hsl(var(--background) / 0.98);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid hsl(var(--border) / 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid hsl(var(--border) / 0.4);
+    min-height: var(--bottom-nav-height);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    height: var(--bottom-nav-height);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.08);
     will-change: transform;
     isolation: isolate;
-    -webkit-touch-callout: none;
-    touch-action: none;
   }
 
   /* Variante avec safe area intégrée */
