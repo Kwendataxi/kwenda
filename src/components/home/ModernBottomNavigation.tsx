@@ -46,13 +46,7 @@ export const ModernBottomNavigation = ({
         touchAction: 'none'
       } as React.CSSProperties}
     >
-      <div 
-        className="border-t border-border/30 shadow-2xl rounded-t-3xl overflow-hidden"
-        style={{ 
-          paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom, 0rem))',
-          isolation: 'isolate'
-        }}
-      >
+      <div className="border-t border-border/30 shadow-2xl rounded-t-3xl overflow-hidden h-full">
         {/* Gradient moderne - du bas vers le haut */}
         <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-background/50 to-transparent pointer-events-none" />
         
