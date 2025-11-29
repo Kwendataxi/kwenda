@@ -111,6 +111,21 @@ export function usePartnerTaxiVehicles() {
     },
   });
 
+  const assignDriverToVehicle = useMutation({
+    mutationFn: async ({ vehicleId, driverId }: { vehicleId: string; driverId: string | null }) => {
+      const { error } = await (supabase as any)
+        .from("partner_taxi_vehicles")
+        .update({ assigned_driver_id: driverId })
+        .eq("id", vehicleId);
+      if (error) throw error;
+      return true;
+    },
+    meta: { onError: (e: any) => console.error("assign driver error", e) },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["partner-taxi-vehicles", userId] });
+    },
+  });
+
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
@@ -137,6 +152,7 @@ export function usePartnerTaxiVehicles() {
       createVehicle,
       updateVehicle,
       deleteVehicle,
+      assignDriverToVehicle,
     }),
     [
       userQuery.data,
@@ -145,6 +161,7 @@ export function usePartnerTaxiVehicles() {
       createVehicle,
       updateVehicle,
       deleteVehicle,
+      assignDriverToVehicle,
     ]
   );
 }

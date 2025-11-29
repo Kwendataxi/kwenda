@@ -20,6 +20,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ServiceZonesDisplay } from '../zones/ServiceZonesDisplay';
 import { ServiceZoneSelector } from '../zones/ServiceZoneSelector';
 import { CityManagementPanel } from '../CityManagementPanel';
+import { DriverCodeManager } from '../DriverCodeManager';
 
 export const TaxiDriverProfile = () => {
   const { user, signOut } = useAuth();
@@ -134,6 +135,12 @@ export const TaxiDriverProfile = () => {
         expiresAt={profile?.driver_subscriptions?.[0]?.valid_until}
         serviceType="taxi"
       />
+
+      {/* Code Partenaire */}
+      <Card className="p-6">
+        <h3 className="font-semibold text-foreground mb-4">Code Partenaire</h3>
+        <DriverCodeManager />
+      </Card>
 
       {/* Actions rapides */}
       <div className="space-y-3">
