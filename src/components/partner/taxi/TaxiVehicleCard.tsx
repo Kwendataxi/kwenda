@@ -1,11 +1,13 @@
 
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TaxiVehicle, usePartnerTaxiVehicles } from "@/hooks/usePartnerTaxiVehicles";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { VehicleAssignmentDialog } from "./VehicleAssignmentDialog";
 
 export default function TaxiVehicleCard({
   vehicle,
@@ -14,9 +16,10 @@ export default function TaxiVehicleCard({
   vehicle: TaxiVehicle;
   onEdit: (v: TaxiVehicle) => void;
 }) {
-  const { deleteVehicle } = usePartnerTaxiVehicles();
+  const { deleteVehicle, assignDriverToVehicle } = usePartnerTaxiVehicles();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const [showAssignDialog, setShowAssignDialog] = useState(false);
 
   const handleDelete = async () => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce taxi ?")) return;
@@ -84,8 +87,29 @@ export default function TaxiVehicleCard({
           </div>
         </div>
 
+        {/* Chauffeur assigné */}
+        {vehicle.assigned_driver_id && (
+          <div className="mb-4 bg-green-50 border border-green-200 rounded-2xl p-3">
+            <div className="flex items-center gap-2 text-green-800">
+              <UserCheck className="w-4 h-4" />
+              <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                Chauffeur assigné
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Action buttons */}
         <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+          <Button 
+            variant="outline" 
+            size={isMobile ? "default" : "sm"}
+            onClick={() => setShowAssignDialog(true)}
+            className={`rounded-2xl border-blue-200 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-200 ${isMobile ? 'flex-1' : ''}`}
+          >
+            <UserCheck className="w-4 h-4 mr-2" /> 
+            {vehicle.assigned_driver_id ? 'Changer' : 'Assigner'}
+          </Button>
           <Button 
             variant="outline" 
             size={isMobile ? "default" : "sm"}
@@ -104,6 +128,21 @@ export default function TaxiVehicleCard({
           </Button>
         </div>
       </CardContent>
+
+      {/* Dialog d'assignation */}
+      <VehicleAssignmentDialog
+        open={showAssignDialog}
+        onOpenChange={setShowAssignDialog}
+        vehicleId={vehicle.id}
+        vehicleName={vehicle.name}
+        currentDriverId={vehicle.assigned_driver_id}
+        onAssign={async (driverId) => {
+          await assignDriverToVehicle.mutateAsync({
+            vehicleId: vehicle.id,
+            driverId
+          });
+        }}
+      />
     </Card>
   );
 }

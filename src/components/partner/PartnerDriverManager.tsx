@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, Users, Edit, Trash2, Phone, User } from 'lucide-react';
+import { UserPlus, Users, Edit, Trash2, Phone, User, Car } from 'lucide-react';
 import { usePartnerDrivers } from '@/hooks/usePartnerDrivers';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const PartnerDriverManager = () => {
   const { t } = useLanguage();
@@ -23,6 +24,32 @@ export const PartnerDriverManager = () => {
   const [newDriverCode, setNewDriverCode] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingDriver, setEditingDriver] = useState<string | null>(null);
+  const [assignedVehicles, setAssignedVehicles] = useState<Record<string, any>>({});
+
+  // Charger les véhicules assignés
+  useEffect(() => {
+    loadAssignedVehicles();
+  }, [drivers]);
+
+  const loadAssignedVehicles = async () => {
+    if (drivers.length === 0) return;
+
+    const driverIds = drivers.map(d => d.id);
+    const { data } = await supabase
+      .from('partner_taxi_vehicles')
+      .select('assigned_driver_id, name, license_plate')
+      .in('assigned_driver_id', driverIds);
+
+    if (data) {
+      const vehicleMap: Record<string, any> = {};
+      data.forEach(v => {
+        if (v.assigned_driver_id) {
+          vehicleMap[v.assigned_driver_id] = v;
+        }
+      });
+      setAssignedVehicles(vehicleMap);
+    }
+  };
 
   const handleAddDriver = async () => {
     if (newDriverCode.length !== 8) {
@@ -188,24 +215,32 @@ export const PartnerDriverManager = () => {
                     <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
                       <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm sm:text-base truncate">{driver.driver_name}</p>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <span className="font-mono">Code: {driver.driver_code}</span>
-                        {driver.driver_phone && (
-                          <>
-                            <span className="hidden sm:inline">•</span>
-                            <span className="flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
-                              <span className="truncate">{driver.driver_phone}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm sm:text-base truncate">{driver.driver_name}</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                          <span className="font-mono">Code: {driver.driver_code}</span>
+                          {driver.driver_phone && (
+                            <>
+                              <span className="hidden sm:inline">•</span>
+                              <span className="flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                <span className="truncate">{driver.driver_phone}</span>
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        {assignedVehicles[driver.id] && (
+                          <div className="flex items-center gap-1 mt-1 text-xs text-green-600">
+                            <Car className="h-3 w-3" />
+                            <span>
+                              {assignedVehicles[driver.id].name} ({assignedVehicles[driver.id].license_plate})
                             </span>
-                          </>
+                          </div>
                         )}
+                        <p className="text-xs text-muted-foreground">
+                          Ajouté le {new Date(driver.added_at).toLocaleDateString('fr-FR')}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Ajouté le {new Date(driver.added_at).toLocaleDateString('fr-FR')}
-                      </p>
-                    </div>
                   </div>
                   
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">

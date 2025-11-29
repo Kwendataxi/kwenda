@@ -15,6 +15,9 @@ interface SubscriptionPlan {
   max_rides_per_day: number
   priority_level: number
   is_active: boolean
+  service_type?: string
+  rides_included?: number
+  badge_type?: string
 }
 
 interface DriverSubscription {
