@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Briefcase, Lock, Eye, EyeOff, Mail } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,10 +24,17 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptTerms) {
+      toast.error(t('auth.must_accept_terms'));
+      return;
+    }
+    
     if (!email || !password) {
       toast.error(t('auth.fill_all_fields'));
       return;
@@ -212,10 +220,31 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                 </div>
               </div>
 
+              {/* Acceptation CGU */}
+              <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+                <Checkbox
+                  id="terms-partner"
+                  checked={acceptTerms}
+                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="terms-partner" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+                  {t('auth.accept_terms_part1')}{' '}
+                  <Link to="/terms" className="text-green-600 hover:underline font-medium">
+                    {t('auth.terms_of_service')}
+                  </Link>{' '}
+                  {t('auth.accept_terms_part2')}{' '}
+                  <Link to="/privacy" className="text-green-600 hover:underline font-medium">
+                    {t('auth.privacy_policy')}
+                  </Link>{' '}
+                  {t('auth.accept_terms_part3')}
+                </Label>
+              </div>
+
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
-                disabled={loading}
+                disabled={loading || !acceptTerms}
               >
                 {loading ? t('auth.logging_in') : t('auth.login_button')}
               </Button>

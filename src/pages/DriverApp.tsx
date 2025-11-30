@@ -28,6 +28,9 @@ import { cn } from '@/lib/utils';
 const DriverApp = () => {
   const { loading, serviceType, serviceSpecialization } = useDriverServiceInfo();
   const [tab, setTab] = useState<'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile' | 'food'>('orders');
+  
+  // Scroll automatique vers le haut quand on change d'onglet
+  useTabScrollReset(tab);
   const [showMigrationModal, setShowMigrationModal] = useState(false);
 
   // 🔔 Activer les notifications système temps réel

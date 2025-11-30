@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -26,12 +27,19 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptTerms) {
+      setError(t('auth.must_accept_terms'));
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -272,11 +280,32 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                 </Alert>
               )}
 
+              {/* Acceptation CGU */}
+              <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+                <Checkbox
+                  id="terms-driver"
+                  checked={acceptTerms}
+                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="terms-driver" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+                  {t('auth.accept_terms_part1')}{' '}
+                  <Link to="/terms" className="text-orange-600 hover:underline font-medium">
+                    {t('auth.terms_of_service')}
+                  </Link>{' '}
+                  {t('auth.accept_terms_part2')}{' '}
+                  <Link to="/privacy" className="text-orange-600 hover:underline font-medium">
+                    {t('auth.privacy_policy')}
+                  </Link>{' '}
+                  {t('auth.accept_terms_part3')}
+                </Label>
+              </div>
+
               {/* Bouton de connexion */}
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
-                disabled={loading}
+                disabled={loading || !acceptTerms}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {loading ? t('auth.logging_in') : t('auth.login_button')}
