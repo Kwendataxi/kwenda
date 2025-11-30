@@ -7,6 +7,7 @@ import { AdminPermissionSettings, AdminPermissionProvider, useAdminPermissions }
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BackToTopButton } from '@/components/navigation/BackToTopButton';
 import { AdminRoleNotificationCenter } from '@/components/admin/AdminRoleNotificationCenter';
+import { AdminMobileNav } from './AdminMobileNav';
 import { cn } from '@/lib/utils';
 
 interface ResponsiveAdminLayoutProps {
@@ -75,15 +76,23 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
         {/* KPI Grid - only on overview */}
         {activeTab === 'overview' && <MobileKPIGrid realTimeStats={realTimeStats} />}
         
-        {/* Content */}
-        <main className="p-2 sm:p-4">
+        {/* Content with bottom padding */}
+        <main className="p-2 sm:p-4 pb-[var(--bottom-nav-height-safe)]">
           {children}
         </main>
+        
+        {/* Mobile Footer Navigation */}
+        <footer className="bottom-nav-standard">
+          <AdminMobileNav 
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+          />
+        </footer>
         
         {/* Back to Top - Mobile */}
         <BackToTopButton 
           showAfter={400} 
-          className="bottom-20 right-4 z-50"
+          className="bottom-[calc(var(--bottom-nav-height-safe)+1rem)] right-4 z-50"
         />
       </div>
     );

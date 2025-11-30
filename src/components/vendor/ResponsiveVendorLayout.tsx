@@ -60,8 +60,8 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
 
   return (
     <div className="vendor-layout-container vendor-gradient-bg">
-      {/* Header fixe avec glassmorphism */}
-      <header className="flex-shrink-0 sticky top-0 z-40">
+      {/* Header fixe avec glassmorphism - h-16 = 64px */}
+      <header className="flex-shrink-0 sticky top-0 z-40 h-16">
         <div className="vendor-card-glass border-b border-border/20">
           <UnifiedVendorHeader 
             onOpenChat={onOpenChat}
@@ -88,8 +88,8 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
         <main 
           {...(isMobile ? handlers : {})}
           className={cn(
-            isMobile ? 'content-with-bottom-nav' : 'content-scrollable',
-            'vendor-scrollbar'
+            'vendor-scrollbar',
+            isMobile ? 'content-with-bottom-nav pt-4' : 'content-scrollable pt-4'
           )}
         >
           <div className="container max-w-6xl mx-auto p-4 space-y-4">

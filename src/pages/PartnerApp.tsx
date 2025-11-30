@@ -76,7 +76,7 @@ const PartnerApp = () => {
             transition={{ duration: 0.3 }}
           >
             <PartnerKPIGrid stats={stats} />
-            <div className="px-4 pb-20 lg:pb-6">
+            <div className="px-4 pb-[var(--bottom-nav-height-safe)] lg:pb-6">
               <PartnerDashboard onViewChange={(view) => setActiveTab(view as PartnerNavTab)} />
             </div>
           </motion.div>
@@ -91,7 +91,7 @@ const PartnerApp = () => {
             animate="animate"
             exit="exit"
             transition={{ duration: 0.3 }}
-            className="px-4 pb-20 lg:pb-6"
+            className="px-4 pb-[var(--bottom-nav-height-safe)] lg:pb-6"
           >
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -114,7 +114,7 @@ const PartnerApp = () => {
             animate="animate"
             exit="exit"
             transition={{ duration: 0.3 }}
-            className="px-4 pb-20 lg:pb-6"
+            className="px-4 pb-[var(--bottom-nav-height-safe)] lg:pb-6"
           >
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -137,7 +137,7 @@ const PartnerApp = () => {
             animate="animate"
             exit="exit"
             transition={{ duration: 0.3 }}
-            className="px-4 pb-20 lg:pb-6"
+            className="px-4 pb-[var(--bottom-nav-height-safe)] lg:pb-6"
           >
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -160,7 +160,7 @@ const PartnerApp = () => {
             animate="animate"
             exit="exit"
             transition={{ duration: 0.3 }}
-            className="px-4 pb-20 lg:pb-6"
+            className="px-4 pb-[var(--bottom-nav-height-safe)] lg:pb-6"
           >
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -183,7 +183,7 @@ const PartnerApp = () => {
             animate="animate"
             exit="exit"
             transition={{ duration: 0.3 }}
-            className="px-4 pb-20 lg:pb-6"
+            className="px-4 pb-[var(--bottom-nav-height-safe)] lg:pb-6"
           >
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -206,7 +206,7 @@ const PartnerApp = () => {
             animate="animate"
             exit="exit"
             transition={{ duration: 0.3 }}
-            className="px-4 pb-20 lg:pb-6"
+            className="px-4 pb-[var(--bottom-nav-height-safe)] lg:pb-6"
           >
             <PartnerProfilePage />
           </motion.div>
