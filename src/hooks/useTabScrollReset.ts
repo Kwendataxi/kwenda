@@ -10,12 +10,14 @@ export const useTabScrollReset = (
     behavior?: 'smooth' | 'auto';
     delay?: number;
     enabled?: boolean;
+    containerSelector?: string; // Nouveau: scroll un conteneur spécifique
   }
 ) => {
   const { 
     behavior = 'smooth', 
     delay = 0,
-    enabled = true 
+    enabled = true,
+    containerSelector 
   } = options || {};
 
   const isFirstRender = useRef(true);
@@ -40,11 +42,24 @@ export const useTabScrollReset = (
 
       // Utiliser requestAnimationFrame pour optimiser le reflow
       requestAnimationFrame(() => {
+        // Scroll la fenêtre principale
         window.scrollTo({
           top: 0,
           left: 0,
           behavior: finalBehavior
         });
+
+        // Scroll aussi le conteneur si spécifié
+        if (containerSelector) {
+          const container = document.querySelector(containerSelector);
+          if (container) {
+            container.scrollTo({
+              top: 0,
+              left: 0,
+              behavior: finalBehavior
+            });
+          }
+        }
       });
     };
 
@@ -54,5 +69,5 @@ export const useTabScrollReset = (
     } else {
       scrollToTop();
     }
-  }, [dependency, behavior, delay, enabled]);
+  }, [dependency, behavior, delay, enabled, containerSelector]);
 };

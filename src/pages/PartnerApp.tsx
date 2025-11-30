@@ -28,6 +28,7 @@ const PartnerApp = () => {
   const { stats, loading: statsLoading } = usePartnerStats();
 
   // ✅ Scroll automatique au changement d'onglet
+  useTabScrollReset(activeTab);
   useTabScrollReset(activeTab, { 
     behavior: 'smooth',
     delay: 50

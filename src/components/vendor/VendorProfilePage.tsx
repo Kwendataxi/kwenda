@@ -21,6 +21,7 @@ import { VendorEscrowManager } from './VendorEscrowManager';
 import { VendorAnalytics } from './VendorAnalytics';
 import { VendorFollowers } from './VendorFollowers';
 import { VendorShopSettings } from '@/components/marketplace/VendorShopSettings';
+import { LegalFooterLinks } from '@/components/shared/LegalFooterLinks';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -271,6 +272,9 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
           Déconnexion
         </Button>
       </Card>
+
+      {/* Liens légaux */}
+      <LegalFooterLinks />
 
       {/* Dialogs */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>

@@ -30,6 +30,7 @@ import { DriverChallenges } from './DriverChallenges';
 import { ReferralDashboard } from './referral/ReferralDashboard';
 import { DriverTransactionHistory } from './DriverTransactionHistory';
 import { DriverProfileEditor } from './DriverProfileEditor';
+import { LegalFooterLinks } from '@/components/shared/LegalFooterLinks';
 
 interface DriverProfile {
   id: string;
@@ -436,6 +437,9 @@ export const DriverProfile = () => {
           <DriverProfileEditor />
         </DialogContent>
       </Dialog>
+
+      {/* Liens légaux */}
+      <LegalFooterLinks />
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { VendorProfilePage } from '@/components/vendor/VendorProfilePage';
 import { VendorSubscriptionManager } from '@/components/vendor/VendorSubscriptionManager';
 import { useVendorStats } from '@/hooks/useVendorStats';
 import { useVendorChat } from '@/hooks/useVendorChat';
+import { useTabScrollReset } from '@/hooks/useTabScrollReset';
 
 export default function ModernVendorDashboard() {
   const { user } = useAuth();
@@ -19,6 +20,9 @@ export default function ModernVendorDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notifCenterOpen, setNotifCenterOpen] = useState(false);
   const [chatModalOpen, setChatModalOpen] = useState(false);
+
+  // Scroll automatique vers le haut quand on change d'onglet
+  useTabScrollReset(activeTab);
 
   return (
     <ResponsiveVendorLayout
