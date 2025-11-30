@@ -709,4 +709,18 @@ All colors MUST be HSL.
   .bottom-nav-safe {
     height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
+
+  /* Classes utilitaires pour headers et compensations */
+  .pt-header {
+    padding-top: 4rem; /* 64px - compensation header fixe */
+  }
+
+  .pb-bottom-nav {
+    padding-bottom: var(--bottom-nav-height-safe);
+  }
+
+  /* Layout avec header fixe */
+  .layout-with-fixed-header {
+    padding-top: 4rem;
+  }
 }

@@ -52,8 +52,7 @@ export const VendorBottomNav: React.FC<VendorBottomNavProps> = ({
   ];
 
   return (
-    <div className="bottom-nav-standard">
-      <div className="flex items-center justify-around px-2 py-2">
+    <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -113,6 +112,5 @@ export const VendorBottomNav: React.FC<VendorBottomNavProps> = ({
           );
         })}
       </div>
-    </div>
   );
 };

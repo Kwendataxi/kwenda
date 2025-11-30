@@ -127,10 +127,7 @@ const DriverApp = () => {
       {/* Header moderne avec ThemeToggle et stats */}
       <ModernDriverHeader serviceType={serviceType} />
 
-      <div className={cn(
-        "min-h-screen bg-background mobile-safe-layout pt-[140px]",
-        tab === 'orders' && "pb-24"
-      )}>
+      <div className="min-h-screen bg-background mobile-safe-layout pt-16">
         <AnimatePresence mode="wait">
           <motion.main 
             key={tab}
