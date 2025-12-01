@@ -12,6 +12,8 @@ import RestaurantAuth from '@/pages/RestaurantAuth';
 import MobileSplash from '@/pages/MobileSplash';
 import Install from '@/pages/Install';
 import ResetPassword from '@/pages/ResetPassword';
+import Terms from '@/pages/legal/Terms';
+import Privacy from '@/pages/legal/Privacy';
 
 const RoleSelection = lazy(() => import('@/pages/RoleSelection'));
 const EscrowPage = lazy(() => import('@/pages/EscrowPage').then(m => ({ default: m.EscrowPage })));
@@ -72,6 +74,10 @@ export const SharedRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Legal Pages */}
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       
       {/* Misc */}
       <Route path="/splash" element={<MobileSplash />} />

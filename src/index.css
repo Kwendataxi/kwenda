@@ -687,22 +687,19 @@ All colors MUST be HSL.
     padding-bottom: var(--bottom-nav-height-safe);
   }
 
-  /* Footer bottom nav standardisé */
+  /* Footer bottom nav standardisé - Glassmorphism moderne */
   .bottom-nav-standard {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 110;
-    background: hsl(var(--background) / 0.98);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid hsl(var(--border) / 0.4);
+    height: var(--bottom-nav-height);
     min-height: var(--bottom-nav-height);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.08);
     will-change: transform;
     isolation: isolate;
+    /* Pas de background/backdrop ici, géré dans le composant pour plus de contrôle */
   }
 
   /* Variante avec safe area intégrée */
