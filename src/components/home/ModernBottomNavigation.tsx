@@ -46,14 +46,20 @@ export const ModernBottomNavigation = ({
         touchAction: 'none'
       } as React.CSSProperties}
     >
-      <div className="border-t border-border/30 shadow-2xl rounded-t-3xl overflow-hidden h-full">
-        {/* Gradient moderne - du bas vers le haut */}
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-background/50 to-transparent pointer-events-none" />
+      <div className="relative h-full">
+        {/* Glassmorphism Background - Background principal avec blur moderne */}
+        <div className="absolute inset-0 bg-background/95 backdrop-blur-xl" />
         
-        {/* Subtle glow effect */}
-        <div className="absolute inset-0 shadow-inner pointer-events-none" />
+        {/* Gradient d'accentuation subtile */}
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/[0.03] via-transparent to-transparent pointer-events-none" />
         
-        <div className="relative flex items-center justify-around px-4 py-3">
+        {/* Border top avec glow effect */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border/60 to-transparent" />
+        
+        {/* Subtle inner shadow pour profondeur */}
+        <div className="absolute inset-0 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)] pointer-events-none" />
+        
+        <div className="relative flex items-center justify-around h-full px-4 py-3">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -64,24 +70,24 @@ export const ModernBottomNavigation = ({
                 onClick={() => onTabChange(tab.id)}
                 className="relative flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all duration-200 min-w-[64px] group active:scale-95"
               >
-                {/* Active background avec effet subtil */}
+                {/* Active background avec glassmorphism moderne */}
                 {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-primary/8 to-secondary/8 rounded-2xl shadow-md transition-all duration-200" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/6 to-primary/4 rounded-2xl backdrop-blur-sm border border-primary/20 shadow-lg shadow-primary/10 transition-all duration-300" />
                 )}
                 
                 {/* Icon container with micro-animations */}
                 <div className="relative">
                   <Icon 
-                    className={`w-6 h-6 transition-all duration-300 ${
+                    className={`w-6 h-6 transition-all duration-300 ease-out ${
                       isActive 
-                        ? 'text-primary scale-115 drop-shadow-md' 
-                        : 'text-muted-foreground group-hover:text-foreground group-hover:scale-110'
+                        ? 'text-primary scale-110 drop-shadow-[0_2px_8px_rgba(220,38,38,0.4)]' 
+                        : 'text-muted-foreground group-hover:text-foreground group-hover:scale-105'
                     }`}
                   />
                   
-                  {/* Glow effect pour icône active */}
+                  {/* Glow effect pour icône active - version améliorée */}
                   {isActive && (
-                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-md -z-10" />
+                    <div className="absolute inset-0 bg-primary/25 rounded-full blur-xl -z-10 animate-pulse" />
                   )}
                   
                   {/* Notification badge - optimisé */}
@@ -92,20 +98,20 @@ export const ModernBottomNavigation = ({
                   )}
                 </div>
                 
-                {/* Label - plus imposant */}
+                {/* Label - Typography moderne avec gradient subtil */}
                 <span 
-                  className={`text-xs font-bold transition-all duration-300 ${
+                  className={`text-xs font-bold tracking-tight transition-all duration-300 ${
                     isActive 
-                      ? 'text-primary scale-105' 
-                      : 'text-muted-foreground group-hover:text-foreground group-hover:scale-105'
+                      ? 'text-primary scale-105 drop-shadow-sm' 
+                      : 'text-muted-foreground group-hover:text-foreground'
                   }`}
                 >
                   {tab.name}
                 </span>
                 
-                {/* Active indicator bar - simplifié */}
+                {/* Active indicator bar - design moderne */}
                 {isActive && (
-                  <div className="absolute -bottom-1 h-0.5 w-10 bg-primary rounded-full shadow-sm" />
+                  <div className="absolute -bottom-1 h-1 w-12 bg-gradient-to-r from-primary/50 via-primary to-primary/50 rounded-full shadow-[0_0_8px_rgba(220,38,38,0.6)]" />
                 )}
               </button>
             );
