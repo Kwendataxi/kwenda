@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePromoCodeValidation } from '@/hooks/usePromoCodeValidation';
 import { CompactRentalSlide } from '@/components/rental/CompactRentalSlide';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ChristmasSlide } from './ChristmasSlide';
 
 interface PromoSliderProps {
   onServiceSelect: (service: string) => void;
@@ -126,15 +127,60 @@ const PromoSliderOptimized = memo(({ onServiceSelect }: PromoSliderProps) => {
               <motion.div
                 onClick={() => handlePromoClick(promo)}
                 className={cn(
-                  'relative h-[160px] rounded-2xl cursor-pointer',
+                  'relative h-[160px] rounded-2xl cursor-pointer overflow-hidden',
                   'bg-gradient-to-br',
                   promo.gradient,
                   'shadow-lg hover:shadow-xl',
-                  'transition-shadow duration-300'
+                  'transition-all duration-300'
                 )}
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
+                whileHover={{ y: -4, scale: 1.01 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
               >
+                {/* Effet de brillance animé */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12"
+                  animate={{ x: ['-200%', '200%'] }}
+                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+                />
+                
+                {/* SLIDE NOËL FESTIF */}
+                {promo.id === 'christmas' && (
+                  <ChristmasSlide onAction={() => onServiceSelect('transport')} />
+                )}
+                
+                {/* SLIDE NOUVEL AN */}
+                {promo.id === 'newYear' && (
+                  <motion.div 
+                    className="absolute inset-0 p-4 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <div className="flex items-center gap-4 sm:gap-6">
+                      <motion.div 
+                        className="text-4xl sm:text-5xl"
+                        animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        🎆
+                      </motion.div>
+                      <div>
+                        <h3 className="text-2xl sm:text-4xl font-black tracking-tight mb-0.5">
+                          <span className="text-amber-300">Bonne</span> Année 2025 !
+                        </h3>
+                        <p className="text-white/90 text-xs sm:text-sm font-bold">
+                          Démarrez l'année avec Kwenda
+                        </p>
+                      </div>
+                    </div>
+                    <motion.button 
+                      className="self-end sm:self-auto px-4 sm:px-6 py-2 bg-amber-400/30 hover:bg-amber-400/50 backdrop-blur-sm rounded-full text-xs sm:text-sm font-bold border border-amber-400/50"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      🎉 Découvrir →
+                    </motion.button>
+                  </motion.div>
+                )}
                 
                 {/* SLIDE 1: 30% Discount */}
                 {promo.id === '1' && (

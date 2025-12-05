@@ -4,10 +4,11 @@ import { useRealtimeGeolocation } from '@/hooks/useRealtimeGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useProfile } from '@/hooks/useProfile';
 import { GooglePlacesService } from '@/services/googlePlacesService';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { SeasonalThemeSelector } from '@/components/theme/SeasonalThemeSelector';
 import { LocationDetailsSheet } from './LocationDetailsSheet';
 import { Button } from '@/components/ui/button';
 import { NotificationCenter } from '@/components/lottery/notifications/NotificationCenter';
+import { useSeasonalThemeSafe } from '@/contexts/SeasonalThemeContext';
 
 interface ModernHeaderProps {}
 
@@ -31,11 +32,23 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   const [geocodingLoading, setGeocodingLoading] = useState(false);
   const [locationSheetOpen, setLocationSheetOpen] = useState(false);
   const { displayName, loading: profileLoading } = useProfile();
+  const { currentSeason } = useSeasonalThemeSafe();
   
-  
-  // Dynamic greeting based on time
+  // Dynamic greeting based on time + season
   const getGreeting = () => {
     const hour = new Date().getHours();
+    
+    // Greeting festif selon la saison
+    if (currentSeason === 'christmas') {
+      return '🎄 Joyeux Noël';
+    }
+    if (currentSeason === 'newYear') {
+      return '🎆 Bonne Année';
+    }
+    if (currentSeason === 'valentine') {
+      return '💝 Joyeuse Saint-Valentin';
+    }
+    
     if (hour >= 18 || hour < 6) return t('client.greeting_evening');
     return t('client.greeting_day');
   };
@@ -124,13 +137,13 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
             )}
           </div>
           
-          {/* Actions à droite - notifications et thème */}
-          <div className="flex items-center gap-1.5 animate-fade-up" style={{ animationDelay: '150ms' }}>
-            <div className="transition-transform duration-300 hover:scale-110 hover:rotate-12">
+          {/* Actions à droite - notifications et thème saisonnier */}
+          <div className="flex items-center gap-1 animate-fade-up" style={{ animationDelay: '150ms' }}>
+            <div className="transition-transform duration-300 hover:scale-110">
               <NotificationCenter />
             </div>
-            <div className="transition-transform duration-300 hover:scale-110 hover:rotate-12">
-              <ThemeToggle variant="icon" size="md" />
+            <div className="transition-transform duration-300 hover:scale-110">
+              <SeasonalThemeSelector />
             </div>
           </div>
         </div>

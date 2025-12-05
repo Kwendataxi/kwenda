@@ -1,12 +1,15 @@
 import { useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSeasonalThemeSafe } from '@/contexts/SeasonalThemeContext';
 import { Promo } from '@/types/promo';
 
-// ✅ PHASE 5: Optimisé avec useMemo
+// ✅ PHASE 5: Optimisé avec useMemo + support saisonnier
 export const usePromos = (): Promo[] => {
   const { t } = useLanguage();
+  const { currentSeason } = useSeasonalThemeSafe();
   
-  return useMemo(() => [
+  return useMemo(() => {
+    const basePromos: Promo[] = [
     {
       id: '1',
       title: t('promo.discount_30'),
@@ -61,5 +64,39 @@ export const usePromos = (): Promo[] => {
       cta: t('promo.order'),
       service: 'food'
     }
-  ], [t]); // ✅ Dépendance: uniquement t
+  ];
+
+    // Ajouter le slide saisonnier en première position si applicable
+    if (currentSeason === 'christmas') {
+      return [
+        {
+          id: 'christmas',
+          title: '🎄 Joyeux Noël !',
+          description: '-20% sur vos courses pendant les fêtes',
+          image: '',
+          gradient: 'from-red-600 via-green-700 to-red-600',
+          cta: 'Célébrer',
+          service: 'transport'
+        },
+        ...basePromos
+      ];
+    }
+
+    if (currentSeason === 'newYear') {
+      return [
+        {
+          id: 'newYear',
+          title: '🎆 Bonne Année !',
+          description: 'Commencez 2025 avec Kwenda',
+          image: '',
+          gradient: 'from-amber-500 via-purple-600 to-indigo-600',
+          cta: 'Découvrir',
+          service: 'transport'
+        },
+        ...basePromos
+      ];
+    }
+
+    return basePromos;
+  }, [t, currentSeason]); // ✅ Dépendances: t + currentSeason
 };
