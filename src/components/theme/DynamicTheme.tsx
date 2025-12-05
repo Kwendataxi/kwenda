@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
+import SnowfallEffect from './SnowfallEffect';
+import { SeasonalThemeProvider } from '@/contexts/SeasonalThemeContext';
 
 interface DynamicThemeProps {
   children: React.ReactNode;
@@ -70,13 +72,19 @@ const DynamicTheme: React.FC<DynamicThemeProps> = ({ children }) => {
   }
 
   return (
-    <div className="relative">
-      {children}
-      {/* Congo-inspired ambient overlay with improved theme awareness */}
-      <div 
-        className={`fixed inset-0 pointer-events-none z-0 transition-all duration-1000 congo-ambient-overlay theme-${resolvedTheme || theme} mode-${themeMode}`}
-      />
-    </div>
+    <SeasonalThemeProvider>
+      <div className="relative">
+        {children}
+        
+        {/* Effets saisonniers (flocons de neige pour Noël) */}
+        <SnowfallEffect />
+        
+        {/* Congo-inspired ambient overlay with improved theme awareness */}
+        <div 
+          className={`fixed inset-0 pointer-events-none z-0 transition-all duration-1000 congo-ambient-overlay theme-${resolvedTheme || theme} mode-${themeMode}`}
+        />
+      </div>
+    </SeasonalThemeProvider>
   );
 };
 

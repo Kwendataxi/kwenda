@@ -729,3 +729,93 @@ All colors MUST be HSL.
     padding-top: 4rem;
   }
 }
+
+/* ===== SYSTÈME DE THÈMES SAISONNIERS ===== */
+
+/* Variables saisonnières par défaut */
+:root {
+  --seasonal-primary: 0 84% 50%;
+  --seasonal-accent: 142 71% 45%;
+  --seasonal-glow: 35 91% 47%;
+}
+
+/* Thème Noël */
+.season-christmas {
+  --seasonal-primary: 0 84% 50%;
+  --seasonal-accent: 142 71% 45%;
+  --seasonal-glow: 43 96% 56%;
+}
+
+/* Effets subtils pour Noël */
+.season-christmas .seasonal-effects-enabled {
+  /* Légère teinte festive sur les éléments primaires */
+}
+
+.season-christmas header {
+  border-bottom-color: hsl(var(--seasonal-glow) / 0.15);
+}
+
+.season-christmas .bottom-nav-standard {
+  border-top-color: hsl(var(--seasonal-accent) / 0.2);
+}
+
+/* Thème Nouvel An */
+.season-newYear {
+  --seasonal-primary: 43 96% 56%;
+  --seasonal-accent: 280 100% 70%;
+  --seasonal-glow: 220 14% 80%;
+}
+
+.season-newYear header {
+  border-bottom-color: hsl(var(--seasonal-primary) / 0.15);
+}
+
+/* Thème Saint-Valentin */
+.season-valentine {
+  --seasonal-primary: 340 82% 52%;
+  --seasonal-accent: 0 84% 60%;
+  --seasonal-glow: 340 100% 76%;
+}
+
+.season-valentine header {
+  border-bottom-color: hsl(var(--seasonal-primary) / 0.2);
+}
+
+/* Animations festives globales */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes gentle-glow {
+  0%, 100% { box-shadow: 0 0 10px hsl(var(--seasonal-glow) / 0.2); }
+  50% { box-shadow: 0 0 20px hsl(var(--seasonal-glow) / 0.4); }
+}
+
+/* Classe pour éléments avec lueur festive */
+.seasonal-glow {
+  animation: gentle-glow 3s ease-in-out infinite;
+}
+
+/* Amélioration du slider pour les thèmes festifs */
+.season-christmas .promo-slider,
+.season-newYear .promo-slider {
+  position: relative;
+}
+
+.season-christmas .promo-slider::before,
+.season-newYear .promo-slider::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 1rem;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--seasonal-primary) / 0.3),
+    hsl(var(--seasonal-accent) / 0.3),
+    hsl(var(--seasonal-glow) / 0.3)
+  );
+  z-index: -1;
+  opacity: 0.5;
+  animation: gentle-glow 4s ease-in-out infinite;
+}
