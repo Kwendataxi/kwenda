@@ -172,6 +172,10 @@ All colors MUST be HSL.
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-left: env(safe-area-inset-left, 0px);
     --safe-area-right: env(safe-area-inset-right, 0px);
+    
+    /* Bottom Nav System - DOIT être dans @layer base pour fonctionner */
+    --bottom-nav-height: 72px;
+    --bottom-nav-height-safe: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 
   .dark {
@@ -643,12 +647,6 @@ All colors MUST be HSL.
 
   /* ===== SYSTÈME DE LAYOUT BOTTOM NAV UNIVERSEL ===== */
 
-  /* Variables globales pour bottom nav */
-  :root {
-    --bottom-nav-height: 72px; /* Hauteur réelle du composant nav */
-    --bottom-nav-height-safe: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
-  }
-
   /* Container principal avec bottom nav */
   .mobile-safe-layout {
     display: flex;
@@ -667,7 +665,7 @@ All colors MUST be HSL.
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding-bottom: var(--bottom-nav-height-safe);
+    padding-bottom: var(--bottom-nav-height-safe, 72px);
   }
 
   /* Zone scrollable sans padding (pour layouts complexes) */
@@ -684,22 +682,32 @@ All colors MUST be HSL.
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: var(--bottom-nav-height-safe);
+    padding-bottom: var(--bottom-nav-height-safe, 72px);
   }
 
-  /* Footer bottom nav standardisé - Glassmorphism moderne */
+  /* Footer bottom nav standardisé - Glassmorphism moderne avec background VISIBLE */
   .bottom-nav-standard {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 110;
-    height: var(--bottom-nav-height);
-    min-height: var(--bottom-nav-height);
+    height: 72px;
+    min-height: 72px;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     will-change: transform;
     isolation: isolate;
-    /* Pas de background/backdrop ici, géré dans le composant pour plus de contrôle */
+    /* Background et glassmorphism intégrés pour garantir visibilité */
+    background: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 -4px 20px hsl(var(--foreground) / 0.08);
+  }
+  
+  .dark .bottom-nav-standard {
+    background: hsl(var(--background) / 0.92);
+    box-shadow: 0 -4px 30px hsl(var(--background) / 0.5);
   }
 
   /* Variante avec safe area intégrée */
