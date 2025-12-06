@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileCheck, AlertCircle, CheckCircle, X, Eye } from 'lucide-react';
+import { Upload, FileCheck, AlertCircle, CheckCircle, X, Shield, ChevronDown, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useUserVerification } from '@/hooks/useUserVerification';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export const VerificationDocumentUpload = () => {
   const { user } = useAuth();
@@ -15,13 +17,13 @@ export const VerificationDocumentUpload = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validation du fichier
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
 
     if (file.size > maxSize) {
@@ -44,7 +46,6 @@ export const VerificationDocumentUpload = () => {
 
     setSelectedFile(file);
 
-    // Créer un aperçu pour les images
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -64,8 +65,7 @@ export const VerificationDocumentUpload = () => {
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${user.id}/identity_${Date.now()}.${fileExt}`;
 
-      // Upload vers Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('verification-documents')
         .upload(fileName, selectedFile, {
           cacheControl: '3600',
@@ -74,12 +74,6 @@ export const VerificationDocumentUpload = () => {
 
       if (uploadError) throw uploadError;
 
-      // Obtenir l'URL publique (avec signature)
-      const { data: { publicUrl } } = supabase.storage
-        .from('verification-documents')
-        .getPublicUrl(fileName);
-
-      // Mettre à jour user_verification avec l'URL du document
       const { error: updateError } = await supabase
         .from('user_verification')
         .update({
@@ -92,14 +86,11 @@ export const VerificationDocumentUpload = () => {
       if (updateError) throw updateError;
 
       toast({
-        title: '✅ Document envoyé avec succès',
-        description: 'Votre document est en cours de vérification par nos équipes'
+        title: '✅ Document envoyé',
+        description: 'Vérification en cours (24-48h)'
       });
 
-      // Rafraîchir les données de vérification
       await fetchVerificationStatus();
-      
-      // Réinitialiser
       setSelectedFile(null);
       setPreviewUrl(null);
 
@@ -115,174 +106,240 @@ export const VerificationDocumentUpload = () => {
     }
   };
 
-  const getStatusBadge = () => {
-    if (!verification) return null;
-
-    const statusConfig = {
-      'none': { label: 'Non vérifié', variant: 'outline' as const, icon: AlertCircle, color: 'text-muted-foreground' },
-      'pending_review': { label: 'En attente', variant: 'outline' as const, icon: Upload, color: 'text-orange-600' },
-      'approved': { label: 'Vérifié', variant: 'outline' as const, icon: CheckCircle, color: 'text-green-600' },
-      'rejected': { label: 'Rejeté', variant: 'destructive' as const, icon: X, color: 'text-red-600' }
+  const getStatusConfig = () => {
+    const status = verification?.verification_status || 'none';
+    
+    const configs = {
+      'none': { 
+        label: 'Non vérifié', 
+        icon: AlertCircle, 
+        color: 'text-muted-foreground',
+        bg: 'bg-muted/50',
+        border: 'border-muted-foreground/20',
+        badgeBg: 'bg-muted'
+      },
+      'pending_review': { 
+        label: 'En attente', 
+        icon: Upload, 
+        color: 'text-orange-600 dark:text-orange-400',
+        bg: 'bg-orange-50 dark:bg-orange-950/20',
+        border: 'border-orange-300 dark:border-orange-800',
+        badgeBg: 'bg-orange-100 dark:bg-orange-900/50'
+      },
+      'approved': { 
+        label: 'Vérifié ✓', 
+        icon: CheckCircle, 
+        color: 'text-green-600 dark:text-green-400',
+        bg: 'bg-green-50 dark:bg-green-950/20',
+        border: 'border-green-300 dark:border-green-800',
+        badgeBg: 'bg-green-100 dark:bg-green-900/50'
+      },
+      'rejected': { 
+        label: 'Rejeté', 
+        icon: X, 
+        color: 'text-red-600 dark:text-red-400',
+        bg: 'bg-red-50 dark:bg-red-950/20',
+        border: 'border-red-300 dark:border-red-800',
+        badgeBg: 'bg-red-100 dark:bg-red-900/50'
+      }
     };
 
-    const status = verification.verification_status || 'none';
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.none;
-    const Icon = config.icon;
-
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-2">
-        <Icon className={`h-4 w-4 ${config.color}`} />
-        {config.label}
-      </Badge>
-    );
+    return configs[status as keyof typeof configs] || configs.none;
   };
 
+  const statusConfig = getStatusConfig();
+  const StatusIcon = statusConfig.icon;
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-2xl">Vérification d'identité</CardTitle>
-            <CardDescription className="mt-2">
-              Pour vendre sur la marketplace, vous devez vérifier votre identité
-            </CardDescription>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+      <CollapsibleTrigger asChild>
+        <motion.button
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          className={cn(
+            "w-full rounded-2xl p-4 transition-all duration-300",
+            "border shadow-sm hover:shadow-md",
+            "flex items-center gap-4 text-left",
+            statusConfig.bg,
+            statusConfig.border
+          )}
+        >
+          {/* Icon */}
+          <div className={cn(
+            "p-3 rounded-xl backdrop-blur-sm",
+            "bg-gradient-to-br from-primary/10 to-accent/10",
+            "border border-primary/20"
+          )}>
+            <Shield className="h-5 w-5 text-primary" />
           </div>
-          {getStatusBadge()}
-        </div>
-      </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Instructions */}
-        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            Documents acceptés
-          </h3>
-          <ul className="space-y-1 text-sm text-blue-800 dark:text-blue-200">
-            <li>✓ Carte d'identité nationale (recto-verso)</li>
-            <li>✓ Passeport (page d'identité)</li>
-            <li>✓ Permis de conduire</li>
-            <li>✓ Formats : JPG, PNG ou PDF (max 5MB)</li>
-          </ul>
-        </div>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="font-semibold text-foreground">
+                Vérification d'identité
+              </span>
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "text-xs font-medium px-2 py-0.5",
+                  statusConfig.badgeBg,
+                  statusConfig.color
+                )}
+              >
+                <StatusIcon className="h-3 w-3 mr-1" />
+                {statusConfig.label}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {isOpen ? 'Cliquez pour réduire' : 'Cliquez pour vérifier votre identité'}
+            </p>
+          </div>
 
-        {/* Document déjà uploadé */}
-        {verification?.identity_document_url && (
-          <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <FileCheck className="h-8 w-8 text-green-600" />
-              <div className="flex-1">
-                <p className="font-medium text-green-900 dark:text-green-100">
-                  Document déjà soumis
-                </p>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  {verification.verification_status === 'pending_review' 
-                    ? 'Votre document est en cours de vérification'
-                    : verification.verification_status === 'approved'
-                    ? 'Votre identité a été vérifiée avec succès'
-                    : 'Vous pouvez soumettre un nouveau document'}
+          {/* Chevron */}
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          </motion.div>
+        </motion.button>
+      </CollapsibleTrigger>
+
+      <AnimatePresence>
+        {isOpen && (
+          <CollapsibleContent forceMount asChild>
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="overflow-hidden"
+            >
+              <div className="pt-3 space-y-3">
+                {/* Info documents - compact */}
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
+                  <Info className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>CNI, Passeport ou Permis • JPG, PNG, PDF • Max 5MB</span>
+                </div>
+
+                {/* Document déjà uploadé */}
+                {verification?.identity_document_url && (
+                  <div className={cn(
+                    "flex items-center gap-3 rounded-xl p-3",
+                    statusConfig.bg,
+                    "border",
+                    statusConfig.border
+                  )}>
+                    <FileCheck className={cn("h-5 w-5", statusConfig.color)} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">
+                        Document soumis
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {verification.verification_status === 'pending_review' 
+                          ? 'En cours de vérification (24-48h)'
+                          : verification.verification_status === 'approved'
+                          ? 'Identité vérifiée avec succès'
+                          : 'Vous pouvez soumettre un nouveau document'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Zone d'upload compacte */}
+                <label className="block">
+                  <div className={cn(
+                    "border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all",
+                    selectedFile 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-muted-foreground/25 hover:border-primary hover:bg-muted/30'
+                  )}>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,application/pdf"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      disabled={isUploading}
+                    />
+                    
+                    {previewUrl ? (
+                      <div className="space-y-2">
+                        <img 
+                          src={previewUrl} 
+                          alt="Aperçu" 
+                          className="max-h-32 mx-auto rounded-lg shadow-sm"
+                        />
+                        <p className="text-xs font-medium text-primary truncate">
+                          {selectedFile?.name}
+                        </p>
+                      </div>
+                    ) : selectedFile ? (
+                      <div className="flex items-center justify-center gap-2 py-2">
+                        <FileCheck className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-medium text-primary truncate">
+                          {selectedFile.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 py-2">
+                        <Upload className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          Sélectionner un document
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </label>
+
+                {/* Boutons d'action */}
+                {selectedFile && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-2"
+                  >
+                    <Button
+                      onClick={handleUpload}
+                      disabled={isUploading}
+                      className="flex-1"
+                      size="sm"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Envoi...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Envoyer
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setSelectedFile(null);
+                        setPreviewUrl(null);
+                      }}
+                      variant="outline"
+                      disabled={isUploading}
+                      size="sm"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </motion.div>
+                )}
+
+                {/* Info sécurité - ultra compact */}
+                <p className="text-[10px] text-muted-foreground text-center">
+                  🔒 Documents sécurisés • Visible uniquement par les admins
                 </p>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </CollapsibleContent>
         )}
-
-        {/* Zone d'upload */}
-        <div className="space-y-4">
-          <label className="block">
-            <div className={`
-              border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-              transition-colors
-              ${selectedFile 
-                ? 'border-primary bg-primary/5' 
-                : 'border-muted-foreground/25 hover:border-primary hover:bg-muted/50'}
-            `}>
-              <input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,application/pdf"
-                onChange={handleFileSelect}
-                className="hidden"
-                disabled={isUploading}
-              />
-              
-              {previewUrl ? (
-                <div className="space-y-4">
-                  <img 
-                    src={previewUrl} 
-                    alt="Aperçu" 
-                    className="max-h-64 mx-auto rounded-lg shadow-md"
-                  />
-                  <p className="text-sm font-medium text-primary">
-                    {selectedFile?.name}
-                  </p>
-                </div>
-              ) : selectedFile ? (
-                <div className="space-y-2">
-                  <FileCheck className="h-12 w-12 mx-auto text-primary" />
-                  <p className="text-sm font-medium text-primary">
-                    {selectedFile.name}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
-                  <p className="text-sm font-medium text-foreground">
-                    Cliquez pour sélectionner un document
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    JPG, PNG ou PDF (max 5MB)
-                  </p>
-                </div>
-              )}
-            </div>
-          </label>
-
-          {/* Boutons d'action */}
-          {selectedFile && (
-            <div className="flex gap-3">
-              <Button
-                onClick={handleUpload}
-                disabled={isUploading}
-                className="flex-1"
-                size="lg"
-              >
-                {isUploading ? (
-                  <>
-                    <div className="h-5 w-5 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Envoi en cours...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-5 w-5 mr-2" />
-                    Envoyer le document
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={() => {
-                  setSelectedFile(null);
-                  setPreviewUrl(null);
-                }}
-                variant="outline"
-                disabled={isUploading}
-                size="lg"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Informations de sécurité */}
-        <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
-          <p className="flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <span>
-              Vos documents sont stockés de manière sécurisée et ne sont visibles que par les administrateurs.
-              Le traitement prend généralement 24-48h.
-            </span>
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+      </AnimatePresence>
+    </Collapsible>
   );
 };
