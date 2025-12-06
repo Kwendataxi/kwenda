@@ -71,7 +71,7 @@ export const ModernHomeScreen = memo(({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="min-h-screen bg-background pb-[var(--bottom-nav-height-safe)]" data-page="home" style={{ scrollBehavior: 'smooth' }}>
+    <div className="min-h-screen bg-background flex flex-col" data-page="home">
       {/* Container de toasts modernes au-dessus de tout */}
       <NotificationToastContainer
         toasts={toasts}
@@ -80,52 +80,54 @@ export const ModernHomeScreen = memo(({
         maxVisible={3}
       />
       
+      {/* Header fixe */}
       <ModernHeader />
       
-      <div className="flex-1">
-        <div className="pt-20">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl animate-float" />
-            <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+      {/* Zone scrollable principale - entre header et footer */}
+      <main className="main-content-scroll scrollbar-hide">
+        {/* Décorations subtiles */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute top-32 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-40 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+        </div>
+        
+        {/* Contenu principal */}
+        <div className="relative z-10 space-y-6 py-4">
+          {/* Slider */}
+          <div className="px-4">
+            <Suspense fallback={
+              <div className="w-full aspect-[16/9] bg-muted/50 rounded-2xl animate-pulse" />
+            }>
+              <PromoSlider onServiceSelect={onServiceSelect} />
+            </Suspense>
           </div>
           
-          <div className="relative space-y-6 pb-6 pt-4">
-            {/* ✅ PHASE 4: Lazy loading PromoSlider avec Suspense */}
-            <div className="px-4">
-              <Suspense fallback={
-                <div className="w-full h-[160px] bg-muted/50 rounded-2xl animate-pulse" />
-              }>
-                <PromoSlider onServiceSelect={onServiceSelect} />
-              </Suspense>
-            </div>
-            
-            {/* ✅ PHASE 4: Lazy loading ServiceGrid avec Suspense optimisé */}
-            <div className="px-4">
-              <Suspense fallback={
-                <div className="grid grid-cols-3 gap-x-6 gap-y-8">
-                  {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} className="flex flex-col items-center gap-3 animate-fade-in">
-                      <Skeleton className="w-24 h-24 rounded-[32px]" />
-                      <Skeleton className="h-[15px] w-16 rounded" />
-                    </div>
-                  ))}
-                </div>
-              }>
-                <ServiceGrid 
-                  onServiceSelect={(service) => {
-                    if (service === 'more') {
-                      setMoreServicesOpen(true);
-                    } else {
-                      transitionToService(service);
-                    }
-                  }} 
-                  serviceNotifications={serviceNotifications}
-                />
-              </Suspense>
-            </div>
+          {/* ServiceGrid */}
+          <div className="px-4">
+            <Suspense fallback={
+              <div className="grid grid-cols-3 gap-x-6 gap-y-8">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className="flex flex-col items-center gap-3 animate-fade-in">
+                    <Skeleton className="w-24 h-24 rounded-[32px]" />
+                    <Skeleton className="h-[15px] w-16 rounded" />
+                  </div>
+                ))}
+              </div>
+            }>
+              <ServiceGrid 
+                onServiceSelect={(service) => {
+                  if (service === 'more') {
+                    setMoreServicesOpen(true);
+                  } else {
+                    transitionToService(service);
+                  }
+                }} 
+                serviceNotifications={serviceNotifications}
+              />
+            </Suspense>
           </div>
         </div>
-      </div>
+      </main>
 
       <MoreServicesSheet
         isOpen={moreServicesOpen}

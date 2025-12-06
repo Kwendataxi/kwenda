@@ -699,6 +699,10 @@ All colors MUST be HSL.
     overflow: hidden;
   }
 
+  /* Header height system */
+  --header-height: 68px;
+  --header-height-safe: calc(68px + env(safe-area-inset-top, 0px));
+
   /* Zone de contenu avec padding pour bottom nav */
   .content-with-bottom-nav {
     flex: 1;
@@ -707,6 +711,17 @@ All colors MUST be HSL.
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     padding-bottom: var(--bottom-nav-height-safe, 72px);
+  }
+
+  /* Main content scroll - entre header fixe et footer fixe */
+  .main-content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding-top: var(--header-height-safe);
+    padding-bottom: var(--bottom-nav-height-safe);
   }
 
   /* Zone scrollable sans padding (pour layouts complexes) */
