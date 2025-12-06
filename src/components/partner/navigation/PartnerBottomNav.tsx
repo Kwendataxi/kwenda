@@ -4,9 +4,7 @@ import {
   Car, 
   Users, 
   Wallet, 
-  User,
-  BarChart3,
-  Package
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -65,13 +63,16 @@ export const PartnerBottomNav = ({
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50 lg:hidden",
-        "backdrop-blur-xl bg-white/90 dark:bg-gray-900/90",
-        "border-t border-gray-200/50 dark:border-gray-700/50",
-        "shadow-lg",
+        "backdrop-blur-xl bg-background/90",
+        "border-t border-border/30",
+        "shadow-2xl shadow-black/5",
         className
       )}
     >
-      <div className="flex items-center justify-around px-2 py-2 safe-area-inset-bottom">
+      {/* Gradient line at top */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      
+      <div className="flex items-center justify-around px-2 py-2 pb-safe">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -81,17 +82,30 @@ export const PartnerBottomNav = ({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
+                "relative flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-xl transition-all duration-200 min-w-[60px]",
                 isActive 
-                  ? "text-emerald-600 dark:text-emerald-400" 
-                  : "text-gray-600 dark:text-gray-400"
+                  ? "text-primary" 
+                  : "text-muted-foreground"
               )}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="relative">
+              {/* Background highlight */}
+              {isActive && (
+                <motion.div
+                  layoutId="partnerTabBackground"
+                  className="absolute inset-0 bg-primary/10 rounded-xl"
+                  transition={{
+                    type: "spring",
+                    stiffness: 380,
+                    damping: 30,
+                  }}
+                />
+              )}
+              
+              <div className="relative z-10">
                 <motion.div
                   animate={{
-                    scale: isActive ? [1, 1.2, 1] : 1,
+                    scale: isActive ? [1, 1.15, 1] : 1,
                   }}
                   transition={{
                     duration: 0.3,
@@ -99,17 +113,17 @@ export const PartnerBottomNav = ({
                 >
                   <Icon 
                     className={cn(
-                      "w-6 h-6 transition-all duration-200",
-                      isActive && "drop-shadow-lg"
+                      "w-5 h-5 transition-all duration-200",
+                      isActive && "drop-shadow-sm"
                     )} 
                   />
                 </motion.div>
 
-                {/* Active indicator */}
+                {/* Active indicator dot */}
                 {isActive && (
                   <motion.div
-                    layoutId="activeTab"
-                    className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-600 dark:bg-emerald-400"
+                    layoutId="partnerActiveIndicator"
+                    className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
                     transition={{
                       type: "spring",
                       stiffness: 380,
@@ -121,25 +135,12 @@ export const PartnerBottomNav = ({
 
               <span 
                 className={cn(
-                  "text-[10px] font-medium transition-all duration-200",
+                  "relative z-10 text-[10px] font-medium transition-all duration-200",
                   isActive && "font-semibold"
                 )}
               >
                 {tab.label}
               </span>
-
-              {/* Background highlight */}
-              {isActive && (
-                <motion.div
-                  layoutId="tabBackground"
-                  className="absolute inset-0 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl -z-10"
-                  transition={{
-                    type: "spring",
-                    stiffness: 380,
-                    damping: 30,
-                  }}
-                />
-              )}
             </motion.button>
           );
         })}
