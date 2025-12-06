@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { useTabScrollReset } from '@/hooks/useTabScrollReset';
 import { ModernPartnerHeader } from '@/components/partner/navigation/ModernPartnerHeader';
 import { PartnerBottomNav, PartnerNavTab } from '@/components/partner/navigation/PartnerBottomNav';
@@ -21,7 +22,17 @@ import { Loader2 } from 'lucide-react';
 const PartnerApp = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<PartnerNavTab>('dashboard');
+  const location = useLocation();
+  
+  // Déterminer l'onglet par défaut basé sur la route
+  const getDefaultTab = (): PartnerNavTab => {
+    if (location.pathname.includes('/partner/profile') || location.pathname.includes('/partner/settings')) {
+      return 'profile';
+    }
+    return 'dashboard';
+  };
+  
+  const [activeTab, setActiveTab] = useState<PartnerNavTab>(getDefaultTab());
   const [partnerProfile, setPartnerProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   

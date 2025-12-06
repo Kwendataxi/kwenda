@@ -16,6 +16,12 @@ const PartnerDashboard = lazy(() => import('@/pages/partner/PartnerDashboard'));
 const PartnerRentalSubscriptionManagement = lazy(() => import('@/pages/partner/PartnerRentalSubscriptionManagement'));
 const PartnerPendingApproval = lazy(() => import('@/pages/partner/PartnerPendingApproval'));
 
+// Wrapper pour passer defaultTab à PartnerApp
+const PartnerProfileWrapper = () => {
+  const PartnerAppComponent = lazy(() => import('@/pages/PartnerApp'));
+  return <PartnerAppComponent />;
+};
+
 export const PartnerRoutes = () => {
   if (isSpecificBuild() && !isPartnerApp()) {
     return null;
@@ -78,6 +84,27 @@ export const PartnerRoutes = () => {
           <ProtectedRoute>
             <PartnerGuard>
               <PartnerRentalSubscriptionManagement />
+            </PartnerGuard>
+          </ProtectedRoute>
+        } 
+      />
+      {/* Routes profil et settings qui redirigent vers PartnerApp avec le bon onglet */}
+      <Route 
+        path="/partner/profile" 
+        element={
+          <ProtectedRoute>
+            <PartnerGuard>
+              <PartnerApp />
+            </PartnerGuard>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/partner/settings" 
+        element={
+          <ProtectedRoute>
+            <PartnerGuard>
+              <PartnerApp />
             </PartnerGuard>
           </ProtectedRoute>
         } 
