@@ -56,34 +56,29 @@ const SeasonalThemeSelector = memo(() => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="relative h-9 w-9 rounded-full transition-all duration-300 hover:rotate-12"
-        >
-          {/* Icône dynamique selon la saison avec animations */}
+        <button className="relative h-8 w-8 flex items-center justify-center rounded-full hover:bg-background/50 transition-all duration-300">
+          {/* Icône soft selon la saison - animations lentes */}
           {currentSeason === 'christmas' ? (
-            <Snowflake className="h-5 w-5 text-sky-400 animate-spin" style={{ animationDuration: '3s' }} />
+            <Snowflake className="h-[18px] w-[18px] text-sky-400/80" style={{ animation: 'spin 8s linear infinite' }} />
           ) : currentSeason === 'newYear' ? (
-            <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />
+            <Sparkles className="h-[18px] w-[18px] text-amber-400/80" />
           ) : currentSeason === 'valentine' ? (
-            <Heart className="h-5 w-5 text-pink-500 animate-pulse" />
+            <Heart className="h-[18px] w-[18px] text-pink-400/80" />
           ) : theme === 'dark' ? (
-            <Moon className="h-5 w-5 text-indigo-300" />
+            <Moon className="h-[18px] w-[18px] text-foreground/60" strokeWidth={1.5} />
           ) : (
-            <Sun className="h-5 w-5 text-amber-500" />
+            <Sun className="h-[18px] w-[18px] text-foreground/60" strokeWidth={1.5} />
           )}
           
-          {/* Indicateur de saison active avec glow */}
+          {/* Indicateur discret */}
           {currentSeason !== 'default' && (
             <span className={cn(
-              "absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full",
-              "bg-gradient-to-r animate-pulse",
-              currentSeasonOption.gradient,
-              "ring-2 ring-background shadow-lg"
+              "absolute top-0 right-0 h-2 w-2 rounded-full",
+              "bg-gradient-to-r",
+              currentSeasonOption.gradient
             )} />
           )}
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       
       <DropdownMenuContent align="end" sideOffset={8} className="w-56 z-[200]">

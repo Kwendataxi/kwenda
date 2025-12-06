@@ -113,247 +113,102 @@ const PromoSliderOptimized = memo(({ onServiceSelect }: PromoSliderProps) => {
   }, [user, checkPromoUsage, t, onServiceSelect]);
 
   return (
-    <div className="w-full relative mb-10 mx-auto max-w-7xl z-10 pt-2 px-1">
-      {/* Container avec ring et shadow élégante */}
-      <div className="relative rounded-2xl overflow-hidden ring-1 ring-border/20 shadow-xl">
+    <div className="w-full relative mb-8 mx-auto max-w-7xl z-10 pt-1 px-2">
+      {/* Container épuré */}
+      <div className="relative rounded-xl overflow-hidden shadow-lg">
         <Carousel
           setApi={setApi}
           opts={{ loop: true, align: 'center', skipSnaps: false, duration: 30 }}
           plugins={[autoplayRef.current]}
           className="w-full"
-          style={{ minHeight: '160px', height: '160px' }}
+          style={{ minHeight: '140px', height: '140px' }}
         >
-          <CarouselContent style={{ height: '160px' }}>
+          <CarouselContent style={{ height: '140px' }}>
             {promos.map((promo, index) => (
-              <CarouselItem key={promo.id} className="h-[160px]">
+              <CarouselItem key={promo.id} className="h-[140px]">
                 <motion.div
                   onClick={() => handlePromoClick(promo)}
                   className={cn(
-                    'relative h-[160px] cursor-pointer overflow-hidden',
+                    'relative h-[140px] cursor-pointer overflow-hidden',
                     'bg-gradient-to-br',
-                    promo.gradient,
-                    'transition-all duration-300'
+                    promo.gradient
                   )}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ 
-                    opacity: current === index ? 1 : 0.9, 
-                    scale: current === index ? 1 : 0.98 
-                  }}
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-              >
-                {/* Effet de brillance animé */}
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12"
-                  animate={{ x: ['-200%', '200%'] }}
-                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-                />
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                {/* Effet shimmer subtil */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 animate-shimmer" />
                 
                 {/* SLIDE NOËL FESTIF */}
                 {promo.id === 'christmas' && (
                   <ChristmasSlide onAction={() => onServiceSelect('transport')} />
                 )}
                 
-                {/* SLIDE NOUVEL AN */}
+                {/* SLIDE NOUVEL AN - Compact */}
                 {promo.id === 'newYear' && (
-                  <motion.div 
-                    className="absolute inset-0 p-4 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                  >
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <motion.div 
-                        className="text-4xl sm:text-5xl"
-                        animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        🎆
-                      </motion.div>
+                  <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🎆</span>
                       <div>
-                        <h3 className="text-2xl sm:text-4xl font-black tracking-tight mb-0.5">
-                          <span className="text-amber-300">Bonne</span> Année 2025 !
+                        <h3 className="text-lg font-bold">
+                          <span className="text-amber-300">Bonne</span> Année 2025
                         </h3>
-                        <p className="text-white/90 text-xs sm:text-sm font-bold">
-                          Démarrez l'année avec Kwenda
-                        </p>
+                        <p className="text-white/80 text-[11px]">Démarrez l'année avec Kwenda</p>
                       </div>
                     </div>
-                    <motion.button 
-                      className="self-end sm:self-auto px-4 sm:px-6 py-2 bg-amber-400/30 hover:bg-amber-400/50 backdrop-blur-sm rounded-full text-xs sm:text-sm font-bold border border-amber-400/50"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      🎉 Découvrir →
-                    </motion.button>
-                  </motion.div>
+                    <button className="px-3 py-1.5 bg-amber-400/30 rounded-full text-[11px] font-semibold border border-amber-400/40">
+                      Découvrir →
+                    </button>
+                  </div>
                 )}
                 
-                {/* SLIDE 1: 30% Discount */}
+                {/* SLIDE 1: 30% Discount - Compact */}
                 {promo.id === '1' && (
-                  <motion.div 
-                    className="absolute inset-0 p-4 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <motion.div 
-                        className="text-4xl sm:text-5xl opacity-90"
-                        animate={{ 
-                          scale: [1, 1.05, 1],
-                          rotate: [0, 2, 0, -2, 0]
-                        }}
-                        transition={{ 
-                          duration: 4,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        🎉
-                      </motion.div>
-                      
+                  <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🎉</span>
                       <div>
-                        <motion.h3 
-                          className="text-2xl sm:text-4xl font-black tracking-tight mb-0.5 sm:mb-1"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.1, duration: 0.3 }}
-                        >
-                          30% de réduction
-                        </motion.h3>
-                        <motion.p 
-                          className="text-white/80 text-xs sm:text-sm font-bold"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.2, duration: 0.3 }}
-                        >
-                          Sur votre première course
-                        </motion.p>
+                        <h3 className="text-lg font-bold">30% de réduction</h3>
+                        <p className="text-white/80 text-[11px]">Sur votre première course</p>
                       </div>
                     </div>
-
-                    <motion.button 
-                      className="self-end sm:self-auto px-4 sm:px-6 py-2 sm:py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full text-xs sm:text-sm font-bold transition-colors duration-200 border border-white/30"
-                      whileHover={{ scale: 1.05, x: 5 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
+                    <button className="px-3 py-1.5 bg-white/20 rounded-full text-[11px] font-semibold border border-white/30">
                       Commander →
-                    </motion.button>
-                  </motion.div>
+                    </button>
+                  </div>
                 )}
 
-                {/* SLIDE 2: Flash Express */}
+                {/* SLIDE 2: Flash Express - Compact */}
                 {promo.id === '2' && (
-                  <motion.div 
-                    className="absolute inset-0 p-4 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <motion.div 
-                        className="text-4xl sm:text-5xl opacity-90"
-                        animate={{ 
-                          scale: [1, 1.05, 1],
-                          rotate: [0, 2, 0, -2, 0]
-                        }}
-                        transition={{ 
-                          duration: 4,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        ⚡
-                      </motion.div>
-                      
+                  <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">⚡</span>
                       <div>
-                        <motion.h3 
-                          className="text-2xl sm:text-4xl font-black tracking-tight mb-0.5 sm:mb-1"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.1, duration: 0.3 }}
-                        >
-                          Livraison Express
-                        </motion.h3>
-                        <motion.p 
-                          className="text-white/80 text-xs sm:text-sm font-bold"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.2, duration: 0.3 }}
-                        >
-                          En 30 minutes chrono
-                        </motion.p>
+                        <h3 className="text-lg font-bold">Livraison Express</h3>
+                        <p className="text-white/80 text-[11px]">En 30 minutes chrono</p>
                       </div>
                     </div>
-
-                    <motion.button 
-                      className="self-end sm:self-auto px-4 sm:px-6 py-2 sm:py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full text-xs sm:text-sm font-bold transition-colors duration-200 border border-white/30"
-                      whileHover={{ scale: 1.05, x: 5 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
+                    <button className="px-3 py-1.5 bg-white/20 rounded-full text-[11px] font-semibold border border-white/30">
                       Livrer →
-                    </motion.button>
-                  </motion.div>
+                    </button>
+                  </div>
                 )}
 
-                {/* SLIDE 3: Tombola */}
+                {/* SLIDE 3: Tombola - Compact */}
                 {promo.id === '3' && (
-                  <motion.div 
-                    className="absolute inset-0 p-4 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <motion.div 
-                        className="text-4xl sm:text-5xl opacity-90"
-                        animate={{ 
-                          scale: [1, 1.05, 1],
-                          rotate: [0, 2, 0, -2, 0]
-                        }}
-                        transition={{ 
-                          duration: 4,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        🎰
-                      </motion.div>
-                      
+                  <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🎰</span>
                       <div>
-                        <motion.h3 
-                          className="text-2xl sm:text-4xl font-black tracking-tight mb-0.5 sm:mb-1"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.1, duration: 0.3 }}
-                        >
-                          Tombola KwendaPay
-                        </motion.h3>
-                        <motion.p 
-                          className="text-yellow-300/90 text-xs sm:text-sm font-bold"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.2, duration: 0.3 }}
-                        >
-                          Gagnez jusqu'à 100 000 CDF
-                        </motion.p>
+                        <h3 className="text-lg font-bold">Tombola KwendaPay</h3>
+                        <p className="text-yellow-300/80 text-[11px]">Gagnez jusqu'à 100 000 CDF</p>
                       </div>
                     </div>
-
-                    <motion.button 
-                      className="self-end sm:self-auto px-4 sm:px-6 py-2 sm:py-2.5 bg-yellow-400/20 hover:bg-yellow-400/30 backdrop-blur-sm rounded-full text-xs sm:text-sm font-bold transition-colors duration-200 border border-yellow-400/40"
-                      whileHover={{ scale: 1.05, x: 5 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
+                    <button className="px-3 py-1.5 bg-yellow-400/20 rounded-full text-[11px] font-semibold border border-yellow-400/40">
                       Participer →
-                    </motion.button>
-                  </motion.div>
+                    </button>
+                  </div>
                 )}
 
                 {/* Slide 4: Car Rental */}
@@ -365,144 +220,62 @@ const PromoSliderOptimized = memo(({ onServiceSelect }: PromoSliderProps) => {
                   />
                 )}
 
-                {/* SLIDE 5: Marketplace */}
+                {/* SLIDE 5: Marketplace - Compact */}
                 {promo.id === '5' && (
-                  <motion.div 
-                    className="absolute inset-0 p-4 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <motion.div 
-                        className="text-4xl sm:text-5xl opacity-90"
-                        animate={{ 
-                          scale: [1, 1.05, 1],
-                          rotate: [0, 2, 0, -2, 0]
-                        }}
-                        transition={{ 
-                          duration: 4,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        🛒
-                      </motion.div>
-                      
+                  <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🛒</span>
                       <div>
-                        <motion.h3 
-                          className="text-2xl sm:text-4xl font-black tracking-tight mb-0.5 sm:mb-1"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.1, duration: 0.3 }}
-                        >
-                          Marketplace Kwenda
-                        </motion.h3>
-                        <motion.p 
-                          className="text-white/80 text-xs sm:text-sm font-bold"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.2, duration: 0.3 }}
-                        >
-                          Achetez, vendez, on livre
-                        </motion.p>
+                        <h3 className="text-lg font-bold">Marketplace Kwenda</h3>
+                        <p className="text-white/80 text-[11px]">Achetez, vendez, on livre</p>
                       </div>
                     </div>
-
-                    <motion.button 
-                      className="self-end sm:self-auto px-4 sm:px-6 py-2 sm:py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full text-xs sm:text-sm font-bold transition-colors duration-200 border border-white/30"
-                      whileHover={{ scale: 1.05, x: 5 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
+                    <button className="px-3 py-1.5 bg-white/20 rounded-full text-[11px] font-semibold border border-white/30">
                       Découvrir →
-                    </motion.button>
-                  </motion.div>
+                    </button>
+                  </div>
                 )}
 
-                {/* SLIDE 6: Food */}
+                {/* SLIDE 6: Food - Compact */}
                 {promo.id === '6' && (
-                  <motion.div 
-                    className="absolute inset-0 p-4 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  >
-                    <div className="flex items-center gap-4 sm:gap-6">
-                      <motion.div 
-                        className="text-4xl sm:text-5xl opacity-90"
-                        animate={{ 
-                          scale: [1, 1.05, 1],
-                          rotate: [0, 2, 0, -2, 0]
-                        }}
-                        transition={{ 
-                          duration: 4,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        🍔
-                      </motion.div>
-                      
+                  <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🍔</span>
                       <div>
-                        <motion.h3 
-                          className="text-2xl sm:text-4xl font-black tracking-tight mb-0.5 sm:mb-1"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.1, duration: 0.3 }}
-                        >
-                          Kwenda Food
-                        </motion.h3>
-                        <motion.p 
-                          className="text-white/80 text-xs sm:text-sm font-bold"
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.2, duration: 0.3 }}
-                        >
-                          Livraison de plats chauds
-                        </motion.p>
+                        <h3 className="text-lg font-bold">Kwenda Food</h3>
+                        <p className="text-white/80 text-[11px]">Livraison de plats chauds</p>
                       </div>
                     </div>
-
-                    <motion.button 
-                      className="self-end sm:self-auto px-4 sm:px-6 py-2 sm:py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full text-xs sm:text-sm font-bold transition-colors duration-200 border border-white/30"
-                      whileHover={{ scale: 1.05, x: 5 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    >
+                    <button className="px-3 py-1.5 bg-white/20 rounded-full text-[11px] font-semibold border border-white/30">
                       Commander →
-                    </motion.button>
-                  </motion.div>
+                    </button>
+                  </div>
                 )}
               </motion.div>
             </CarouselItem>
           ))}
           </CarouselContent>
           
-          {/* Compteur numérique moderne */}
-          <div className="absolute bottom-3 right-3 z-10 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-bold flex items-center gap-1 shadow-lg">
-            <span className="text-white/90">{current + 1}</span>
-            <span className="text-white/50">/</span>
-            <span className="text-white/70">{promos.length}</span>
+          {/* Compteur compact en haut à droite */}
+          <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-white text-[10px] font-medium">
+            {current + 1}/{promos.length}
           </div>
         </Carousel>
       </div>
 
-      {/* Dots indicator améliorés avec glow */}
-      <div className="flex justify-center items-center gap-2 mt-4">
+      {/* Dots indicator compacts */}
+      <div className="flex justify-center items-center gap-1.5 mt-3">
         {promos.map((_, index) => (
           <button
             key={index}
             onClick={() => api?.scrollTo(index)}
             className={cn(
-              'rounded-full transition-all duration-300 ease-out',
+              'rounded-full transition-all duration-200',
               current === index
-                ? 'w-7 h-2.5 bg-primary slider-dot-glow'
-                : 'w-2 h-2 bg-muted-foreground/25 hover:bg-muted-foreground/40 hover:scale-110'
+                ? 'w-5 h-1.5 bg-primary'
+                : 'w-1.5 h-1.5 bg-muted-foreground/20 hover:bg-muted-foreground/40'
             )}
-            aria-label={`Aller à la slide ${index + 1}`}
+            aria-label={`Slide ${index + 1}`}
           />
         ))}
       </div>

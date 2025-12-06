@@ -34,20 +34,14 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   const { displayName, loading: profileLoading } = useProfile();
   const { currentSeason } = useSeasonalThemeSafe();
   
-  // Dynamic greeting based on time + season
+  // Dynamic greeting based on time + season (ABRÉGÉ)
   const getGreeting = () => {
     const hour = new Date().getHours();
     
-    // Greeting festif selon la saison
-    if (currentSeason === 'christmas') {
-      return '🎄 Joyeux Noël';
-    }
-    if (currentSeason === 'newYear') {
-      return '🎆 Bonne Année';
-    }
-    if (currentSeason === 'valentine') {
-      return '💝 Joyeuse Saint-Valentin';
-    }
+    // Greetings festifs COURTS pour ne pas décaler le nom
+    if (currentSeason === 'christmas') return '🎄 Noël';
+    if (currentSeason === 'newYear') return '🎆 2025';
+    if (currentSeason === 'valentine') return '💝 St-Val';
     
     if (hour >= 18 || hour < 6) return t('client.greeting_evening');
     return t('client.greeting_day');
@@ -104,51 +98,41 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
 
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[150] bg-background/90 backdrop-blur-xl border-b border-border/30 animate-fade-in">
-      <div className="relative px-4 py-3 pt-safe z-10">
-        {/* Structure en grid pour alignement parfait */}
-        <div className="grid grid-cols-[1fr_auto] items-center gap-4 min-h-[52px]">
-          {/* Zone gauche: Salutation + localisation */}
-          <div className="flex flex-col justify-center min-w-0">
-            {/* Greeting et nom sur la même ligne */}
-            <div className="flex items-baseline gap-1.5 animate-fade-up">
-              <span className="text-xs font-bold text-primary tracking-wide uppercase">
-                {getGreeting()},
+    <header className="fixed top-0 left-0 right-0 z-[150] bg-background/95 backdrop-blur-xl border-b border-border/20">
+      <div className="px-4 py-2.5 pt-safe">
+        {/* Grid propre et aligné */}
+        <div className="flex items-center justify-between gap-3 min-h-[48px]">
+          {/* Zone gauche: Greeting + Nom + Position alignés à gauche */}
+          <div className="flex flex-col items-start min-w-0">
+            {/* Ligne 1: Greeting court + Nom */}
+            <div className="flex items-baseline gap-1">
+              <span className="text-[10px] font-semibold text-primary/80 uppercase tracking-wider whitespace-nowrap">
+                {getGreeting()}
               </span>
-              <span className="text-lg font-extrabold text-foreground truncate max-w-[160px]">
+              <span className="text-base font-bold text-foreground truncate max-w-[110px]">
                 {profileLoading ? '...' : displayName.split(' ')[0]}
               </span>
             </div>
             
-            {/* Interactive Location Button - plus compact */}
+            {/* Ligne 2: Position flush left */}
             {geolocation.latitude && geolocation.longitude && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => setLocationSheetOpen(true)}
-                className="flex items-center gap-1 h-auto py-0.5 px-1 -ml-1 mt-0.5 hover:bg-muted/50 transition-all rounded-md animate-fade-up text-muted-foreground hover:text-foreground"
-                style={{ animationDelay: '100ms' }}
+                className="flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors mt-0.5"
               >
-                <span className="text-[11px] font-medium truncate max-w-[180px]">
+                <span className="truncate max-w-[140px]">
                   {geocodingLoading ? t('client.locating') : t('client.my_position')}
                 </span>
-                <ChevronDown className="h-3 w-3 text-primary flex-shrink-0" />
-              </Button>
+                <ChevronDown className="h-2.5 w-2.5 text-primary/60" />
+              </button>
             )}
           </div>
           
-          {/* Zone droite: Actions groupées avec glassmorphism */}
-          <div 
-            className="flex items-center gap-0.5 bg-muted/40 backdrop-blur-sm rounded-full p-1 border border-border/20 animate-fade-up shadow-sm"
-            style={{ animationDelay: '150ms' }}
-          >
-            <div className="transition-all duration-300 hover:scale-110 hover:bg-background/50 rounded-full">
-              <NotificationCenter />
-            </div>
-            <div className="w-px h-5 bg-border/30 mx-0.5" />
-            <div className="transition-all duration-300 hover:scale-110 hover:bg-background/50 rounded-full">
-              <SeasonalThemeSelector />
-            </div>
+          {/* Zone droite: Icônes soft et discrètes */}
+          <div className="flex items-center gap-1 bg-muted/30 backdrop-blur-sm rounded-full px-1.5 py-1 border border-border/10">
+            <NotificationCenter />
+            <div className="w-px h-4 bg-border/20" />
+            <SeasonalThemeSelector />
           </div>
         </div>
       </div>
