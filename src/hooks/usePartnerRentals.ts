@@ -136,7 +136,10 @@ export function usePartnerRentals() {
   const bookingsQuery = useQuery<RentalBooking[]>({
     queryKey: ["partner-rental-bookings", userId],
     queryFn: async () => {
-      if (!userId) return [] as RentalBooking[];
+      if (!userId) {
+        console.log('⚠️ [PARTNER BOOKINGS] No userId, returning empty');
+        return [] as RentalBooking[];
+      }
 
       // First get partner_id
       const { data: partnerData, error: partnerError } = await supabase
@@ -145,7 +148,12 @@ export function usePartnerRentals() {
         .eq("user_id", userId)
         .single();
       
-      if (partnerError || !partnerData) return [] as RentalBooking[];
+      console.log('🔍 [PARTNER BOOKINGS] Partner data:', partnerData, 'Error:', partnerError);
+      
+      if (partnerError || !partnerData) {
+        console.log('⚠️ [PARTNER BOOKINGS] No partner found for user');
+        return [] as RentalBooking[];
+      }
 
       const { data: vehicleIdsData, error: idsErr } = await (supabase as any)
         .from("rental_vehicles")
@@ -155,7 +163,12 @@ export function usePartnerRentals() {
       if (idsErr) throw idsErr;
 
       const vehicleIds = (vehicleIdsData || []).map((r: any) => r.id);
-      if (vehicleIds.length === 0) return [] as RentalBooking[];
+      console.log('🔍 [PARTNER BOOKINGS] Vehicle IDs:', vehicleIds);
+      
+      if (vehicleIds.length === 0) {
+        console.log('⚠️ [PARTNER BOOKINGS] No vehicles found for partner');
+        return [] as RentalBooking[];
+      }
 
       const { data, error } = await (supabase as any)
         .from("rental_bookings")
@@ -163,7 +176,12 @@ export function usePartnerRentals() {
         .in("vehicle_id", vehicleIds)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [PARTNER BOOKINGS] Error fetching bookings:', error);
+        throw error;
+      }
+      
+      console.log('📋 [PARTNER BOOKINGS] Found bookings:', data?.length || 0, data);
       return (data || []) as RentalBooking[];
     },
     enabled: !!userId && !!vehiclesQuery.data,
