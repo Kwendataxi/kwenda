@@ -1,6 +1,8 @@
 import { useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { sendRentalStatusNotification, formatDateForNotification } from "@/services/rentalNotificationService";
+import { toast } from "sonner";
 
 export interface VehicleCategory {
   id: string;
@@ -253,6 +255,7 @@ export function usePartnerRentals() {
 
   const updateBookingStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: RentalBooking["status"] }) => {
+      // 1. Mettre à jour le statut
       const { data, error } = await supabase
         .from("rental_bookings")
         .update({ status } as any)
@@ -260,11 +263,47 @@ export function usePartnerRentals() {
         .select()
         .single();
       if (error) throw error;
+
+      const booking = data as any;
+
+      // 2. Récupérer les infos du véhicule pour la notification
+      const { data: vehicleData } = await (supabase as any)
+        .from("rental_vehicles")
+        .select("brand, model")
+        .eq("id", booking.vehicle_id)
+        .single();
+
+      // 3. Envoyer notification au client
+      if (vehicleData && booking.user_id) {
+        const vehicleName = `${vehicleData.brand} ${vehicleData.model}`;
+        await sendRentalStatusNotification({
+          booking_id: booking.id,
+          user_id: booking.user_id,
+          vehicle_name: vehicleName,
+          status,
+          total_amount: booking.total_amount,
+          start_date: formatDateForNotification(booking.start_date),
+          end_date: formatDateForNotification(booking.end_date)
+        });
+      }
+
       return data as unknown as RentalBooking;
     },
     meta: { onError: (e: any) => console.error("updateBookingStatus error", e) },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["partner-rental-bookings", userId] });
+      
+      // Toast de confirmation pour le partenaire
+      const statusLabels: Record<string, string> = {
+        confirmed: '✅ Location confirmée ! Le client a été notifié.',
+        rejected: '❌ Location rejetée. Le client a été notifié.',
+        in_progress: '🚗 Location démarrée ! Le client a été notifié.',
+        completed: '🏁 Location terminée ! Le client a été notifié.',
+        no_show: '⏰ Absence signalée. Le client a été notifié.',
+        cancelled: '⚠️ Location annulée. Le client a été notifié.'
+      };
+      
+      toast.success(statusLabels[variables.status] || 'Statut mis à jour !');
     },
   });
 
