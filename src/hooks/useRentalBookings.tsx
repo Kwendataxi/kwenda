@@ -39,16 +39,17 @@ export const useRentalBookings = () => {
         return null;
       }
 
-      // Créer la réservation
+      // Créer la réservation avec user_id explicite
       const { data: booking, error } = await supabase
         .from('rental_bookings')
         .insert([{
+          user_id: user.id,
           vehicle_id: data.vehicle_id,
           start_date: data.start_date,
           end_date: data.end_date,
-          total_price: data.total_price,
+          total_amount: data.total_price,
           pickup_location: data.pickup_location,
-          dropoff_location: data.dropoff_location,
+          return_location: data.dropoff_location,
           special_requests: data.special_requests,
           status: 'pending',
           payment_status: 'pending'
@@ -93,9 +94,11 @@ export const useRentalBookings = () => {
             brand,
             model,
             year,
-            daily_rate
+            daily_rate,
+            images
           )
         `)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
