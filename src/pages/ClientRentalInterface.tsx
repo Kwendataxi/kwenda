@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useModernRentals } from '@/hooks/useModernRentals';
 import { usePartnerRentalGroups } from '@/hooks/usePartnerRentalGroups';
 import { useRentalBookings } from '@/hooks/useRentalBookings';
 import { useWallet } from '@/hooks/useWallet';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Building2, Car, Calendar } from 'lucide-react';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
@@ -44,14 +45,18 @@ export const ClientRentalInterface = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  // Charger les locations de l'utilisateur
-  useEffect(() => {
-    if (viewMode === 'my-rentals') {
-      loadMyRentals();
-    }
-  }, [viewMode]);
+  // Fonction de confetti pour les célébrations
+  const triggerConfetti = useCallback(() => {
+    confetti({
+      particleCount: 150,
+      spread: 100,
+      origin: { y: 0.6 },
+      colors: ['#22c55e', '#10b981', '#34d399', '#6ee7b7']
+    });
+  }, []);
 
-  const loadMyRentals = async () => {
+  // Charger les locations de l'utilisateur
+  const loadMyRentals = useCallback(async () => {
     setRentalsLoading(true);
     const bookings = await getUserRentalBookings();
     // Trier: en attente de paiement en premier
@@ -62,7 +67,87 @@ export const ClientRentalInterface = () => {
     });
     setMyRentals(sorted);
     setRentalsLoading(false);
-  };
+  }, [getUserRentalBookings]);
+
+  // Écoute temps réel des changements de statut de location
+  useEffect(() => {
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return;
+
+      const channel = supabase
+        .channel(`rental-status-updates:${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'rental_bookings',
+            filter: `user_id=eq.${user.id}`
+          },
+          async (payload) => {
+            const newStatus = (payload.new as any).status;
+            const oldStatus = (payload.old as any).status;
+            
+            if (newStatus !== oldStatus) {
+              console.log('📱 Changement de statut location:', oldStatus, '→', newStatus);
+              
+              // Rafraîchir les données
+              await loadMyRentals();
+              
+              // Notifications visuelles selon le nouveau statut
+              switch (newStatus) {
+                case 'confirmed':
+                  triggerConfetti();
+                  toast.success('🎉 Votre location est confirmée !', {
+                    description: 'Le partenaire a validé votre réservation. Préparez-vous !'
+                  });
+                  break;
+                case 'rejected':
+                  toast.error('❌ Demande non acceptée', {
+                    description: 'Votre demande n\'a pas pu être acceptée. Essayez un autre véhicule.'
+                  });
+                  break;
+                case 'in_progress':
+                  toast.success('🚗 C\'est parti !', {
+                    description: 'Votre location a démarré. Bonne route !'
+                  });
+                  break;
+                case 'completed':
+                  triggerConfetti();
+                  toast.success('🏁 Location terminée !', {
+                    description: 'Merci de votre confiance. N\'hésitez pas à laisser un avis !'
+                  });
+                  break;
+                case 'no_show':
+                  toast.warning('⏰ Absence signalée', {
+                    description: 'Vous n\'êtes pas venu récupérer le véhicule.'
+                  });
+                  break;
+                case 'cancelled':
+                  toast.info('⚠️ Location annulée', {
+                    description: 'La location a été annulée.'
+                  });
+                  break;
+              }
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    setupRealtimeSubscription();
+  }, [loadMyRentals, triggerConfetti]);
+
+  useEffect(() => {
+    if (viewMode === 'my-rentals') {
+      loadMyRentals();
+    }
+  }, [viewMode, loadMyRentals]);
 
   const handleCancelBooking = async (bookingId: string) => {
     const confirmed = window.confirm('Êtes-vous sûr de vouloir annuler cette réservation ?');

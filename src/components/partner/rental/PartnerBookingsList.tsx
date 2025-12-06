@@ -135,7 +135,7 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
                       {status.label}
                     </Badge>
                     <span className="text-lg font-bold text-primary">
-                      {Number(booking.total_amount).toLocaleString()} FC
+                      {Number(booking.total_amount).toLocaleString()} CDF
                     </span>
                   </div>
                 </div>
@@ -197,7 +197,7 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
                   {/* Deposit */}
                   <div className="flex items-center justify-between pt-2 border-t border-border/10 text-sm">
                     <span className="text-muted-foreground">Caution</span>
-                    <span className="font-semibold">{Number(booking.security_deposit).toLocaleString()} FC</span>
+                    <span className="font-semibold">{Number(booking.security_deposit).toLocaleString()} CDF</span>
                   </div>
 
                   {/* Action buttons */}
