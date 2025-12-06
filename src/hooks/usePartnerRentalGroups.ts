@@ -25,18 +25,18 @@ export const usePartnerRentalGroups = (city?: string) => {
         .from('partenaires')
         .select('id, user_id, company_name');
 
-      // Fetch profiles for avatars
-      const userIds = allPartners?.map(p => p.user_id) || [];
+      // Fetch profiles for avatars - using user_id column
+      const userIds = allPartners?.map(p => p.user_id).filter(Boolean) || [];
       const { data: allProfiles } = await supabase
         .from('profiles')
-        .select('id, avatar_url, display_name')
-        .in('id', userIds);
+        .select('user_id, avatar_url, display_name')
+        .in('user_id', userIds);
 
-      // Merge partners with profiles
+      // Merge partners with profiles - match on user_id
       const partnersWithProfiles = allPartners?.map(p => ({
         ...p,
-        avatar_url: allProfiles?.find(pr => pr.id === p.user_id)?.avatar_url,
-        display_name: allProfiles?.find(pr => pr.id === p.user_id)?.display_name
+        avatar_url: allProfiles?.find(pr => pr.user_id === p.user_id)?.avatar_url,
+        display_name: allProfiles?.find(pr => pr.user_id === p.user_id)?.display_name
       }));
 
       let query = supabase
