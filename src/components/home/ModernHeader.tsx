@@ -104,45 +104,49 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
 
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[150] bg-background/80 backdrop-blur-md animate-fade-in">
-      <div className="relative px-4 py-2.5 pt-safe z-10">
-        {/* Structure en 2 colonnes améliorée */}
-        <div className="flex items-center justify-between">
-          {/* Salutation personnalisée et localisation */}
-          <div className="flex-1 min-w-0">
+    <header className="fixed top-0 left-0 right-0 z-[150] bg-background/90 backdrop-blur-xl border-b border-border/30 animate-fade-in">
+      <div className="relative px-4 py-3 pt-safe z-10">
+        {/* Structure en grid pour alignement parfait */}
+        <div className="grid grid-cols-[1fr_auto] items-center gap-4 min-h-[52px]">
+          {/* Zone gauche: Salutation + localisation */}
+          <div className="flex flex-col justify-center min-w-0">
             {/* Greeting et nom sur la même ligne */}
-            <div className="flex items-baseline gap-2 mb-1 animate-fade-up">
-              <p className="text-sm font-bold text-congo-red">
+            <div className="flex items-baseline gap-1.5 animate-fade-up">
+              <span className="text-xs font-bold text-primary tracking-wide uppercase">
                 {getGreeting()},
-              </p>
-              <p className="text-[22px] font-bold text-foreground">
+              </span>
+              <span className="text-lg font-extrabold text-foreground truncate max-w-[160px]">
                 {profileLoading ? '...' : displayName.split(' ')[0]}
-              </p>
+              </span>
             </div>
             
-            {/* Interactive Location Button */}
+            {/* Interactive Location Button - plus compact */}
             {geolocation.latitude && geolocation.longitude && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocationSheetOpen(true)}
-                className="flex items-center gap-1.5 h-auto p-1.5 -ml-1.5 hover:bg-muted/70 transition-all rounded-lg animate-fade-up"
+                className="flex items-center gap-1 h-auto py-0.5 px-1 -ml-1 mt-0.5 hover:bg-muted/50 transition-all rounded-md animate-fade-up text-muted-foreground hover:text-foreground"
                 style={{ animationDelay: '100ms' }}
               >
-                <span className="text-xs text-muted-foreground font-medium">
+                <span className="text-[11px] font-medium truncate max-w-[180px]">
                   {geocodingLoading ? t('client.locating') : t('client.my_position')}
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-primary flex-shrink-0 animate-bounce-subtle" />
+                <ChevronDown className="h-3 w-3 text-primary flex-shrink-0" />
               </Button>
             )}
           </div>
           
-          {/* Actions à droite - notifications et thème saisonnier */}
-          <div className="flex items-center gap-1 animate-fade-up" style={{ animationDelay: '150ms' }}>
-            <div className="transition-transform duration-300 hover:scale-110">
+          {/* Zone droite: Actions groupées avec glassmorphism */}
+          <div 
+            className="flex items-center gap-0.5 bg-muted/40 backdrop-blur-sm rounded-full p-1 border border-border/20 animate-fade-up shadow-sm"
+            style={{ animationDelay: '150ms' }}
+          >
+            <div className="transition-all duration-300 hover:scale-110 hover:bg-background/50 rounded-full">
               <NotificationCenter />
             </div>
-            <div className="transition-transform duration-300 hover:scale-110">
+            <div className="w-px h-5 bg-border/30 mx-0.5" />
+            <div className="transition-all duration-300 hover:scale-110 hover:bg-background/50 rounded-full">
               <SeasonalThemeSelector />
             </div>
           </div>

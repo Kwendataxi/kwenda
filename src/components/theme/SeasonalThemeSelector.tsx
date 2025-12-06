@@ -59,28 +59,28 @@ const SeasonalThemeSelector = memo(() => {
         <Button 
           variant="ghost" 
           size="icon"
-          className="relative h-9 w-9 rounded-full hover:bg-muted/80 transition-all"
+          className="relative h-9 w-9 rounded-full transition-all duration-300 hover:rotate-12"
         >
-          {/* Icône dynamique selon la saison */}
+          {/* Icône dynamique selon la saison avec animations */}
           {currentSeason === 'christmas' ? (
-            <Snowflake className="h-5 w-5 text-sky-400 animate-pulse" />
+            <Snowflake className="h-5 w-5 text-sky-400 animate-spin" style={{ animationDuration: '3s' }} />
           ) : currentSeason === 'newYear' ? (
-            <Sparkles className="h-5 w-5 text-amber-400" />
+            <Sparkles className="h-5 w-5 text-amber-400 animate-pulse" />
           ) : currentSeason === 'valentine' ? (
-            <Heart className="h-5 w-5 text-pink-500" />
+            <Heart className="h-5 w-5 text-pink-500 animate-pulse" />
           ) : theme === 'dark' ? (
-            <Moon className="h-5 w-5" />
+            <Moon className="h-5 w-5 text-indigo-300" />
           ) : (
-            <Sun className="h-5 w-5" />
+            <Sun className="h-5 w-5 text-amber-500" />
           )}
           
-          {/* Indicateur de saison active */}
+          {/* Indicateur de saison active avec glow */}
           {currentSeason !== 'default' && (
             <span className={cn(
               "absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full",
-              "bg-gradient-to-r",
+              "bg-gradient-to-r animate-pulse",
               currentSeasonOption.gradient,
-              "ring-2 ring-background"
+              "ring-2 ring-background shadow-lg"
             )} />
           )}
         </Button>

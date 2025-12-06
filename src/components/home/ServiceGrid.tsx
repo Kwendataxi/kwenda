@@ -1,5 +1,5 @@
 import { useMemo, memo } from 'react';
-import { Car, Truck, ShoppingBag, Utensils, MoreHorizontal } from 'lucide-react';
+import { Car, Truck, ShoppingBag, Utensils, LayoutGrid } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,7 +30,7 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
       rental: Car,
       marketplace: ShoppingBag,
       food: Utensils,
-      more: MoreHorizontal
+      more: LayoutGrid
     };
     
     const gradients = {
@@ -118,59 +118,73 @@ export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNot
 
   return (
     <div className="px-4">
-      <div className="grid grid-cols-3 gap-x-6 gap-y-8" style={{ willChange: 'transform' }}>
+      <div className="grid grid-cols-3 gap-x-5 gap-y-6" style={{ willChange: 'transform' }}>
         {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
+          const isMoreService = service.id === 'more';
 
           return (
             <motion.button
               key={service.id}
               onClick={() => !service.isLoading && onServiceSelect(service.id)}
               className={cn(
-                "relative flex flex-col items-center gap-3 group",
+                "relative flex flex-col items-center gap-2.5 group",
                 service.isLoading && "pointer-events-none opacity-60"
               )}
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              initial={{ opacity: 0, scale: 0.85, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ 
-                delay: index * 0.08,
+                delay: index * 0.06,
                 type: "spring",
-                stiffness: 260,
-                damping: 20
+                stiffness: 300,
+                damping: 22
               }}
-              whileHover={{ scale: 1.08, y: -4 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ y: -6 }}
+              whileTap={{ scale: 0.92 }}
             >
-              {/* Icon container - design doux amélioré */}
+              {/* Icon container - design moderne avec inner glow */}
               <div
                 className={cn(
-                  "relative flex items-center justify-center w-24 h-24 rounded-[32px] shadow-[0_4px_12px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.12),0_12px_32px_rgba(0,0,0,0.16)] transition-all duration-400 ease-out will-change-transform",
-                  service.isLoading && "animate-pulse"
+                  "relative flex items-center justify-center w-[72px] h-[72px] rounded-[24px] transition-all duration-300 ease-out will-change-transform service-icon-float",
+                  "ring-1 ring-white/10",
+                  service.isLoading && "animate-pulse",
+                  isMoreService && "group-hover:rotate-45"
                 )}
                 style={{
                   background: serviceColors[service.id] || serviceColors.transport,
-                  boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.15)'
+                  boxShadow: `
+                    0 8px 20px -4px ${serviceColors[service.id]}50,
+                    inset 0 1px 4px rgba(255,255,255,0.25),
+                    inset 0 -2px 6px rgba(0,0,0,0.15)
+                  `
                 }}
               >
                 <Icon 
-                  className="w-14 h-14 text-white transition-all duration-400 ease-out group-hover:rotate-6 group-hover:scale-110" 
-                  strokeWidth={1.8}
+                  className={cn(
+                    "w-10 h-10 text-white transition-all duration-300 ease-out",
+                    "group-hover:scale-115",
+                    isMoreService && "group-hover:-rotate-45"
+                  )}
+                  strokeWidth={2}
                   style={{
-                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                    filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.25))'
                   }}
                 />
                 
+                {/* Subtle inner shine */}
+                <div className="absolute inset-0 rounded-[24px] bg-gradient-to-b from-white/15 to-transparent pointer-events-none" />
+                
                 {/* Notification badge */}
                 {notificationCount > 0 && (
-                  <div className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 bg-congo-red text-white rounded-full flex items-center justify-center text-xs font-black shadow-lg border-2 border-background animate-bounce-subtle">
+                  <div className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1.5 bg-destructive text-white rounded-full flex items-center justify-center text-[10px] font-black shadow-lg border-2 border-background animate-bounce-subtle">
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </div>
                 )}
               </div>
               
-              {/* Service name - typographie améliorée */}
-              <span className="text-[15px] font-extrabold text-center leading-tight text-foreground tracking-[-0.01em] transition-all duration-300 group-hover:text-primary group-hover:scale-105">
+              {/* Service name - typographie raffinée */}
+              <span className="text-[13px] font-bold text-center leading-tight text-foreground/90 tracking-tight transition-all duration-300 group-hover:text-primary group-hover:translate-y-0.5">
                 {service.name}
               </span>
             </motion.button>
