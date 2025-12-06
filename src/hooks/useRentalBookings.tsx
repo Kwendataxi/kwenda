@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useWalletPayment } from './useWalletPayment';
 
 interface RentalBookingData {
   vehicle_id: string;
@@ -14,6 +15,7 @@ interface RentalBookingData {
 
 export const useRentalBookings = () => {
   const [loading, setLoading] = useState(false);
+  const { payWithWallet } = useWalletPayment();
 
   const createRentalBooking = async (data: RentalBookingData) => {
     try {
@@ -154,10 +156,55 @@ export const useRentalBookings = () => {
     }
   };
 
+  const payRentalBooking = async (bookingId: string, amount: number): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('Vous devez être connecté');
+        return false;
+      }
+
+      // Effectuer le paiement via wallet
+      const paymentResult = await payWithWallet(
+        user.id,
+        amount,
+        `Location véhicule - Réservation ${bookingId.slice(0, 8)}`,
+        'rental_booking',
+        bookingId
+      );
+
+      if (!paymentResult.success) {
+        return false;
+      }
+
+      // Mettre à jour le statut de paiement
+      const { error } = await supabase
+        .from('rental_bookings')
+        .update({
+          payment_status: 'paid',
+          status: 'confirmed'
+        } as any)
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      return true;
+    } catch (error) {
+      console.error('Erreur paiement location:', error);
+      toast.error('Erreur lors du paiement');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     createRentalBooking,
     getUserRentalBookings,
-    cancelRentalBooking
+    cancelRentalBooking,
+    payRentalBooking
   };
 };
