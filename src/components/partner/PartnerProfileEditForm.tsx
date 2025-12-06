@@ -201,7 +201,7 @@ export const PartnerProfileEditForm: React.FC<PartnerProfileEditFormProps> = ({
           <SelectTrigger>
             <SelectValue placeholder="Sélectionnez un type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover z-[110]">
             {BUSINESS_TYPES.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}

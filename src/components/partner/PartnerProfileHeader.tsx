@@ -331,7 +331,7 @@ export const PartnerProfileHeader: React.FC = () => {
 
       {/* Dialog d'édition du profil */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md bg-background z-[100]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit2 className="h-5 w-5 text-emerald-600" />

@@ -74,7 +74,13 @@ export const useRentalBookings = () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      
+      console.log('🔍 [RENTALS] Fetching bookings for user:', user?.id);
+      
+      if (!user) {
+        console.log('⚠️ [RENTALS] No user found, returning empty array');
+        return [];
+      }
 
       const { data, error } = await supabase
         .from('rental_bookings')
@@ -101,7 +107,12 @@ export const useRentalBookings = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [RENTALS] Error fetching bookings:', error);
+        throw error;
+      }
+      
+      console.log('📋 [RENTALS] Found bookings:', data?.length || 0, data);
       
       // Mapper les colonnes pour compatibilité avec le composant
       return (data || []).map(booking => ({
