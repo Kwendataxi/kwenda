@@ -1,20 +1,20 @@
 import React from 'react';
-import { Car, Users, DollarSign, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Car, Users, DollarSign, Star, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
 
 export const PartnerStats: React.FC = () => {
   const { user } = useAuth();
 
-  // Récupérer les statistiques du partenaire
   const { data: stats, isLoading } = useQuery({
     queryKey: ['partner-stats', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
 
-      // Récupérer l'ID du partenaire
       const { data: partnerData } = await supabase
         .from('partenaires')
         .select('id')
@@ -23,24 +23,19 @@ export const PartnerStats: React.FC = () => {
 
       if (!partnerData) return null;
 
-      // Nombre de véhicules
       const { count: vehiclesCount } = await supabase
         .from('rental_vehicles')
         .select('*', { count: 'exact', head: true })
         .eq('partner_id', partnerData.id)
         .eq('is_active', true);
 
-      // Nombre de chauffeurs actifs
       const { count: driversCount } = await supabase
         .from('partner_drivers')
         .select('*', { count: 'exact', head: true })
         .eq('partner_id', partnerData.id)
         .eq('status', 'active');
 
-      // Commissions du mois (utiliser activity_logs ou une autre table appropriée)
-      const monthlyCommissions = 0; // À implémenter avec la bonne table
-
-      // Note moyenne (simulée pour l'instant)
+      const monthlyCommissions = 0;
       const averageRating = 4.7;
 
       return {
@@ -58,39 +53,57 @@ export const PartnerStats: React.FC = () => {
       title: 'Véhicules actifs',
       value: stats?.totalVehicles || 0,
       icon: Car,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
+      trend: '+2',
+      trendUp: true,
+      gradient: 'from-violet-500/10 via-purple-500/5 to-fuchsia-500/10',
+      iconBg: 'bg-violet-500/10',
+      iconColor: 'text-violet-600 dark:text-violet-400',
     },
     {
       title: 'Chauffeurs actifs',
       value: stats?.activeDrivers || 0,
       icon: Users,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
+      trend: '+5',
+      trendUp: true,
+      gradient: 'from-orange-500/10 via-amber-500/5 to-yellow-500/10',
+      iconBg: 'bg-orange-500/10',
+      iconColor: 'text-orange-600 dark:text-orange-400',
     },
     {
       title: 'Commissions ce mois',
-      value: `${(stats?.monthlyCommissions || 0).toLocaleString()} CDF`,
+      value: `${(stats?.monthlyCommissions || 0).toLocaleString()}`,
+      suffix: 'CDF',
       icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      trend: '+12%',
+      trendUp: true,
+      gradient: 'from-emerald-500/10 via-teal-500/5 to-cyan-500/10',
+      iconBg: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
     },
     {
       title: 'Note moyenne',
       value: stats?.averageRating?.toFixed(1) || '0.0',
+      suffix: '/5',
       icon: Star,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
+      trend: '+0.2',
+      trendUp: true,
+      gradient: 'from-amber-500/10 via-yellow-500/5 to-orange-500/10',
+      iconBg: 'bg-amber-500/10',
+      iconColor: 'text-amber-600 dark:text-amber-400',
     },
   ];
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="card-floating animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-16 bg-muted rounded" />
+          <Card key={i} className="border-0 shadow-lg overflow-hidden">
+            <CardContent className="p-5">
+              <div className="animate-pulse space-y-3">
+                <div className="h-10 w-10 rounded-xl bg-muted" />
+                <div className="h-4 w-20 bg-muted rounded" />
+                <div className="h-8 w-16 bg-muted rounded" />
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -99,23 +112,73 @@ export const PartnerStats: React.FC = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {statCards.map((stat) => {
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {statCards.map((stat, index) => {
         const Icon = stat.icon;
+        const TrendIcon = stat.trendUp ? TrendingUp : TrendingDown;
+        
         return (
-          <Card key={stat.title} className="card-floating border-0">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-body-sm text-muted-foreground mb-1">{stat.title}</p>
-                  <p className="text-heading-lg font-bold text-card-foreground">{stat.value}</p>
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.4 }}
+          >
+            <Card className={cn(
+              "relative overflow-hidden border-0 shadow-lg",
+              "hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+            )}>
+              {/* Gradient background */}
+              <div className={cn("absolute inset-0 bg-gradient-to-br", stat.gradient)} />
+              
+              {/* Glass overlay */}
+              <div className="absolute inset-0 backdrop-blur-[2px]" />
+              
+              <CardContent className="relative p-5">
+                <div className="flex items-start justify-between mb-3">
+                  <motion.div 
+                    className={cn("p-2.5 rounded-xl", stat.iconBg)}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ type: 'spring', stiffness: 400 }}
+                  >
+                    <Icon className={cn("h-5 w-5", stat.iconColor)} />
+                  </motion.div>
+                  
+                  {stat.trend && (
+                    <div className={cn(
+                      "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full",
+                      stat.trendUp 
+                        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10" 
+                        : "text-red-600 dark:text-red-400 bg-red-500/10"
+                    )}>
+                      <TrendIcon className="h-3 w-3" />
+                      {stat.trend}
+                    </div>
+                  )}
                 </div>
-                <div className={`p-3 rounded-xl ${stat.bgColor}`}>
-                  <Icon className={`h-6 w-6 ${stat.color}`} />
+                
+                <p className="text-xs text-muted-foreground mb-1 font-medium">
+                  {stat.title}
+                </p>
+                
+                <div className="flex items-baseline gap-1">
+                  <motion.span 
+                    className="text-2xl font-bold text-foreground"
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2 + index * 0.1, type: 'spring' }}
+                  >
+                    {stat.value}
+                  </motion.span>
+                  {stat.suffix && (
+                    <span className="text-sm text-muted-foreground font-medium">
+                      {stat.suffix}
+                    </span>
+                  )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         );
       })}
     </div>

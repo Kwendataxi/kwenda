@@ -215,12 +215,12 @@ export const ModernPartnerHeader = ({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               
-              <DropdownMenuItem onClick={() => navigate('/partner/profile')}>
+              <DropdownMenuItem onClick={() => navigate('/app/partenaire?tab=profile')}>
                 <User className="w-4 h-4 mr-2" />
                 Mon profil
               </DropdownMenuItem>
               
-              <DropdownMenuItem onClick={() => navigate('/partner/settings')}>
+              <DropdownMenuItem onClick={() => navigate('/app/partenaire?tab=profile')}>
                 <Settings className="w-4 h-4 mr-2" />
                 Paramètres
               </DropdownMenuItem>
