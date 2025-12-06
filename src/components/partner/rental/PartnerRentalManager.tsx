@@ -152,6 +152,7 @@ export default function PartnerRentalManager() {
         <TabsContent value="bookings" className="mt-4">
           <PartnerBookingsList
             bookings={bookings}
+            vehicles={vehicles}
             onUpdateStatus={(id, status) => updateBookingStatus.mutate({ id, status })}
           />
         </TabsContent>
