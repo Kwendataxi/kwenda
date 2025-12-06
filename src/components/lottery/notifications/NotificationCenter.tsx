@@ -40,17 +40,14 @@ export const NotificationCenter = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <button className="relative h-8 w-8 flex items-center justify-center rounded-full hover:bg-background/50 transition-colors">
+          <Bell className="h-[18px] w-[18px] text-foreground/60" strokeWidth={1.5} />
           {unreadCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-            >
+            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
               {unreadCount > 9 ? '9+' : unreadCount}
-            </Badge>
+            </span>
           )}
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={8} className="w-80 z-[200] bg-popover border border-border shadow-xl">
         <div className="flex items-center justify-between px-4 py-2 border-b">
