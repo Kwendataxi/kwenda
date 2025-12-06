@@ -113,28 +113,34 @@ const PromoSliderOptimized = memo(({ onServiceSelect }: PromoSliderProps) => {
   }, [user, checkPromoUsage, t, onServiceSelect]);
 
   return (
-    <div className="w-full relative mb-12 mx-auto max-w-7xl z-10 pt-2">
-      <Carousel
-        setApi={setApi}
-        opts={{ loop: true, align: 'center', skipSnaps: false, duration: 30 }}
-        plugins={[autoplayRef.current]}
-        className="w-full"
-        style={{ minHeight: '160px', height: '160px' }}
-      >
-        <CarouselContent style={{ height: '160px' }}>
-          {promos.map((promo) => (
-            <CarouselItem key={promo.id} className="h-[160px]">
-              <motion.div
-                onClick={() => handlePromoClick(promo)}
-                className={cn(
-                  'relative h-[160px] rounded-2xl cursor-pointer overflow-hidden',
-                  'bg-gradient-to-br',
-                  promo.gradient,
-                  'shadow-lg hover:shadow-xl',
-                  'transition-all duration-300'
-                )}
-                whileHover={{ y: -4, scale: 1.01 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+    <div className="w-full relative mb-10 mx-auto max-w-7xl z-10 pt-2 px-1">
+      {/* Container avec ring et shadow élégante */}
+      <div className="relative rounded-2xl overflow-hidden ring-1 ring-border/20 shadow-xl">
+        <Carousel
+          setApi={setApi}
+          opts={{ loop: true, align: 'center', skipSnaps: false, duration: 30 }}
+          plugins={[autoplayRef.current]}
+          className="w-full"
+          style={{ minHeight: '160px', height: '160px' }}
+        >
+          <CarouselContent style={{ height: '160px' }}>
+            {promos.map((promo, index) => (
+              <CarouselItem key={promo.id} className="h-[160px]">
+                <motion.div
+                  onClick={() => handlePromoClick(promo)}
+                  className={cn(
+                    'relative h-[160px] cursor-pointer overflow-hidden',
+                    'bg-gradient-to-br',
+                    promo.gradient,
+                    'transition-all duration-300'
+                  )}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ 
+                    opacity: current === index ? 1 : 0.9, 
+                    scale: current === index ? 1 : 0.98 
+                  }}
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
               >
                 {/* Effet de brillance animé */}
                 <motion.div 
@@ -473,25 +479,33 @@ const PromoSliderOptimized = memo(({ onServiceSelect }: PromoSliderProps) => {
               </motion.div>
             </CarouselItem>
           ))}
-        </CarouselContent>
+          </CarouselContent>
+          
+          {/* Compteur numérique moderne */}
+          <div className="absolute bottom-3 right-3 z-10 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-bold flex items-center gap-1 shadow-lg">
+            <span className="text-white/90">{current + 1}</span>
+            <span className="text-white/50">/</span>
+            <span className="text-white/70">{promos.length}</span>
+          </div>
+        </Carousel>
+      </div>
 
-        {/* Dots indicator */}
-        <div className="flex justify-center gap-2 mt-6">
-          {promos.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => api?.scrollTo(index)}
-              className={cn(
-                'h-2 rounded-full transition-all duration-300',
-                current === index
-                  ? 'w-8 bg-primary'
-                  : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
-              )}
-              aria-label={`Aller à la slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </Carousel>
+      {/* Dots indicator améliorés avec glow */}
+      <div className="flex justify-center items-center gap-2 mt-4">
+        {promos.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => api?.scrollTo(index)}
+            className={cn(
+              'rounded-full transition-all duration-300 ease-out',
+              current === index
+                ? 'w-7 h-2.5 bg-primary slider-dot-glow'
+                : 'w-2 h-2 bg-muted-foreground/25 hover:bg-muted-foreground/40 hover:scale-110'
+            )}
+            aria-label={`Aller à la slide ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 });
