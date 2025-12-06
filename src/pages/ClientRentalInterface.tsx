@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useModernRentals } from '@/hooks/useModernRentals';
 import { usePartnerRentalGroups } from '@/hooks/usePartnerRentalGroups';
 import { useRentalBookings } from '@/hooks/useRentalBookings';
+import { useWallet } from '@/hooks/useWallet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Building2, Car, Calendar } from 'lucide-react';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
@@ -12,7 +13,9 @@ import { PremiumPartnersCarousel } from '@/components/rental/PremiumPartnersCaro
 import { ModernPartnerCard } from '@/components/rental/ModernPartnerCard';
 import { ModernVehicleCard } from '@/components/rental/ModernVehicleCard';
 import { MyRentalCard } from '@/components/rental/MyRentalCard';
+import { UnifiedPaymentModal } from '@/components/popups/UnifiedPaymentModal';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 export const ClientRentalInterface = () => {
   const navigate = useNavigate();
@@ -27,13 +30,19 @@ export const ClientRentalInterface = () => {
   } = useModernRentals();
 
   const { partnerGroups, premiumPartners, isLoading: partnersLoading } = usePartnerRentalGroups(userLocation);
-  const { getUserRentalBookings, cancelRentalBooking } = useRentalBookings();
+  const { getUserRentalBookings, cancelRentalBooking, payRentalBooking, loading: bookingLoading } = useRentalBookings();
+  const { wallet } = useWallet();
 
   const [viewMode, setViewMode] = useState<'partners' | 'vehicles' | 'promos' | 'my-rentals'>('partners');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [myRentals, setMyRentals] = useState<any[]>([]);
   const [rentalsLoading, setRentalsLoading] = useState(false);
+  
+  // États pour le paiement
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Charger les locations de l'utilisateur
   useEffect(() => {
@@ -45,7 +54,13 @@ export const ClientRentalInterface = () => {
   const loadMyRentals = async () => {
     setRentalsLoading(true);
     const bookings = await getUserRentalBookings();
-    setMyRentals(bookings);
+    // Trier: en attente de paiement en premier
+    const sorted = [...bookings].sort((a, b) => {
+      if (a.payment_status === 'pending' && b.payment_status !== 'pending') return -1;
+      if (a.payment_status !== 'pending' && b.payment_status === 'pending') return 1;
+      return 0;
+    });
+    setMyRentals(sorted);
     setRentalsLoading(false);
   };
 
@@ -60,21 +75,48 @@ export const ClientRentalInterface = () => {
     }
   };
 
+  const handlePayClick = (booking: any) => {
+    setSelectedBooking(booking);
+    setPaymentModalOpen(true);
+  };
+
+  const handlePaymentConfirm = async (method: string) => {
+    if (!selectedBooking) return;
+    
+    setIsProcessingPayment(true);
+    
+    try {
+      if (method === 'wallet') {
+        const amount = selectedBooking.total_price || selectedBooking.total_amount || 0;
+        const success = await payRentalBooking(selectedBooking.id, amount);
+        
+        if (success) {
+          // Confetti animation
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+          
+          toast.success('🎉 Paiement réussi ! Votre location est confirmée');
+          await loadMyRentals();
+        }
+      } else {
+        toast.info('Ce mode de paiement sera bientôt disponible');
+      }
+    } finally {
+      setIsProcessingPayment(false);
+      setPaymentModalOpen(false);
+      setSelectedBooking(null);
+    }
+  };
+
   // Calcul des compteurs de véhicules par catégorie
   const vehicleCountsMap = useMemo(() => {
     const counts: Record<string, number> = {};
     categories.forEach(cat => {
       counts[cat.id] = vehicles.filter(v => v.category_id === cat.id).length;
     });
-    
-    // ✅ DEBUG LOG
-    console.log("📊 [CLIENT_RENTAL] Vehicle counts:", {
-      totalCategories: categories.length,
-      totalVehicles: vehicles.length,
-      counts,
-      categories: categories.map(c => ({ id: c.id, name: c.name }))
-    });
-    
     return counts;
   }, [vehicles, categories]);
 
@@ -98,6 +140,9 @@ export const ClientRentalInterface = () => {
 
     return { filteredVehicles: filteredVehs, filteredPartners: filteredParts };
   }, [vehicles, partnerGroups, searchTerm, selectedCategory]);
+
+  // Calcul du solde wallet pour le modal (balance + ecosystem_credits)
+  const walletBalance = (wallet?.balance || 0) + (wallet?.ecosystem_credits || 0);
 
   if (isLoading) {
     return (
@@ -281,6 +326,8 @@ export const ClientRentalInterface = () => {
                   key={booking.id}
                   booking={booking}
                   onCancel={handleCancelBooking}
+                  onPay={handlePayClick}
+                  isPaying={isProcessingPayment && selectedBooking?.id === booking.id}
                 />
               ))}
             </div>
@@ -295,6 +342,21 @@ export const ClientRentalInterface = () => {
           </Card>
         )}
       </div>
+
+      {/* Modal de paiement */}
+      <UnifiedPaymentModal
+        open={paymentModalOpen}
+        onOpenChange={setPaymentModalOpen}
+        amount={selectedBooking?.total_price || selectedBooking?.total_amount || 0}
+        currency="CDF"
+        walletBalance={walletBalance}
+        onConfirm={handlePaymentConfirm}
+        title="Paiement de la location"
+        description={selectedBooking?.rental_vehicles 
+          ? `${selectedBooking.rental_vehicles.brand} ${selectedBooking.rental_vehicles.model}`
+          : 'Confirmer le paiement de votre réservation'
+        }
+      />
     </div>
   );
 };
