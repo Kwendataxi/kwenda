@@ -11,6 +11,7 @@ import { PartnerCompanyInfo } from './PartnerCompanyInfo';
 import { PartnerDocuments } from './PartnerDocuments';
 import { PartnerSettings } from './PartnerSettings';
 import { PartnerCommissionHistory } from './PartnerCommissionHistory';
+import { LegalFooterLinks } from '@/components/shared/LegalFooterLinks';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -112,7 +113,7 @@ export const PartnerProfilePage: React.FC = () => {
 
   return (
     <motion.div 
-      className="space-y-6 pb-24"
+      className="space-y-6 pb-8"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -233,6 +234,11 @@ export const PartnerProfilePage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+      </motion.div>
+
+      {/* Footer légal */}
+      <motion.div variants={itemVariants}>
+        <LegalFooterLinks />
       </motion.div>
 
       {/* Dialog Documents */}
