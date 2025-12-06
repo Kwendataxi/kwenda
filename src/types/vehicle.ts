@@ -20,4 +20,11 @@ export interface VehicleConfig {
   gradient: string;
   description: string;
   color: string;
+  // Nouvelles propriétés pour le design soft moderne
+  bgSoft: string;
+  bgSelected: string;
+  textColor: string;
+  iconBg: string;
+  iconBgSelected: string;
+  borderSelected: string;
 }
