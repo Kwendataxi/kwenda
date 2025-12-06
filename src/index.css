@@ -176,6 +176,10 @@ All colors MUST be HSL.
     /* Bottom Nav System - DOIT être dans @layer base pour fonctionner */
     --bottom-nav-height: 72px;
     --bottom-nav-height-safe: calc(72px + env(safe-area-inset-bottom, 0px));
+    
+    /* Header height system */
+    --header-height: 68px;
+    --header-height-safe: calc(68px + env(safe-area-inset-top, 0px));
   }
 
   .dark {
@@ -698,10 +702,6 @@ All colors MUST be HSL.
     max-height: 100dvh;
     overflow: hidden;
   }
-
-  /* Header height system */
-  --header-height: 68px;
-  --header-height-safe: calc(68px + env(safe-area-inset-top, 0px));
 
   /* Zone de contenu avec padding pour bottom nav */
   .content-with-bottom-nav {

@@ -83,14 +83,8 @@ export const ModernHomeScreen = memo(({
       {/* Header fixe - géré par ModernHeader avec position: fixed */}
       <ModernHeader />
       
-      {/* Contenu principal - padding-top pour le header fixe */}
-      <div className="pt-[var(--header-height-safe)] space-y-6 py-4">
-        {/* Décorations subtiles */}
-        <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-          <div className="absolute top-32 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-40 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-        </div>
-        
+      {/* Contenu principal - padding-top explicite pour le header fixe */}
+      <div className="space-y-6 py-4" style={{ paddingTop: '80px' }}>
         {/* Slider */}
         <div className="px-4 relative z-10">
           <Suspense fallback={
