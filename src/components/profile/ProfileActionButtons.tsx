@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-import { Tag, Gift, CreditCard, Bell, Settings, Star, Ticket, ChevronRight } from 'lucide-react';
+import { Tag, Gift, CreditCard, Star, Ticket, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import { useVIPStatus } from '@/hooks/useVIPStatus';
 import { useToast } from '@/hooks/use-toast';
-import { NotificationPanel } from '@/components/notifications/NotificationPanel';
-import NotificationBadge from '@/components/notifications/NotificationBadge';
-// import { ReferralPanel } from './ReferralPanel'; // Supprimé - voir ReferralDashboard
 import { PromoCodePanel } from './PromoCodePanel';
 
 
@@ -18,11 +14,10 @@ interface ProfileActionButtonsProps {
 
 export const ProfileActionButtons = ({ onQuickAction, className }: ProfileActionButtonsProps) => {
   const { toast } = useToast();
-  const { unreadCount } = useOrderNotifications();
   const { vipStatus, loading: vipLoading } = useVIPStatus();
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
   const [showPromoCode, setShowPromoCode] = useState(false);
+  
   
 
   const handleReferral = () => {
@@ -172,40 +167,6 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
         })}
       </div>
 
-      {/* Secondary Actions Row moderne */}
-      <div className="flex gap-3">
-        {/* Notifications */}
-        <button
-          onClick={() => setShowNotifications(true)}
-          className="flex-1 relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-800/50 hover:shadow-md transition-all group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
-              <Bell className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            </div>
-            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-              Notifications
-            </span>
-            {unreadCount > 0 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"
-              >
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </motion.div>
-            )}
-          </div>
-        </button>
-
-        {/* Settings */}
-        <button
-          onClick={() => onQuickAction?.('settings')}
-          className="p-3 rounded-xl bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-950/30 dark:to-slate-950/30 border border-gray-200/50 dark:border-gray-800/50 hover:shadow-md transition-all group"
-        >
-          <Settings className="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:rotate-90 transition-transform duration-300" />
-        </button>
-      </div>
 
       {/* VIP Status moderne */}
       {!vipLoading && (
@@ -274,11 +235,7 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
         </motion.div>
       )}
 
-      {/* Panels */}
-      <NotificationPanel 
-        isOpen={showNotifications} 
-        onClose={() => setShowNotifications(false)} 
-      />
+      {/* ReferralPanel temporairement désactivé - utiliser ReferralDashboard */}
       
       {/* ReferralPanel temporairement désactivé - utiliser ReferralDashboard */}
       
