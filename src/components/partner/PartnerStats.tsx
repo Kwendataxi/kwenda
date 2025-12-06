@@ -125,14 +125,11 @@ export const PartnerStats: React.FC = () => {
             transition={{ delay: index * 0.1, duration: 0.4 }}
           >
             <Card className={cn(
-              "relative overflow-hidden border-0 shadow-lg",
+              "relative overflow-hidden border border-border/10 shadow-lg bg-card",
               "hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer"
             )}>
-              {/* Gradient background */}
-              <div className={cn("absolute inset-0 bg-gradient-to-br", stat.gradient)} />
-              
-              {/* Glass overlay */}
-              <div className="absolute inset-0 backdrop-blur-[2px]" />
+              {/* Gradient background - more opaque */}
+              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-80", stat.gradient)} />
               
               <CardContent className="relative p-5">
                 <div className="flex items-start justify-between mb-3">

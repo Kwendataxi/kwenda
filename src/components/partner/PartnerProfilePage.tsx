@@ -129,9 +129,8 @@ export const PartnerProfilePage: React.FC = () => {
 
       {/* Actions rapides */}
       <motion.div variants={itemVariants}>
-        <Card className="border-0 shadow-lg overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-800/50" />
-          <CardContent className="relative p-6">
+      <Card className="border border-border/10 shadow-lg overflow-hidden bg-card">
+          <CardContent className="p-6">
             <h3 className="text-lg font-semibold mb-4 text-foreground">Actions rapides</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {quickActions.map((action, index) => {
@@ -175,8 +174,8 @@ export const PartnerProfilePage: React.FC = () => {
 
       {/* Menu de navigation */}
       <motion.div variants={itemVariants}>
-        <Card className="border-0 shadow-lg overflow-hidden">
-          <CardContent className="p-0">
+        <Card className="border border-border/10 shadow-lg overflow-hidden bg-card">
+          <CardContent className="p-0 bg-card">
             {menuSections.map((section, sectionIndex) => (
               <div key={section.title}>
                 {sectionIndex > 0 && <Separator />}
@@ -238,7 +237,7 @@ export const PartnerProfilePage: React.FC = () => {
 
       {/* Dialog Documents */}
       <Dialog open={showDocuments} onOpenChange={setShowDocuments}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-background">
           <DialogHeader>
             <DialogTitle>Documents légaux</DialogTitle>
           </DialogHeader>
@@ -248,9 +247,9 @@ export const PartnerProfilePage: React.FC = () => {
 
       {/* Dialog Paramètres */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Paramètres</DialogTitle>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-background">
+            <DialogHeader>
+              <DialogTitle>Paramètres</DialogTitle>
           </DialogHeader>
           <PartnerSettings />
         </DialogContent>
@@ -258,7 +257,7 @@ export const PartnerProfilePage: React.FC = () => {
 
       {/* Dialog Historique Commissions */}
       <Dialog open={showCommissionHistory} onOpenChange={setShowCommissionHistory}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-background">
           <DialogHeader>
             <DialogTitle>Historique des commissions</DialogTitle>
           </DialogHeader>
