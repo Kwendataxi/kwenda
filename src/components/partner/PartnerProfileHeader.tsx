@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,12 +13,14 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { PartnerProfileEditForm } from './PartnerProfileEditForm';
 
 export const PartnerProfileHeader: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { data: partner, isLoading } = useQuery({
     queryKey: ['partner-profile', user?.id],
@@ -256,7 +259,12 @@ export const PartnerProfileHeader: React.FC = () => {
                   </motion.div>
                 </div>
 
-                <Button variant="outline" size="sm" className="gap-2 self-start backdrop-blur-sm bg-white/50 dark:bg-gray-900/50">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2 self-start backdrop-blur-sm bg-white/50 dark:bg-gray-900/50"
+                  onClick={() => setShowEditDialog(true)}
+                >
                   <Edit2 className="h-4 w-4" />
                   Modifier
                 </Button>
@@ -320,6 +328,26 @@ export const PartnerProfileHeader: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      {/* Dialog d'édition du profil */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit2 className="h-5 w-5 text-emerald-600" />
+              Modifier le profil
+            </DialogTitle>
+          </DialogHeader>
+          <PartnerProfileEditForm
+            partner={partner}
+            onSuccess={() => {
+              setShowEditDialog(false);
+              queryClient.invalidateQueries({ queryKey: ['partner-profile'] });
+            }}
+            onCancel={() => setShowEditDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
