@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useDriversCountByVehicle } from '@/hooks/useDriversCountByVehicle';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import confetti from 'canvas-confetti';
+import { getVehicleConfig } from '@/utils/vehicleMapper';
 
 interface VehicleOption {
   id: string;
@@ -41,7 +41,6 @@ export default function HorizontalVehicleCarousel({
   const { counts, loading } = useDriversCountByVehicle(city);
   const { triggerHaptic } = useHapticFeedback();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isFirstSelection, setIsFirstSelection] = useState(true);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
@@ -70,11 +69,11 @@ export default function HorizontalVehicleCarousel({
 
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        scrollContainerRef.current.scrollBy({ left: 156, behavior: 'smooth' });
+        scrollContainerRef.current.scrollBy({ left: 170, behavior: 'smooth' });
         triggerHaptic('light');
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        scrollContainerRef.current.scrollBy({ left: -156, behavior: 'smooth' });
+        scrollContainerRef.current.scrollBy({ left: -170, behavior: 'smooth' });
         triggerHaptic('light');
       }
     };
@@ -86,52 +85,31 @@ export default function HorizontalVehicleCarousel({
   const handleVehicleSelect = (id: string) => {
     onVehicleSelect(id);
     triggerHaptic('medium');
-
-    // Confetti subtil sur première sélection
-    if (isFirstSelection) {
-      confetti({
-        particleCount: 20,
-        spread: 40,
-        origin: { y: 0.7 },
-        colors: ['#10b981', '#22c55e'],
-        scalar: 0.8,
-        gravity: 1.2
-      });
-      setIsFirstSelection(false);
-    }
   };
 
   return (
     <div className="relative -mx-4 px-4">
       {/* Gradient fade left */}
-      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+      <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
       
       {/* Gradient fade right */}
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
 
-      {/* Scroll indicators */}
+      {/* Scroll indicators subtils */}
       {canScrollLeft && (
-        <motion.div 
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-20"
-          animate={{ x: [-5, 0, -5] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-        >
-          <div className="w-8 h-8 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-            <ChevronLeft className="w-5 h-5 text-primary" />
+        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-20">
+          <div className="w-7 h-7 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-md border border-border/50">
+            <ChevronLeft className="w-4 h-4 text-muted-foreground" />
           </div>
-        </motion.div>
+        </div>
       )}
 
       {canScrollRight && (
-        <motion.div 
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-20"
-          animate={{ x: [0, 5, 0] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-        >
-          <div className="w-8 h-8 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-            <ChevronRight className="w-5 h-5 text-primary" />
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 z-20">
+          <div className="w-7 h-7 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center shadow-md border border-border/50">
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Scroll container */}
@@ -147,36 +125,38 @@ export default function HorizontalVehicleCarousel({
           const Icon = ICON_MAP[vehicle.icon] || Car;
           const isSelected = selectedVehicleId === vehicle.id;
           const driverCount = counts[vehicle.id] || 0;
+          const config = getVehicleConfig(vehicle.id);
 
           return (
             <motion.button
               key={vehicle.id}
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ 
                 opacity: 1,
-                x: 0,
+                y: 0,
                 scale: isSelected ? 1.02 : 1
               }}
               transition={{ 
-                delay: index * 0.08,
-                scale: { type: "spring", stiffness: 400, damping: 30 }
+                delay: index * 0.06,
+                duration: 0.3,
+                scale: { type: "spring", stiffness: 400, damping: 25 }
               }}
               whileHover={{ scale: isSelected ? 1.02 : 1.01 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleVehicleSelect(vehicle.id)}
               className={cn(
-                "relative flex-shrink-0 w-36 h-36 snap-start",
-                "p-3 rounded-2xl border-2 transition-all duration-300",
-                "flex flex-col",
+                "relative flex-shrink-0 w-[9.5rem] h-[11rem] snap-start",
+                "p-4 rounded-3xl border-2 transition-all duration-300",
+                "flex flex-col items-center justify-center gap-2",
                 isSelected
-                  ? "bg-gradient-to-br from-primary/15 to-primary/5 border-primary shadow-2xl shadow-primary/30 ring-2 ring-primary/50 z-10"
-                  : "bg-gradient-to-br from-card to-card/95 border-border/40 hover:border-primary/50 hover:shadow-md hover:backdrop-blur-sm"
+                  ? cn(config.bgSelected, config.borderSelected, "shadow-lg")
+                  : cn(config.bgSoft, "border-transparent hover:border-border/50 hover:shadow-md")
               )}
             >
               {/* Badge recommandé */}
               {vehicle.recommended && !isSelected && (
-                <div className="absolute top-2 right-2 z-10">
-                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] px-2 py-0.5 shadow-md">
+                <div className="absolute top-2.5 left-2.5 z-10">
+                  <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white text-[9px] px-2 py-0.5 shadow-sm font-medium">
                     ⭐ Top
                   </Badge>
                 </div>
@@ -185,71 +165,69 @@ export default function HorizontalVehicleCarousel({
               {/* Badge sélectionné */}
               {isSelected && (
                 <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  className="absolute top-2 right-2 bg-primary text-primary-foreground p-1.5 rounded-full shadow-lg z-20"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                  className={cn(
+                    "absolute top-2.5 right-2.5 p-1.5 rounded-full shadow-md z-20",
+                    config.iconBgSelected
+                  )}
                 >
-                  <Check className="w-3 h-3" />
+                  <Check className={cn("w-3.5 h-3.5", config.textColor)} />
                 </motion.div>
               )}
 
-              {/* Contenu de la carte */}
-              <div className="flex flex-col h-full justify-between">
-                {/* Top section: Icône + Nom + ETA */}
-                <div className="flex flex-col items-center gap-2">
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                    isSelected 
-                      ? "bg-primary/20" 
-                      : "bg-muted/30"
-                  )}>
-                    <Icon className={cn(
-                      "w-6 h-6",
-                      isSelected ? "text-primary" : "text-foreground/70"
-                    )} />
-                  </div>
-
-                  <div className="space-y-1 text-center">
-                    <h3 className={cn(
-                      "font-bold text-sm leading-tight",
-                      isSelected ? "text-primary" : "text-foreground"
-                    )}>
-                      {vehicle.name}
-                    </h3>
-                    <p className="text-[9px] text-muted-foreground">
-                      {vehicle.time}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bottom section: Prix + Badge */}
-                <div className="flex flex-col items-center gap-1">
-                  <div className="space-y-1 text-center">
-                    <p className={cn(
-                      "text-lg font-extrabold leading-none",
-                      isSelected ? "text-primary" : "text-foreground"
-                    )}>
-                      {vehicle.price.toLocaleString()}
-                    </p>
-                    <p className="text-[9px] text-muted-foreground">{vehicle.pricePerKm}/km</p>
-                  </div>
-
-                  {!loading && driverCount > 0 && (
-                    <Badge 
-                      variant="outline" 
-                      className={cn(
-                        "text-[9px] px-1.5 py-0.5",
-                        driverCount > 5 
-                          ? "bg-green-500/10 text-green-600 border-green-500/20"
-                          : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                      )}
-                    >
-                      {driverCount} 🚗
-                    </Badge>
-                  )}
-                </div>
+              {/* Icône dans cercle arrondi */}
+              <div className={cn(
+                "w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300",
+                isSelected ? config.iconBgSelected : config.iconBg
+              )}>
+                <Icon className={cn(
+                  "w-7 h-7 transition-colors duration-300",
+                  isSelected ? config.textColor : "text-foreground/60"
+                )} />
               </div>
+
+              {/* Nom du véhicule */}
+              <h3 className={cn(
+                "font-bold text-base leading-tight transition-colors duration-300",
+                isSelected ? config.textColor : "text-foreground"
+              )}>
+                {vehicle.name}
+              </h3>
+
+              {/* Temps estimé */}
+              <p className="text-[10px] text-muted-foreground font-medium">
+                {vehicle.time}
+              </p>
+
+              {/* Prix principal */}
+              <p className={cn(
+                "text-xl font-extrabold leading-none transition-colors duration-300",
+                isSelected ? config.textColor : "text-foreground"
+              )}>
+                {vehicle.price.toLocaleString()}
+              </p>
+
+              {/* Prix par km */}
+              <p className="text-[10px] text-muted-foreground">
+                {vehicle.pricePerKm}/km
+              </p>
+
+              {/* Nombre de chauffeurs disponibles */}
+              {!loading && driverCount > 0 && (
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    "text-[9px] px-1.5 py-0.5 mt-0.5",
+                    driverCount > 5 
+                      ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800"
+                      : "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800"
+                  )}
+                >
+                  {driverCount} 🚗
+                </Badge>
+              )}
             </motion.button>
           );
         })}
