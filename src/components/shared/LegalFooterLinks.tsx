@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FileText, Shield, Heart } from 'lucide-react';
+import { FileText, Shield } from 'lucide-react';
 
 export const LegalFooterLinks = () => {
   return (
@@ -24,13 +24,6 @@ export const LegalFooterLinks = () => {
           <span>Politique de confidentialité</span>
         </Link>
       </div>
-      
-      {/* Copyright */}
-      <p className="flex items-center justify-center gap-1.5 text-center text-[11px] text-muted-foreground/50 mt-3">
-        <span>© {new Date().getFullYear()} NTA Tech</span>
-        <Heart className="h-3 w-3 text-primary/50" />
-        <span>Tous droits réservés</span>
-      </p>
     </div>
   );
 };
