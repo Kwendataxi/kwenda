@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Kwenda Brand Colors -->
+    <color name="colorPrimary">#DC2626</color>
+    <color name="colorPrimaryDark">#B91C1C</color>
+    <color name="colorAccent">#F59E0B</color>
+    
+    <!-- Splash Screen -->
+    <color name="splash_background">#DC2626</color>
+    
+    <!-- Status Bar -->
+    <color name="status_bar">#B91C1C</color>
+    
+    <!-- Navigation Bar -->
+    <color name="navigation_bar">#FFFFFF</color>
+    
+    <!-- Notification -->
+    <color name="notification_accent">#DC2626</color>
+</resources>

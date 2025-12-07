@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kwenda Client</string>
+    <string name="title_activity_main">Kwenda Client</string>
+    <string name="package_name">app.lovable.e825ab5672bd4bcab1048ec14fdf48d8</string>
+    <string name="custom_url_scheme">app.lovable.e825ab5672bd4bcab1048ec14fdf48d8</string>
+    
+    <!-- Push Notifications -->
+    <string name="default_notification_channel_id">kwenda_notifications</string>
+    <string name="default_notification_channel_name">Notifications Kwenda</string>
+    
+    <!-- Permissions descriptions -->
+    <string name="location_permission_rationale">Kwenda a besoin de votre position pour trouver les chauffeurs à proximité et calculer les trajets.</string>
+    <string name="camera_permission_rationale">Kwenda utilise la caméra pour ajouter des photos de profil et prendre des photos de colis.</string>
+    <string name="notification_permission_rationale">Recevez des alertes en temps réel sur vos courses et livraisons.</string>
+</resources>
