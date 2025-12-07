@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RentalBooking, RentalVehicle } from "@/hooks/usePartnerRentals";
-import { Calendar, MapPin, Car, Clock, User, Check, X, Play, Flag } from "lucide-react";
+import { Calendar, MapPin, Car, Clock, User, Check, X, Play, Flag, Wallet, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
@@ -12,13 +12,34 @@ interface Props {
 }
 
 const statusConfig: Record<RentalBooking["status"], { label: string; variant: "default" | "secondary" | "destructive" | "outline"; color: string }> = {
-  pending: { label: "En attente", variant: "secondary", color: "bg-amber-500/20 text-amber-600 border-amber-500/30" },
-  confirmed: { label: "Confirmée", variant: "default", color: "bg-emerald-500/20 text-emerald-600 border-emerald-500/30" },
-  in_progress: { label: "En cours", variant: "default", color: "bg-blue-500/20 text-blue-600 border-blue-500/30" },
+  pending: { label: "Nouvelle demande", variant: "secondary", color: "bg-amber-500/20 text-amber-600 border-amber-500/30" },
+  approved_by_partner: { label: "Validée - En attente paiement", variant: "secondary", color: "bg-blue-500/20 text-blue-600 border-blue-500/30" },
+  confirmed: { label: "Confirmée & Payée", variant: "default", color: "bg-emerald-500/20 text-emerald-600 border-emerald-500/30" },
+  in_progress: { label: "En cours", variant: "default", color: "bg-purple-500/20 text-purple-600 border-purple-500/30" },
   completed: { label: "Terminée", variant: "outline", color: "bg-gray-500/20 text-gray-600 border-gray-500/30" },
   cancelled: { label: "Annulée", variant: "destructive", color: "bg-red-500/20 text-red-600 border-red-500/30" },
   rejected: { label: "Rejetée", variant: "destructive", color: "bg-red-500/20 text-red-600 border-red-500/30" },
   no_show: { label: "Absent", variant: "destructive", color: "bg-orange-500/20 text-orange-600 border-orange-500/30" },
+};
+
+const getPaymentBadge = (paymentStatus?: string) => {
+  if (paymentStatus === 'paid') {
+    return (
+      <Badge className="bg-green-500/20 text-green-600 border-green-500/30 border gap-1">
+        <CheckCircle2 className="h-3 w-3" />
+        Payé
+      </Badge>
+    );
+  }
+  if (paymentStatus === 'pending') {
+    return (
+      <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 border gap-1">
+        <Wallet className="h-3 w-3" />
+        Non payé
+      </Badge>
+    );
+  }
+  return null;
 };
 
 export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus }: Props) {
@@ -35,37 +56,55 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
   const getActionButtons = (booking: RentalBooking) => {
     switch (booking.status) {
       case "pending":
+        // Nouvelle demande → Le partenaire confirme la disponibilité
         return (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={() => onUpdateStatus(booking.id, "confirmed")}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
-            >
-              <Check className="h-3.5 w-3.5" />
-              Confirmer
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUpdateStatus(booking.id, "rejected")}
-              className="border-red-500/50 text-red-600 hover:bg-red-50 gap-1"
-            >
-              <X className="h-3.5 w-3.5" />
-              Rejeter
-            </Button>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded-lg">
+              <AlertCircle className="h-3.5 w-3.5" />
+              <span>Confirmez la disponibilité du véhicule</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => onUpdateStatus(booking.id, "approved_by_partner")}
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-1"
+              >
+                <Check className="h-3.5 w-3.5" />
+                Confirmer disponibilité
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onUpdateStatus(booking.id, "rejected")}
+                className="border-red-500/50 text-red-600 hover:bg-red-50 gap-1"
+              >
+                <X className="h-3.5 w-3.5" />
+                Rejeter
+              </Button>
+            </div>
+          </div>
+        );
+      case "approved_by_partner":
+        // Validé par partenaire, en attente de paiement client
+        return (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <Clock className="h-4 w-4 text-blue-600" />
+            <span className="text-sm text-blue-700 dark:text-blue-400">
+              En attente du paiement client...
+            </span>
           </div>
         );
       case "confirmed":
+        // Payé → Le partenaire peut démarrer
         return (
           <div className="flex gap-2">
             <Button
               size="sm"
               onClick={() => onUpdateStatus(booking.id, "in_progress")}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-1"
+              className="bg-purple-600 hover:bg-purple-700 text-white gap-1"
             >
               <Play className="h-3.5 w-3.5" />
-              Démarrer
+              Démarrer location
             </Button>
             <Button
               size="sm"
@@ -74,7 +113,7 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
               className="border-orange-500/50 text-orange-600 hover:bg-orange-50 gap-1"
             >
               <User className="h-3.5 w-3.5" />
-              Absent
+              Client absent
             </Button>
           </div>
         );
@@ -86,7 +125,7 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
             className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1"
           >
             <Flag className="h-3.5 w-3.5" />
-            Terminer
+            Terminer location
           </Button>
         );
       default:
@@ -130,10 +169,13 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
               <Card className="border border-border/20 shadow-lg bg-card/95 backdrop-blur-sm overflow-hidden hover:shadow-xl transition-all duration-300">
                 {/* Header with gradient */}
                 <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 border-b border-border/10">
-                  <div className="flex justify-between items-center">
-                    <Badge className={`${status.color} border font-medium`}>
-                      {status.label}
-                    </Badge>
+                  <div className="flex flex-wrap justify-between items-center gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className={`${status.color} border font-medium`}>
+                        {status.label}
+                      </Badge>
+                      {getPaymentBadge(booking.payment_status)}
+                    </div>
                     <span className="text-lg font-bold text-primary">
                       {Number(booking.total_amount).toLocaleString()} CDF
                     </span>

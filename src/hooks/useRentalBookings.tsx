@@ -179,17 +179,48 @@ export const useRentalBookings = () => {
         return false;
       }
 
-      // Mettre à jour le statut de paiement
-      const { error } = await supabase
+      // Mettre à jour le statut de paiement et passer à confirmed
+      const { data: updatedBooking, error } = await supabase
         .from('rental_bookings')
         .update({
           payment_status: 'paid',
           status: 'confirmed'
         } as any)
-        .eq('id', bookingId);
+        .eq('id', bookingId)
+        .select('*, rental_vehicles(brand, model, partner_id)')
+        .single();
 
       if (error) throw error;
 
+      // Notifier le partenaire que le client a payé
+      const booking = updatedBooking as any;
+      if (booking?.rental_vehicles?.partner_id) {
+        // Récupérer le user_id du partenaire
+        const { data: partnerData } = await supabase
+          .from('partenaires')
+          .select('user_id')
+          .eq('id', booking.rental_vehicles.partner_id)
+          .single();
+
+        if (partnerData?.user_id) {
+          // Notification au partenaire
+          await supabase.from('order_notifications').insert({
+            user_id: partnerData.user_id,
+            order_id: bookingId,
+            title: '💰 Paiement reçu !',
+            message: `Le client a payé ${amount.toLocaleString()} CDF pour la location du ${booking.rental_vehicles.brand} ${booking.rental_vehicles.model}. Vous pouvez démarrer la location !`,
+            notification_type: 'rental_payment',
+            is_read: false,
+            metadata: {
+              booking_id: bookingId,
+              amount: amount,
+              vehicle_name: `${booking.rental_vehicles.brand} ${booking.rental_vehicles.model}`
+            }
+          });
+        }
+      }
+
+      toast.success('Paiement effectué ! La location est confirmée.');
       return true;
     } catch (error) {
       console.error('Erreur paiement location:', error);
