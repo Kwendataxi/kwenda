@@ -13,8 +13,8 @@ interface RentalBooking {
   end_date: string;
   total_price?: number;
   total_amount?: number;
-  status: string;
-  payment_status: string;
+  status: 'pending' | 'approved_by_partner' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'rejected' | 'no_show';
+  payment_status: 'pending' | 'paid' | 'refunded';
   pickup_location?: string;
   dropoff_location?: string;
   return_location?: string;
@@ -40,19 +40,25 @@ interface MyRentalCardProps {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'confirmed': return 'bg-green-500/10 text-green-600 border-green-500/20';
+    case 'approved_by_partner': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
     case 'pending': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
     case 'cancelled': return 'bg-red-500/10 text-red-600 border-red-500/20';
-    case 'completed': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+    case 'rejected': return 'bg-red-500/10 text-red-600 border-red-500/20';
+    case 'completed': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+    case 'in_progress': return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
     default: return 'bg-muted text-muted-foreground border-border';
   }
 };
 
 const getStatusLabel = (status: string) => {
   switch (status) {
-    case 'confirmed': return 'Confirmée';
-    case 'pending': return 'En attente';
+    case 'confirmed': return 'Confirmée & Payée';
+    case 'approved_by_partner': return 'Validée - À payer';
+    case 'pending': return 'En attente partenaire';
     case 'cancelled': return 'Annulée';
+    case 'rejected': return 'Rejetée';
     case 'completed': return 'Terminée';
+    case 'in_progress': return 'En cours';
     default: return status;
   }
 };
@@ -82,9 +88,11 @@ export const MyRentalCard: React.FC<MyRentalCardProps> = ({
   const endDate = new Date(booking.end_date);
   const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
   
-  const canCancel = booking.status === 'pending' || booking.status === 'confirmed';
+  const canCancel = booking.status === 'pending' || booking.status === 'approved_by_partner';
   const isUpcoming = startDate > new Date();
-  const needsPayment = booking.payment_status === 'pending' && booking.status !== 'cancelled';
+  // IMPORTANT: Le client peut payer UNIQUEMENT après validation partenaire
+  const needsPayment = booking.payment_status === 'pending' && booking.status === 'approved_by_partner';
+  const isWaitingPartner = booking.status === 'pending';
   
   const totalPrice = booking.total_price || booking.total_amount || 0;
   const returnLocation = booking.dropoff_location || booking.return_location;
@@ -211,25 +219,49 @@ export const MyRentalCard: React.FC<MyRentalCardProps> = ({
             )}
           </div>
 
-          {/* Section paiement prominent */}
-          {needsPayment && (
+          {/* Section en attente partenaire */}
+          {isWaitingPartner && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="mt-4 p-4 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 rounded-xl"
             >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/20 rounded-lg">
+                  <Clock className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                    En attente de validation
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Le partenaire doit confirmer la disponibilité du véhicule
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Section paiement - uniquement après validation partenaire */}
+          {needsPayment && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mt-4 p-4 bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-green-500/10 border border-green-500/30 rounded-xl"
+            >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-amber-500/20 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                  <div className="p-2 bg-green-500/20 rounded-lg">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                      En attente de paiement
+                    <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                      Véhicule disponible !
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Payez pour confirmer votre réservation
+                      Payez maintenant pour finaliser votre réservation
                     </p>
                   </div>
                 </div>

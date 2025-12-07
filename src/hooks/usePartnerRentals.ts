@@ -66,7 +66,8 @@ export interface RentalBooking {
   total_amount: number;
   security_deposit: number;
   special_requests: string | null;
-  status: "pending" | "confirmed" | "in_progress" | "completed" | "cancelled" | "rejected" | "no_show";
+  status: "pending" | "approved_by_partner" | "confirmed" | "in_progress" | "completed" | "cancelled" | "rejected" | "no_show";
+  payment_status?: "pending" | "paid" | "refunded";
   created_at: string;
   updated_at: string;
 }
@@ -295,7 +296,8 @@ export function usePartnerRentals() {
       
       // Toast de confirmation pour le partenaire
       const statusLabels: Record<string, string> = {
-        confirmed: '✅ Location confirmée ! Le client a été notifié.',
+        approved_by_partner: '✅ Disponibilité confirmée ! Le client peut maintenant payer.',
+        confirmed: '✅ Location confirmée et payée !',
         rejected: '❌ Location rejetée. Le client a été notifié.',
         in_progress: '🚗 Location démarrée ! Le client a été notifié.',
         completed: '🏁 Location terminée ! Le client a été notifié.',

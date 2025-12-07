@@ -8,7 +8,7 @@ import { robustNotifications } from './robustNotificationService';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-export type RentalStatus = 'pending' | 'confirmed' | 'rejected' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+export type RentalStatus = 'pending' | 'approved_by_partner' | 'confirmed' | 'rejected' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
 
 export interface RentalNotificationData {
   booking_id: string;
@@ -34,10 +34,16 @@ const statusMessages: Record<RentalStatus, StatusConfig> = {
     emoji: '📋',
     priority: 'low'
   },
-  confirmed: {
-    title: '🎉 Location Confirmée !',
-    getMessage: (d) => `Excellente nouvelle ! Votre ${d.vehicle_name} vous attend du ${d.start_date} au ${d.end_date}. Préparez-vous pour l'aventure !`,
+  approved_by_partner: {
+    title: '✅ Véhicule disponible !',
+    getMessage: (d) => `Bonne nouvelle ! Le ${d.vehicle_name} est disponible du ${d.start_date} au ${d.end_date}. Procédez au paiement de ${d.total_amount.toLocaleString()} CDF pour confirmer !`,
     emoji: '✅',
+    priority: 'urgent'
+  },
+  confirmed: {
+    title: '🎉 Location Confirmée & Payée !',
+    getMessage: (d) => `Excellente nouvelle ! Votre ${d.vehicle_name} est réservé du ${d.start_date} au ${d.end_date}. Préparez-vous pour l'aventure !`,
+    emoji: '🎊',
     priority: 'high'
   },
   rejected: {
