@@ -11,6 +11,9 @@ import { PartnerCompanyInfo } from './PartnerCompanyInfo';
 import { PartnerDocuments } from './PartnerDocuments';
 import { PartnerSettings } from './PartnerSettings';
 import { PartnerCommissionHistory } from './PartnerCommissionHistory';
+import { PartnerReferralCodes } from './PartnerReferralCodes';
+import { PartnerTeamManager } from './PartnerTeamManager';
+import { PartnerLoyaltyProgram } from './PartnerLoyaltyProgram';
 import { LegalFooterLinks } from '@/components/shared/LegalFooterLinks';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +26,9 @@ export const PartnerProfilePage: React.FC = () => {
   const [showDocuments, setShowDocuments] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showCommissionHistory, setShowCommissionHistory] = useState(false);
+  const [showReferralCodes, setShowReferralCodes] = useState(false);
+  const [showTeamManager, setShowTeamManager] = useState(false);
+  const [showLoyaltyProgram, setShowLoyaltyProgram] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -49,7 +55,7 @@ export const PartnerProfilePage: React.FC = () => {
       description: 'Gérer les codes',
       gradient: 'from-purple-500/10 to-fuchsia-500/10',
       iconColor: 'text-purple-600 dark:text-purple-400',
-      onClick: () => toast.info('Fonctionnalité à venir'),
+      onClick: () => setShowReferralCodes(true),
     },
     {
       icon: Users,
@@ -57,7 +63,7 @@ export const PartnerProfilePage: React.FC = () => {
       description: 'Gérer les membres',
       gradient: 'from-blue-500/10 to-cyan-500/10',
       iconColor: 'text-blue-600 dark:text-blue-400',
-      onClick: () => toast.info('Fonctionnalité à venir'),
+      onClick: () => setShowTeamManager(true),
     },
     {
       icon: TrendingUp,
@@ -65,7 +71,7 @@ export const PartnerProfilePage: React.FC = () => {
       description: 'Programme VIP',
       gradient: 'from-orange-500/10 to-amber-500/10',
       iconColor: 'text-orange-600 dark:text-orange-400',
-      onClick: () => toast.info('Fonctionnalité à venir'),
+      onClick: () => setShowLoyaltyProgram(true),
     },
   ];
 
@@ -113,7 +119,7 @@ export const PartnerProfilePage: React.FC = () => {
 
   return (
     <motion.div 
-      className="space-y-6 pb-8"
+      className="space-y-6 pb-32 lg:pb-8"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -268,6 +274,36 @@ export const PartnerProfilePage: React.FC = () => {
             <DialogTitle>Historique des commissions</DialogTitle>
           </DialogHeader>
           <PartnerCommissionHistory />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Codes Partenaire */}
+      <Dialog open={showReferralCodes} onOpenChange={setShowReferralCodes}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-background">
+          <DialogHeader>
+            <DialogTitle>Codes Partenaire</DialogTitle>
+          </DialogHeader>
+          <PartnerReferralCodes />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Gestion d'Équipe */}
+      <Dialog open={showTeamManager} onOpenChange={setShowTeamManager}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-background">
+          <DialogHeader>
+            <DialogTitle>Gestion d'Équipe</DialogTitle>
+          </DialogHeader>
+          <PartnerTeamManager />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Programme Fidélité */}
+      <Dialog open={showLoyaltyProgram} onOpenChange={setShowLoyaltyProgram}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-background">
+          <DialogHeader>
+            <DialogTitle>Programme Fidélité VIP</DialogTitle>
+          </DialogHeader>
+          <PartnerLoyaltyProgram />
         </DialogContent>
       </Dialog>
     </motion.div>

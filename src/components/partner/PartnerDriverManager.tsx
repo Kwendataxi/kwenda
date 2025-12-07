@@ -156,7 +156,7 @@ export const PartnerDriverManager = () => {
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Gains Abonnements
                 </p>
-                <p className="text-xl sm:text-2xl font-bold">0 FC</p>
+                <p className="text-xl sm:text-2xl font-bold">0 CDF</p>
               </div>
             </div>
           </CardContent>
@@ -166,13 +166,13 @@ export const PartnerDriverManager = () => {
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center">
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <span className="text-xs sm:text-sm font-bold text-blue-600">FC</span>
+                <span className="text-xs sm:text-sm font-bold text-blue-600">CDF</span>
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Revenus du Mois
                 </p>
-                <p className="text-xl sm:text-2xl font-bold">0 FC</p>
+                <p className="text-xl sm:text-2xl font-bold">0 CDF</p>
               </div>
             </div>
           </CardContent>

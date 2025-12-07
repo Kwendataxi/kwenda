@@ -62,10 +62,7 @@ export const PartnerBottomNav = ({
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 lg:hidden",
-        "backdrop-blur-xl bg-background/90",
-        "border-t border-border/30",
-        "shadow-2xl shadow-black/5",
+        "bottom-nav-standard lg:hidden",
         className
       )}
     >
