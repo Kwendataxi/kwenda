@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import { notificationSoundService } from '@/services/notificationSound';
+import { unifiedNotificationService } from '@/services/unifiedNotificationService';
 
 export const PushNotificationManager = () => {
   const { user } = useAuth();
 
   useEffect(() => {
     if (!user) return;
+
+    // Initialiser le service
+    unifiedNotificationService.initialize();
 
     // Subscribe to transport booking updates
     const transportChannel = supabase
@@ -25,33 +27,13 @@ export const PushNotificationManager = () => {
           const { status, driver_id } = payload.new;
           
           if (status === 'driver_assigned' && driver_id) {
-            await notificationSoundService.playNotificationSound('driverAssigned');
-            toast.success('🚗 Chauffeur assigné !', {
-              description: 'Votre chauffeur est en route vers vous',
-              action: {
-                label: 'Suivre',
-                onClick: () => window.location.href = '/transport/tracking'
-              }
-            });
+            await unifiedNotificationService.notifyTransport('driver_assigned');
           } else if (status === 'driver_arrived') {
-            await notificationSoundService.playNotificationSound('driverArrived');
-            toast.info('📍 Chauffeur arrivé', {
-              description: 'Votre chauffeur est à votre emplacement'
-            });
+            await unifiedNotificationService.notifyTransport('driver_arrived');
           } else if (status === 'in_progress') {
-            await notificationSoundService.playNotificationSound('rideStarted');
-            toast.success('🏁 Course démarrée', {
-              description: 'Bonne route !'
-            });
+            await unifiedNotificationService.notifyTransport('in_progress');
           } else if (status === 'completed') {
-            await notificationSoundService.playNotificationSound('deliveryCompleted');
-            toast.success('✅ Course terminée', {
-              description: 'Merci d\'avoir utilisé Kwenda !',
-              action: {
-                label: 'Noter',
-                onClick: () => window.location.href = '/transport/rating'
-              }
-            });
+            await unifiedNotificationService.notifyTransport('completed');
           }
         }
       )
@@ -72,37 +54,13 @@ export const PushNotificationManager = () => {
           const { status } = payload.new;
           
           if (status === 'confirmed') {
-            await notificationSoundService.playNotificationSound('orderConfirmed');
-            toast.success('📦 Commande confirmée', {
-              description: 'Votre livraison est en cours de préparation'
-            });
-          } else if (status === 'driver_assigned') {
-            await notificationSoundService.playNotificationSound('driverAssigned');
-            toast.info('🚴 Livreur assigné', {
-              description: 'Un livreur va récupérer votre colis'
-            });
-          } else if (status === 'picked_up') {
-            await notificationSoundService.playNotificationSound('deliveryPicked');
-            toast.success('📫 Colis récupéré', {
-              description: 'Le livreur est en route vers la destination',
-              action: {
-                label: 'Suivre',
-                onClick: () => window.location.href = '/delivery/tracking'
-              }
-            });
+            await unifiedNotificationService.notifyDelivery('confirmed');
+          } else if (status === 'driver_assigned' || status === 'picked_up') {
+            await unifiedNotificationService.notifyDelivery('picked_up');
           } else if (status === 'in_transit') {
-            toast.info('🛣️ En cours de livraison', {
-              description: 'Votre colis arrive bientôt'
-            });
+            await unifiedNotificationService.notifyDelivery('in_transit');
           } else if (status === 'delivered') {
-            await notificationSoundService.playNotificationSound('deliveryCompleted');
-            toast.success('🎉 Livraison réussie !', {
-              description: 'Votre colis a été livré',
-              action: {
-                label: 'Voir preuve',
-                onClick: () => window.location.href = '/delivery/proof'
-              }
-            });
+            await unifiedNotificationService.notifyDelivery('delivered');
           }
         }
       )
@@ -123,26 +81,27 @@ export const PushNotificationManager = () => {
           const { status } = payload.new;
           
           if (status === 'confirmed') {
-            await notificationSoundService.playNotificationSound('orderConfirmed');
-            toast.success('🛍️ Commande acceptée', {
-              description: 'Le vendeur a accepté votre commande'
+            await unifiedNotificationService.notify({
+              title: '🛍️ Commande acceptée',
+              message: 'Le vendeur a accepté votre commande',
+              category: 'marketplace',
+              priority: 'high'
             });
           } else if (status === 'shipped') {
-            toast.info('📮 Commande expédiée', {
-              description: 'Votre article est en route',
-              action: {
-                label: 'Suivre',
-                onClick: () => window.location.href = '/marketplace/tracking'
-              }
+            await unifiedNotificationService.notify({
+              title: '📮 Commande expédiée',
+              message: 'Votre article est en route',
+              category: 'marketplace',
+              priority: 'normal',
+              action: { label: 'Suivre', url: '/marketplace/tracking' }
             });
           } else if (status === 'delivered') {
-            await notificationSoundService.playNotificationSound('deliveryCompleted');
-            toast.success('✅ Commande livrée', {
-              description: 'Profitez de votre achat !',
-              action: {
-                label: 'Noter',
-                onClick: () => window.location.href = '/marketplace/rating'
-              }
+            await unifiedNotificationService.notify({
+              title: '✅ Commande livrée',
+              message: 'Profitez de votre achat !',
+              category: 'marketplace',
+              priority: 'high',
+              action: { label: 'Noter', url: '/marketplace/rating' }
             });
           }
         }
@@ -164,35 +123,114 @@ export const PushNotificationManager = () => {
           const { status } = payload.new;
           
           if (status === 'confirmed') {
-            await notificationSoundService.playNotificationSound('orderConfirmed');
-            toast.success('🍽️ Commande confirmée', {
-              description: 'Le restaurant prépare votre commande'
+            await unifiedNotificationService.notify({
+              title: '🍽️ Commande confirmée',
+              message: 'Le restaurant prépare votre commande',
+              category: 'food',
+              priority: 'normal'
             });
           } else if (status === 'preparing') {
-            toast.info('👨‍🍳 En cours de préparation', {
-              description: 'Votre repas est en cours de préparation'
+            await unifiedNotificationService.notify({
+              title: '👨‍🍳 En cours de préparation',
+              message: 'Votre repas est en cours de préparation',
+              category: 'food',
+              priority: 'low'
             });
           } else if (status === 'ready') {
-            toast.success('✅ Commande prête', {
-              description: 'Votre commande est prête à être récupérée ou livrée'
+            await unifiedNotificationService.notify({
+              title: '✅ Commande prête',
+              message: 'Votre commande est prête',
+              category: 'food',
+              priority: 'high'
             });
           } else if (status === 'out_for_delivery') {
-            toast.info('🚗 En cours de livraison', {
-              description: 'Votre commande arrive !',
-              action: {
-                label: 'Suivre',
-                onClick: () => window.location.href = '/food/tracking'
-              }
+            await unifiedNotificationService.notify({
+              title: '🚗 En cours de livraison',
+              message: 'Votre commande arrive !',
+              category: 'food',
+              priority: 'high',
+              action: { label: 'Suivre', url: '/food/tracking' }
             });
           } else if (status === 'delivered') {
-            await notificationSoundService.playNotificationSound('deliveryCompleted');
-            toast.success('🎉 Bon appétit !', {
-              description: 'Votre commande a été livrée',
-              action: {
-                label: 'Noter',
-                onClick: () => window.location.href = '/food/rating'
-              }
+            await unifiedNotificationService.notify({
+              title: '🎉 Bon appétit !',
+              message: 'Votre commande a été livrée',
+              category: 'food',
+              priority: 'high',
+              action: { label: 'Noter', url: '/food/rating' }
             });
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to rental booking updates (NOUVEAU)
+    const rentalChannel = supabase
+      .channel('rental-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rental_bookings',
+          filter: `user_id=eq.${user.id}`
+        },
+        async (payload) => {
+          const { status, payment_status } = payload.new;
+          const oldStatus = payload.old?.status;
+          
+          // Ne notifier que si le statut a changé
+          if (status === oldStatus) return;
+          
+          if (status === 'approved_by_partner') {
+            await unifiedNotificationService.notifyRental('approved_by_partner', 'Payez maintenant pour confirmer !');
+          } else if (status === 'confirmed') {
+            await unifiedNotificationService.notifyRental('confirmed');
+          } else if (status === 'in_progress') {
+            await unifiedNotificationService.notifyRental('in_progress');
+          } else if (status === 'completed') {
+            await unifiedNotificationService.notifyRental('completed');
+          } else if (status === 'cancelled' || status === 'rejected') {
+            await unifiedNotificationService.notifyRental('cancelled');
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to lottery wins
+    const lotteryChannel = supabase
+      .channel('lottery-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'lottery_winners',
+          filter: `user_id=eq.${user.id}`
+        },
+        async (payload) => {
+          const prizeAmount = (payload.new as any).prize_amount;
+          await unifiedNotificationService.notifyLottery(true, `${prizeAmount} CDF`);
+        }
+      )
+      .subscribe();
+
+    // Subscribe to wallet transactions
+    const walletChannel = supabase
+      .channel('wallet-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'wallet_transactions',
+          filter: `user_id=eq.${user.id}`
+        },
+        async (payload) => {
+          const { transaction_type, amount, status } = payload.new as any;
+          
+          if (transaction_type === 'topup' && status === 'completed') {
+            await unifiedNotificationService.notifyPayment('success', `${amount} CDF`);
           }
         }
       )
@@ -204,6 +242,9 @@ export const PushNotificationManager = () => {
       supabase.removeChannel(deliveryChannel);
       supabase.removeChannel(marketplaceChannel);
       supabase.removeChannel(foodChannel);
+      supabase.removeChannel(rentalChannel);
+      supabase.removeChannel(lotteryChannel);
+      supabase.removeChannel(walletChannel);
     };
   }, [user]);
 
