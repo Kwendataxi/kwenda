@@ -67,7 +67,7 @@ export const ResponsivePartnerLayout: React.FC<ResponsivePartnerLayoutProps> = (
         )}
         
         {/* Content */}
-        <main className="px-4 pb-20">
+        <main className="px-4 pb-28">
           {children}
         </main>
 

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Home, Car, Users, DollarSign, CreditCard, BarChart3, Bell, User } from 'lucide-react';
+import { Home, Car, Users, DollarSign, BarChart3, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface MobilePartnerTabsProps {
   currentView: 'dashboard' | 'vehicles' | 'drivers' | 'deliveries' | 'subscription-earnings' | 'subscriptions' | 'analytics' | 'notifications' | 'profile';
@@ -24,25 +25,44 @@ export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({
   variant = 'bottom'
 }) => {
   if (variant === 'bottom') {
-    // Bottom navigation for mobile
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-grey-100 px-2 py-2 flex justify-around z-40">
-        {tabItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onViewChange(item.id)}
-            className={cn(
-              "flex flex-col items-center gap-1 py-2 px-2 rounded-lg transition-all duration-200 min-w-0 flex-1",
-              currentView === item.id 
-                ? 'text-primary bg-primary-light' 
-                : 'text-muted-foreground hover:text-primary hover:bg-muted'
-            )}
-          >
-            <item.icon className="h-4 w-4 shrink-0" />
-            <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
-          </button>
-        ))}
-      </div>
+      <motion.nav
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className="bottom-nav-standard lg:hidden"
+      >
+        {/* Ligne de gradient en haut */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+        
+        <div className="flex items-center justify-around px-2 h-full pb-safe">
+          {tabItems.map((item) => (
+            <motion.button
+              key={item.id}
+              onClick={() => onViewChange(item.id)}
+              whileTap={{ scale: 0.95 }}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all duration-200 min-w-0 flex-1 relative",
+                currentView === item.id 
+                  ? 'text-primary' 
+                  : 'text-muted-foreground hover:text-primary'
+              )}
+            >
+              {currentView === item.id && (
+                <motion.div
+                  layoutId="partner-tab-highlight"
+                  className="absolute inset-0 bg-primary/10 rounded-xl"
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                />
+              )}
+              <item.icon className="h-5 w-5 shrink-0 relative z-10" />
+              <span className="text-[10px] font-medium truncate max-w-full relative z-10">
+                {item.label}
+              </span>
+            </motion.button>
+          ))}
+        </div>
+      </motion.nav>
     );
   }
 
