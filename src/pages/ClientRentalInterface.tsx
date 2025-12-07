@@ -31,7 +31,7 @@ export const ClientRentalInterface = () => {
   } = useModernRentals();
 
   const { partnerGroups, premiumPartners, isLoading: partnersLoading } = usePartnerRentalGroups(userLocation);
-  const { getUserRentalBookings, cancelRentalBooking, payRentalBooking, loading: bookingLoading } = useRentalBookings();
+  const { getUserRentalBookings, cancelRentalBooking, payRentalBooking, cleanupOldBookings, loading: bookingLoading } = useRentalBookings();
   const { wallet } = useWallet();
 
   const [viewMode, setViewMode] = useState<'partners' | 'vehicles' | 'promos' | 'my-rentals'>('partners');
@@ -55,19 +55,30 @@ export const ClientRentalInterface = () => {
     });
   }, []);
 
-  // Charger les locations de l'utilisateur
+  // Charger les locations de l'utilisateur avec nettoyage automatique
   const loadMyRentals = useCallback(async () => {
     setRentalsLoading(true);
+    
+    // Nettoyer les anciennes réservations au chargement
+    await cleanupOldBookings();
+    
     const bookings = await getUserRentalBookings();
-    // Trier: en attente de paiement en premier
+    // Trier: approved_by_partner (à payer) en premier, puis pending
     const sorted = [...bookings].sort((a, b) => {
-      if (a.payment_status === 'pending' && b.payment_status !== 'pending') return -1;
-      if (a.payment_status !== 'pending' && b.payment_status === 'pending') return 1;
+      // Priorité 1: approved_by_partner (doit payer)
+      if (a.status === 'approved_by_partner' && b.status !== 'approved_by_partner') return -1;
+      if (a.status !== 'approved_by_partner' && b.status === 'approved_by_partner') return 1;
+      // Priorité 2: pending (en attente partenaire)
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (a.status !== 'pending' && b.status === 'pending') return 1;
+      // Priorité 3: in_progress
+      if (a.status === 'in_progress' && b.status !== 'in_progress') return -1;
+      if (a.status !== 'in_progress' && b.status === 'in_progress') return 1;
       return 0;
     });
     setMyRentals(sorted);
     setRentalsLoading(false);
-  }, [getUserRentalBookings]);
+  }, [getUserRentalBookings, cleanupOldBookings]);
 
   // Écoute temps réel des changements de statut de location
   useEffect(() => {
@@ -97,10 +108,17 @@ export const ClientRentalInterface = () => {
               
               // Notifications visuelles selon le nouveau statut
               switch (newStatus) {
+                case 'approved_by_partner':
+                  triggerConfetti();
+                  toast.success('✅ Véhicule disponible !', {
+                    description: 'Le partenaire a confirmé. Payez maintenant pour finaliser !',
+                    duration: 8000
+                  });
+                  break;
                 case 'confirmed':
                   triggerConfetti();
-                  toast.success('🎉 Votre location est confirmée !', {
-                    description: 'Le partenaire a validé votre réservation. Préparez-vous !'
+                  toast.success('🎉 Paiement reçu, location confirmée !', {
+                    description: 'Le partenaire va préparer le véhicule.'
                   });
                   break;
                 case 'rejected':

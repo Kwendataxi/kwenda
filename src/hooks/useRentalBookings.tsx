@@ -26,12 +26,12 @@ export const useRentalBookings = () => {
         return null;
       }
 
-      // Vérifier disponibilité du véhicule
+      // Vérifier disponibilité du véhicule (inclut approved_by_partner)
       const { data: conflictingBookings, error: checkError } = await supabase
         .from('rental_bookings')
         .select('id')
         .eq('vehicle_id', data.vehicle_id)
-        .in('status', ['confirmed', 'pending'])
+        .in('status', ['confirmed', 'pending', 'approved_by_partner', 'in_progress'])
         .or(`and(start_date.lte.${data.end_date},end_date.gte.${data.start_date})`);
 
       if (checkError) throw checkError;
@@ -231,11 +231,40 @@ export const useRentalBookings = () => {
     }
   };
 
+  // Nettoyage automatique des anciennes réservations pending
+  const cleanupOldBookings = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Annuler les réservations pending dont la date de début est passée
+      await supabase
+        .from('rental_bookings')
+        .update({ 
+          status: 'cancelled',
+          cancellation_reason: 'Expirée automatiquement - date dépassée'
+        })
+        .in('status', ['pending', 'approved_by_partner'])
+        .lt('start_date', today);
+
+      // Corriger les réservations completed avec payment pending
+      await supabase
+        .from('rental_bookings')
+        .update({ payment_status: 'paid' })
+        .eq('status', 'completed')
+        .eq('payment_status', 'pending');
+
+      console.log('🧹 Nettoyage des anciennes réservations effectué');
+    } catch (error) {
+      console.error('Erreur nettoyage:', error);
+    }
+  };
+
   return {
     loading,
     createRentalBooking,
     getUserRentalBookings,
     cancelRentalBooking,
-    payRentalBooking
+    payRentalBooking,
+    cleanupOldBookings
   };
 };

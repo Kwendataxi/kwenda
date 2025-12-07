@@ -53,6 +53,46 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
     });
   };
 
+  // Filtrer les réservations: exclure les terminées/annulées avec dates passées
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const filteredBookings = bookings.filter(booking => {
+    const endDate = new Date(booking.end_date);
+    const isFinished = ['completed', 'cancelled', 'rejected', 'no_show'].includes(booking.status);
+    
+    // Garder les réservations actives ou futures
+    if (!isFinished) return true;
+    
+    // Pour les terminées, ne garder que celles des 7 derniers jours
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return endDate >= sevenDaysAgo;
+  });
+
+  // Trier: pending et approved_by_partner en premier, puis confirmed, puis in_progress
+  const sortedBookings = [...filteredBookings].sort((a, b) => {
+    const priority: Record<string, number> = {
+      pending: 0,
+      approved_by_partner: 1,
+      confirmed: 2,
+      in_progress: 3,
+      completed: 4,
+      cancelled: 5,
+      rejected: 5,
+      no_show: 5
+    };
+    return (priority[a.status] || 99) - (priority[b.status] || 99);
+  });
+
+  // Calculer l'urgence (réservation qui commence dans moins de 24h)
+  const isUrgent = (startDate: string) => {
+    const start = new Date(startDate);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return start <= tomorrow && start >= today;
+  };
+
   const getActionButtons = (booking: RentalBooking) => {
     switch (booking.status) {
       case "pending":
@@ -133,7 +173,7 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
     }
   };
 
-  if (bookings.length === 0) {
+  if (sortedBookings.length === 0) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -143,9 +183,9 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
         <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
           <Calendar className="h-10 w-10 text-muted-foreground/50" />
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-1">Aucune réservation</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-1">Aucune réservation active</h3>
         <p className="text-sm text-muted-foreground text-center max-w-xs">
-          Les réservations de vos véhicules apparaîtront ici
+          Les nouvelles réservations de vos véhicules apparaîtront ici
         </p>
       </motion.div>
     );
@@ -154,9 +194,10 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
   return (
     <div className="space-y-4">
       <AnimatePresence mode="popLayout">
-        {bookings.map((booking, index) => {
+        {sortedBookings.map((booking, index) => {
           const vehicle = getVehicle(booking.vehicle_id);
           const status = statusConfig[booking.status];
+          const urgent = isUrgent(booking.start_date);
 
           return (
             <motion.div
@@ -165,12 +206,18 @@ export default function PartnerBookingsList({ bookings, vehicles, onUpdateStatus
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
+              className={urgent ? "ring-2 ring-amber-500/50 rounded-lg" : ""}
             >
               <Card className="border border-border/20 shadow-lg bg-card/95 backdrop-blur-sm overflow-hidden hover:shadow-xl transition-all duration-300">
                 {/* Header with gradient */}
                 <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 border-b border-border/10">
                   <div className="flex flex-wrap justify-between items-center gap-2">
                     <div className="flex flex-wrap gap-2">
+                      {urgent && (
+                        <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 border gap-1 animate-pulse">
+                          ⚡ Urgent
+                        </Badge>
+                      )}
                       <Badge className={`${status.color} border font-medium`}>
                         {status.label}
                       </Badge>
