@@ -18,8 +18,7 @@ import { ServiceTypeValidator } from '@/components/driver/ServiceTypeValidator';
 import { DriverServiceProvider } from '@/contexts/DriverServiceContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { ModernDriverHeader } from '@/components/driver/ModernDriverHeader';
-import { FloatingHomeButton } from '@/components/driver/FloatingHomeButton';
+// Header géré dans chaque dashboard (TaxiDriverDashboard/DeliveryDriverDashboard)
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
@@ -127,72 +126,59 @@ const DriverApp = () => {
         }}
       />
 
-      {/* Header moderne avec ThemeToggle et stats */}
-      <ModernDriverHeader serviceType={serviceType} />
+      {/* Layout flex pour header + contenu + footer */}
+      <div className="flex flex-col min-h-screen bg-background">
+        {/* Contenu scrollable */}
+        <main className="flex-1 overflow-y-auto pb-20">
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={tab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* Interface séparée par type de service */}
+              {tab === 'orders' && renderServiceInterface()}
+              
+              {/* Food Deliveries Tab */}
+              {tab === 'food' && (
+                <div className="responsive-padding">
+                  {React.createElement(require('@/pages/driver/DriverFoodDeliveries').default)}
+                </div>
+              )}
+              
+              {/* Autres onglets communs */}
+              {tab === 'earnings' && (
+                <div className="responsive-padding">
+                  <ModernDriverWallet serviceType={serviceType === 'unknown' ? 'taxi' : serviceType} />
+                </div>
+              )}
+              {tab === 'subscription' && (
+                <div className="responsive-padding">
+                  {serviceType === 'delivery' ? <DeliverySubscriptionPlans /> : <TaxiSubscriptionPlans />}
+                </div>
+              )}
+              {tab === 'challenges' && <div className="responsive-padding"><DriverChallenges /></div>}
+              {tab === 'profile' && (
+                <div className="responsive-padding">
+                  {serviceType === 'delivery' ? <DeliveryDriverProfile /> : <TaxiDriverProfile />}
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
-      <div className="min-h-screen bg-background mobile-safe-layout pt-16">
-        <AnimatePresence mode="wait">
-          <motion.main 
-            key={tab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-            className="flex-1 overflow-y-auto content-scrollable"
-          >
-            {/* ✅ PHASE 3: Interface séparée par type de service */}
-            {tab === 'orders' && renderServiceInterface()}
-            
-            {/* Food Deliveries Tab */}
-            {tab === 'food' && (
-              <div className="responsive-padding">
-                {React.createElement(require('@/pages/driver/DriverFoodDeliveries').default)}
-              </div>
-            )}
-            
-            {/* Autres onglets communs */}
-            {tab === 'earnings' && (
-              <div className="responsive-padding">
-                <ModernDriverWallet serviceType={serviceType === 'unknown' ? 'taxi' : serviceType} />
-              </div>
-            )}
-            {tab === 'subscription' && (
-              <div className="responsive-padding">
-                {serviceType === 'delivery' ? <DeliverySubscriptionPlans /> : <TaxiSubscriptionPlans />}
-              </div>
-            )}
-            {tab === 'challenges' && <div className="responsive-padding"><DriverChallenges /></div>}
-            {tab === 'profile' && (
-              <div className="responsive-padding">
-                {serviceType === 'delivery' ? <DeliveryDriverProfile /> : <TaxiDriverProfile />}
-              </div>
-            )}
-          </motion.main>
-        </AnimatePresence>
-
-        {/* Navigation bottom UNIQUEMENT sur l'accueil */}
-        {tab === 'orders' && (
-          <UniversalBottomNavigation 
-            userType="driver"
-            activeTab={tab} 
-            onTabChange={(newTab: any) => {
-              if (newTab === 'orders' || newTab === 'food' || newTab === 'earnings' || newTab === 'challenges' || newTab === 'subscription' || newTab === 'profile') {
-                setTab(newTab);
-              }
-            }}
-            variant="enhanced"
-            showLabels={true}
-          />
-        )}
-
-        {/* Bouton retour accueil sur les pages non-accueil */}
-        {tab !== 'orders' && (
-          <FloatingHomeButton 
-            onClick={() => setTab('orders')}
-            serviceType={serviceType}
-            variant="circle"
-          />
-        )}
+        {/* Footer navigation TOUJOURS visible */}
+        <UniversalBottomNavigation 
+          userType="driver"
+          activeTab={tab === 'food' ? 'orders' : tab} 
+          onTabChange={(newTab) => {
+            setTab(newTab as any);
+          }}
+          variant="enhanced"
+          showLabels={true}
+        />
       </div>
     </DriverServiceProvider>
   );

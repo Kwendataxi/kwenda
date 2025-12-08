@@ -53,49 +53,51 @@ export const ModernDriverHeader: React.FC<ModernDriverHeaderProps> = ({
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        'sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50',
+        'sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border/30 shadow-sm',
         className
       )}
     >
-      <div className="px-4 py-3 pt-safe">
-        {/* Single Row: All elements aligned */}
-        <div className="flex items-center justify-between gap-3">
-          {/* Left: Greeting + Name */}
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-muted-foreground truncate">
-              {greeting} 👋
-            </p>
-            <h1 className="text-lg font-bold text-foreground truncate">
-              {driverFirstName}
-            </h1>
+      <div className="px-4 py-2 pt-safe">
+        {/* Single Row: Compact and professional */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Greeting + Name compact */}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium text-muted-foreground leading-tight">
+                {greeting}
+              </p>
+              <h1 className="text-sm font-bold text-foreground truncate leading-tight">
+                {driverFirstName}
+              </h1>
+            </div>
           </div>
 
-          {/* Center: Service Badge */}
+          {/* Center: Service Badge compact */}
           <Badge 
             variant="secondary" 
             className={cn(
-              "gap-1.5 px-3 py-1.5 text-xs font-semibold shrink-0",
+              "gap-1 px-2 py-1 text-[10px] font-semibold shrink-0",
               serviceType === 'taxi' && "bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30",
               serviceType === 'delivery' && "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30",
               serviceType === 'unknown' && "bg-muted"
             )}
           >
-            <ServiceIcon className="h-3.5 w-3.5" />
+            <ServiceIcon className="h-3 w-3" />
             {serviceType === 'taxi' ? 'VTC' : serviceType === 'delivery' ? 'Livraison' : 'Service'}
           </Badge>
 
-          {/* Right: Theme Toggle + Online Toggle */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Right: Theme Toggle + Online Toggle compact */}
+          <div className="flex items-center gap-1.5 shrink-0">
             <ThemeToggle variant="icon" size="sm" />
             
             {/* Compact Online Toggle */}
             {onToggleOnline && (
               <motion.button
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={onToggleOnline}
                 className={cn(
-                  'relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300',
-                  'shadow-md hover:shadow-lg',
+                  'relative w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300',
+                  'shadow-sm hover:shadow-md',
                   isOnline 
                     ? serviceColor === 'orange'
                       ? 'bg-gradient-to-br from-orange-500 to-orange-600'
@@ -105,7 +107,7 @@ export const ModernDriverHeader: React.FC<ModernDriverHeaderProps> = ({
               >
                 <Power 
                   className={cn(
-                    'w-5 h-5 transition-all duration-300',
+                    'w-4 h-4 transition-all duration-300',
                     isOnline ? 'text-white' : 'text-muted-foreground'
                   )} 
                 />
@@ -115,10 +117,10 @@ export const ModernDriverHeader: React.FC<ModernDriverHeaderProps> = ({
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-background"
+                    className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-background"
                   >
                     <motion.div
-                      animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
+                      animate={{ scale: [1, 1.2, 1], opacity: [1, 0.6, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                       className="w-full h-full bg-green-400 rounded-full"
                     />
