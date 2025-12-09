@@ -14,9 +14,9 @@ import { PremiumPartnersCarousel } from '@/components/rental/PremiumPartnersCaro
 import { ModernPartnerCard } from '@/components/rental/ModernPartnerCard';
 import { ModernVehicleCard } from '@/components/rental/ModernVehicleCard';
 import { MyRentalCard } from '@/components/rental/MyRentalCard';
+import { DepositPaymentSheet } from '@/components/rental/DepositPaymentSheet';
 import { UnifiedPaymentModal } from '@/components/popups/UnifiedPaymentModal';
 import { toast } from 'sonner';
-import confetti from 'canvas-confetti';
 
 export const ClientRentalInterface = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ export const ClientRentalInterface = () => {
   } = useModernRentals();
 
   const { partnerGroups, premiumPartners, isLoading: partnersLoading } = usePartnerRentalGroups(userLocation);
-  const { getUserRentalBookings, cancelRentalBooking, payRentalBooking, cleanupOldBookings, loading: bookingLoading } = useRentalBookings();
+  const { getUserRentalBookings, cancelRentalBooking, payRentalBooking, payRentalDeposit, cleanupOldBookings, loading: bookingLoading } = useRentalBookings();
   const { wallet } = useWallet();
 
   const [viewMode, setViewMode] = useState<'partners' | 'vehicles' | 'promos' | 'my-rentals'>('partners');
@@ -41,17 +41,19 @@ export const ClientRentalInterface = () => {
   const [rentalsLoading, setRentalsLoading] = useState(false);
   
   // États pour le paiement
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [depositSheetOpen, setDepositSheetOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Fonction de confetti pour les célébrations
   const triggerConfetti = useCallback(() => {
-    confetti({
-      particleCount: 150,
-      spread: 100,
-      origin: { y: 0.6 },
-      colors: ['#22c55e', '#10b981', '#34d399', '#6ee7b7']
+    import('canvas-confetti').then(({ default: confetti }) => {
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#22c55e', '#10b981', '#34d399', '#6ee7b7']
+      });
     });
   }, []);
 
@@ -178,39 +180,21 @@ export const ClientRentalInterface = () => {
     }
   };
 
-  const handlePayClick = (booking: any) => {
+  const handlePayDepositClick = (booking: any) => {
     setSelectedBooking(booking);
-    setPaymentModalOpen(true);
+    setDepositSheetOpen(true);
   };
 
-  const handlePaymentConfirm = async (method: string) => {
-    if (!selectedBooking) return;
-    
+  const handleDepositPayment = async (bookingId: string, amount: number, method: 'wallet' | 'mobile_money'): Promise<boolean> => {
     setIsProcessingPayment(true);
-    
     try {
-      if (method === 'wallet') {
-        const amount = selectedBooking.total_price || selectedBooking.total_amount || 0;
-        const success = await payRentalBooking(selectedBooking.id, amount);
-        
-        if (success) {
-          // Confetti animation
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-          
-          toast.success('🎉 Paiement réussi ! Votre location est confirmée');
-          await loadMyRentals();
-        }
-      } else {
-        toast.info('Ce mode de paiement sera bientôt disponible');
+      const success = await payRentalDeposit(bookingId, amount, method);
+      if (success) {
+        await loadMyRentals();
       }
+      return success;
     } finally {
       setIsProcessingPayment(false);
-      setPaymentModalOpen(false);
-      setSelectedBooking(null);
     }
   };
 
@@ -429,7 +413,7 @@ export const ClientRentalInterface = () => {
                   key={booking.id}
                   booking={booking}
                   onCancel={handleCancelBooking}
-                  onPay={handlePayClick}
+                  onPayDeposit={handlePayDepositClick}
                   isPaying={isProcessingPayment && selectedBooking?.id === booking.id}
                 />
               ))}
@@ -446,19 +430,17 @@ export const ClientRentalInterface = () => {
         )}
       </div>
 
-      {/* Modal de paiement */}
-      <UnifiedPaymentModal
-        open={paymentModalOpen}
-        onOpenChange={setPaymentModalOpen}
-        amount={selectedBooking?.total_price || selectedBooking?.total_amount || 0}
-        currency="CDF"
+      {/* Sheet de paiement d'acompte */}
+      <DepositPaymentSheet
+        isOpen={depositSheetOpen}
+        onClose={() => {
+          setDepositSheetOpen(false);
+          setSelectedBooking(null);
+        }}
+        booking={selectedBooking}
         walletBalance={walletBalance}
-        onConfirm={handlePaymentConfirm}
-        title="Paiement de la location"
-        description={selectedBooking?.rental_vehicles 
-          ? `${selectedBooking.rental_vehicles.brand} ${selectedBooking.rental_vehicles.model}`
-          : 'Confirmer le paiement de votre réservation'
-        }
+        onPayDeposit={handleDepositPayment}
+        isProcessing={isProcessingPayment}
       />
     </div>
   );
