@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building2, Car, Sparkles, Calendar, Info } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { getCategoryTheme } from '@/utils/categoryThemes';
 
 interface Category {
@@ -24,13 +23,57 @@ interface ModernRentalNavigationV2Props {
 }
 
 const tabs = [
-  { id: 'partners', label: 'Agences', icon: Building2, badgeVariant: 'secondary' as const },
-  { id: 'vehicles', label: 'Véhicules', icon: Car, badgeVariant: 'secondary' as const },
-  { id: 'promos', label: 'Promos', icon: Sparkles, badgeVariant: 'default' as const },
-  { id: 'my-rentals', label: 'Mes locations', icon: Calendar, badgeVariant: 'secondary' as const },
-];
+  { id: 'partners', label: 'Agences', icon: Building2 },
+  { id: 'vehicles', label: 'Véhicules', icon: Car },
+  { id: 'promos', label: 'Promos', icon: Sparkles },
+  { id: 'my-rentals', label: 'Mes locations', icon: Calendar },
+] as const;
 
-export const ModernRentalNavigationV2: React.FC<ModernRentalNavigationV2Props> = ({
+// Composant Tab mémorisé pour éviter les re-renders
+const TabButton = memo(({ 
+  tab, 
+  count, 
+  isActive, 
+  onClick 
+}: { 
+  tab: typeof tabs[number]; 
+  count: number; 
+  isActive: boolean;
+  onClick: () => void;
+}) => {
+  const Icon = tab.icon;
+  
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        relative flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl
+        transition-all duration-200 ease-out
+        ${isActive 
+          ? 'bg-primary text-primary-foreground shadow-md' 
+          : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+        }
+      `}
+    >
+      <Icon className={`h-5 w-5 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
+      <span className="text-xs font-medium whitespace-nowrap">{tab.label}</span>
+      <Badge 
+        variant={isActive ? "secondary" : "outline"}
+        className={`
+          text-xs px-2 min-w-[24px] justify-center transition-colors duration-200
+          ${isActive ? 'bg-primary-foreground/20 text-primary-foreground border-transparent' : ''}
+          ${tab.id === 'promos' && count > 0 && !isActive ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : ''}
+        `}
+      >
+        {count}
+      </Badge>
+    </button>
+  );
+});
+
+TabButton.displayName = 'TabButton';
+
+export const ModernRentalNavigationV2: React.FC<ModernRentalNavigationV2Props> = memo(({
   viewMode,
   onViewModeChange,
   partnersCount,
@@ -42,17 +85,14 @@ export const ModernRentalNavigationV2: React.FC<ModernRentalNavigationV2Props> =
   onCategoryChange,
   vehicleCounts,
 }) => {
-  const getCounts = (tabId: string) => {
-    switch (tabId) {
-      case 'partners': return partnersCount;
-      case 'vehicles': return vehiclesCount;
-      case 'promos': return promosCount;
-      case 'my-rentals': return myRentalsCount;
-      default: return 0;
-    }
-  };
+  const counts = useMemo(() => ({
+    partners: partnersCount,
+    vehicles: vehiclesCount,
+    promos: promosCount,
+    'my-rentals': myRentalsCount,
+  }), [partnersCount, vehiclesCount, promosCount, myRentalsCount]);
 
-  const getContextMessage = () => {
+  const contextMessage = useMemo(() => {
     switch (viewMode) {
       case 'partners':
         return { icon: Info, text: 'Explorez nos agences partenaires de confiance' };
@@ -63,189 +103,83 @@ export const ModernRentalNavigationV2: React.FC<ModernRentalNavigationV2Props> =
       case 'my-rentals':
         return { icon: Calendar, text: 'Gérez vos réservations en cours et passées' };
     }
-  };
+  }, [viewMode]);
 
-  const contextInfo = getContextMessage();
-  const ContextIcon = contextInfo.icon;
+  const ContextIcon = contextMessage.icon;
+
+  const filteredCategories = useMemo(() => 
+    categories.filter(cat => (vehicleCounts[cat.id] || 0) > 0),
+    [categories, vehicleCounts]
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 pt-4">
-      {/* Navigation principale avec glassmorphism */}
-      <div className="relative bg-card/80 backdrop-blur-xl border rounded-2xl p-1 shadow-lg">
-        {/* Indicateur actif animé */}
-        <div className="relative grid grid-cols-4 gap-1">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const count = getCounts(tab.id);
-            const isActive = viewMode === tab.id;
-
-            return (
-              <motion.button
-                key={tab.id}
-                onClick={() => onViewModeChange(tab.id as any)}
-                className={`
-                  relative flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl
-                  transition-all duration-300 z-10
-                  ${isActive 
-                    ? 'text-primary-foreground' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
-                  }
-                `}
-                whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.02 }}
-              >
-                {/* Background actif avec animation */}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-primary rounded-xl shadow-md"
-                    transition={{
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 30
-                    }}
-                  />
-                )}
-
-                {/* Contenu du tab */}
-                <div className="relative z-10 flex flex-col items-center gap-1">
-                  <motion.div
-                    animate={{ 
-                      rotate: isActive ? [0, -10, 10, 0] : 0,
-                      scale: isActive ? 1.1 : 1
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </motion.div>
-                  
-                  <span className="text-xs font-medium whitespace-nowrap">
-                    {tab.label}
-                  </span>
-                  
-                  {/* Badge avec animation */}
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`${tab.id}-${count}`}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                    >
-                      <Badge 
-                        variant={isActive ? "secondary" : tab.badgeVariant}
-                        className={`
-                          text-xs px-2 min-w-[24px] justify-center
-                          ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}
-                          ${tab.id === 'promos' && count > 0 ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : ''}
-                        `}
-                      >
-                        {count}
-                      </Badge>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </motion.button>
-            );
-          })}
+      {/* Navigation principale */}
+      <div className="bg-card/80 backdrop-blur-xl border rounded-2xl p-1 shadow-lg">
+        <div className="grid grid-cols-4 gap-1">
+          {tabs.map((tab) => (
+            <TabButton
+              key={tab.id}
+              tab={tab}
+              count={counts[tab.id]}
+              isActive={viewMode === tab.id}
+              onClick={() => onViewModeChange(tab.id)}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Message contextuel animé */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={viewMode}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-          className="mt-4"
-        >
-          <div className={`flex gap-2 text-sm ${contextInfo.color || 'text-muted-foreground'}`}>
-            <ContextIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <span>{contextInfo.text}</span>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+      {/* Message contextuel */}
+      <div className="mt-4">
+        <div className={`flex gap-2 text-sm transition-opacity duration-200 ${contextMessage.color || 'text-muted-foreground'}`}>
+          <ContextIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <span>{contextMessage.text}</span>
+        </div>
+      </div>
 
       {/* Filtres de catégories pour les véhicules */}
       {viewMode === 'vehicles' && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mt-4"
-        >
+        <div className="mt-4">
           <div className="relative -mx-4 px-4">
-            <motion.div 
-              className="flex gap-2 pb-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: {
-                    staggerChildren: 0.05
-                  }
-                }
-              }}
-            >
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, x: -20 },
-                  visible: { opacity: 1, x: 0 }
-                }}
+            <div className="flex gap-2 pb-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth">
+              <Button
+                variant={selectedCategory === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => onCategoryChange(null)}
+                className="rounded-full shrink-0 snap-start transition-all duration-200"
               >
-                <Button
-                  variant={selectedCategory === null ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => onCategoryChange(null)}
-                  className="rounded-full shrink-0 snap-start transition-all duration-300"
-                >
-                  Tous ({vehiclesCount})
-                </Button>
-              </motion.div>
+                Tous ({vehiclesCount})
+              </Button>
 
-              {categories.map(cat => {
+              {filteredCategories.map(cat => {
                 const count = vehicleCounts[cat.id] || 0;
-                if (count === 0) return null;
                 const theme = getCategoryTheme(cat.name);
                 
                 return (
-                  <motion.div
+                  <Button
                     key={cat.id}
-                    variants={{
-                      hidden: { opacity: 0, x: -20 },
-                      visible: { opacity: 1, x: 0 }
-                    }}
+                    variant={selectedCategory === cat.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => onCategoryChange(cat.id)}
+                    className="rounded-full gap-1 shrink-0 snap-start transition-all duration-200"
                   >
-                    <Button
-                      variant={selectedCategory === cat.id ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => onCategoryChange(cat.id)}
-                      className="rounded-full gap-1 shrink-0 snap-start transition-all duration-300 hover:scale-105"
+                    <span>{theme.icon}</span>
+                    <span className="whitespace-nowrap">{cat.name}</span>
+                    <Badge 
+                      variant="secondary" 
+                      className={`ml-1 text-xs shrink-0 ${selectedCategory === cat.id ? 'bg-primary-foreground/20' : ''}`}
                     >
-                      <span>{theme.icon}</span>
-                      <span className="whitespace-nowrap">{cat.name}</span>
-                      <Badge 
-                        variant="secondary" 
-                        className={`
-                          ml-1 text-xs shrink-0 transition-all
-                          ${selectedCategory === cat.id ? 'bg-primary-foreground/20' : ''}
-                        `}
-                      >
-                        {count}
-                      </Badge>
-                    </Button>
-                  </motion.div>
+                      {count}
+                    </Badge>
+                  </Button>
                 );
               })}
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );
-};
+});
+
+ModernRentalNavigationV2.displayName = 'ModernRentalNavigationV2';

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useWalletPayment } from './useWalletPayment';
@@ -17,7 +17,7 @@ export const useRentalBookings = () => {
   const [loading, setLoading] = useState(false);
   const { payWithWallet } = useWalletPayment();
 
-  const createRentalBooking = async (data: RentalBookingData) => {
+  const createRentalBooking = useCallback(async (data: RentalBookingData) => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -26,7 +26,7 @@ export const useRentalBookings = () => {
         return null;
       }
 
-      // Vérifier disponibilité du véhicule (inclut approved_by_partner)
+      // Vérifier disponibilité du véhicule
       const { data: conflictingBookings, error: checkError } = await supabase
         .from('rental_bookings')
         .select('id')
@@ -41,7 +41,12 @@ export const useRentalBookings = () => {
         return null;
       }
 
-      // Créer la réservation avec user_id explicite
+      // Calculer l'acompte (30% par défaut)
+      const depositPercentage = 30;
+      const depositAmount = Math.round(data.total_price * (depositPercentage / 100));
+      const remainingAmount = data.total_price - depositAmount;
+
+      // Créer la réservation avec les champs d'acompte
       const { data: booking, error } = await supabase
         .from('rental_bookings')
         .insert([{
@@ -54,7 +59,11 @@ export const useRentalBookings = () => {
           return_location: data.dropoff_location,
           special_requests: data.special_requests,
           status: 'pending',
-          payment_status: 'pending'
+          payment_status: 'pending',
+          deposit_amount: depositAmount,
+          deposit_percentage: depositPercentage,
+          remaining_amount: remainingAmount,
+          deposit_paid: false
         }] as any)
         .select()
         .single();
@@ -70,17 +79,14 @@ export const useRentalBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getUserRentalBookings = async () => {
+  const getUserRentalBookings = useCallback(async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      console.log('🔍 [RENTALS] Fetching bookings for user:', user?.id);
-      
       if (!user) {
-        console.log('⚠️ [RENTALS] No user found, returning empty array');
         return [];
       }
 
@@ -97,6 +103,11 @@ export const useRentalBookings = () => {
           return_location,
           special_requests,
           created_at,
+          deposit_amount,
+          deposit_paid,
+          deposit_paid_at,
+          deposit_percentage,
+          remaining_amount,
           rental_vehicles (
             id,
             brand,
@@ -109,14 +120,9 @@ export const useRentalBookings = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ [RENTALS] Error fetching bookings:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('📋 [RENTALS] Found bookings:', data?.length || 0, data);
-      
-      // Mapper les colonnes pour compatibilité avec le composant
+      // Mapper les colonnes pour compatibilité
       return (data || []).map(booking => ({
         ...booking,
         total_price: booking.total_amount,
@@ -129,9 +135,9 @@ export const useRentalBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const cancelRentalBooking = async (bookingId: string, reason?: string) => {
+  const cancelRentalBooking = useCallback(async (bookingId: string, reason?: string) => {
     try {
       setLoading(true);
       const { error } = await supabase
@@ -154,9 +160,14 @@ export const useRentalBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const payRentalBooking = async (bookingId: string, amount: number): Promise<boolean> => {
+  // Paiement de l'acompte (30%)
+  const payRentalDeposit = useCallback(async (
+    bookingId: string, 
+    depositAmount: number, 
+    method: 'wallet' | 'mobile_money' = 'wallet'
+  ): Promise<boolean> => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -166,7 +177,86 @@ export const useRentalBookings = () => {
         return false;
       }
 
-      // Effectuer le paiement via wallet
+      if (method === 'mobile_money') {
+        toast.info('Le paiement Mobile Money sera bientôt disponible');
+        return false;
+      }
+
+      // Paiement via wallet
+      const paymentResult = await payWithWallet(
+        user.id,
+        depositAmount,
+        `Acompte location véhicule - ${bookingId.slice(0, 8)}`,
+        'rental_deposit',
+        bookingId
+      );
+
+      if (!paymentResult.success) {
+        return false;
+      }
+
+      // Mettre à jour la réservation avec l'acompte payé
+      const { data: updatedBooking, error } = await supabase
+        .from('rental_bookings')
+        .update({
+          deposit_paid: true,
+          deposit_paid_at: new Date().toISOString(),
+          status: 'confirmed'
+        } as any)
+        .eq('id', bookingId)
+        .select('*, rental_vehicles(brand, model, partner_id)')
+        .single();
+
+      if (error) throw error;
+
+      // Notifier le partenaire
+      const booking = updatedBooking as any;
+      if (booking?.rental_vehicles?.partner_id) {
+        const { data: partnerData } = await supabase
+          .from('partenaires')
+          .select('user_id')
+          .eq('id', booking.rental_vehicles.partner_id)
+          .single();
+
+        if (partnerData?.user_id) {
+          await supabase.from('order_notifications').insert({
+            user_id: partnerData.user_id,
+            order_id: bookingId,
+            title: '💰 Acompte reçu !',
+            message: `Le client a versé l'acompte de ${depositAmount.toLocaleString()} CDF pour le ${booking.rental_vehicles.brand} ${booking.rental_vehicles.model}. Réservation confirmée !`,
+            notification_type: 'rental_deposit',
+            is_read: false,
+            metadata: {
+              booking_id: bookingId,
+              deposit_amount: depositAmount,
+              vehicle_name: `${booking.rental_vehicles.brand} ${booking.rental_vehicles.model}`
+            }
+          });
+        }
+      }
+
+      toast.success('Acompte payé ! Votre réservation est confirmée.');
+      return true;
+    } catch (error) {
+      console.error('Erreur paiement acompte:', error);
+      toast.error('Erreur lors du paiement de l\'acompte');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [payWithWallet]);
+
+  // Paiement intégral (ancienne méthode, conservée pour compatibilité)
+  const payRentalBooking = useCallback(async (bookingId: string, amount: number): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('Vous devez être connecté');
+        return false;
+      }
+
       const paymentResult = await payWithWallet(
         user.id,
         amount,
@@ -179,12 +269,13 @@ export const useRentalBookings = () => {
         return false;
       }
 
-      // Mettre à jour le statut de paiement et passer à confirmed
       const { data: updatedBooking, error } = await supabase
         .from('rental_bookings')
         .update({
           payment_status: 'paid',
-          status: 'confirmed'
+          status: 'confirmed',
+          deposit_paid: true,
+          deposit_paid_at: new Date().toISOString()
         } as any)
         .eq('id', bookingId)
         .select('*, rental_vehicles(brand, model, partner_id)')
@@ -192,10 +283,8 @@ export const useRentalBookings = () => {
 
       if (error) throw error;
 
-      // Notifier le partenaire que le client a payé
       const booking = updatedBooking as any;
       if (booking?.rental_vehicles?.partner_id) {
-        // Récupérer le user_id du partenaire
         const { data: partnerData } = await supabase
           .from('partenaires')
           .select('user_id')
@@ -203,7 +292,6 @@ export const useRentalBookings = () => {
           .single();
 
         if (partnerData?.user_id) {
-          // Notification au partenaire
           await supabase.from('order_notifications').insert({
             user_id: partnerData.user_id,
             order_id: bookingId,
@@ -229,14 +317,12 @@ export const useRentalBookings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [payWithWallet]);
 
-  // Nettoyage automatique des anciennes réservations pending
-  const cleanupOldBookings = async () => {
+  const cleanupOldBookings = useCallback(async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      // Annuler les réservations pending dont la date de début est passée
       await supabase
         .from('rental_bookings')
         .update({ 
@@ -246,18 +332,16 @@ export const useRentalBookings = () => {
         .in('status', ['pending', 'approved_by_partner'])
         .lt('start_date', today);
 
-      // Corriger les réservations completed avec payment pending
       await supabase
         .from('rental_bookings')
         .update({ payment_status: 'paid' })
         .eq('status', 'completed')
         .eq('payment_status', 'pending');
 
-      console.log('🧹 Nettoyage des anciennes réservations effectué');
     } catch (error) {
       console.error('Erreur nettoyage:', error);
     }
-  };
+  }, []);
 
   return {
     loading,
@@ -265,6 +349,7 @@ export const useRentalBookings = () => {
     getUserRentalBookings,
     cancelRentalBooking,
     payRentalBooking,
+    payRentalDeposit,
     cleanupOldBookings
   };
 };

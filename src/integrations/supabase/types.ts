@@ -8679,6 +8679,10 @@ export type Database = {
           contract_signed: boolean
           created_at: string
           currency: string
+          deposit_amount: number | null
+          deposit_paid: boolean | null
+          deposit_paid_at: string | null
+          deposit_percentage: number | null
           driver_choice: string | null
           driver_email: string | null
           driver_license: string | null
@@ -8694,6 +8698,7 @@ export type Database = {
           picked_up_at: string | null
           pickup_coordinates: Json | null
           pickup_location: string
+          remaining_amount: number | null
           rental_duration_type: string
           return_coordinates: Json | null
           return_location: string | null
@@ -8713,6 +8718,10 @@ export type Database = {
           contract_signed?: boolean
           created_at?: string
           currency?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          deposit_paid_at?: string | null
+          deposit_percentage?: number | null
           driver_choice?: string | null
           driver_email?: string | null
           driver_license?: string | null
@@ -8728,6 +8737,7 @@ export type Database = {
           picked_up_at?: string | null
           pickup_coordinates?: Json | null
           pickup_location: string
+          remaining_amount?: number | null
           rental_duration_type: string
           return_coordinates?: Json | null
           return_location?: string | null
@@ -8747,6 +8757,10 @@ export type Database = {
           contract_signed?: boolean
           created_at?: string
           currency?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          deposit_paid_at?: string | null
+          deposit_percentage?: number | null
           driver_choice?: string | null
           driver_email?: string | null
           driver_license?: string | null
@@ -8762,6 +8776,7 @@ export type Database = {
           picked_up_at?: string | null
           pickup_coordinates?: Json | null
           pickup_location?: string
+          remaining_amount?: number | null
           rental_duration_type?: string
           return_coordinates?: Json | null
           return_location?: string | null
