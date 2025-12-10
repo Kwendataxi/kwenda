@@ -1,5 +1,6 @@
 import React from 'react';
-import { Star, MessageSquare } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Star, MessageSquare, TrendingUp, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -8,13 +9,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface VehicleReviewsProps {
   vehicleId: string;
 }
 
 export const VehicleReviews: React.FC<VehicleReviewsProps> = ({ vehicleId }) => {
-  // Fetch reviews from database
   const { data: reviews = [], isLoading: reviewsLoading } = useQuery({
     queryKey: ['rental-reviews', vehicleId],
     queryFn: async () => {
@@ -41,7 +42,6 @@ export const VehicleReviews: React.FC<VehicleReviewsProps> = ({ vehicleId }) => 
     }
   });
 
-  // Fetch review stats from materialized view
   const { data: stats } = useQuery({
     queryKey: ['rental-review-stats', vehicleId],
     queryFn: async () => {
@@ -69,11 +69,11 @@ export const VehicleReviews: React.FC<VehicleReviewsProps> = ({ vehicleId }) => 
 
   if (reviewsLoading) {
     return (
-      <Card>
-        <CardContent className="p-4 sm:p-6 space-y-4">
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-muted/20">
+        <CardContent className="p-5 sm:p-6 space-y-4">
           <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-24 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
         </CardContent>
       </Card>
     );
@@ -81,77 +81,135 @@ export const VehicleReviews: React.FC<VehicleReviewsProps> = ({ vehicleId }) => 
 
   if (totalReviews === 0) {
     return (
-      <Card>
-        <CardContent className="p-4 sm:p-6">
-          <h3 className="font-bold text-base sm:text-lg flex items-center gap-2 mb-4">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            Avis clients
-          </h3>
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Aucun avis disponible pour ce véhicule</p>
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-muted/20 overflow-hidden">
+        <CardContent className="p-5 sm:p-6">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg"
+            >
+              <MessageSquare className="h-5 w-5 text-primary-foreground" />
+            </motion.div>
+            <h3 className="font-bold text-lg">Avis clients</h3>
           </div>
+          
+          {/* Empty state moderne */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-10 px-4"
+          >
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center"
+            >
+              <Sparkles className="h-10 w-10 text-muted-foreground/60" />
+            </motion.div>
+            <p className="text-muted-foreground font-medium mb-2">Aucun avis pour le moment</p>
+            <p className="text-sm text-muted-foreground/70">Soyez le premier à partager votre expérience !</p>
+          </motion.div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardContent className="p-4 sm:p-6 space-y-4">
-        {/* Header */}
+    <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-muted/20 overflow-hidden">
+      <CardContent className="p-5 sm:p-6 space-y-5">
+        {/* Header moderne */}
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-base sm:text-lg flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            Avis clients
-          </h3>
-          <Button variant="link" size="sm" className="text-xs sm:text-sm">
+          <div className="flex items-center gap-3">
+            <motion.div
+              initial={{ scale: 0.8, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring" }}
+              className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg"
+            >
+              <MessageSquare className="h-5 w-5 text-primary-foreground" />
+            </motion.div>
+            <h3 className="font-bold text-lg">Avis clients</h3>
+          </div>
+          <Button variant="ghost" size="sm" className="text-xs sm:text-sm text-primary hover:text-primary/80">
             Voir tous
           </Button>
         </div>
 
-        {/* Stats globales */}
-        <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 sm:gap-6 p-4 bg-muted/50 rounded-lg">
-          {/* Score global */}
-          <div className="text-center sm:text-left sm:pr-6 sm:border-r">
-            <p className="text-3xl sm:text-4xl font-bold">{averageRating}</p>
-            <div className="flex items-center gap-1 justify-center sm:justify-start mt-1">
-              {[1, 2, 3, 4, 5].map(i => (
-                <Star 
-                  key={i} 
-                  className={`h-4 w-4 ${
-                    i <= Math.floor(averageRating) 
-                      ? 'fill-yellow-500 text-yellow-500' 
-                      : 'text-muted-foreground'
-                  }`} 
-                />
+        {/* Stats globales - Design premium */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-5 p-5 bg-gradient-to-br from-muted/60 to-muted/30 rounded-2xl border border-border/30"
+        >
+          {/* Score global avec animation */}
+          <div className="text-center sm:text-left sm:pr-6 sm:border-r sm:border-border/30">
+            <motion.p 
+              className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
+              initial={{ scale: 0.5 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", delay: 0.2 }}
+            >
+              {averageRating.toFixed(1)}
+            </motion.p>
+            <div className="flex items-center gap-1 justify-center sm:justify-start mt-2">
+              {[1, 2, 3, 4, 5].map((i, idx) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 + idx * 0.1 }}
+                >
+                  <Star 
+                    className={cn(
+                      "h-5 w-5 transition-all",
+                      i <= Math.floor(averageRating) 
+                        ? 'fill-yellow-400 text-yellow-400 drop-shadow-md' 
+                        : 'text-muted-foreground/30'
+                    )} 
+                  />
+                </motion.div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{totalReviews} avis</p>
+            <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1.5 justify-center sm:justify-start">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              {totalReviews} avis
+            </p>
           </div>
 
-          {/* Distribution */}
-          <div className="space-y-2">
-            {ratingDistribution.map(({ stars, count, percentage }) => (
-              <div key={stars} className="flex items-center gap-2">
-                <span className="text-xs w-3 text-muted-foreground">{stars}</span>
-                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-yellow-500 transition-all"
-                    style={{ width: `${percentage}%` }}
+          {/* Distribution avec barres animées */}
+          <div className="space-y-2.5">
+            {ratingDistribution.map(({ stars, count, percentage }, idx) => (
+              <motion.div 
+                key={stars} 
+                className="flex items-center gap-3"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + idx * 0.1 }}
+              >
+                <span className="text-sm font-medium w-4 text-muted-foreground">{stars}</span>
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <div className="flex-1 h-2.5 bg-muted/60 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-yellow-400 to-amber-400 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percentage}%` }}
+                    transition={{ delay: 0.6 + idx * 0.1, duration: 0.6, ease: "easeOut" }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground w-8 text-right">
+                <span className="text-sm font-medium text-muted-foreground w-8 text-right">
                   {count}
                 </span>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Liste des avis */}
-        <div className="space-y-3">
-          {reviews.map((review: any) => {
+        {/* Liste des avis - Design moderne */}
+        <div className="space-y-4">
+          {reviews.map((review: any, idx: number) => {
             const displayName = review.profiles?.display_name || 'Utilisateur anonyme';
             const avatarUrl = review.profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${review.id}`;
             const timeAgo = formatDistanceToNow(new Date(review.created_at), { 
@@ -161,51 +219,79 @@ export const VehicleReviews: React.FC<VehicleReviewsProps> = ({ vehicleId }) => 
             
             const booking = review.rental_bookings;
             const duration = booking 
-              ? `Location du ${new Date(booking.start_date).toLocaleDateString('fr-FR')} au ${new Date(booking.end_date).toLocaleDateString('fr-FR')}`
-              : 'Location';
+              ? `${new Date(booking.start_date).toLocaleDateString('fr-FR')} - ${new Date(booking.end_date).toLocaleDateString('fr-FR')}`
+              : '';
 
             return (
-              <div key={review.id} className="p-3 sm:p-4 border rounded-lg hover:bg-muted/30 transition-colors">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-10 w-10 shrink-0">
-                    <AvatarImage src={avatarUrl} />
-                    <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-                  </Avatar>
+              <motion.div 
+                key={review.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + idx * 0.1 }}
+                className="group p-4 rounded-2xl bg-gradient-to-br from-background to-muted/20 border border-border/30 hover:border-primary/20 hover:shadow-lg transition-all duration-300"
+              >
+                <div className="flex items-start gap-4">
+                  {/* Avatar avec ring animé */}
+                  <div className="relative shrink-0">
+                    <Avatar className="h-12 w-12 ring-2 ring-border group-hover:ring-primary/30 transition-all duration-300">
+                      <AvatarImage src={avatarUrl} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                        {displayName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Rating badge sur avatar */}
+                    <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-gradient-to-r from-yellow-400 to-amber-400 flex items-center justify-center shadow-md">
+                      <span className="text-[10px] font-bold text-white">{review.overall_rating}</span>
+                    </div>
+                  </div>
+                  
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1 gap-2">
+                    <div className="flex items-center justify-between mb-1.5 gap-2">
                       <p className="font-semibold text-sm truncate">{displayName}</p>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                        <span className="text-sm font-semibold">
-                          {review.overall_rating.toFixed(1)}
-                        </span>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star 
+                            key={star}
+                            className={cn(
+                              "h-3.5 w-3.5",
+                              star <= review.overall_rating 
+                                ? "fill-yellow-400 text-yellow-400" 
+                                : "text-muted-foreground/30"
+                            )}
+                          />
+                        ))}
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      {timeAgo} · {duration}
+                    
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {timeAgo} {duration && `· ${duration}`}
                     </p>
                     
-                    {/* Ratings détaillés */}
-                    <div className="flex gap-3 mb-2 text-xs">
-                      <span className="text-muted-foreground">
-                        🚗 Véhicule: {review.vehicle_rating}/5
-                      </span>
-                      <span className="text-muted-foreground">
-                        👔 Service: {review.service_rating}/5
-                      </span>
-                      <span className="text-muted-foreground">
-                        ✨ Propreté: {review.cleanliness_rating}/5
-                      </span>
+                    {/* Ratings détaillés avec design moderne */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {[
+                        { label: 'Véhicule', value: review.vehicle_rating, emoji: '🚗' },
+                        { label: 'Service', value: review.service_rating, emoji: '👔' },
+                        { label: 'Propreté', value: review.cleanliness_rating, emoji: '✨' }
+                      ].map((item) => (
+                        <span 
+                          key={item.label}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted/60 text-xs font-medium"
+                        >
+                          <span>{item.emoji}</span>
+                          <span className="text-muted-foreground">{item.value}/5</span>
+                        </span>
+                      ))}
                     </div>
                     
                     {review.comment && (
-                      <p className="text-sm text-muted-foreground line-clamp-3">
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
                         {review.comment}
                       </p>
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

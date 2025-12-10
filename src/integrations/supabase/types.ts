@@ -15624,8 +15624,8 @@ export type Database = {
       get_user_display_name: { Args: { p_user_id: string }; Returns: string }
       get_user_role: { Args: { user_id_param: string }; Returns: string }
       get_user_role_secure:
-        | { Args: { p_user_id: string }; Returns: string }
         | { Args: never; Returns: string }
+        | { Args: { p_user_id: string }; Returns: string }
       get_user_roles: {
         Args: { p_user_id: string }
         Returns: {

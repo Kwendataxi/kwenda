@@ -108,7 +108,7 @@ export const RentalVehicleDetails = () => {
     : vehicle.daily_rate;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       {/* Header compact moderne */}
       <VehicleHeader 
         vehicleName={vehicle.name} 
@@ -127,20 +127,23 @@ export const RentalVehicleDetails = () => {
           <VehicleImageGallery images={vehicleImages} vehicleName={vehicle.name} />
         </motion.div>
 
-        <div className="px-4 sm:px-6 space-y-4 sm:space-y-6">
-          {/* Informations principales - Card Hero */}
+        <div className="px-4 sm:px-6 space-y-5 sm:space-y-6">
+          {/* Informations principales - Card Hero Premium */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <Card className="border-2">
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-3 sm:space-y-4">
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-card via-card to-muted/30 overflow-hidden">
+              <CardContent className="p-5 sm:p-6 relative">
+                {/* Subtle background pattern */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.03),transparent_50%)]" />
+                
+                <div className="relative space-y-4">
                   {/* Row 1: Title + Badges */}
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-xl sm:text-2xl font-bold mb-2 line-clamp-2">
+                      <h2 className="text-xl sm:text-2xl font-bold mb-2 line-clamp-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
                         {vehicle.name}
                       </h2>
                       <p className="text-sm text-muted-foreground">
@@ -148,97 +151,106 @@ export const RentalVehicleDetails = () => {
                       </p>
                     </div>
                     
-                    <Badge className="bg-green-500 text-white shrink-0">
+                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-400 text-white shrink-0 shadow-lg border-0">
                       Disponible
                     </Badge>
                   </div>
 
-                  {/* Badges inline */}
+                  {/* Badges inline - Design moderne */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-muted to-muted/60">
                       {vehicle.comfort_level}
                     </Badge>
                     {vehicle.driver_available && (
-                      <Badge className="bg-blue-500 text-white text-xs">
+                      <Badge className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white text-xs px-3 py-1 rounded-full border-0">
                         <User className="h-3 w-3 mr-1" />
                         Chauffeur dispo
                       </Badge>
                     )}
                     {vehicle.driver_required && (
-                      <Badge variant="outline" className="border-amber-500 text-amber-600 text-xs">
+                      <Badge variant="outline" className="border-amber-400/50 bg-amber-500/10 text-amber-600 text-xs px-3 py-1 rounded-full">
                         Chauffeur obligatoire
                       </Badge>
                     )}
                   </div>
 
-                  <Separator />
+                  <Separator className="bg-border/50" />
 
-                  {/* Row 2: Partner Info */}
+                  {/* Row 2: Partner Info - Design Premium */}
                   {partnerGroup && (
-                    <div 
-                      className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                    <motion.div 
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className="flex items-center gap-4 p-4 bg-gradient-to-br from-muted/50 to-muted/30 rounded-2xl hover:from-primary/5 hover:to-primary/10 transition-all duration-300 cursor-pointer border border-border/30 hover:border-primary/20 hover:shadow-lg"
                       onClick={() => navigate(`/rental/partner/${vehicle.partner_id}/shop`)}
                     >
-                      <img 
-                        src={partnerGroup.partnerAvatar || '/placeholder.svg'}
-                        alt={partnerGroup.partnerName}
-                        className="w-12 h-12 rounded-full object-cover ring-2 ring-background shadow"
-                      />
+                      <div className="relative">
+                        <img 
+                          src={partnerGroup.partnerAvatar || '/placeholder.svg'}
+                          alt={partnerGroup.partnerName}
+                          className="w-14 h-14 rounded-xl object-cover ring-2 ring-primary/20 shadow-lg"
+                        />
+                        <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-green-500 to-emerald-400 flex items-center justify-center ring-2 ring-background">
+                          <CheckCircle2 className="h-3 w-3 text-white" />
+                        </div>
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm line-clamp-1">{partnerGroup.partnerName}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <p className="font-bold text-sm line-clamp-1">{partnerGroup.partnerName}</p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                           <span className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                            {partnerGroup.avgRating.toFixed(1)}
+                            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                            <span className="font-semibold text-foreground">{partnerGroup.avgRating.toFixed(1)}</span>
                           </span>
-                          <span>·</span>
+                          <span className="h-1 w-1 rounded-full bg-muted-foreground/50" />
                           <span>{partnerGroup.vehicleCount} véhicules</span>
                         </div>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
-                    </div>
+                      <ChevronRight className="h-5 w-5 text-primary/60 shrink-0" />
+                    </motion.div>
                   )}
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Spécifications */}
+          {/* Spécifications - Design Premium */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
           >
-            <Card>
-              <CardContent className="p-4 sm:p-6">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-muted/20 overflow-hidden">
+              <CardContent className="p-5 sm:p-6">
                 <VehicleSpecifications vehicle={vehicle} />
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Tarifs avec Tabs */}
+          {/* Tarifs avec Tabs - Design Premium */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <Card>
-              <CardContent className="p-4 sm:p-6 space-y-4">
-                <h3 className="font-bold text-base sm:text-lg flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  Tarifs de location
-                </h3>
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-muted/20 overflow-hidden">
+              <CardContent className="p-5 sm:p-6 space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+                    <DollarSign className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                  <h3 className="font-bold text-lg">Tarifs de location</h3>
+                </div>
 
                 {vehicle.driver_available ? (
                   <Tabs 
                     defaultValue={vehicle.driver_required ? "with" : "without"}
                     className="w-full"
                   >
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-2 p-1 bg-muted/60 rounded-xl">
                       <TabsTrigger 
                         value="with" 
                         disabled={!vehicle.driver_available}
-                        className="text-xs sm:text-sm"
+                        className="text-xs sm:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md"
                       >
                         <User className="h-4 w-4 mr-2" />
                         Avec chauffeur
@@ -246,7 +258,7 @@ export const RentalVehicleDetails = () => {
                       <TabsTrigger 
                         value="without" 
                         disabled={vehicle.driver_required}
-                        className="text-xs sm:text-sm"
+                        className="text-xs sm:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md"
                       >
                         <Car className="h-4 w-4 mr-2" />
                         Sans chauffeur
@@ -254,8 +266,8 @@ export const RentalVehicleDetails = () => {
                     </TabsList>
 
                     {/* Avec chauffeur */}
-                    <TabsContent value="with" className="space-y-3 mt-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <TabsContent value="with" className="space-y-4 mt-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <PricingCard
                           label="Horaire"
                           price={formatCDF(calculateCityPrice(vehicle.with_driver_hourly_rate, vehicle.category_id))}
@@ -284,8 +296,8 @@ export const RentalVehicleDetails = () => {
 
                     {/* Sans chauffeur */}
                     {!vehicle.driver_required && (
-                      <TabsContent value="without" className="space-y-3 mt-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <TabsContent value="without" className="space-y-4 mt-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <PricingCard
                             label="Horaire"
                             price={formatCDF(calculateCityPrice(vehicle.without_driver_hourly_rate, vehicle.category_id))}
@@ -314,7 +326,7 @@ export const RentalVehicleDetails = () => {
                     )}
                   </Tabs>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <PricingCard
                       label="Horaire"
                       price={formatCDF(calculateCityPrice(vehicle.hourly_rate, vehicle.category_id))}
@@ -341,76 +353,97 @@ export const RentalVehicleDetails = () => {
                   </div>
                 )}
 
-                {/* Dépôt de garantie - Compact */}
-                <div className="flex items-center gap-3 p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center shrink-0">
-                    <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+                {/* Dépôt de garantie - Design Premium */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-center gap-4 p-4 sm:p-5 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-400/30 rounded-2xl"
+                >
+                  <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-400 flex items-center justify-center shrink-0 shadow-lg">
+                    <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">Dépôt de garantie</p>
-                    <p className="text-xs text-muted-foreground">Remboursable en fin de location</p>
+                    <p className="text-sm font-semibold">Dépôt de garantie</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Remboursable en fin de location</p>
                   </div>
-                  <p className="text-lg sm:text-xl font-bold text-amber-600 shrink-0">
+                  <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent shrink-0">
                     {formatCDF(calculateCityPrice(vehicle.security_deposit, vehicle.category_id))}
                   </p>
-                </div>
+                </motion.div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Conditions et informations - Accordion */}
+          {/* Conditions et informations - Accordion Premium */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.25 }}
           >
-            <Card>
-              <CardContent className="p-4 sm:p-6">
-                <Accordion type="single" collapsible defaultValue="conditions">
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-muted/20 overflow-hidden">
+              <CardContent className="p-5 sm:p-6">
+                <Accordion type="single" collapsible defaultValue="conditions" className="space-y-3">
                   {/* Conditions */}
-                  <AccordionItem value="conditions">
-                    <AccordionTrigger>
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-primary" />
+                  <AccordionItem value="conditions" className="border rounded-2xl px-4 bg-gradient-to-br from-background/80 to-muted/20 border-border/50">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
+                          <FileText className="h-5 w-5 text-white" />
+                        </div>
                         <span className="font-semibold text-sm sm:text-base">Conditions de location</span>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="space-y-2 pt-2">
-                      <div className="space-y-3">
+                    <AccordionContent className="pb-4">
+                      <div className="space-y-3 pt-2">
                         {conditions.map((condition, i) => (
-                          <div key={i} className="flex items-start gap-3">
-                            <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                          <motion.div 
+                            key={i} 
+                            className="flex items-start gap-3 p-3 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                          >
+                            <div className="h-6 w-6 rounded-full bg-gradient-to-r from-green-500 to-emerald-400 flex items-center justify-center shrink-0">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-white" />
                             </div>
                             <p className="text-sm text-muted-foreground">{condition}</p>
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
 
                   {/* Assurance incluse */}
-                  <AccordionItem value="insurance">
-                    <AccordionTrigger>
-                      <div className="flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-primary" />
+                  <AccordionItem value="insurance" className="border rounded-2xl px-4 bg-gradient-to-br from-background/80 to-muted/20 border-border/50">
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-400 flex items-center justify-center shadow-md">
+                          <Shield className="h-5 w-5 text-white" />
+                        </div>
                         <span className="font-semibold text-sm sm:text-base">Assurance et protection</span>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-2 text-sm text-muted-foreground pt-2">
-                        <p className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          Assurance tous risques incluse
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          Protection contre le vol et les dommages
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          Assistance routière 24/7
-                        </p>
+                    <AccordionContent className="pb-4">
+                      <div className="space-y-3 pt-2">
+                        {[
+                          'Assurance tous risques incluse',
+                          'Protection contre le vol et les dommages',
+                          'Assistance 24h/24 en cas de panne'
+                        ].map((item, i) => (
+                          <motion.div 
+                            key={i}
+                            className="flex items-center gap-3 p-3 rounded-xl bg-muted/40"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                          >
+                            <div className="h-6 w-6 rounded-full bg-gradient-to-r from-green-500 to-emerald-400 flex items-center justify-center shrink-0">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                            </div>
+                            <p className="text-sm text-muted-foreground">{item}</p>
+                          </motion.div>
+                        ))}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
