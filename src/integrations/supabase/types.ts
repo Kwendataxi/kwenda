@@ -4937,15 +4937,19 @@ export type Database = {
       lottery_wins: {
         Row: {
           admin_notes: string | null
+          boost_details: Json | null
+          card_type: string | null
           claimed_at: string | null
           created_at: string
           currency: string
+          daily_card: boolean | null
           delivery_address: string | null
           delivery_method: string | null
           delivery_status: string | null
           draw_id: string
           entry_id: string
           expires_at: string | null
+          expires_in_hours: number | null
           id: string
           physical_delivery_info: Json | null
           points_awarded: number | null
@@ -4966,15 +4970,19 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          boost_details?: Json | null
+          card_type?: string | null
           claimed_at?: string | null
           created_at?: string
           currency?: string
+          daily_card?: boolean | null
           delivery_address?: string | null
           delivery_method?: string | null
           delivery_status?: string | null
           draw_id: string
           entry_id: string
           expires_at?: string | null
+          expires_in_hours?: number | null
           id?: string
           physical_delivery_info?: Json | null
           points_awarded?: number | null
@@ -4995,15 +5003,19 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          boost_details?: Json | null
+          card_type?: string | null
           claimed_at?: string | null
           created_at?: string
           currency?: string
+          daily_card?: boolean | null
           delivery_address?: string | null
           delivery_method?: string | null
           delivery_status?: string | null
           draw_id?: string
           entry_id?: string
           expires_at?: string | null
+          expires_in_hours?: number | null
           id?: string
           physical_delivery_info?: Json | null
           points_awarded?: number | null
