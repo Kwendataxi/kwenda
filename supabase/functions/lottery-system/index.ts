@@ -6,6 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Configuration des types de cartes Kwenda Gratta
+const CARD_TYPE_REWARDS = {
+  standard: { maxXP: 50, boostChance: 0.1 },
+  active: { maxXP: 200, boostChance: 0.3 },
+  rare: { maxXP: 500, boostChance: 0.5 },
+  mega: { maxXP: 1000, boostChance: 0.8 }
+};
+
+const REWARD_CATEGORIES = ['xp_points', 'boost_2x', 'boost_3x', 'badge', 'discount_5', 'discount_10', 'flash_discount', 'internal_credit'];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,11 +27,223 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { action, userId, sourceType, sourceId, count, multiplier, drawId } = await req.json();
+    const { action, userId, sourceType, sourceId, count, multiplier, drawId, cardType } = await req.json();
 
     console.log(`🎰 Lottery system action: ${action}`);
 
-    // ACTION 1: Attribuer des tickets
+    // ACTION: Attribuer une carte quotidienne Kwenda Gratta
+    if (action === 'award_daily_card') {
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'userId requis' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Vérifier si carte du jour déjà reçue
+      const today = new Date().toISOString().split('T')[0];
+      const { data: existingCard } = await supabase
+        .from('lottery_wins')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('daily_card', true)
+        .gte('created_at', `${today}T00:00:00`)
+        .single();
+
+      if (existingCard) {
+        return new Response(
+          JSON.stringify({ error: 'Carte du jour déjà récupérée', alreadyClaimed: true }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Déterminer le type de carte basé sur l'activité
+      const selectedCardType = cardType || 'standard';
+      const config = CARD_TYPE_REWARDS[selectedCardType] || CARD_TYPE_REWARDS.standard;
+
+      // Générer la récompense
+      const isBoost = Math.random() < config.boostChance;
+      let rewardCategory = 'xp_points';
+      let prizeValue = Math.floor(Math.random() * config.maxXP) + 10;
+      let prizeName = `+${prizeValue} XP`;
+      let boostDetails = {};
+
+      if (isBoost) {
+        const boostTypes = ['boost_2x', 'discount_5', 'internal_credit'];
+        rewardCategory = boostTypes[Math.floor(Math.random() * boostTypes.length)];
+        
+        if (rewardCategory === 'boost_2x') {
+          prizeName = 'Boost 2x Points';
+          boostDetails = { multiplier: 2, expiresInHours: 24 };
+        } else if (rewardCategory === 'discount_5') {
+          prizeName = 'Remise 5%';
+          prizeValue = 5;
+          boostDetails = { discountPercent: 5 };
+        } else {
+          prizeName = '+50 Crédit';
+          prizeValue = 50;
+        }
+      }
+
+      // Créer la carte
+      const { data: card, error } = await supabase
+        .from('lottery_wins')
+        .insert({
+          user_id: userId,
+          prize_details: { name: prizeName, value: prizeValue, currency: 'XP' },
+          prize_value: prizeValue,
+          currency: 'XP',
+          status: 'pending',
+          rarity: selectedCardType === 'mega' ? 'legendary' : selectedCardType === 'rare' ? 'epic' : 'common',
+          reward_type: rewardCategory,
+          scratch_percentage: 0,
+          daily_card: true,
+          card_type: selectedCardType,
+          boost_details: boostDetails,
+          expires_in_hours: 24
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erreur création carte quotidienne:', error);
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`✅ Carte quotidienne ${selectedCardType} créée pour ${userId}`);
+
+      return new Response(
+        JSON.stringify({ success: true, card }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ACTION: Vérifier et attribuer les badges
+    if (action === 'check_badges') {
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'userId requis' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Récupérer les stats de l'utilisateur
+      const { data: stats } = await supabase
+        .from('user_gratta_stats')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (!stats) {
+        return new Response(
+          JSON.stringify({ success: true, newBadges: [] }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Badges existants
+      const { data: existingBadges } = await supabase
+        .from('user_badges')
+        .select('badge_id')
+        .eq('user_id', userId);
+
+      const earnedBadgeIds = new Set(existingBadges?.map(b => b.badge_id) || []);
+      const newBadges: string[] = [];
+
+      // Vérifier les badges
+      const badgeChecks = [
+        { id: 'premier_gratta', condition: stats.cards_scratched >= 1 },
+        { id: 'gratteur_novice', condition: stats.cards_scratched >= 10 },
+        { id: 'chasseur_de_chance', condition: stats.cards_scratched >= 50 },
+        { id: 'kinois_champion', condition: stats.cards_scratched >= 100 },
+        { id: 'gratteur_quotidien', condition: stats.consecutive_days >= 7 },
+        { id: 'semaine_parfaite', condition: stats.consecutive_days >= 14 },
+        { id: 'mois_de_feu', condition: stats.consecutive_days >= 30 },
+        { id: 'chanceux_kolwezi', condition: stats.mega_cards >= 3 },
+        { id: 'legende_lubumbashi', condition: stats.mega_cards >= 5 },
+        { id: 'roi_du_grattage', condition: stats.mega_cards >= 10 },
+        { id: 'mbongo_master', condition: stats.total_xp_earned >= 10000 },
+      ];
+
+      for (const check of badgeChecks) {
+        if (check.condition && !earnedBadgeIds.has(check.id)) {
+          const { error } = await supabase
+            .from('user_badges')
+            .insert({ user_id: userId, badge_id: check.id, source: 'gratta' });
+          
+          if (!error) {
+            newBadges.push(check.id);
+            console.log(`🏆 Badge ${check.id} attribué à ${userId}`);
+          }
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, newBadges }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ACTION: Mettre à jour les stats après grattage
+    if (action === 'update_gratta_stats') {
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'userId requis' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      const { xpEarned = 0, cardTypeScratched = 'standard' } = await req.json();
+
+      // Upsert stats
+      const { data: existingStats } = await supabase
+        .from('user_gratta_stats')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (existingStats) {
+        const lastDate = existingStats.last_scratch_date;
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        const newStreak = lastDate === yesterday ? existingStats.consecutive_days + 1 : (lastDate === today ? existingStats.consecutive_days : 1);
+
+        await supabase
+          .from('user_gratta_stats')
+          .update({
+            cards_scratched: existingStats.cards_scratched + 1,
+            [`${cardTypeScratched}_cards`]: (existingStats[`${cardTypeScratched}_cards`] || 0) + 1,
+            total_xp_earned: existingStats.total_xp_earned + xpEarned,
+            consecutive_days: newStreak,
+            longest_streak: Math.max(existingStats.longest_streak, newStreak),
+            last_scratch_date: today,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+      } else {
+        await supabase
+          .from('user_gratta_stats')
+          .insert({
+            user_id: userId,
+            cards_scratched: 1,
+            [`${cardTypeScratched}_cards`]: 1,
+            total_xp_earned: xpEarned,
+            consecutive_days: 1,
+            longest_streak: 1,
+            last_scratch_date: today
+          });
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ACTION: Attribuer des tickets (existant)
     if (action === 'award_ticket') {
       if (!userId || !sourceType) {
         return new Response(
@@ -33,9 +255,7 @@ serve(async (req) => {
       const ticketCount = (count || 1) * (multiplier || 1);
       const tickets = [];
 
-      // Créer les tickets
       for (let i = 0; i < ticketCount; i++) {
-        // Générer un numéro de ticket unique
         const ticketNumber = `TK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
         
         const { data: ticket, error } = await supabase
@@ -51,12 +271,7 @@ serve(async (req) => {
           .select()
           .single();
 
-        if (error) {
-          console.error(`❌ Erreur insertion ticket ${i+1}:`, error);
-        } else if (ticket) {
-          console.log(`✅ Ticket ${i+1} créé: ${ticket.ticket_number}`);
-          tickets.push(ticket);
-        }
+        if (!error && ticket) tickets.push(ticket);
       }
 
       console.log(`✅ ${tickets.length} ticket(s) attribué(s) à ${userId}`);
@@ -67,7 +282,7 @@ serve(async (req) => {
       );
     }
 
-    // ACTION 2: Générer une carte à gratter directement (pour test ou attribution immédiate)
+    // ACTION: Générer une carte à gratter
     if (action === 'generate_scratch_card') {
       if (!userId) {
         return new Response(
@@ -76,65 +291,34 @@ serve(async (req) => {
         );
       }
 
-      // Système de rareté avec probabilités
-      const rarityRoll = Math.random();
-      let rarity: string;
-      let prizeValue: number;
-      let prizeName: string;
+      const selectedType = cardType || 'standard';
+      const config = CARD_TYPE_REWARDS[selectedType] || CARD_TYPE_REWARDS.standard;
+      const prizeValue = Math.floor(Math.random() * config.maxXP) + 10;
 
-      if (rarityRoll < 0.02) {
-        // 2% Légendaire
-        rarity = 'legendary';
-        prizeValue = 50000 + Math.floor(Math.random() * 150000); // 50k-200k CDF
-        prizeName = '🏆 Jackpot Légendaire';
-      } else if (rarityRoll < 0.10) {
-        // 8% Épique
-        rarity = 'epic';
-        prizeValue = 10000 + Math.floor(Math.random() * 40000); // 10k-50k CDF
-        prizeName = '💎 Gros Lot Épique';
-      } else if (rarityRoll < 0.30) {
-        // 20% Rare
-        rarity = 'rare';
-        prizeValue = 2000 + Math.floor(Math.random() * 8000); // 2k-10k CDF
-        prizeName = '✨ Lot Rare';
-      } else {
-        // 70% Commun
-        rarity = 'common';
-        prizeValue = 100 + Math.floor(Math.random() * 1900); // 100-2k CDF
-        prizeName = '🎁 Lot Commun';
-      }
-
-      // Créer la carte à gratter
       const { data: scratchCard, error } = await supabase
         .from('lottery_wins')
         .insert({
           user_id: userId,
-          prize_details: {
-            name: prizeName,
-            value: prizeValue,
-            currency: 'CDF',
-            prize_id: `PRIZE-${Date.now()}`
-          },
+          prize_details: { name: `+${prizeValue} XP`, value: prizeValue, currency: 'XP' },
           prize_value: prizeValue,
-          currency: 'CDF',
+          currency: 'XP',
           status: 'pending',
-          rarity: rarity,
-          reward_type: 'cash',
+          rarity: selectedType === 'mega' ? 'legendary' : selectedType === 'rare' ? 'epic' : 'common',
+          reward_type: 'xp_points',
           scratch_percentage: 0,
-          scratch_revealed_at: null
+          card_type: selectedType
         })
         .select()
         .single();
 
       if (error) {
-        console.error('❌ Erreur création carte à gratter:', error);
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      console.log(`✅ Carte à gratter créée: ${rarity} - ${prizeValue} CDF`);
+      console.log(`✅ Carte ${selectedType} créée: ${prizeValue} XP`);
 
       return new Response(
         JSON.stringify({ success: true, scratchCard }),
@@ -142,132 +326,6 @@ serve(async (req) => {
       );
     }
 
-    // ACTION 3: Effectuer un tirage
-    if (action === 'drawLottery') {
-      if (!drawId) {
-        return new Response(
-          JSON.stringify({ error: 'drawId requis' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      console.log(`🎲 Exécution du tirage ${drawId}`);
-
-      // 1. Récupérer le tirage
-      const { data: draw, error: drawError } = await supabase
-        .from('lottery_draws')
-        .select('*')
-        .eq('id', drawId)
-        .single();
-
-      if (drawError || !draw) {
-        return new Response(
-          JSON.stringify({ error: 'Tirage non trouvé' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // 2. Récupérer tous les tickets actifs pour ce tirage
-      const { data: tickets, error: ticketsError } = await supabase
-        .from('lottery_tickets')
-        .select('*')
-        .eq('status', 'active')
-        .is('draw_id', null);
-
-      if (ticketsError || !tickets || tickets.length === 0) {
-        console.log('❌ Aucun ticket disponible pour le tirage');
-        return new Response(
-          JSON.stringify({ error: 'Aucun ticket disponible' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      console.log(`📊 ${tickets.length} tickets participants`);
-
-      // 3. Récupérer les prix disponibles pour ce type de tirage
-      const { data: prizes, error: prizesError } = await supabase
-        .from('lottery_prize_types')
-        .select('*')
-        .eq('draw_type', draw.draw_type)
-        .eq('is_active', true)
-        .order('probability', { ascending: false });
-
-      if (prizesError || !prizes || prizes.length === 0) {
-        return new Response(
-          JSON.stringify({ error: 'Aucun prix disponible' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // 4. Sélectionner des gagnants aléatoirement
-      const winners = [];
-      const maxWinners = Math.min(prizes.length, Math.floor(tickets.length * 0.1)); // Max 10% de gagnants
-
-      for (let i = 0; i < maxWinners; i++) {
-        const randomTicket = tickets[Math.floor(Math.random() * tickets.length)];
-        const randomPrize = prizes[i]; // Attribution séquentielle des prix
-
-        // Créer un gagnant
-        const { data: win, error: winError } = await supabase
-          .from('lottery_wins')
-          .insert({
-            draw_id: drawId,
-            user_id: randomTicket.user_id,
-            ticket_id: randomTicket.id,
-            prize_type_id: randomPrize.id,
-            won_at: new Date().toISOString(),
-            status: 'pending'
-          })
-          .select()
-          .single();
-
-        if (!winError && win) {
-          winners.push(win);
-
-          // Marquer le ticket comme utilisé
-          await supabase
-            .from('lottery_tickets')
-            .update({ status: 'used', draw_id: drawId })
-            .eq('id', randomTicket.id);
-        }
-      }
-
-      // 5. Mettre à jour le statut du tirage
-      await supabase
-        .from('lottery_draws')
-        .update({
-          status: 'completed',
-          executed_at: new Date().toISOString(),
-          total_participants: tickets.length,
-          total_winners: winners.length
-        })
-        .eq('id', drawId);
-
-      console.log(`🎉 Tirage terminé: ${winners.length} gagnant(s)`);
-
-      // 6. Notifier les gagnants
-      for (const win of winners) {
-        await supabase.from('delivery_notifications').insert({
-          user_id: win.user_id,
-          title: '🎉 Vous avez gagné !',
-          message: 'Félicitations ! Vous avez remporté un prix à la tombola Kwenda',
-          notification_type: 'lottery_win',
-          related_order_id: win.id
-        });
-      }
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          draw_id: drawId,
-          participants: tickets.length,
-          winners: winners.length
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Action inconnue
     return new Response(
       JSON.stringify({ success: false, error: 'Action inconnue' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

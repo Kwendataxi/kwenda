@@ -9,6 +9,7 @@ import {
   CARD_TYPE_CONFIG, 
   REWARD_CONFIG 
 } from '@/types/kwenda-gratta';
+import { useGrattaSound } from '@/hooks/useGrattaSound';
 import confetti from 'canvas-confetti';
 import '@/styles/kwenda-gratta.css';
 
@@ -28,7 +29,10 @@ export const KwendaGrattaCard: React.FC<KwendaGrattaCardProps> = ({
   const [scratchPercentage, setScratchPercentage] = useState(card.scratchPercentage || 0);
   const [revealed, setRevealed] = useState(!!card.scratchRevealedAt || scratchPercentage >= 70);
   const [showChing, setShowChing] = useState(false);
+  const lastHapticProgress = useRef(0);
 
+  const { playRevealFeedback, playScatchHaptic, playScratchSound } = useGrattaSound();
+  
   const cardConfig = CARD_TYPE_CONFIG[card.cardType];
   const rewardConfig = REWARD_CONFIG[card.rewardCategory];
 
@@ -58,8 +62,8 @@ export const KwendaGrattaCard: React.FC<KwendaGrattaCardProps> = ({
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Ajouter des motifs géométriques
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    // Ajouter des motifs géométriques wax
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     for (let i = 0; i < canvas.width; i += 20) {
       for (let j = 0; j < canvas.height; j += 20) {
         if ((i + j) % 40 === 0) {
@@ -70,15 +74,15 @@ export const KwendaGrattaCard: React.FC<KwendaGrattaCardProps> = ({
       }
     }
 
-    // Texte "GRATTE ICI"
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.font = 'bold 16px system-ui';
+    // Texte "GRATTE ICI" avec effet
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = 'bold 18px system-ui';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('👆 GRATTE ICI', canvas.width / 2, canvas.height / 2);
   }, [revealed]);
 
-  // Fonction de grattage
+  // Fonction de grattage avec haptics
   const scratch = useCallback((x: number, y: number) => {
     if (revealed) return;
 
@@ -106,38 +110,60 @@ export const KwendaGrattaCard: React.FC<KwendaGrattaCardProps> = ({
     setScratchPercentage(percentage);
     onScratch?.(percentage);
 
+    // Haptic feedback tous les 10% de progression
+    if (percentage - lastHapticProgress.current >= 10) {
+      lastHapticProgress.current = percentage;
+      playScatchHaptic();
+      playScratchSound();
+    }
+
     // Révéler si > 70%
     if (percentage >= 70 && !revealed) {
       handleReveal();
     }
-  }, [revealed, onScratch]);
+  }, [revealed, onScratch, playScatchHaptic, playScratchSound]);
 
-  // Révéler la carte
-  const handleReveal = () => {
+  // Révéler la carte avec sons et haptics
+  const handleReveal = async () => {
     setRevealed(true);
     setShowChing(true);
     onReveal?.();
 
-    // Animation "Ching!"
-    setTimeout(() => setShowChing(false), 600);
+    // Son "Ching!" + Haptic feedback
+    await playRevealFeedback(card.cardType);
 
-    // Confetti aux couleurs RDC
+    // Animation "Ching!"
+    setTimeout(() => setShowChing(false), 800);
+
+    // Confetti aux couleurs RDC 🇨🇩
     const rdcColors = ['#007FFF', '#F7D000', '#CE1126'];
     
     confetti({
-      particleCount: card.cardType === 'mega' ? 150 : card.cardType === 'rare' ? 100 : 50,
-      spread: 70,
+      particleCount: card.cardType === 'mega' ? 200 : card.cardType === 'rare' ? 120 : 60,
+      spread: 80,
       origin: { y: 0.6 },
       colors: rdcColors,
-      shapes: ['circle', 'square']
+      shapes: ['circle', 'square'],
+      gravity: 0.8
     });
 
-    // Son "Ching!"
-    try {
-      const audio = new Audio('/sounds/ching.mp3');
-      audio.volume = 0.5;
-      audio.play().catch(() => {});
-    } catch {}
+    // Double confetti pour Méga Carte
+    if (card.cardType === 'mega') {
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 100,
+          origin: { y: 0.5, x: 0.3 },
+          colors: rdcColors
+        });
+        confetti({
+          particleCount: 100,
+          spread: 100,
+          origin: { y: 0.5, x: 0.7 },
+          colors: rdcColors
+        });
+      }, 300);
+    }
   };
 
   // Gestion des événements tactiles
