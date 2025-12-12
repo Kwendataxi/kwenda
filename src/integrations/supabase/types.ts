@@ -12184,6 +12184,78 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string
+          id: string
+          metadata: Json | null
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_gratta_stats: {
+        Row: {
+          active_cards: number | null
+          cards_scratched: number | null
+          consecutive_days: number | null
+          created_at: string | null
+          last_scratch_date: string | null
+          longest_streak: number | null
+          mega_cards: number | null
+          rare_cards: number | null
+          standard_cards: number | null
+          total_xp_earned: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active_cards?: number | null
+          cards_scratched?: number | null
+          consecutive_days?: number | null
+          created_at?: string | null
+          last_scratch_date?: string | null
+          longest_streak?: number | null
+          mega_cards?: number | null
+          rare_cards?: number | null
+          standard_cards?: number | null
+          total_xp_earned?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active_cards?: number | null
+          cards_scratched?: number | null
+          consecutive_days?: number | null
+          created_at?: string | null
+          last_scratch_date?: string | null
+          longest_streak?: number | null
+          mega_cards?: number | null
+          rare_cards?: number | null
+          standard_cards?: number | null
+          total_xp_earned?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_location_preferences: {
         Row: {
           auto_save_favorites: boolean | null
