@@ -8,19 +8,22 @@ import DemandHeatmapView from './DemandHeatmapView';
 import { DriverHeartbeatMonitor } from './DriverHeartbeatMonitor';
 import { DriverSubscriptionCard } from './DriverSubscriptionCard';
 import { DriverArrivalButton } from './DriverArrivalButton';
-import { Car, MapPin, Clock, Star, TrendingUp, Zap } from 'lucide-react';
+import { Car, MapPin, Clock, Star, TrendingUp, Zap, Power } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-
-const SUPABASE_URL = "https://wddlktajnhwhyquwcdgf.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZGxrdGFqbmh3aHlxdXdjZGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNDA1NjUsImV4cCI6MjA2OTcxNjU2NX0.rViBegpawtg1sFwafH_fczlB0oeA8E6V3MtDELcSIiU";
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+import { useDriverEarnings } from '@/hooks/useDriverEarnings';
+import { useDriverStatus } from '@/hooks/useDriverStatus';
 
 export function DriverDashboard() {
   const { user } = useAuth();
   const [activeBooking, setActiveBooking] = useState<any>(null);
   const [subscription, setSubscription] = useState<any>(null);
+  const [onlineTime, setOnlineTime] = useState(0);
+  
+  // ✅ Vraies données depuis les hooks
+  const { stats, loading: statsLoading, refresh: refreshStats } = useDriverEarnings();
+  const { status, goOffline } = useDriverStatus();
 
   // Fetch active booking
   useEffect(() => {
@@ -76,14 +79,14 @@ export function DriverDashboard() {
     // Refresh subscription
     if (user?.id) {
       try {
-        const { data } = await supabase
+        const result = await supabase
           .from('driver_subscriptions')
           .select('id, driver_id, rides_remaining, rides_used, is_active')
           .eq('driver_id', user.id)
           .eq('is_active', true)
           .maybeSingle();
         
-        setSubscription(data);
+        setSubscription(result.data);
       } catch (error) {
         console.error('Error refreshing subscription:', error);
       }
@@ -181,7 +184,7 @@ export function DriverDashboard() {
           </Card>
         )}
 
-        {/* Status Card */}
+        {/* Status Card avec vraies données */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -192,14 +195,24 @@ export function DriverDashboard() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Badge variant="default" className="bg-green-500">
-                  En ligne
+                <Badge 
+                  variant="default" 
+                  className={status.isOnline ? "bg-green-500" : "bg-gray-500"}
+                >
+                  {status.isOnline ? 'En ligne' : 'Hors ligne'}
                 </Badge>
                 <Badge variant="secondary">
-                  Disponible
+                  {status.isAvailable ? 'Disponible' : 'Occupé'}
                 </Badge>
               </div>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={goOffline}
+                disabled={!status.isOnline}
+                className="gap-2"
+              >
+                <Power className="h-4 w-4" />
                 Se déconnecter
               </Button>
             </div>
@@ -230,13 +243,31 @@ export function DriverDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Stats Cards modernes */}
+        {/* Stats Cards avec vraies données */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { icon: MapPin, label: "Courses aujourd'hui", value: "12", gradient: "from-blue-500/20 to-blue-600/10", color: "blue-500" },
-            { icon: Clock, label: "Temps en ligne", value: "8h 30m", gradient: "from-orange-500/20 to-orange-600/10", color: "orange-500" },
-            { icon: Star, label: "Note moyenne", value: "4.8", gradient: "from-yellow-500/20 to-yellow-600/10", color: "yellow-500" }
-          ].map(({ icon: Icon, label, value, gradient, color }, index) => (
+            { 
+              icon: MapPin, 
+              label: "Courses aujourd'hui", 
+              value: statsLoading ? '...' : stats.todayTrips.toString(), 
+              gradient: "from-blue-500/20 to-blue-600/10", 
+              iconBg: "bg-blue-500" 
+            },
+            { 
+              icon: Clock, 
+              label: "Revenus du jour", 
+              value: statsLoading ? '...' : `${stats.todayEarnings.toLocaleString()} CDF`, 
+              gradient: "from-green-500/20 to-green-600/10", 
+              iconBg: "bg-green-500" 
+            },
+            { 
+              icon: Star, 
+              label: "Note moyenne", 
+              value: statsLoading ? '...' : stats.averageRating.toFixed(1), 
+              gradient: "from-yellow-500/20 to-yellow-600/10", 
+              iconBg: "bg-yellow-500" 
+            }
+          ].map(({ icon: Icon, label, value, gradient, iconBg }, index) => (
             <motion.div
               key={label}
               initial={{ opacity: 0, y: 20 }}
@@ -248,8 +279,7 @@ export function DriverDashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br from-${color} to-${color}/80 
-                        flex items-center justify-center shadow-lg`}>
+                      <div className={`w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center shadow-lg`}>
                         <Icon className="h-6 w-6 text-white" />
                       </div>
                       <div>
@@ -263,6 +293,32 @@ export function DriverDashboard() {
             </motion.div>
           ))}
         </div>
+
+        {/* Objectif hebdomadaire */}
+        {!statsLoading && stats.weeklyGoal > 0 && (
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Objectif hebdomadaire</span>
+                <span className="text-sm text-muted-foreground">
+                  {stats.weeklyProgress}% atteint
+                </span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, stats.weeklyProgress)}%` }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                <TrendingUp className="h-3 w-3 inline mr-1" />
+                Objectif: {stats.weeklyGoal.toLocaleString()} CDF
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

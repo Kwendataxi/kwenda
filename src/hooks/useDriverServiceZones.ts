@@ -64,14 +64,14 @@ export const useDriverServiceZones = () => {
     enabled: !!user
   });
 
-  // Charger les stats par zone
+  // Charger les stats par zone avec demande temps réel
   const { data: zoneStats } = useQuery({
-    queryKey: ['zone-stats', user?.id],
+    queryKey: ['zone-stats', user?.id, driverCity],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user) return {};
 
-      // Stats courses par zone
-      const { data, error } = await supabase
+      // Stats courses par zone (historique chauffeur)
+      const { data: driverData, error } = await supabase
         .from('transport_bookings')
         .select('pickup_zone, fare')
         .eq('driver_id', user.id)
@@ -80,37 +80,63 @@ export const useDriverServiceZones = () => {
       if (error) throw error;
 
       // Agréger par zone
-      const stats = data?.reduce((acc: any, booking: any) => {
+      const stats = (driverData || []).reduce((acc: any, booking: any) => {
         const zone = booking.pickup_zone || 'unknown';
         if (!acc[zone]) {
-          acc[zone] = { rides: 0, earnings: 0 };
+          acc[zone] = { rides: 0, earnings: 0, recentDemand: 0 };
         }
         acc[zone].rides += 1;
         acc[zone].earnings += booking.fare || 0;
         return acc;
       }, {});
 
+      // ✅ Demande temps réel: compter les courses des 30 dernières minutes par zone
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+      const { data: recentBookings } = await supabase
+        .from('transport_bookings')
+        .select('pickup_zone')
+        .eq('city', driverCity)
+        .in('status', ['pending', 'searching_driver', 'driver_assigned'])
+        .gte('created_at', thirtyMinutesAgo);
+
+      // Ajouter la demande récente par zone
+      (recentBookings || []).forEach((booking: any) => {
+        const zone = booking.pickup_zone || 'unknown';
+        if (!stats[zone]) {
+          stats[zone] = { rides: 0, earnings: 0, recentDemand: 0 };
+        }
+        stats[zone].recentDemand = (stats[zone].recentDemand || 0) + 1;
+      });
+
       return stats;
     },
-    enabled: !!user
+    enabled: !!user && !!driverCity,
+    refetchInterval: 60000 // Rafraîchir toutes les minutes
   });
 
   // Combiner les données pour afficher les zones avec leur statut
   const zones: ServiceZone[] = (availableZones || []).map((zone: any) => {
-    const activeZones = Array.isArray(driverZones?.service_areas) 
+    const activeZonesArray = Array.isArray(driverZones?.service_areas) 
       ? driverZones.service_areas 
       : [];
-    const stats = zoneStats?.[zone.name] || { rides: 0, earnings: 0 };
+    const zoneStat = zoneStats?.[zone.name] || { rides: 0, earnings: 0, recentDemand: 0 };
+
+    // ✅ Calculer la demande basée sur activité récente
+    const recentDemand = zoneStat.recentDemand || 0;
+    let demandLevel: 'low' | 'medium' | 'high' = 'low';
+    if (recentDemand >= 5) demandLevel = 'high';
+    else if (recentDemand >= 2) demandLevel = 'medium';
 
     return {
       id: zone.id,
       name: zone.name,
       city: zone.city,
-      active: activeZones.includes(zone.id),
+      active: activeZonesArray.includes(zone.id),
       polygon: zone.polygon,
-      rides_count: stats.rides,
-      earnings: stats.earnings,
-      demand_level: stats.rides > 30 ? 'high' : stats.rides > 10 ? 'medium' : 'low'
+      rides_count: zoneStat.rides,
+      earnings: zoneStat.earnings,
+      demand_level: demandLevel,
+      recent_demand: recentDemand
     };
   });
 

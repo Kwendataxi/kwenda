@@ -136,6 +136,22 @@ export const SimplifiedDriverDashboard: React.FC<SimplifiedDriverDashboardProps>
     return () => clearInterval(interval);
   }, [status.isOnline]);
 
+  // ✅ PHASE 5: Auto-afficher les nouvelles notifications
+  useEffect(() => {
+    if (relevantNotifications.length > 0 && !selectedNotification) {
+      // Afficher automatiquement la première notification
+      const latestNotification = relevantNotifications[0];
+      setSelectedNotification(latestNotification);
+      
+      // Auto-expire après 30 secondes
+      const timeout = setTimeout(() => {
+        setSelectedNotification(null);
+      }, 30000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [relevantNotifications, selectedNotification]);
+
   return (
     <div className="h-screen flex flex-col">
       {/* Toggle Online fixe en haut - TOUJOURS VISIBLE */}

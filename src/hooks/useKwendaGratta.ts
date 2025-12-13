@@ -13,6 +13,7 @@ import {
   determineCardType,
   generateReward
 } from '@/types/kwenda-gratta';
+import { StreakData, getRewardForDay } from '@/types/gratta-streaks';
 
 interface UseKwendaGrattaReturn {
   loading: boolean;
@@ -28,10 +29,13 @@ interface UseKwendaGrattaReturn {
     rare: number;
     mega: number;
   };
+  // ✅ Nouveaux champs streak
+  streakData: StreakData;
   claimDailyCard: () => Promise<void>;
   refreshCards: () => Promise<void>;
   updateScratchProgress: (winId: string, percentage: number) => Promise<void>;
   revealCard: (winId: string) => Promise<void>;
+  updateStreak: () => Promise<void>;
 }
 
 export const useKwendaGratta = (): UseKwendaGrattaReturn => {
@@ -41,6 +45,13 @@ export const useKwendaGratta = (): UseKwendaGrattaReturn => {
   const [dailyCardAvailable, setDailyCardAvailable] = useState(false);
   const [nextDailyCardAt, setNextDailyCardAt] = useState<Date | null>(null);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>('new');
+  const [streakData, setStreakData] = useState<StreakData>({
+    currentStreak: 0,
+    longestStreak: 0,
+    lastScratchDate: null,
+    streakStartDate: null,
+    todayScratched: false
+  });
 
   // Charger les cartes de l'utilisateur
   const loadCards = useCallback(async () => {
@@ -270,10 +281,129 @@ export const useKwendaGratta = (): UseKwendaGrattaReturn => {
         audio.play().catch(() => {});
       } catch {}
 
+      // ✅ Mettre à jour le streak après grattage
+      await updateStreak();
+
     } catch (error) {
       console.error('Erreur révélation carte:', error);
     }
   };
+
+  // ✅ Charger et mettre à jour le streak
+  const loadStreakData = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const { data } = await supabase
+        .from('user_gratta_stats')
+        .select('consecutive_days, longest_streak, last_scratch_date')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (data) {
+        const today = new Date().toDateString();
+        const lastScratch = data.last_scratch_date ? new Date(data.last_scratch_date).toDateString() : null;
+        const todayScratched = lastScratch === today;
+
+        setStreakData({
+          currentStreak: data.consecutive_days || 0,
+          longestStreak: data.longest_streak || 0,
+          lastScratchDate: data.last_scratch_date,
+          streakStartDate: null,
+          todayScratched
+        });
+      }
+    } catch (error) {
+      console.error('Erreur chargement streak:', error);
+    }
+  }, [user]);
+
+  // ✅ Mettre à jour le streak après grattage
+  const updateStreak = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const now = new Date();
+      const today = now.toDateString();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString();
+
+      // Charger les stats actuelles
+      const { data: currentStats } = await supabase
+        .from('user_gratta_stats')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!currentStats) {
+        // Créer les stats initiales
+        await supabase.from('user_gratta_stats').insert({
+          user_id: user.id,
+          cards_scratched: 1,
+          consecutive_days: 1,
+          longest_streak: 1,
+          last_scratch_date: now.toISOString()
+        });
+        setStreakData({
+          currentStreak: 1,
+          longestStreak: 1,
+          lastScratchDate: now.toISOString(),
+          streakStartDate: now.toISOString(),
+          todayScratched: true
+        });
+        toast.success('🔥 Streak commencé ! 1 jour');
+        return;
+      }
+
+      const lastScratchDate = currentStats.last_scratch_date 
+        ? new Date(currentStats.last_scratch_date).toDateString() 
+        : null;
+
+      // Déjà gratté aujourd'hui
+      if (lastScratchDate === today) {
+        await supabase.from('user_gratta_stats').update({
+          cards_scratched: (currentStats.cards_scratched || 0) + 1
+        }).eq('user_id', user.id);
+        return;
+      }
+
+      // Calculer le nouveau streak
+      let newStreak = 1;
+      if (lastScratchDate === yesterday) {
+        newStreak = (currentStats.consecutive_days || 0) + 1;
+      }
+
+      const newLongestStreak = Math.max(newStreak, currentStats.longest_streak || 0);
+
+      // Mettre à jour
+      await supabase.from('user_gratta_stats').update({
+        consecutive_days: newStreak,
+        longest_streak: newLongestStreak,
+        last_scratch_date: now.toISOString(),
+        cards_scratched: (currentStats.cards_scratched || 0) + 1
+      }).eq('user_id', user.id);
+
+      setStreakData({
+        currentStreak: newStreak,
+        longestStreak: newLongestStreak,
+        lastScratchDate: now.toISOString(),
+        streakStartDate: null,
+        todayScratched: true
+      });
+
+      // Toast si milestone atteint
+      const reward = getRewardForDay(newStreak);
+      if (reward) {
+        toast.success(`${reward.icon} Streak ${newStreak} jours ! ${reward.label}`, {
+          description: reward.labelFr
+        });
+      } else if (newStreak > 1) {
+        toast.success(`🔥 ${newStreak} jours d'affilée !`);
+      }
+
+    } catch (error) {
+      console.error('Erreur mise à jour streak:', error);
+    }
+  }, [user]);
 
   // Charger les données initiales
   useEffect(() => {
@@ -287,13 +417,14 @@ export const useKwendaGratta = (): UseKwendaGrattaReturn => {
       await Promise.all([
         loadCards(),
         checkDailyCard(),
-        loadActivityLevel()
+        loadActivityLevel(),
+        loadStreakData()
       ]);
       setLoading(false);
     };
 
     init();
-  }, [user, loadCards, checkDailyCard, loadActivityLevel]);
+  }, [user, loadCards, checkDailyCard, loadActivityLevel, loadStreakData]);
 
   // Souscrire aux changements en temps réel
   useEffect(() => {
@@ -340,9 +471,11 @@ export const useKwendaGratta = (): UseKwendaGrattaReturn => {
     nextDailyCardAt,
     activityLevel,
     cardStats,
+    streakData,
     claimDailyCard,
     refreshCards: loadCards,
     updateScratchProgress,
-    revealCard
+    revealCard,
+    updateStreak
   };
 };

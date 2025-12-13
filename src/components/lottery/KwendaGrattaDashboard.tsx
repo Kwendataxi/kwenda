@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DailyCardBanner } from './DailyCardBanner';
 import { KwendaGrattaCard } from './scratch/KwendaGrattaCard';
+import { StreakCounter } from './StreakCounter';
 import { CompactLoyaltyWidget } from '@/components/loyalty/CompactLoyaltyWidget';
 import { useKwendaGratta } from '@/hooks/useKwendaGratta';
 import { CARD_TYPE_CONFIG, REWARD_CONFIG } from '@/types/kwenda-gratta';
@@ -31,6 +32,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
     nextDailyCardAt,
     activityLevel,
     cardStats,
+    streakData,
     claimDailyCard,
     updateScratchProgress,
     revealCard
@@ -146,6 +148,11 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
           onClaim={claimDailyCard}
           loading={loading}
         />
+      </div>
+
+      {/* 🔥 Streak Counter */}
+      <div className="px-3 pt-2">
+        <StreakCounter streakData={streakData} />
       </div>
 
       {/* Widget Points compact */}
