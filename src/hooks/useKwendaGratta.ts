@@ -99,7 +99,6 @@ export const useKwendaGratta = (): UseKwendaGrattaReturn => {
 
     try {
       // Vérifier la dernière carte quotidienne
-      // Utiliser une requête simplifiée pour éviter les problèmes de types
       const { data: lastDailyData } = await supabase
         .from('lottery_wins')
         .select('created_at')
@@ -107,11 +106,10 @@ export const useKwendaGratta = (): UseKwendaGrattaReturn => {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      // Filtrer côté client pour daily_card (colonne peut ne pas exister)
       const lastDaily = lastDailyData?.[0];
 
       if (!lastDaily) {
-        // Première carte du jour
+        // Première carte - bienvenue !
         setDailyCardAvailable(true);
         setNextDailyCardAt(null);
         return;
@@ -119,14 +117,23 @@ export const useKwendaGratta = (): UseKwendaGrattaReturn => {
 
       const lastCardDate = new Date(lastDaily.created_at);
       const now = new Date();
-      const tomorrow = new Date(lastCardDate);
-      tomorrow.setHours(24, 0, 0, 0); // Minuit du jour suivant
+      
+      // Reset at midnight local time
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+      
+      const lastCardDay = new Date(lastCardDate);
+      lastCardDay.setHours(0, 0, 0, 0);
 
-      if (now >= tomorrow) {
+      if (lastCardDay < todayMidnight) {
+        // Last card was before today
         setDailyCardAvailable(true);
         setNextDailyCardAt(null);
       } else {
+        // Already claimed today
         setDailyCardAvailable(false);
+        const tomorrow = new Date(todayMidnight);
+        tomorrow.setDate(tomorrow.getDate() + 1);
         setNextDailyCardAt(tomorrow);
       }
     } catch (error) {
