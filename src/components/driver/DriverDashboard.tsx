@@ -79,6 +79,7 @@ export function DriverDashboard() {
     // Refresh subscription
     if (user?.id) {
       try {
+        // @ts-ignore - Type inference too deep for complex Supabase query
         const result = await supabase
           .from('driver_subscriptions')
           .select('id, driver_id, rides_remaining, rides_used, is_active')
