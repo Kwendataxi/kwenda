@@ -5,69 +5,73 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useKwendaPoints } from '@/hooks/useKwendaPoints';
-import { Crown, Trophy, Users, Calendar, Sparkles, Gift } from 'lucide-react';
+import { Crown, Trophy, Users, Sparkles, Gift, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 interface SuperLotteryDraw {
   id: string;
   name: string;
+  description: string | null;
   draw_date: string;
   entry_cost_points: number;
   max_entries: number;
   current_entries: number;
-  prize_pool: number;
-  status: 'upcoming' | 'active' | 'drawing' | 'completed';
-  prizes: {
+  prize_pool: {
     first: number;
     second: number;
     third: number;
   };
+  status: string;
 }
 
 export const SuperLotteryDashboard = () => {
   const { user } = useAuth();
-  const { points, enterSuperLottery } = useKwendaPoints();
   const [currentDraw, setCurrentDraw] = useState<SuperLotteryDraw | null>(null);
   const [myEntries, setMyEntries] = useState<any[]>([]);
+  const [userPoints, setUserPoints] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [entering, setEntering] = useState(false);
 
   useEffect(() => {
     loadCurrentDraw();
-    loadMyEntries();
+    loadUserPoints();
   }, [user]);
 
   const loadCurrentDraw = async () => {
     try {
-      // Simuler une super-loterie mensuelle
-      const now = new Date();
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      const daysUntilDraw = Math.ceil((nextMonth.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-      const { data: entries } = await supabase
-        .from('super_lottery_entries')
-        .select('*')
-        .gte('created_at', new Date(now.getFullYear(), now.getMonth(), 1).toISOString());
-
-      const entriesCount = entries?.length || 0;
-      const prizePool = entriesCount * 100 * 1000; // 100 points = 1000 CDF
-
-      setCurrentDraw({
-        id: `monthly-${now.getFullYear()}-${now.getMonth() + 1}`,
-        name: `Super Loterie ${now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`,
-        draw_date: nextMonth.toISOString(),
-        entry_cost_points: 100,
-        max_entries: 1000,
-        current_entries: entriesCount,
-        prize_pool: prizePool,
-        status: 'active',
-        prizes: {
-          first: Math.floor(prizePool * 0.5),
-          second: Math.floor(prizePool * 0.3),
-          third: Math.floor(prizePool * 0.2)
-        }
+      // Utiliser l'edge function pour créer/récupérer le tirage mensuel
+      const { data, error } = await supabase.functions.invoke('lottery-system', {
+        body: { action: 'get_or_create_monthly_draw' }
       });
+
+      if (error) throw error;
+
+      if (data?.success && data?.draw) {
+        const draw = data.draw;
+        setCurrentDraw({
+          id: draw.id,
+          name: draw.name,
+          description: draw.description,
+          draw_date: draw.draw_date,
+          entry_cost_points: draw.entry_cost_points || 100,
+          max_entries: draw.max_entries || 1000,
+          current_entries: draw.current_entries || 0,
+          prize_pool: draw.prize_pool || { first: 50000, second: 30000, third: 20000 },
+          status: draw.status || 'active'
+        });
+
+        // Charger mes entrées pour ce tirage
+        if (user) {
+          const { data: entries } = await supabase
+            .from('super_lottery_entries')
+            .select('*')
+            .eq('draw_id', draw.id)
+            .eq('user_id', user.id);
+          
+          setMyEntries(entries || []);
+        }
+      }
     } catch (error) {
       console.error('Erreur chargement super-loterie:', error);
     } finally {
@@ -75,29 +79,58 @@ export const SuperLotteryDashboard = () => {
     }
   };
 
-  const loadMyEntries = async () => {
+  const loadUserPoints = async () => {
     if (!user) return;
-
+    
     try {
-      const { data } = await supabase
-        .from('super_lottery_entries')
-        .select('*')
+      const { data: wallet } = await supabase
+        .from('user_wallets')
+        .select('kwenda_points')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .maybeSingle();
 
-      setMyEntries(data || []);
+      setUserPoints(wallet?.kwenda_points || 0);
     } catch (error) {
-      console.error('Erreur chargement entrées:', error);
+      console.error('Erreur chargement points:', error);
     }
   };
 
   const handleEnter = async () => {
-    if (!currentDraw) return;
+    if (!currentDraw || !user) return;
 
-    const success = await enterSuperLottery(currentDraw.id, currentDraw.entry_cost_points);
-    if (success) {
-      await loadCurrentDraw();
-      await loadMyEntries();
+    if (userPoints < currentDraw.entry_cost_points) {
+      toast.error(`Vous avez besoin de ${currentDraw.entry_cost_points} points`);
+      return;
+    }
+
+    setEntering(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('lottery-system', {
+        body: { 
+          action: 'enter_super_lottery',
+          userId: user.id,
+          drawId: currentDraw.id,
+          pointsCost: currentDraw.entry_cost_points
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      if (data?.success) {
+        toast.success(`🎉 Entrée enregistrée ! N° ${data.entryNumber}`);
+        await loadCurrentDraw();
+        await loadUserPoints();
+      }
+    } catch (error: any) {
+      console.error('Erreur participation:', error);
+      toast.error('Impossible de participer');
+    } finally {
+      setEntering(false);
     }
   };
 
@@ -105,7 +138,7 @@ export const SuperLotteryDashboard = () => {
     return (
       <Card>
         <CardContent className="pt-12 pb-12 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
           <p className="text-sm text-muted-foreground">Chargement...</p>
         </CardContent>
       </Card>
@@ -123,11 +156,12 @@ export const SuperLotteryDashboard = () => {
     );
   }
 
-  const daysUntilDraw = Math.ceil(
+  const daysUntilDraw = Math.max(0, Math.ceil(
     (new Date(currentDraw.draw_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  );
-  const progressPercent = (currentDraw.current_entries / currentDraw.max_entries) * 100;
-  const canAfford = points.total_points >= currentDraw.entry_cost_points;
+  ));
+  const progressPercent = Math.min(100, (currentDraw.current_entries / currentDraw.max_entries) * 100);
+  const canAfford = userPoints >= currentDraw.entry_cost_points;
+  const totalPrizePool = currentDraw.prize_pool.first + currentDraw.prize_pool.second + currentDraw.prize_pool.third;
 
   return (
     <div className="space-y-4">
@@ -137,7 +171,6 @@ export const SuperLotteryDashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-yellow-500/20 via-orange-500/20 to-red-500/20 p-6 border-2 border-yellow-500/30"
       >
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
         <div className="relative flex items-center gap-4">
           <motion.div
             animate={{ rotate: [0, 10, -10, 0] }}
@@ -171,11 +204,11 @@ export const SuperLotteryDashboard = () => {
         <CardContent className="space-y-4">
           <div className="text-center">
             <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
+              animate={{ scale: [1, 1.02, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
               className="text-5xl font-extrabold text-primary mb-2"
             >
-              {currentDraw.prize_pool.toLocaleString()}
+              {totalPrizePool.toLocaleString()}
             </motion.div>
             <p className="text-sm text-muted-foreground">CDF à gagner</p>
           </div>
@@ -186,21 +219,21 @@ export const SuperLotteryDashboard = () => {
                 <Trophy className="h-5 w-5 text-yellow-500" />
                 <span className="font-medium">1er Prix</span>
               </div>
-              <span className="text-xl font-bold">{currentDraw.prizes.first.toLocaleString()} CDF</span>
+              <span className="text-xl font-bold">{currentDraw.prize_pool.first.toLocaleString()} CDF</span>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gray-400/10">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <div className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-gray-400" />
+                <Trophy className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium">2ème Prix</span>
               </div>
-              <span className="text-lg font-bold">{currentDraw.prizes.second.toLocaleString()} CDF</span>
+              <span className="text-lg font-bold">{currentDraw.prize_pool.second.toLocaleString()} CDF</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-orange-600/10">
               <div className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-orange-600" />
                 <span className="font-medium">3ème Prix</span>
               </div>
-              <span className="text-lg font-bold">{currentDraw.prizes.third.toLocaleString()} CDF</span>
+              <span className="text-lg font-bold">{currentDraw.prize_pool.third.toLocaleString()} CDF</span>
             </div>
           </div>
         </CardContent>
@@ -216,7 +249,7 @@ export const SuperLotteryDashboard = () => {
           <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
             <div>
               <p className="text-sm text-muted-foreground">Vos points</p>
-              <p className="text-2xl font-bold">{points.total_points}</p>
+              <p className="text-2xl font-bold">{userPoints.toLocaleString()}</p>
             </div>
             <Sparkles className="h-8 w-8 text-primary" />
           </div>
@@ -225,16 +258,17 @@ export const SuperLotteryDashboard = () => {
             size="lg"
             className="w-full"
             onClick={handleEnter}
-            disabled={!canAfford}
+            disabled={!canAfford || entering}
           >
-            {canAfford ? (
-              <>
-                <Trophy className="mr-2 h-5 w-5" />
-                Participer ({currentDraw.entry_cost_points} points)
-              </>
+            {entering ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
-              `Pas assez de points (${currentDraw.entry_cost_points} requis)`
+              <Trophy className="mr-2 h-5 w-5" />
             )}
+            {canAfford 
+              ? `Participer (${currentDraw.entry_cost_points} points)` 
+              : `Pas assez de points (${currentDraw.entry_cost_points} requis)`
+            }
           </Button>
 
           {myEntries.length > 0 && (
@@ -242,6 +276,18 @@ export const SuperLotteryDashboard = () => {
               <p className="text-sm font-medium text-green-700 dark:text-green-400">
                 ✅ Vous avez {myEntries.length} entrée{myEntries.length > 1 ? 's' : ''} pour ce tirage
               </p>
+              <div className="mt-2 space-y-1">
+                {myEntries.slice(0, 3).map((entry) => (
+                  <p key={entry.id} className="text-xs text-muted-foreground font-mono">
+                    {entry.entry_number}
+                  </p>
+                ))}
+                {myEntries.length > 3 && (
+                  <p className="text-xs text-muted-foreground">
+                    +{myEntries.length - 3} autre(s)...
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
@@ -249,8 +295,11 @@ export const SuperLotteryDashboard = () => {
 
       {/* Progress */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Participation</CardTitle>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm">Participation</CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           <Progress value={progressPercent} className="h-2" />
