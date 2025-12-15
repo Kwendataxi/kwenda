@@ -54,31 +54,32 @@ const DeliveryPage = () => {
   if (activeView === 'confirm' && deliveryData) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="sticky top-0 z-10 glassmorphism border-b border-border/20 p-4">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        {/* Header moderne et épuré */}
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/10">
+          <div className="max-w-6xl mx-auto px-4 py-3">
+            <div className="flex items-center gap-4">
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={handleBackToHome}
-                className="mr-2 gap-2 hover:bg-primary/10"
+                className="h-10 w-10 rounded-xl bg-card hover:bg-muted transition-colors"
               >
-                <Home className="h-4 w-4" />
-                <span className="hidden sm:inline">Accueil</span>
+                <Home className="h-5 w-5 text-muted-foreground" />
               </Button>
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Package className="h-6 w-6 text-primary" />
+
+              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
+                <Package className="h-5 w-5 text-primary" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Confirmation de commande
+
+              <div className="flex flex-col">
+                <h1 className="text-lg font-semibold text-foreground tracking-tight">
+                  Confirmation
                 </h1>
-                <p className="text-sm text-muted-foreground">Vérifiez et confirmez votre livraison</p>
+                <p className="text-xs text-muted-foreground/70">Vérifiez votre livraison</p>
               </div>
             </div>
           </div>
-        </div>
+        </header>
         
         <OrderConfirmationStep
           pickup={{
@@ -112,32 +113,35 @@ const DeliveryPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 glassmorphism border-b border-border/20 p-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      {/* Header moderne et épuré */}
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/10">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-4">
+            {/* Bouton retour minimaliste */}
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={handleBackToHome}
-              className="mr-2 gap-2 hover:bg-primary/10"
+              className="h-10 w-10 rounded-xl bg-card hover:bg-muted transition-colors"
             >
-              <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Accueil</span>
+              <Home className="h-5 w-5 text-muted-foreground" />
             </Button>
-            <div className="h-6 w-px bg-border hidden sm:block" />
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Package className="h-6 w-6 text-primary" />
+
+            {/* Icône service avec fond doux */}
+            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
+              <Package className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Kwenda Delivery
+
+            {/* Titre et sous-titre */}
+            <div className="flex flex-col">
+              <h1 className="text-lg font-semibold text-foreground tracking-tight">
+                Kwenda <span className="text-primary">Delivery</span>
               </h1>
-              <p className="text-sm text-muted-foreground">Service de livraison rapide</p>
+              <p className="text-xs text-muted-foreground/70">Livraison express</p>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content - Interface moderne stabilisée */}
       <StepByStepDeliveryInterface
