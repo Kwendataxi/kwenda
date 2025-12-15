@@ -1,94 +1,119 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Info, Ticket, Gift, Flame, Star, Clock, ChevronRight } from 'lucide-react';
+import { Sparkles, Info, Ticket, Gift, Flame, Star, Clock, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScratchCardPopup } from './ScratchCardPopup';
-import { useKwendaGratta } from '@/hooks/useKwendaGratta';
-import { KwendaGrattaWin } from '@/types/kwenda-gratta';
+import { useKwendaGratta, KwendaGrattaWin as DBKwendaGrattaWin } from '@/hooks/useKwendaGratta';
+import { KwendaGrattaWin, CardType, RewardCategory } from '@/types/kwenda-gratta';
 import { cn } from '@/lib/utils';
-import '@/styles/kwenda-gratta.css';
 
 export interface KwendaGrattaDashboardProps {
   hideHeader?: boolean;
 }
 
+// Transformer le format DB vers le format attendu par ScratchCardPopup
+const transformCardForPopup = (card: DBKwendaGrattaWin): KwendaGrattaWin => ({
+  id: card.id,
+  win_id: card.id,
+  cardType: (card.card_type as CardType) || 'standard',
+  rewardCategory: (card.reward_type as RewardCategory) || 'xp_points',
+  name: card.prize_details?.name || 'Prix',
+  value: card.prize_value || 0,
+  currency: card.currency || 'XP',
+  rarity: card.rarity || 'common',
+  isDailyCard: card.daily_card || false,
+  boostDetails: card.boost_details,
+  scratchPercentage: card.scratch_percentage || 0,
+  scratchRevealedAt: card.scratch_revealed_at || undefined,
+  createdAt: card.created_at
+});
+
 export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({ 
   hideHeader = false 
 }) => {
   const {
+    cards,
     loading,
-    unscratched,
-    revealed,
-    dailyCardAvailable,
-    nextDailyCardAt,
-    streakData,
+    canClaimDailyCard,
+    nextCardTime,
+    streak,
+    isFirstTime,
     claimDailyCard,
-    updateScratchProgress,
-    revealCard
+    scratchCard,
+    revealCard,
+    showScratchPopup,
+    currentCardToScratch,
+    openScratchPopup,
+    closeScratchPopup
   } = useKwendaGratta();
 
-  const [showPopup, setShowPopup] = useState(false);
-  const [currentCard, setCurrentCard] = useState<KwendaGrattaWin | null>(null);
-  const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const [claiming, setClaiming] = useState(false);
 
-  // Check for first visit and auto-open card
+  // Cartes non grattées et révélées
+  const unscratched = cards.filter(c => !c.scratch_revealed_at && c.scratch_percentage < 70);
+  const revealed = cards.filter(c => c.scratch_revealed_at || c.scratch_percentage >= 70);
+  
+  // Carte transformée pour le popup
+  const popupCard = useMemo(() => 
+    currentCardToScratch ? transformCardForPopup(currentCardToScratch) : null
+  , [currentCardToScratch]);
+
+  // Auto-open popup pour première visite
   useEffect(() => {
     const hasVisited = localStorage.getItem('kwenda_gratta_visited');
     
-    if (!hasVisited && !loading) {
-      setIsFirstVisit(true);
+    if (!hasVisited && !loading && isFirstTime && canClaimDailyCard) {
       localStorage.setItem('kwenda_gratta_visited', 'true');
-      
-      // If daily card available on first visit, claim and open
-      if (dailyCardAvailable) {
-        handleClaimAndScratch();
+      handleClaimAndScratch();
+    }
+  }, [loading, isFirstTime, canClaimDailyCard]);
+
+  // Auto-open popup quand carte disponible après claim
+  useEffect(() => {
+    if (unscratched.length > 0 && !showScratchPopup && !currentCardToScratch) {
+      const hasVisited = localStorage.getItem('kwenda_gratta_visited');
+      if (!hasVisited) {
+        const timer = setTimeout(() => {
+          openScratchPopup(unscratched[0]);
+        }, 500);
+        return () => clearTimeout(timer);
       }
     }
-  }, [loading, dailyCardAvailable]);
-
-  // Auto-open popup when there's an unscratched card on first visit
-  useEffect(() => {
-    if (isFirstVisit && unscratched.length > 0 && !showPopup && !currentCard) {
-      const timer = setTimeout(() => {
-        openScratchPopup(unscratched[0]);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isFirstVisit, unscratched, showPopup, currentCard]);
+  }, [unscratched, showScratchPopup, currentCardToScratch]);
 
   const handleClaimAndScratch = async () => {
-    await claimDailyCard();
-  };
-
-  const openScratchPopup = (card: KwendaGrattaWin) => {
-    setCurrentCard(card);
-    setShowPopup(true);
-  };
-
-  const closeScratchPopup = () => {
-    setShowPopup(false);
-    setCurrentCard(null);
-    setIsFirstVisit(false);
+    setClaiming(true);
+    try {
+      const card = await claimDailyCard();
+      if (card) {
+        // Ouvrir le popup automatiquement après claim
+        setTimeout(() => {
+          openScratchPopup(card);
+        }, 300);
+      }
+    } finally {
+      setClaiming(false);
+    }
   };
 
   const handleScratch = (percentage: number) => {
-    if (currentCard) {
-      updateScratchProgress(currentCard.win_id, percentage);
+    if (currentCardToScratch) {
+      scratchCard(currentCardToScratch.id, percentage);
     }
   };
 
   const handleReveal = () => {
-    if (currentCard) {
-      revealCard(currentCard.win_id);
+    if (currentCardToScratch) {
+      revealCard(currentCardToScratch.id);
     }
   };
 
   // Calculate time remaining
   const getTimeRemaining = () => {
-    if (!nextDailyCardAt) return null;
+    if (!nextCardTime) return null;
     const now = new Date();
-    const diff = nextDailyCardAt.getTime() - now.getTime();
+    const diff = nextCardTime.getTime() - now.getTime();
     if (diff <= 0) return null;
     
     const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -126,7 +151,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
             >
               🎰
             </motion.span>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-[hsl(var(--kwenda-blue))] via-[hsl(var(--kwenda-yellow))] to-[hsl(var(--kwenda-red))] bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-yellow-500 to-red-500 bg-clip-text text-transparent">
               Kwenda Gratta
             </h1>
           </div>
@@ -171,7 +196,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
               >
                 <div className="relative w-48 h-32 mx-auto">
                   {/* Glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--kwenda-blue))] via-[hsl(var(--kwenda-yellow))] to-[hsl(var(--kwenda-red))] rounded-xl blur-xl opacity-40" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-500 to-red-500 rounded-xl blur-xl opacity-40" />
                   
                   {/* Card stack effect */}
                   {unscratched.length > 1 && (
@@ -212,7 +237,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
               <Button
                 size="lg"
                 onClick={() => openScratchPopup(unscratched[0])}
-                className="bg-gradient-to-r from-[hsl(var(--kwenda-blue))] via-[hsl(var(--kwenda-yellow))] to-[hsl(var(--kwenda-red))] text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+                className="bg-gradient-to-r from-primary via-yellow-500 to-red-500 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-shadow"
               >
                 <Gift className="h-5 w-5 mr-2" />
                 Gratter maintenant
@@ -230,7 +255,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
                 </motion.button>
               )}
             </motion.div>
-          ) : dailyCardAvailable ? (
+          ) : canClaimDailyCard ? (
             // Daily card available
             <motion.div
               key="daily-available"
@@ -248,7 +273,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
               </motion.div>
               
               <h2 className="text-lg font-semibold mb-2">
-                Ta carte du jour t'attend !
+                {isFirstTime ? 'Bienvenue ! Ta première carte t\'attend !' : 'Ta carte du jour t\'attend !'}
               </h2>
               
               <p className="text-sm text-muted-foreground mb-6">
@@ -258,10 +283,15 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
               <Button
                 size="lg"
                 onClick={handleClaimAndScratch}
-                className="bg-gradient-to-r from-[hsl(var(--kwenda-blue))] to-[hsl(var(--kwenda-yellow))] text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-lg"
+                disabled={claiming}
+                className="bg-gradient-to-r from-primary to-yellow-500 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-lg"
               >
-                <Sparkles className="h-5 w-5 mr-2" />
-                Récupérer ma carte
+                {claiming ? (
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-5 w-5 mr-2" />
+                )}
+                {claiming ? 'Chargement...' : 'Récupérer ma carte'}
               </Button>
             </motion.div>
           ) : (
@@ -304,9 +334,9 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
           <div className="flex items-center gap-2">
             <Flame className={cn(
               "h-5 w-5",
-              streakData.currentStreak > 0 ? "text-orange-500" : "text-muted-foreground"
+              streak > 0 ? "text-orange-500" : "text-muted-foreground"
             )} />
-            <span className="font-semibold">{streakData.currentStreak}</span>
+            <span className="font-semibold">{streak}</span>
             <span className="text-xs text-muted-foreground">jours</span>
           </div>
 
@@ -321,19 +351,19 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
 
           <div className="w-px h-6 bg-border" />
 
-          {/* Best streak */}
+          {/* Total cards */}
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
-            <span className="font-semibold">{streakData.longestStreak}</span>
-            <span className="text-xs text-muted-foreground">record</span>
+            <Ticket className="h-5 w-5 text-primary" />
+            <span className="font-semibold">{cards.length}</span>
+            <span className="text-xs text-muted-foreground">total</span>
           </div>
         </div>
       </motion.div>
 
       {/* Scratch Card Popup */}
       <ScratchCardPopup
-        card={currentCard}
-        isOpen={showPopup}
+        card={popupCard}
+        isOpen={showScratchPopup}
         onClose={closeScratchPopup}
         onScratch={handleScratch}
         onReveal={handleReveal}
