@@ -4946,8 +4946,8 @@ export type Database = {
           delivery_address: string | null
           delivery_method: string | null
           delivery_status: string | null
-          draw_id: string
-          entry_id: string
+          draw_id: string | null
+          entry_id: string | null
           expires_at: string | null
           expires_in_hours: number | null
           id: string
@@ -4979,8 +4979,8 @@ export type Database = {
           delivery_address?: string | null
           delivery_method?: string | null
           delivery_status?: string | null
-          draw_id: string
-          entry_id: string
+          draw_id?: string | null
+          entry_id?: string | null
           expires_at?: string | null
           expires_in_hours?: number | null
           id?: string
@@ -5012,8 +5012,8 @@ export type Database = {
           delivery_address?: string | null
           delivery_method?: string | null
           delivery_status?: string | null
-          draw_id?: string
-          entry_id?: string
+          draw_id?: string | null
+          entry_id?: string | null
           expires_at?: string | null
           expires_in_hours?: number | null
           id?: string
