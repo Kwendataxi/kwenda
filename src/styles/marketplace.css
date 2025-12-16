@@ -16,11 +16,11 @@
   perspective: 1000px;
 }
 
-/* Shimmer effect */
+/* Shimmer effect - Orange theme */
 .shimmer-bg {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(249,115,22,0.2), transparent);
   background-size: 200% 100%;
-  animation: shimmer 3s infinite;
+  animation: shimmer 2s infinite;
 }
 
 @keyframes shimmer {
@@ -30,6 +30,26 @@
   100% {
     background-position: 200% 0;
   }
+}
+
+/* Orange shimmer for loading */
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Gradient shift animation for vendor cards */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
 }
 
 /* Chat animations */
