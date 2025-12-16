@@ -30,6 +30,7 @@ export default {
 			},
 			fontFamily: {
 				'montserrat': ['Montserrat', 'sans-serif'],
+				'satisfy': ['Satisfy', 'cursive'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
