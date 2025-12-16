@@ -97,9 +97,9 @@ export const RestaurantMenu = ({
         ))}
       </Tabs>
 
-      {/* Floating Cart Button */}
+      {/* Floating Cart Button - z-index supérieur au footer */}
       {cart.length > 0 && (
-        <div className="fixed bottom-4 left-4 right-4 z-20">
+        <div className="fixed bottom-20 left-4 right-4 z-[115]">
           <Button
             size="lg"
             className="w-full shadow-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"

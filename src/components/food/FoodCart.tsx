@@ -51,9 +51,21 @@ export const FoodCart = ({
 
         <ScrollArea className="flex-1 px-4">
           {cart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Votre panier est vide</p>
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                <ShoppingCart className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Votre panier est vide</h3>
+              <p className="text-muted-foreground text-center text-sm mb-6">
+                Explorez nos restaurants et ajoutez des plats délicieux
+              </p>
+              <Button 
+                onClick={() => onOpenChange(false)}
+                variant="outline"
+                className="gap-2"
+              >
+                Parcourir les restaurants
+              </Button>
             </div>
           ) : (
             <div className="space-y-3 pb-4">

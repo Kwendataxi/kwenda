@@ -153,54 +153,56 @@ export const KwendaFoodHeader = ({
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.25 }}
         >
-          <AnimatePresence>
-            {cartItemsCount > 0 && (step === 'menu' || step === 'all-dishes' || step === 'restaurants') && (
-              <motion.div
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: 20 }}
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
-                className="relative"
+          {/* Bouton panier toujours visible sauf en checkout */}
+          {step !== 'checkout' && (
+            <motion.div
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              className="relative"
+            >
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className={cn(
+                  "h-11 w-11 relative rounded-xl transition-all",
+                  cartItemsCount > 0
+                    ? "bg-gradient-to-br from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/30"
+                    : "bg-muted/50 hover:bg-muted text-muted-foreground"
+                )}
+                onClick={onCartClick}
               >
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className={cn(
-                    "h-11 w-11 relative rounded-xl",
-                    "bg-gradient-to-br from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600",
-                    "text-white shadow-lg shadow-orange-500/30"
-                  )}
-                  onClick={onCartClick}
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  
-                  {/* Badge animé */}
-                  <motion.span
-                    key={cartItemsCount}
-                    initial={{ scale: 1.8, y: -5 }}
-                    animate={{ scale: 1, y: 0 }}
-                    className={cn(
-                      "absolute -top-1.5 -right-1.5",
-                      "bg-white text-primary rounded-full",
-                      "min-w-[22px] h-[22px] text-xs font-bold",
-                      "flex items-center justify-center",
-                      "shadow-md border-2 border-orange-500"
-                    )}
-                  >
-                    {cartItemsCount}
-                  </motion.span>
-                </Button>
+                <ShoppingCart className="w-5 h-5" />
                 
-                {/* Pulse ring animation */}
+                {/* Badge animé - affiché même à 0 */}
+                <motion.span
+                  key={cartItemsCount}
+                  initial={{ scale: 1.8, y: -5 }}
+                  animate={{ scale: 1, y: 0 }}
+                  className={cn(
+                    "absolute -top-1.5 -right-1.5",
+                    "rounded-full",
+                    "min-w-[22px] h-[22px] text-xs font-bold",
+                    "flex items-center justify-center",
+                    "shadow-md",
+                    cartItemsCount > 0
+                      ? "bg-white text-primary border-2 border-orange-500"
+                      : "bg-muted text-muted-foreground border border-border"
+                  )}
+                >
+                  {cartItemsCount}
+                </motion.span>
+              </Button>
+              
+              {/* Pulse ring animation - seulement si panier non vide */}
+              {cartItemsCount > 0 && (
                 <motion.div
                   className="absolute inset-0 rounded-xl bg-orange-500/50"
                   animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </motion.div>
+          )}
         </motion.div>
       </motion.div>
 
