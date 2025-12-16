@@ -2,21 +2,29 @@ import { useAppReady } from '@/contexts/AppReadyContext';
 import { InvisibleLoadingBar } from '@/components/loading/InvisibleLoadingBar';
 import { Navigate } from 'react-router-dom';
 import Index from '@/pages/Index';
+import { isMobileApp, isPWA } from '@/services/platformDetection';
 
 /**
  * 🏠 PUBLIC HOME - Route intelligente pour "/"
- * Affiche la landing page pour les visiteurs
- * Redirige les utilisateurs connectés vers leur espace
+ * - Web : Affiche la landing page pour les visiteurs
+ * - Mobile (Capacitor/PWA) : Redirige vers /app directement
+ * - Utilisateurs connectés : Redirige vers leur espace
  */
 export const PublicHome = () => {
   const { user, sessionReady, userRole, contentReady } = useAppReady();
+
+  // 📱 MOBILE APP / PWA : Pas de landing, directement vers l'app
+  if (isMobileApp() || isPWA()) {
+    console.log('📱 [PublicHome] Mobile/PWA detected, redirecting to /app');
+    return <Navigate to="/app" replace />;
+  }
 
   // Attendre que la session soit prête
   if (!sessionReady || !contentReady) {
     return <InvisibleLoadingBar />;
   }
 
-  // NON CONNECTÉ : Landing page
+  // NON CONNECTÉ : Landing page (Web uniquement)
   if (!user) {
     return <Index />;
   }
