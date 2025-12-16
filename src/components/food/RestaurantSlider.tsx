@@ -73,15 +73,13 @@ export const RestaurantSlider = ({
           loop: true,
         }}
       >
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent className="-ml-3 md:-ml-4">
           {restaurants.map((restaurant) => (
-            <CarouselItem key={restaurant.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-              <div className="h-full transition-transform hover:scale-[1.02]">
-                <RestaurantCard
-                  restaurant={restaurant}
-                  onClick={() => onSelectRestaurant(restaurant)}
-                />
-              </div>
+            <CarouselItem key={restaurant.id} className="pl-3 md:pl-4 basis-[85%] sm:basis-1/2 lg:basis-1/3">
+              <RestaurantCard
+                restaurant={restaurant}
+                onClick={() => onSelectRestaurant(restaurant)}
+              />
             </CarouselItem>
           ))}
         </CarouselContent>
