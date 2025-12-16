@@ -11,6 +11,7 @@ import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import { ModernRentalHeader } from '@/components/rental/ModernRentalHeader';
 import { ModernRentalNavigationV2 } from '@/components/rental/ModernRentalNavigationV2';
 import { PremiumPartnersCarousel } from '@/components/rental/PremiumPartnersCarousel';
+import { PremiumRentalBanner } from '@/components/rental/PremiumRentalBanner';
 import { ModernPartnerCard } from '@/components/rental/ModernPartnerCard';
 import { ModernVehicleCard } from '@/components/rental/ModernVehicleCard';
 import { MyRentalCard } from '@/components/rental/MyRentalCard';
@@ -274,6 +275,13 @@ export const ClientRentalInterface = () => {
         availableCities={availableCities}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+      />
+
+      {/* Hero Banner Premium */}
+      <PremiumRentalBanner 
+        vehiclesCount={vehicles.length}
+        partnersCount={partnerGroups.length}
+        onExplore={() => setViewMode('vehicles')}
       />
 
       {/* Premium Partners Carousel conditionnel */}
