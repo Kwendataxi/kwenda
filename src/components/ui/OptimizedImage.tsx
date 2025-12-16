@@ -1,11 +1,11 @@
 /**
  * 🖼️ OPTIMIZED IMAGE COMPONENT
- * Lazy loading natif + skeleton + transitions fluides
+ * Lazy loading with Intersection Observer + skeleton + smooth transitions
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { cn } from '@/lib/utils';
-import { Skeleton } from './skeleton';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface OptimizedImageProps {
   src: string;
@@ -13,35 +13,92 @@ interface OptimizedImageProps {
   width?: number;
   height?: number;
   className?: string;
-  priority?: boolean; // Pour les images above-the-fold
+  priority?: boolean;
   objectFit?: 'cover' | 'contain' | 'fill';
+  fallback?: string;
+  aspectRatio?: 'square' | 'video' | 'wide' | 'portrait';
 }
 
-export const OptimizedImage: React.FC<OptimizedImageProps> = ({
+const aspectRatioClasses = {
+  square: 'aspect-square',
+  video: 'aspect-video',
+  wide: 'aspect-[21/9]',
+  portrait: 'aspect-[3/4]',
+};
+
+export const OptimizedImage = memo(({
   src,
   alt,
   width,
   height,
   className,
   priority = false,
-  objectFit = 'cover'
-}) => {
+  objectFit = 'cover',
+  fallback = '/placeholder.svg',
+  aspectRatio,
+}: OptimizedImageProps) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [isInView, setIsInView] = useState(priority);
+  const imgRef = useRef<HTMLDivElement>(null);
+
+  // Intersection Observer for true lazy loading
+  useEffect(() => {
+    if (priority || isInView) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px', threshold: 0.01 }
+    );
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [priority, isInView]);
+
+  const imageSrc = error ? fallback : src;
 
   return (
-    <div className={cn("relative overflow-hidden", className)}>
-      {!loaded && !error && (
-        <Skeleton className="absolute inset-0" />
+    <div 
+      ref={imgRef}
+      className={cn(
+        "relative overflow-hidden bg-muted",
+        aspectRatio && aspectRatioClasses[aspectRatio],
+        className
       )}
+    >
+      {/* Enhanced skeleton with shimmer */}
+      <AnimatePresence>
+        {!loaded && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-muted"
+          >
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent"
+              animate={{ x: ['-100%', '100%'] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {error ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
-          <span className="text-muted-foreground text-sm">Image non disponible</span>
+        <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+          <span className="text-muted-foreground text-xs">Image non disponible</span>
         </div>
-      ) : (
-        <img
-          src={src}
+      ) : isInView && (
+        <motion.img
+          src={imageSrc}
           alt={alt}
           width={width}
           height={height}
@@ -50,19 +107,22 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           fetchPriority={priority ? "high" : "low"}
           onLoad={() => setLoaded(true)}
           onError={() => setError(true)}
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ 
+            opacity: loaded ? 1 : 0,
+            scale: loaded ? 1 : 1.05
+          }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
           className={cn(
-            "w-full h-full transition-opacity duration-300",
+            "w-full h-full",
             objectFit === 'cover' && "object-cover",
             objectFit === 'contain' && "object-contain",
             objectFit === 'fill' && "object-fill",
-            loaded ? "opacity-100" : "opacity-0"
           )}
-          style={{
-            willChange: loaded ? 'auto' : 'opacity',
-            transform: 'translateZ(0)'
-          }}
         />
       )}
     </div>
   );
-};
+});
+
+OptimizedImage.displayName = 'OptimizedImage';
