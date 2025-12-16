@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Star, Store, Sparkles } from 'lucide-react';
+import { Plus, Star, Store, Sparkles, Check, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -28,21 +28,24 @@ export const FoodDishCard = ({
 }: FoodDishCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const handleAddClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // Vibration haptique
     if ('vibrate' in navigator) {
-      navigator.vibrate(50);
+      navigator.vibrate([30, 50, 30]);
     }
     
     setIsAdding(true);
     onAddToCart();
     
-    // Reset animation after delay
-    setTimeout(() => setIsAdding(false), 600);
+    setTimeout(() => {
+      setIsAdding(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 1500);
+    }, 300);
   };
 
   const handleRestaurantClick = (e: React.MouseEvent) => {
@@ -51,46 +54,62 @@ export const FoodDishCard = ({
   };
 
   const isAvailable = dish.is_available !== false;
+  const isTopThree = topPosition && topPosition <= 3;
 
   return (
     <motion.div
-      whileHover={{ y: -6, scale: 1.02 }}
+      whileHover={{ y: -8 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className={cn('relative', className)}
+      className={cn('relative group', className)}
     >
-      <Card className="relative w-[220px] overflow-hidden cursor-pointer border-0 bg-card/80 backdrop-blur-sm shadow-xl shadow-black/10 dark:shadow-black/30 hover:shadow-2xl transition-shadow duration-300">
-        {/* Glassmorphism overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none z-10" />
+      <Card className={cn(
+        "relative w-[230px] overflow-hidden cursor-pointer border-0",
+        "bg-card/90 backdrop-blur-xl",
+        "shadow-xl shadow-black/10 dark:shadow-black/30",
+        "hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500",
+        isTopThree && "ring-2 ring-primary/20"
+      )}>
+        {/* Premium glass overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none z-10" />
         
-        {/* Top Position Badge - Premium design */}
-        {topPosition && topPosition <= 3 && (
+        {/* Top Position Badge - Design premium avec shine */}
+        {isTopThree && (
           <motion.div
-            initial={{ scale: 0, rotate: -20 }}
+            initial={{ scale: 0, rotate: -30 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.3, type: 'spring', stiffness: 500 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 500 }}
             className="absolute top-3 left-3 z-20"
           >
             <Badge 
               className={cn(
-                "font-bold text-xs px-2.5 py-1 shadow-lg border-2 border-white/50",
-                topPosition === 1 && "bg-gradient-to-r from-yellow-400 to-amber-500 text-black",
-                topPosition === 2 && "bg-gradient-to-r from-slate-300 to-slate-400 text-black",
-                topPosition === 3 && "bg-gradient-to-r from-orange-400 to-amber-600 text-white"
+                "font-black text-sm px-3 py-1.5 shadow-xl border-2 border-white/60 relative overflow-hidden",
+                topPosition === 1 && "bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-black",
+                topPosition === 2 && "bg-gradient-to-r from-slate-300 via-gray-300 to-slate-400 text-black",
+                topPosition === 3 && "bg-gradient-to-r from-orange-400 via-amber-500 to-orange-600 text-white"
               )}
             >
-              <Star className="w-3 h-3 mr-1 fill-current" />
+              <Star className="w-3.5 h-3.5 mr-1 fill-current" />
               #{topPosition}
+              
+              {/* Shine effect animé */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent -skew-x-12"
+                animate={{ x: ['-200%', '200%'] }}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+              />
             </Badge>
-            
-            {/* Shine effect */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent rounded-full"
-              animate={{ x: [-50, 50] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            />
           </motion.div>
         )}
+
+        {/* Like button */}
+        <motion.button
+          whileHover={{ scale: 1.2 }}
+          whileTap={{ scale: 0.9 }}
+          className="absolute top-3 right-3 z-20 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-red-400 transition-colors"
+        >
+          <Heart className="w-4 h-4" />
+        </motion.button>
 
         {/* Unavailable Overlay */}
         <AnimatePresence>
@@ -99,24 +118,24 @@ export const FoodDishCard = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm z-30 flex items-center justify-center"
+              className="absolute inset-0 bg-black/70 backdrop-blur-md z-30 flex items-center justify-center"
             >
-              <Badge variant="destructive" className="text-sm font-bold px-4 py-2">
+              <Badge variant="destructive" className="text-sm font-bold px-5 py-2.5 shadow-xl">
                 Indisponible
               </Badge>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Image with lazy loading */}
-        <div className="relative h-[140px] overflow-hidden">
-          {/* Skeleton loader */}
+        {/* Image section agrandie */}
+        <div className="relative h-[160px] overflow-hidden">
+          {/* Enhanced skeleton loader */}
           {!imageLoaded && (
-            <div className="absolute inset-0 bg-muted animate-pulse">
+            <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/80">
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                 animate={{ x: ['-100%', '100%'] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
               />
             </div>
           )}
@@ -128,70 +147,72 @@ export const FoodDishCard = ({
             decoding="async"
             onLoad={() => setImageLoaded(true)}
             className={cn(
-              "w-full h-full object-cover transition-all duration-500",
-              imageLoaded ? "opacity-100" : "opacity-0"
+              "w-full h-full object-cover transition-all duration-700",
+              imageLoaded ? "opacity-100" : "opacity-0",
+              "group-hover:scale-110"
             )}
-            whileHover={{ scale: 1.08 }}
-            transition={{ duration: 0.4 }}
           />
           
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          {/* Premium gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
         </div>
 
-        {/* Content - Glass effect */}
-        <div className="relative p-3.5 space-y-2 bg-gradient-to-b from-card/90 to-card">
+        {/* Content - Enhanced glass effect */}
+        <div className="relative p-4 space-y-2.5 bg-gradient-to-b from-card/95 to-card">
           {/* Dish Name */}
-          <h3 className="text-[15px] font-bold text-foreground line-clamp-1">
+          <h3 className="text-base font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
             {dish.name}
           </h3>
 
           {/* Description */}
           {dish.description && (
-            <p className="text-[11px] text-muted-foreground line-clamp-2 min-h-[28px] leading-tight">
+            <p className="text-[11px] text-muted-foreground line-clamp-2 min-h-[28px] leading-relaxed">
               {dish.description}
             </p>
           )}
 
-          {/* Restaurant Info */}
+          {/* Restaurant Info - Enhanced */}
           {dish.restaurant_name && (
             <motion.div
               onClick={handleRestaurantClick}
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-2 cursor-pointer group"
+              whileHover={{ x: 2 }}
+              className="flex items-center gap-2.5 cursor-pointer group/restaurant py-1"
             >
               {dish.restaurant_logo_url ? (
                 <img
                   src={dish.restaurant_logo_url}
                   alt={dish.restaurant_name}
-                  className="w-6 h-6 rounded-full object-cover border-2 border-primary/30"
+                  className="w-7 h-7 rounded-full object-cover border-2 border-primary/30 shadow-sm"
                   loading="lazy"
                 />
               ) : (
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
-                  <Store className="w-3 h-3 text-white" />
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-sm">
+                  <Store className="w-3.5 h-3.5 text-white" />
                 </div>
               )}
-              <span className="text-[11px] font-semibold text-primary group-hover:text-primary/80 transition-colors truncate max-w-[120px]">
+              <span className="text-xs font-semibold text-primary group-hover/restaurant:text-primary/80 transition-colors truncate max-w-[130px]">
                 {dish.restaurant_name}
               </span>
             </motion.div>
           )}
 
           {/* Price and Add Button Row */}
-          <div className="flex items-center justify-between pt-2">
-            {/* Price with animation */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/30">
+            {/* Price with enhanced animation */}
             <motion.div 
-              className="text-lg font-extrabold text-foreground"
-              animate={isAdding ? { scale: [1, 1.1, 1] } : {}}
+              className="space-y-0.5"
+              animate={isAdding ? { scale: [1, 1.05, 1] } : {}}
             >
-              {formatPrice(dish.price)}
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Prix</span>
+              <p className="text-xl font-black bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                {formatPrice(dish.price)}
+              </p>
             </motion.div>
 
-            {/* Add Button - Ripple effect */}
+            {/* Add Button - Premium design */}
             <motion.div
               whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.85, rotate: 90 }}
+              whileTap={{ scale: 0.85 }}
               className="relative"
             >
               <Button
@@ -199,37 +220,67 @@ export const FoodDishCard = ({
                 disabled={!isAvailable}
                 onClick={handleAddClick}
                 className={cn(
-                  "w-11 h-11 rounded-full shadow-lg transition-all duration-300",
-                  "bg-gradient-to-br from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600",
+                  "w-12 h-12 rounded-2xl shadow-xl transition-all duration-300",
+                  showSuccess 
+                    ? "bg-gradient-to-br from-green-500 to-emerald-600"
+                    : "bg-gradient-to-br from-primary to-orange-600 hover:from-primary/90 hover:to-orange-500",
                   "text-white disabled:opacity-50 disabled:cursor-not-allowed",
-                  isAdding && "animate-pulse"
+                  "border-2 border-white/20"
                 )}
               >
-                <Plus className="w-5 h-5" />
+                <AnimatePresence mode="wait">
+                  {showSuccess ? (
+                    <motion.div
+                      key="success"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: 180 }}
+                    >
+                      <Check className="w-5 h-5" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="plus"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1, rotate: isAdding ? 90 : 0 }}
+                      exit={{ scale: 0 }}
+                    >
+                      <Plus className="w-5 h-5" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Button>
               
-              {/* Success ripple */}
+              {/* Ripple effect */}
               <AnimatePresence>
                 {isAdding && (
-                  <motion.div
-                    initial={{ scale: 1, opacity: 0.5 }}
-                    animate={{ scale: 2.5, opacity: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 rounded-full bg-green-500"
-                  />
+                  <>
+                    <motion.div
+                      initial={{ scale: 1, opacity: 0.6 }}
+                      animate={{ scale: 2.5, opacity: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 rounded-2xl bg-primary"
+                    />
+                    <motion.div
+                      initial={{ scale: 1, opacity: 0.4 }}
+                      animate={{ scale: 3, opacity: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="absolute inset-0 rounded-2xl bg-primary"
+                    />
+                  </>
                 )}
               </AnimatePresence>
             </motion.div>
           </div>
         </div>
         
-        {/* Sparkle effect on hover */}
+        {/* Hover sparkle effect */}
         <motion.div
-          className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100"
-          initial={{ opacity: 0, rotate: 0 }}
-          whileHover={{ opacity: 1, rotate: 180 }}
+          className="absolute top-14 right-4 z-20 pointer-events-none"
+          initial={{ opacity: 0, scale: 0 }}
+          whileHover={{ opacity: 1, scale: 1 }}
         >
-          <Sparkles className="w-4 h-4 text-yellow-400" />
+          <Sparkles className="w-5 h-5 text-yellow-400" />
         </motion.div>
       </Card>
     </motion.div>
