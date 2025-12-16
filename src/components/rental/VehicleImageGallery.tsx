@@ -87,8 +87,8 @@ export const VehicleImageGallery: React.FC<VehicleImageGalleryProps> = ({
                 onClick={() => handleThumbnailClick(index)}
                 className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border-2 transition-all snap-center ${
                   index === currentIndex
-                    ? 'border-primary ring-2 ring-primary/20 scale-105'
-                    : 'border-transparent hover:border-muted-foreground/30'
+                    ? 'border-emerald-500 ring-2 ring-emerald-500/20 scale-105'
+                    : 'border-transparent hover:border-emerald-500/30'
                 }`}
               >
                 <img
@@ -97,7 +97,7 @@ export const VehicleImageGallery: React.FC<VehicleImageGalleryProps> = ({
                   className="w-full h-full object-cover"
                 />
                 {index === currentIndex && (
-                  <div className="absolute inset-0 bg-primary/10" />
+                  <div className="absolute inset-0 bg-emerald-500/10" />
                 )}
               </button>
             ))}
