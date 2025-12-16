@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones, LogOut, Store } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -449,7 +450,7 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
         <ProfileActionButtons onQuickAction={handleQuickAction} />
       </div>
 
-      {/* Section Vendeur - Afficher pour TOUS les clients */}
+      {/* Section Vendeur - Design Premium Violet */}
       <div className="px-4 py-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -457,92 +458,121 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
           transition={{ delay: 0.2 }}
         >
           {isVendor ? (
-            // Utilisateur déjà vendeur → Accès direct
+            // Utilisateur déjà vendeur → Accès direct avec design violet
             <button
               onClick={() => navigate('/vendeur')}
-              className="w-full relative overflow-hidden p-6 rounded-2xl group bg-gradient-to-br from-primary via-primary to-primary-glow hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-500 hover:scale-[1.02]"
+              className="w-full relative overflow-hidden p-5 rounded-2xl group bg-gradient-to-br from-violet-500 via-indigo-500 to-purple-600 hover:shadow-xl hover:shadow-violet-500/20 transition-all duration-500 hover:scale-[1.02]"
             >
-              <div className="absolute top-3 right-3 bg-congo-yellow text-congo-dark px-2 py-1 rounded-full text-xs font-bold">
-                ⭐ ACTIF
+              {/* Effet glassmorphism */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent" />
+              <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                ACTIF
               </div>
               <div className="relative flex items-center gap-4">
-                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl">
-                  <Store className="h-7 w-7 text-white" />
+                <div className="bg-white/20 backdrop-blur-sm p-3.5 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                  <Store className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="text-xl font-bold text-white">Mon espace vendeur</div>
-                  <div className="text-sm text-white/90">Gérer mes produits et commandes</div>
+                  <div className="text-lg font-bold text-white">Mon espace vendeur</div>
+                  <div className="text-sm text-white/80">Gérer mes produits et commandes</div>
                 </div>
-                <ChevronRight className="h-6 w-6 text-white" />
+                <ChevronRight className="h-5 w-5 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all" />
               </div>
             </button>
           ) : (
             // Client non-vendeur → Demander vérification
             <button
               onClick={() => handleOptionClick('vendor-request')}
-              className="w-full p-6 rounded-2xl border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 transition-all group"
+              className="w-full p-5 rounded-2xl border-2 border-dashed border-violet-300/50 dark:border-violet-700/50 hover:border-violet-500 hover:bg-violet-500/5 transition-all group"
             >
               <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-4 rounded-2xl group-hover:bg-primary/20 transition-colors">
-                  <Store className="h-7 w-7 text-primary" />
+                <div className="bg-violet-100 dark:bg-violet-900/30 p-3.5 rounded-2xl group-hover:bg-violet-200 dark:group-hover:bg-violet-800/40 transition-colors">
+                  <Store className="h-6 w-6 text-violet-600 dark:text-violet-400" />
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="text-lg font-bold text-foreground">Devenir vendeur</div>
+                  <div className="text-lg font-bold text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">Devenir vendeur</div>
                   <div className="text-sm text-muted-foreground">
                     Vendez vos produits sur Kwenda Shop
                   </div>
                 </div>
-                <ChevronRight className="h-6 w-6 text-primary" />
+                <ChevronRight className="h-5 w-5 text-violet-400 group-hover:text-violet-600 group-hover:translate-x-1 transition-all" />
               </div>
             </button>
           )}
         </motion.div>
       </div>
 
-      {/* Profile Options List */}
-      <div className="px-4 py-2 space-y-2">
-        {profileOptions.map((option) => {
+      {/* Profile Options List - Design Premium Glassmorphism */}
+      <div className="px-4 py-2 space-y-2.5">
+        {profileOptions.map((option, index) => {
           const IconComponent = option.icon;
+          const gradients = {
+            history: 'from-violet-500/15 to-violet-600/15',
+            addresses: 'from-indigo-500/15 to-indigo-600/15',
+            support: 'from-blue-500/15 to-blue-600/15',
+            settings: 'from-purple-500/15 to-purple-600/15'
+          };
+          const iconColors = {
+            history: 'text-violet-500',
+            addresses: 'text-indigo-500',
+            support: 'text-blue-500',
+            settings: 'text-purple-500'
+          };
+          
           return (
-            <button
+            <motion.button
               key={option.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
               onClick={() => handleOptionClick(option.id)}
-              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-all duration-200 rounded-xl group bg-card border border-border shadow-lg"
+              className="w-full flex items-center gap-4 p-4 hover:bg-violet-500/5 transition-all duration-300 rounded-2xl group bg-card/80 backdrop-blur-sm border border-border/50 hover:border-violet-300/50 dark:hover:border-violet-700/50 shadow-sm hover:shadow-md"
             >
-              <div className="bg-gradient-to-br from-congo-red/10 to-congo-yellow/10 p-3 rounded-xl group-hover:from-congo-red/20 group-hover:to-congo-yellow/20 transition-all duration-200">
-                <IconComponent className="h-5 w-5 text-congo-red group-hover:text-congo-red-electric transition-colors" />
+              <div className={cn(
+                "p-3 rounded-xl transition-all duration-300 bg-gradient-to-br",
+                gradients[option.id as keyof typeof gradients],
+                "group-hover:scale-110"
+              )}>
+                <IconComponent className={cn(
+                  "h-5 w-5 transition-colors",
+                  iconColors[option.id as keyof typeof iconColors]
+                )} />
               </div>
               <div className="flex-1 text-left">
-                <div className="font-semibold text-foreground group-hover:text-congo-red transition-colors">{option.title}</div>
+                <div className="font-semibold text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">{option.title}</div>
                 <div className="text-sm text-muted-foreground">{option.subtitle}</div>
               </div>
               {option.hasArrow && (
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-congo-yellow transition-all duration-200 group-hover:translate-x-1" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-500 transition-all duration-300 group-hover:translate-x-1" />
               )}
-            </button>
+            </motion.button>
           );
         })}
       </div>
 
-      {/* Logout Section */}
-      <div className="px-4 py-4 mt-6">
+      {/* Logout Section - Design soft rose */}
+      <div className="px-4 py-6 mt-4">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="w-full flex items-center gap-3 text-destructive hover:text-destructive bg-card border-destructive/20 hover:border-destructive/40 shadow-lg">
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-center gap-3 text-rose-500 hover:text-rose-600 bg-card/80 backdrop-blur-sm border-rose-200/50 dark:border-rose-800/30 hover:border-rose-300 dark:hover:border-rose-700 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl py-3"
+            >
               <LogOut className="h-4 w-4" />
               {t('profile.logout')}
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="bg-card border border-border shadow-lg">
+          <AlertDialogContent className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>{t('profile.logout_confirm')}</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-foreground">{t('profile.logout_confirm')}</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
                 {t('profile.logout_confirm')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{t('profile.cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+              <AlertDialogCancel className="rounded-xl">{t('profile.cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleLogout} className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl">
                 {t('profile.logout')}
               </AlertDialogAction>
             </AlertDialogFooter>
