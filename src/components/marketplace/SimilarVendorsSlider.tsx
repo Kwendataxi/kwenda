@@ -68,11 +68,11 @@ export const SimilarVendorsSlider: React.FC<SimilarVendorsSliderProps> = ({
           onMouseLeave={() => autoplayPlugin.current.reset()}
           className="w-full"
         >
-          <CarouselContent className="-ml-2 md:-ml-4">
+          <CarouselContent className="-ml-3">
             {vendors.map((vendor, index) => (
               <CarouselItem
                 key={vendor.user_id}
-                className="pl-2 md:pl-4 basis-[85%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                className="pl-3 basis-[80%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
               >
                 <VendorCard
                   vendor={vendor}
