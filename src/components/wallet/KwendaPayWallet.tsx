@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle } from 'lucide-react';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface WalletData {
   id: string;
   balance: number;
@@ -217,12 +217,7 @@ export const KwendaPayWallet = () => {
     }
   };
 
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF'
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => formatCurrency(amount, 'CDF');
 
   const getTransactionIcon = (type: string) => {
     switch (type) {

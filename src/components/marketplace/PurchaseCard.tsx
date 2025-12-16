@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Wallet, ShoppingBag, ShoppingCart, Minus, Plus, ShieldCheck, Truck, MessageCircle } from 'lucide-react';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface PurchaseCardProps {
   productId: string;
   productPrice: number;
@@ -30,14 +30,7 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(1);
 
-  const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+  const formatPrice = (amount: number) => formatCurrency(amount, 'CDF');
 
   const totalPrice = productPrice * quantity;
   const canAfford = walletBalance >= totalPrice;

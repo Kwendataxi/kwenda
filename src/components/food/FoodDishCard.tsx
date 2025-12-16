@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import type { FoodProduct } from '@/types/food';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface FoodDishCardProps {
   dish: FoodProduct & {
     restaurant_name?: string;
@@ -23,14 +23,7 @@ export const FoodDishCard = ({
   onRestaurantClick,
   className 
 }: FoodDishCardProps) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const handleAddClick = (e: React.MouseEvent) => {
     e.stopPropagation();

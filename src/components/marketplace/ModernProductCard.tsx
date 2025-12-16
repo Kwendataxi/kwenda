@@ -6,7 +6,7 @@ import { Eye, ShoppingCart, Heart, Star, Store, MessageCircle, MapPin } from 'lu
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface Product {
   id: string;
   title: string;
@@ -50,14 +50,7 @@ export const ModernProductCard = ({
   const rating = product.rating_average || 0;
   const reviewCount = product.review_count || 0;
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const originalPrice = discount > 0 ? product.price / (1 - discount / 100) : null;
 

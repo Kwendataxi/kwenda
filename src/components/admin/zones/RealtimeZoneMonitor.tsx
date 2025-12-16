@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { formatCurrency as formatCurrencyUtil } from '@/utils/formatCurrency'
 import { 
   Activity, 
   Car, 
@@ -93,13 +94,7 @@ export const RealtimeZoneMonitor: React.FC = () => {
     return { status: 'normal', color: 'success' }
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const formatCurrency = (amount: number) => formatCurrencyUtil(amount, 'CDF')
 
   if (loading) {
     return (

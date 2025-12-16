@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface CartItem {
   id: string;
   name: string;
@@ -42,14 +42,7 @@ export const FloatingCartIndicator = ({
   // Afficher seulement les 3 derniers articles ajoutés
   const recentItems = cartItems.slice(-3).reverse();
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   if (cartCount === 0) return null;
 

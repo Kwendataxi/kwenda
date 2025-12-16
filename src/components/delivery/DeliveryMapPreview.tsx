@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, Navigation, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface DeliveryMapPreviewProps {
   pickup: {
     lat: number;
@@ -151,14 +151,7 @@ export const DeliveryMapPreview: React.FC<DeliveryMapPreviewProps> = ({
     loadGoogleMaps();
   }, [pickup, destination]);
 
-  const formatPrice = (priceValue: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(priceValue);
-  };
+  const formatPrice = (priceValue: number) => formatCurrency(priceValue, 'CDF');
 
   const serviceLabels = {
     flash: '⚡ Flash',

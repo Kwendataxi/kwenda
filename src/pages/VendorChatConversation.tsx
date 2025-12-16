@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowLeft, Send, Package } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface Message {
   id: string;
@@ -266,7 +267,7 @@ export default function VendorChatConversation() {
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{chatInfo.product_title}</p>
               <p className="text-lg font-bold text-primary">
-                {chatInfo.product_price.toLocaleString()} FC
+                {formatCurrency(chatInfo.product_price, 'CDF')}
               </p>
             </div>
           </div>

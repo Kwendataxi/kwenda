@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingBag, Store } from 'lucide-react';
 import { CartItem } from '@/types/marketplace';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface VendorCheckoutBarProps {
   cartItems: CartItem[];
   onCheckout: () => void;
@@ -21,14 +21,7 @@ export const VendorCheckoutBar = ({
   // Progress bar basée sur le nombre d'articles (max à 10 pour 100%)
   const progress = Math.min((totalItems / 10) * 100, 100);
   
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   if (totalItems === 0) return null;
 

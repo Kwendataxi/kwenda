@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Star, ShoppingCart, Heart, Share2, ArrowLeft, MessageCircle, Package, Truck, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface Product {
   id: string;
   name: string;
@@ -116,13 +116,7 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
     onStartChat();
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   return (
     <div className="min-h-screen bg-background">

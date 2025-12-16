@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { 
   User, 
   Star, 
@@ -154,13 +155,7 @@ export const DriverProfile = () => {
     }
   };
 
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => formatCurrency(amount, 'CDF');
 
   const getJoinDuration = (joinDate: string) => {
     const join = new Date(joinDate);

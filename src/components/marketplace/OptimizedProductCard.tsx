@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { MarketplaceProduct } from '@/types/marketplace';
 import { useProductPromotions } from '@/hooks/useProductPromotions';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 type Product = MarketplaceProduct;
 
 interface OptimizedProductCardProps {
@@ -44,14 +44,7 @@ export const OptimizedProductCard = ({
   const mainImage = product.image || '/placeholder.svg';
   const inStock = product.inStock;
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const calculateDistance = () => {
     if (!userLocation || !product.coordinates) return null;
