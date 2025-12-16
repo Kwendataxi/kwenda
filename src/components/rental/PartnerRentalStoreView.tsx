@@ -189,17 +189,17 @@ export const PartnerRentalStoreView = () => {
   const tier = subscription?.plan?.tier || 'basic';
   const bannerImage = partnerData?.banner_image;
   
-  // Gradients dynamiques par tier si pas d'image
+  // Gradients dynamiques par tier si pas d'image - Thème vert
   const getTierGradient = (tier: string) => {
     switch (tier) {
       case 'platinum':
-        return 'from-slate-700 via-slate-500 to-slate-800';
+        return 'from-emerald-700 via-teal-600 to-green-800';
       case 'gold':
-        return 'from-yellow-600 via-amber-500 to-orange-600';
+        return 'from-emerald-600 via-teal-500 to-green-600';
       case 'diamond':
-        return 'from-purple-600 via-fuchsia-500 to-pink-600';
+        return 'from-emerald-500 via-green-400 to-teal-500';
       default:
-        return 'from-red-600 via-red-500 to-rose-600';
+        return 'from-emerald-600 via-teal-500 to-green-600';
     }
   };
 
@@ -230,11 +230,11 @@ export const PartnerRentalStoreView = () => {
     );
   }
 
-  // Génère un logo fallback avec initiales si pas d'avatar
+  // Génère un logo fallback avec initiales si pas d'avatar - Thème vert
   const generateLogoFallback = (name: string) => {
     const initials = name.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase();
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary via-primary/80 to-primary/60">
+      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 via-teal-500 to-green-600">
         <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-lg">
           {initials}
         </span>
@@ -357,7 +357,7 @@ export const PartnerRentalStoreView = () => {
             )}
           </div>
 
-          {/* Desktop Action Buttons */}
+          {/* Desktop Action Buttons - Thème vert */}
           <div className="hidden sm:flex gap-2 pb-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
@@ -365,7 +365,7 @@ export const PartnerRentalStoreView = () => {
                 size="lg"
                 onClick={handleFollow}
                 disabled={followLoading}
-                className="gap-2 shadow-lg hover:shadow-xl transition-shadow"
+                className={`gap-2 shadow-lg hover:shadow-xl transition-shadow ${!isFollowing ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0' : ''}`}
               >
                 <motion.div
                   animate={isFollowing ? { scale: [1, 1.2, 1] } : {}}
@@ -407,17 +407,23 @@ export const PartnerRentalStoreView = () => {
           </div>
         </div>
         
-        {/* Mobile Action Buttons - Full Width */}
+        {/* Mobile Action Buttons - Full Width - Thème vert */}
         <div className="flex sm:hidden flex-col gap-2 w-full mt-4">
           <div className="grid grid-cols-2 gap-2">
-            <Button size="lg" variant={isFollowing ? "secondary" : "default"} onClick={handleFollow} disabled={followLoading} className="w-full">
+            <Button 
+              size="lg" 
+              variant={isFollowing ? "secondary" : "default"} 
+              onClick={handleFollow} 
+              disabled={followLoading} 
+              className={`w-full ${!isFollowing ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0' : ''}`}
+            >
               <Heart className={cn("mr-2", isFollowing && "fill-current")} />
               {isFollowing ? 'Suivi' : 'Suivre'}
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
-              className="w-full"
+              className="w-full border-emerald-500/30 hover:bg-emerald-500/10"
               onClick={() => setShowShareDialog(true)}
             >
               <Share2 className="mr-2 h-5 w-5" />
@@ -425,12 +431,12 @@ export const PartnerRentalStoreView = () => {
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Button size="lg" variant="outline" onClick={() => setShowRatingDialog(true)} className="w-full">
+            <Button size="lg" variant="outline" onClick={() => setShowRatingDialog(true)} className="w-full border-emerald-500/30 hover:bg-emerald-500/10">
               <Star className="mr-2 h-5 w-5" />
               Noter
             </Button>
             {partnerData.phone && (
-              <Button size="lg" variant="outline" onClick={handleContact} className="w-full">
+              <Button size="lg" variant="outline" onClick={handleContact} className="w-full border-emerald-500/30 hover:bg-emerald-500/10">
                 <Phone className="mr-2 h-5 w-5" />
                 Appeler
               </Button>
@@ -452,10 +458,10 @@ export const PartnerRentalStoreView = () => {
             }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 cursor-pointer">
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-emerald-500/20 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer">
               {/* Shine Effect */}
               <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
               />
               <CardContent className="relative p-3 sm:p-4 text-center">
                 <motion.div
@@ -465,9 +471,9 @@ export const PartnerRentalStoreView = () => {
                   }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Car className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-primary drop-shadow-lg" />
+                  <Car className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-emerald-500 drop-shadow-lg" />
                 </motion.div>
-                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
                   {partnerData.stats.available_vehicles}
                 </div>
                 <div className="text-xs text-muted-foreground">Véhicules dispos</div>
@@ -485,18 +491,18 @@ export const PartnerRentalStoreView = () => {
             }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl hover:shadow-yellow-500/30 transition-all duration-300 cursor-pointer">
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-emerald-500/20 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer">
               <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
               />
               <CardContent className="relative p-3 sm:p-4 text-center">
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Award className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-yellow-500 drop-shadow-lg" />
+                  <Award className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-emerald-500 drop-shadow-lg" />
                 </motion.div>
-                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent">
+                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
                   {partnerData.stats.completed_bookings}
                 </div>
                 <div className="text-xs text-muted-foreground">Locations</div>
@@ -515,11 +521,11 @@ export const PartnerRentalStoreView = () => {
             transition={{ delay: 0.3 }}
           >
             <Card 
-              className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl hover:shadow-yellow-500/30 cursor-pointer transition-all duration-300"
+              className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-yellow-500/20 shadow-xl hover:shadow-2xl hover:shadow-yellow-500/30 cursor-pointer transition-all duration-300"
               onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
               />
               <CardContent className="relative p-3 sm:p-4 text-center">
                 <motion.div
@@ -548,18 +554,18 @@ export const PartnerRentalStoreView = () => {
             }}
             transition={{ delay: 0.4 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 cursor-pointer">
+            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-teal-500/20 shadow-xl hover:shadow-2xl hover:shadow-teal-500/30 transition-all duration-300 cursor-pointer">
               <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-500/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
               />
               <CardContent className="relative p-3 sm:p-4 text-center">
                 <motion.div
                   animate={{ y: [0, -5, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Users className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-blue-500 drop-shadow-lg" />
+                  <Users className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-teal-500 drop-shadow-lg" />
                 </motion.div>
-                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
+                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-teal-500 to-emerald-500 bg-clip-text text-transparent">
                   {followersCount}
                 </div>
                 <div className="text-xs text-muted-foreground">Abonnés</div>
@@ -596,12 +602,12 @@ export const PartnerRentalStoreView = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <Card className="glassmorphism mb-8 overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-500 to-purple-500" />
+            <Card className="glassmorphism mb-8 overflow-hidden border-emerald-500/20">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500" />
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <MapPin className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-lg bg-emerald-500/10">
+                    <MapPin className="h-5 w-5 text-emerald-500" />
                   </div>
                   <h2 className="text-xl font-bold">À propos de {partnerData.company_name}</h2>
                 </div>
@@ -612,21 +618,21 @@ export const PartnerRentalStoreView = () => {
                 {/* Enhanced Contact Info */}
                 <div className="flex flex-wrap gap-4 text-sm">
                   {partnerData.email && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                      <Mail className="h-4 w-4 text-primary" />
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 transition-colors">
+                      <Mail className="h-4 w-4 text-emerald-500" />
                       <span>{partnerData.email}</span>
                     </div>
                   )}
                   {partnerData.phone && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                      <Phone className="h-4 w-4 text-primary" />
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 transition-colors">
+                      <Phone className="h-4 w-4 text-emerald-500" />
                       <span>{partnerData.phone}</span>
                     </div>
                   )}
                   {partnerData.website && (
                     <a href={partnerData.website} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-primary/10 transition-colors">
-                      <Globe className="h-4 w-4 text-primary" />
+                       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 hover:bg-emerald-500/10 transition-colors">
+                      <Globe className="h-4 w-4 text-emerald-500" />
                       <span>Site web</span>
                     </a>
                   )}
@@ -636,15 +642,15 @@ export const PartnerRentalStoreView = () => {
           </motion.div>
         )}
 
-        {/* Filters & Search */}
+        {/* Filters & Search - Thème vert */}
         <div className="mb-6">
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+            <Search className="absolute left-3 top-3 h-5 w-5 text-emerald-500/60" />
             <Input
               placeholder="Rechercher un véhicule..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 border-emerald-500/20 focus:border-emerald-500 focus:ring-emerald-500/20"
             />
           </div>
 
@@ -652,7 +658,7 @@ export const PartnerRentalStoreView = () => {
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
             <Badge
               variant={!selectedCategory ? "default" : "outline"}
-              className="cursor-pointer whitespace-nowrap"
+              className={`cursor-pointer whitespace-nowrap ${!selectedCategory ? 'bg-gradient-to-r from-emerald-500 to-teal-500 border-0' : 'border-emerald-500/30 hover:bg-emerald-500/10'}`}
               onClick={() => setSelectedCategory(null)}
             >
               Tous ({vehicles.length})
@@ -754,12 +760,12 @@ export const PartnerRentalStoreView = () => {
 
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">À partir de</span>
-                        <span className="text-xl font-bold text-primary">
+                        <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
                           {vehicle.daily_rate.toLocaleString()} CDF/j
                         </span>
                       </div>
 
-                      <Button className="w-full" size="sm">
+                      <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0" size="sm">
                         Voir les détails
                       </Button>
                     </CardContent>

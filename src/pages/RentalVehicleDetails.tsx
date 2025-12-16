@@ -151,7 +151,7 @@ export const RentalVehicleDetails = () => {
                       </p>
                     </div>
                     
-                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-400 text-white shrink-0 shadow-lg border-0">
+                    <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white shrink-0 shadow-lg border-0">
                       Disponible
                     </Badge>
                   </div>
@@ -190,7 +190,7 @@ export const RentalVehicleDetails = () => {
                           alt={partnerGroup.partnerName}
                           className="w-14 h-14 rounded-xl object-cover ring-2 ring-primary/20 shadow-lg"
                         />
-                        <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-green-500 to-emerald-400 flex items-center justify-center ring-2 ring-background">
+                        <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center ring-2 ring-background">
                           <CheckCircle2 className="h-3 w-3 text-white" />
                         </div>
                       </div>
@@ -235,8 +235,8 @@ export const RentalVehicleDetails = () => {
             <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-muted/20 overflow-hidden">
               <CardContent className="p-5 sm:p-6 space-y-5">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
-                    <DollarSign className="h-5 w-5 text-primary-foreground" />
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
+                    <DollarSign className="h-5 w-5 text-white" />
                   </div>
                   <h3 className="font-bold text-lg">Tarifs de location</h3>
                 </div>
@@ -387,8 +387,8 @@ export const RentalVehicleDetails = () => {
                   {/* Conditions */}
                   <AccordionItem value="conditions" className="border rounded-2xl px-4 bg-gradient-to-br from-background/80 to-muted/20 border-border/50">
                     <AccordionTrigger className="hover:no-underline py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
+                        <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
                           <FileText className="h-5 w-5 text-white" />
                         </div>
                         <span className="font-semibold text-sm sm:text-base">Conditions de location</span>
@@ -417,8 +417,8 @@ export const RentalVehicleDetails = () => {
                   {/* Assurance incluse */}
                   <AccordionItem value="insurance" className="border rounded-2xl px-4 bg-gradient-to-br from-background/80 to-muted/20 border-border/50">
                     <AccordionTrigger className="hover:no-underline py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-400 flex items-center justify-center shadow-md">
+                        <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-400 flex items-center justify-center shadow-md">
                           <Shield className="h-5 w-5 text-white" />
                         </div>
                         <span className="font-semibold text-sm sm:text-base">Assurance et protection</span>
@@ -506,21 +506,21 @@ export const RentalVehicleDetails = () => {
               className="hidden lg:block fixed bottom-0 left-0 right-0 z-40"
             >
               <div className="max-w-5xl mx-auto px-6 pb-6">
-                <Card className="border-2 border-destructive/30 shadow-2xl overflow-hidden">
+                <Card className="border-2 border-emerald-500/30 shadow-2xl overflow-hidden bg-gradient-to-br from-card to-emerald-500/5">
                   {/* Header avec badges de confiance */}
-                  <div className="bg-gradient-to-r from-destructive/10 to-transparent px-6 py-2 border-b">
+                  <div className="bg-gradient-to-r from-emerald-500/10 to-transparent px-6 py-2 border-b border-emerald-500/20">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <Badge variant="secondary" className="text-xs bg-destructive text-white">
+                      <Badge className="text-xs bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0">
                         ⚡ Réservation instantanée
                       </Badge>
                       <Separator orientation="vertical" className="h-4" />
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                         Annulation gratuite 48h
                       </span>
                       <Separator orientation="vertical" className="h-4" />
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Shield className="h-3 w-3 text-primary" />
+                        <Shield className="h-3 w-3 text-emerald-500" />
                         Paiement sécurisé
                       </span>
                     </div>
@@ -533,12 +533,12 @@ export const RentalVehicleDetails = () => {
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-2">Tarif journalier</p>
                         <div className="flex items-baseline gap-3">
-                          <p className="text-4xl font-bold text-destructive">
+                          <p className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
                             {formatCDF(calculateCityPrice(minPrice, vehicle.category_id))}
                           </p>
                           <div className="space-y-1">
                             <p className="text-xs text-muted-foreground">/jour</p>
-                            <Badge variant="outline" className="text-xs border-green-500 text-green-600">
+                            <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-600">
                               -15% sur une semaine
                             </Badge>
                           </div>
@@ -549,7 +549,7 @@ export const RentalVehicleDetails = () => {
                       <div className="text-right">
                         <Button 
                           size="lg" 
-                          className="h-14 px-10 bg-destructive hover:bg-destructive/90 text-base font-bold shadow-xl"
+                          className="h-14 px-10 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-base font-bold shadow-xl shadow-emerald-500/25 border-0"
                           onClick={() => navigate(`/rental-booking/${vehicle.id}`)}
                         >
                           <Calendar className="h-5 w-5 mr-3" />
@@ -573,16 +573,16 @@ export const RentalVehicleDetails = () => {
               transition={{ duration: 0.3 }}
               className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
             >
-              <div className="bg-background border-t-2 border-destructive/20 shadow-2xl p-4 pb-safe">
+              <div className="bg-background/95 backdrop-blur-xl border-t-2 border-emerald-500/20 shadow-2xl p-4 pb-safe">
                 {/* Header du footer avec badge */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-xs font-medium text-muted-foreground">
                       Disponible maintenant
                     </span>
                   </div>
-                  <Badge className="bg-destructive text-white text-xs">
+                  <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs border-0">
                     Réservation instantanée
                   </Badge>
                 </div>
@@ -592,17 +592,17 @@ export const RentalVehicleDetails = () => {
                   <div className="flex-1">
                     <p className="text-xs text-muted-foreground mb-1">À partir de</p>
                     <div className="flex items-baseline gap-2">
-                      <p className="text-2xl font-bold text-destructive">
+                      <p className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
                         {formatCDF(calculateCityPrice(minPrice, vehicle.category_id)).split(' ')[0]}
                       </p>
-                      <span className="text-sm font-bold text-destructive">CDF</span>
+                      <span className="text-sm font-bold text-emerald-600">CDF</span>
                       <span className="text-xs text-muted-foreground">/jour</span>
                     </div>
                   </div>
                   
                   <Button 
                     size="lg" 
-                    className="h-14 px-6 bg-destructive hover:bg-destructive/90 shadow-lg"
+                    className="h-14 px-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 border-0"
                     onClick={() => navigate(`/rental-booking/${vehicle.id}`)}
                   >
                     <Calendar className="h-5 w-5 mr-2" />
@@ -612,7 +612,7 @@ export const RentalVehicleDetails = () => {
                 
                 {/* Trust badge */}
                 <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                   <span>Annulation gratuite 48h avant</span>
                 </div>
               </div>
