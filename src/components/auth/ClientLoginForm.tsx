@@ -12,8 +12,7 @@ import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 /**
- * Formulaire de connexion client léger pour UnifiedAuthPage
- * Version simplifiée sans header ni navigation externe
+ * Formulaire de connexion client - Design Premium Épuré
  */
 export const ClientLoginForm = () => {
   const [email, setEmail] = useState('');
@@ -47,7 +46,6 @@ export const ClientLoginForm = () => {
       return;
     }
 
-    // Stocker l'intention de connexion
     localStorage.setItem('kwenda_login_intent', 'client');
     localStorage.setItem('kwenda_selected_role', 'client');
 
@@ -55,7 +53,6 @@ export const ClientLoginForm = () => {
       description: t('auth.redirecting')
     });
 
-    // Attendre synchronisation
     await new Promise(resolve => setTimeout(resolve, 300));
     
     setLoading(false);
@@ -64,13 +61,13 @@ export const ClientLoginForm = () => {
 
   return (
     <form onSubmit={handleLogin} className="space-y-5">
-      {/* Champ Email */}
+      {/* Email Field */}
       <div className="space-y-2">
-        <Label htmlFor="client-email" className="text-sm font-semibold text-foreground/90 dark:text-foreground/85">
+        <Label htmlFor="client-email" className="text-sm font-medium text-gray-700 dark:text-gray-200">
           {t('auth.email')}
         </Label>
         <div className="relative group">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-congo-red dark:group-focus-within:text-congo-red-electric transition-colors" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-rose-500 transition-colors duration-200" />
           <Input
             id="client-email"
             type="email"
@@ -78,18 +75,18 @@ export const ClientLoginForm = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="h-12 pl-10 pr-4 rounded-xl focus-visible:ring-congo-red/20 focus-visible:border-congo-red/50 dark:focus-visible:ring-congo-red/30 dark:focus-visible:border-congo-red-electric/50 transition-all duration-300"
+            className="h-11 pl-10 pr-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all duration-200"
           />
         </div>
       </div>
 
-      {/* Champ Mot de passe */}
+      {/* Password Field */}
       <div className="space-y-2">
-        <Label htmlFor="client-password" className="text-sm font-semibold text-foreground/90 dark:text-foreground/85">
+        <Label htmlFor="client-password" className="text-sm font-medium text-gray-700 dark:text-gray-200">
           {t('auth.password')}
         </Label>
         <div className="relative group">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-congo-red dark:group-focus-within:text-congo-red-electric transition-colors" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-rose-500 transition-colors duration-200" />
           <Input
             id="client-password"
             type={showPassword ? 'text' : 'password'}
@@ -97,91 +94,91 @@ export const ClientLoginForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="h-12 pl-10 pr-12 rounded-xl focus-visible:ring-congo-red/20 focus-visible:border-congo-red/50 dark:focus-visible:ring-congo-red/30 dark:focus-visible:border-congo-red-electric/50 transition-all duration-300"
+            className="h-11 pl-10 pr-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all duration-200"
           />
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-xl"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
-              <EyeOff className="h-4 w-4 text-muted-foreground" />
+              <EyeOff className="h-4 w-4 text-gray-400" />
             ) : (
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <Eye className="h-4 w-4 text-gray-400" />
             )}
           </Button>
         </div>
       </div>
 
-      {/* Message d'erreur */}
+      {/* Error Message */}
       {error && (
-        <Alert variant="destructive" className="animate-fade-in">
-          <AlertCircle className="h-5 w-5" />
-          <AlertDescription className="text-sm font-medium">
+        <Alert variant="destructive" className="bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 rounded-xl animate-fade-in">
+          <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+          <AlertDescription className="text-sm text-rose-700 dark:text-rose-300">
             {error}
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Acceptation CGU */}
-      <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+      {/* Terms Checkbox */}
+      <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
         <Checkbox
           id="terms-login"
           checked={acceptTerms}
           onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-          className="mt-0.5"
+          className="mt-0.5 border-gray-300 data-[state=checked]:bg-rose-500 data-[state=checked]:border-rose-500"
         />
-        <Label htmlFor="terms-login" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+        <Label htmlFor="terms-login" className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer leading-relaxed">
           {t('auth.accept_terms_part1')}{' '}
-          <Link to="/terms" className="text-congo-red dark:text-congo-red-electric hover:underline font-medium">
+          <Link to="/terms" className="text-rose-500 hover:text-rose-600 hover:underline font-medium">
             {t('auth.terms_of_service')}
           </Link>{' '}
           {t('auth.accept_terms_part2')}{' '}
-          <Link to="/privacy" className="text-congo-red dark:text-congo-red-electric hover:underline font-medium">
+          <Link to="/privacy" className="text-rose-500 hover:text-rose-600 hover:underline font-medium">
             {t('auth.privacy_policy')}
           </Link>{' '}
           {t('auth.accept_terms_part3')}
         </Label>
       </div>
 
-      {/* Bouton de connexion */}
+      {/* Login Button */}
       <Button 
         type="submit" 
-        className="w-full h-12 rounded-xl bg-gradient-to-r from-congo-red to-congo-red-vibrant hover:from-congo-red-vibrant hover:to-congo-red text-white font-semibold shadow-lg hover:shadow-[0_6px_30px_hsl(var(--congo-red)/0.4)] dark:hover:shadow-[0_8px_40px_hsl(var(--congo-red)/0.5)] transition-all duration-300"
+        className="w-full h-11 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white font-medium shadow-sm hover:shadow-md transition-all duration-200"
         disabled={loading || !acceptTerms}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {loading ? t('auth.logging_in') : t('auth.login_button')}
       </Button>
 
-      {/* Lien mot de passe oublié */}
-      <div className="flex items-center justify-center pt-2">
+      {/* Forgot Password Link */}
+      <div className="flex items-center justify-center">
         <Button
           type="button"
           variant="link"
-          className="text-sm text-congo-red dark:text-congo-red-electric hover:text-congo-red-vibrant transition-colors"
+          className="text-sm text-rose-500 hover:text-rose-600 transition-colors p-0 h-auto"
           onClick={() => setShowForgotPassword(true)}
         >
           {t('auth.forgot_password')}
         </Button>
       </div>
 
-      {/* Modal mot de passe oublié */}
+      {/* Forgot Password Modal */}
       <ForgotPasswordModal 
         isOpen={showForgotPassword} 
         onClose={() => setShowForgotPassword(false)} 
       />
 
-      {/* Lien inscription */}
-      <div className="text-center text-sm text-muted-foreground dark:text-muted-foreground/80 mt-4 pt-4 border-t border-border/50 dark:border-border/30">
+      {/* Register Link */}
+      <div className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-800">
         <p>
           {t('auth.no_account')}{' '}
           <Button
             type="button"
             variant="link"
-            className="p-0 h-auto text-congo-red dark:text-congo-red-electric hover:text-congo-red-vibrant font-semibold transition-colors"
+            className="p-0 h-auto text-rose-500 hover:text-rose-600 font-medium transition-colors"
             onClick={() => navigate('/app/register')}
           >
             {t('auth.create_client_account')}
