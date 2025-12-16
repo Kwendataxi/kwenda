@@ -71,8 +71,7 @@ export const useRideDispatch = () => {
       });
 
       // 1. Créer le booking dans transport_bookings
-      // Note: Les nouveaux champs de transport_bookings nécessitent la régénération des types Supabase
-      const bookingInsert: any = {
+      const bookingInsert = {
         user_id: user.id,
         pickup_location: bookingData.pickupLocation,
         destination: bookingData.destination,
@@ -86,13 +85,10 @@ export const useRideDispatch = () => {
         pickup_time: bookingData.pickupTime || new Date().toISOString(),
         status: biddingMode ? 'bidding' : 'pending',
         payment_status: 'pending',
-        bidding_mode: biddingMode
+        bidding_mode: biddingMode,
+        bidding_closes_at: biddingMode ? new Date(Date.now() + biddingDuration * 1000).toISOString() : null,
+        client_proposed_price: biddingMode ? (clientProposedPrice || Math.floor(bookingData.estimatedPrice * 0.8)) : null
       };
-
-      if (biddingMode) {
-        bookingInsert.bidding_closes_at = new Date(Date.now() + biddingDuration * 1000).toISOString();
-        bookingInsert.client_proposed_price = clientProposedPrice || Math.floor(bookingData.estimatedPrice * 0.8);
-      }
 
       const { data: booking, error: bookingError } = await supabase
         .from('transport_bookings')
