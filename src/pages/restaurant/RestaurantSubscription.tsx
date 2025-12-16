@@ -73,7 +73,7 @@ export default function RestaurantSubscription() {
     if (walletBalance < planPrice) {
       toast({
         title: 'Solde insuffisant',
-        description: `Rechargez votre KwendaPay (${planPrice.toLocaleString()} FC requis)`,
+        description: `Rechargez votre KwendaPay (${planPrice.toLocaleString()} CDF requis)`,
         variant: 'destructive',
       });
       return;
@@ -136,7 +136,7 @@ export default function RestaurantSubscription() {
                 <Wallet className="h-8 w-8 text-primary" />
                 <div>
                   <p className="text-sm text-muted-foreground">Solde KwendaPay</p>
-                  <p className="text-2xl font-bold">{walletBalance.toLocaleString()} FC</p>
+                  <p className="text-2xl font-bold">{walletBalance.toLocaleString()} CDF</p>
                 </div>
               </div>
               <Button 

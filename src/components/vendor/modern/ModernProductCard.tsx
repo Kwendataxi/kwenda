@@ -126,7 +126,7 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
         <div className="p-3 space-y-1">
           <p className="text-xs text-muted-foreground">{category}</p>
           <h3 className="font-semibold line-clamp-2 text-sm">{title}</h3>
-          <p className="text-lg font-bold text-red-600">{price.toLocaleString()} FC</p>
+          <p className="text-lg font-bold text-red-600">{price.toLocaleString()} CDF</p>
         </div>
       </Card>
     </motion.div>

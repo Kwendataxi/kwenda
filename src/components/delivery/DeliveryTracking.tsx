@@ -198,7 +198,7 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
                     : 'En cours...'
                   }
                 </p>
-                <p className="text-sm text-grey-600">{price?.toLocaleString()} FC</p>
+                <p className="text-sm text-grey-600">{price?.toLocaleString()} CDF</p>
               </div>
             </div>
           </CardContent>

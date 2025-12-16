@@ -73,7 +73,7 @@ export default function PartnerDeliveryStats({ orders, drivers }: Props) {
     },
     {
       title: "Revenus",
-      value: `${totalRevenue.toLocaleString()} FC`,
+      value: `${totalRevenue.toLocaleString()} CDF`,
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-100",

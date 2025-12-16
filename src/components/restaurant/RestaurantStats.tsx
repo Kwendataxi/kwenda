@@ -104,7 +104,7 @@ export function RestaurantStats() {
     },
     {
       title: 'Revenus du mois',
-      value: `${stats.monthlyRevenue.toLocaleString()} FC`,
+      value: `${stats.monthlyRevenue.toLocaleString()} CDF`,
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-100 dark:bg-green-900/20',

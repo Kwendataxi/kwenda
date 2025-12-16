@@ -189,7 +189,7 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
           </div>
           <div className="text-right">
             <p className="text-white/80 text-caption uppercase tracking-wider">Prix estimé</p>
-            <p className="text-heading-lg text-white font-bold">{calculatePrice().toLocaleString()} FC</p>
+            <p className="text-heading-lg text-white font-bold">{calculatePrice().toLocaleString()} CDF</p>
           </div>
         </div>
       </div>
@@ -258,7 +258,7 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
         <div className="flex items-center justify-between mb-4">
           <span className="text-muted-foreground text-body-md">Prix total</span>
           <span className="text-heading-lg font-bold text-primary">
-            {calculatePrice().toLocaleString()} FC
+            {calculatePrice().toLocaleString()} CDF
           </span>
         </div>
         <Button

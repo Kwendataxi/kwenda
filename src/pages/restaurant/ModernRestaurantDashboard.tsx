@@ -164,7 +164,7 @@ export default function ModernRestaurantDashboard() {
     },
     {
       title: 'Revenus du jour',
-      value: `${stats.todayRevenue.toLocaleString()} FC`,
+      value: `${stats.todayRevenue.toLocaleString()} CDF`,
       icon: DollarSign,
       color: 'from-green-500 to-emerald-500',
       iconBg: 'bg-green-100 dark:bg-green-900/20',

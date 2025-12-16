@@ -164,7 +164,7 @@ const FluidRentalInterface = ({ onCancel, onBookingComplete }: FluidRentalInterf
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-primary">{calculateTotal().toLocaleString()} FC</p>
+                  <p className="text-lg font-bold text-primary">{calculateTotal().toLocaleString()} CDF</p>
                   <p className="text-xs text-muted-foreground">total</p>
                 </div>
               </div>

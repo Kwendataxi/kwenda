@@ -159,8 +159,8 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = React.memo
         {priceDetails && (
           <div className="space-y-3">
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">
-                {priceDetails.price.toLocaleString()} FC
+            <div className="text-2xl font-bold text-primary">
+                {priceDetails.price.toLocaleString()} CDF
               </div>
               <Badge variant="outline" className="mt-1">
                 Service {serviceType.toUpperCase()}
@@ -188,9 +188,9 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = React.memo
             </div>
 
             <div className="border-t pt-3 space-y-2 text-xs">
-              <div className="flex justify-between font-medium">
+            <div className="flex justify-between font-medium">
                 <span>Total:</span>
-                <span className="text-primary">{priceDetails.price.toLocaleString()} FC</span>
+                <span className="text-primary">{priceDetails.price.toLocaleString()} CDF</span>
               </div>
             </div>
 

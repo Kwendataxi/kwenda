@@ -65,7 +65,7 @@ export default function DeliveryOrderCard({ order, onUpdateStatus }: Props) {
           </div>
           <div className="text-right">
             <p className="text-lg font-bold text-primary">
-              {order.final_price || order.estimated_price} FC
+              {order.final_price || order.estimated_price} CDF
             </p>
             <p className="text-xs text-muted-foreground">
               {order.payment_status === 'paid' ? '✓ Payé' : 'En attente'}

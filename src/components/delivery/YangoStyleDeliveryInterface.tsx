@@ -253,7 +253,7 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
             </div>
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold text-foreground">{totalPrice.toLocaleString()} FC</p>
+            <p className="text-lg font-bold text-foreground">{totalPrice.toLocaleString()} CDF</p>
             <p className="text-xs text-muted-foreground">Montant dû</p>
           </div>
         </div>
@@ -367,7 +367,7 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-foreground">à partir de {option.basePrice.toLocaleString()} FC</p>
+                    <p className="font-bold text-foreground">à partir de {option.basePrice.toLocaleString()} CDF</p>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
                       <span>{option.time}</span>

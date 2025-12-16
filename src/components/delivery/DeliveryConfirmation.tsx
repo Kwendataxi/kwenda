@@ -104,7 +104,7 @@ const DeliveryConfirmation = ({ orderData, onClose, onTrackOrder }: DeliveryConf
             </div>
             <div className="text-right">
               <p className="text-heading-lg font-bold text-foreground">
-                {orderData.price.toLocaleString()} FC
+                {orderData.price.toLocaleString()} CDF
               </p>
               <p className="text-caption text-muted-foreground">Prix total</p>
             </div>

@@ -67,7 +67,7 @@ export const TransportHistory = () => {
               {/* Price */}
               <div className="flex items-center gap-2 text-lg font-semibold">
                 <DollarSign className="w-5 h-5" />
-                {booking.actual_price?.toLocaleString() || booking.estimated_price?.toLocaleString()} FC
+                {booking.actual_price?.toLocaleString() || booking.estimated_price?.toLocaleString()} CDF
               </div>
 
               {/* Actions */}

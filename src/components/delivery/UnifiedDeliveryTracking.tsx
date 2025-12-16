@@ -310,7 +310,7 @@ export const UnifiedDeliveryTracking: React.FC<UnifiedDeliveryTrackingProps> = (
               <div className="flex items-center gap-2">
                 <Package className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium">
-                  Prix: {(order.actual_price || order.estimated_price)?.toLocaleString()} FC
+                  Prix: {(order.actual_price || order.estimated_price)?.toLocaleString()} CDF
                 </span>
               </div>
               {eta && (

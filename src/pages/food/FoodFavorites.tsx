@@ -32,7 +32,7 @@ export default function FoodFavorites() {
   };
 
   const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} FC`;
+    return `${price.toLocaleString()} CDF`;
   };
 
   if (loading) {
