@@ -41,6 +41,10 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [persistedUserLocation, setPersistedUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(420);
   
+  // 🎯 Mode enchères
+  const [biddingMode, setBiddingMode] = useState(false);
+  const [clientProposedPrice, setClientProposedPrice] = useState<number | null>(null);
+  
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   
   // 🔍 LOG DE DEBUG - Tracker les changements de ville
@@ -263,8 +267,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       };
 
       const result = await createAndDispatchRide(bookingData, {
-        biddingMode: false, // On active le bidding après confirmation
-        clientProposedPrice: null,
+        biddingMode: biddingMode,
+        clientProposedPrice: clientProposedPrice,
         biddingDuration: 300
       });
 
@@ -297,8 +301,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
       // ✅ Passer le mode bidding ET le prix proposé au dispatching
       const result = await createAndDispatchRide(bookingData, {
-        biddingMode: false,
-        clientProposedPrice: null,
+        biddingMode: biddingMode,
+        clientProposedPrice: clientProposedPrice,
         biddingDuration: 300 // 5 minutes
       });
 
@@ -434,6 +438,10 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         isSearching={isSearching}
         distance={distance}
         city={currentCity?.name || 'Kinshasa'}
+        biddingMode={biddingMode}
+        onBiddingModeChange={setBiddingMode}
+        clientProposedPrice={clientProposedPrice}
+        onClientProposedPriceChange={setClientProposedPrice}
       />
 
       {/* Modal de confirmation avec prix */}
