@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera, Home, Shield, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera, Home, Shield, TrendingUp, Bell, BellRing } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { YangoProductCard } from '@/components/marketplace/YangoProductCard';
 import { AiShopperProductCard } from '@/components/marketplace/AiShopperProductCard';
@@ -263,7 +263,13 @@ const VendorShop: React.FC = () => {
           customer_id: user.id,
           subscriber_id: user.id,
           vendor_id: profile.user_id,
-          is_active: newState
+          is_active: newState,
+          notification_preferences: newState ? {
+            new_products: true,
+            promotions: true,
+            updates: true,
+            enabled: true
+          } : null
         }, { 
           onConflict: 'customer_id,vendor_id'
         });
@@ -286,9 +292,9 @@ const VendorShop: React.FC = () => {
       console.log('[VendorShop] ✅ Subscription updated successfully');
       
       toast({
-        title: newState ? '🎉 Abonné !' : 'Désabonné',
+        title: newState ? '🔔 Abonné avec notifications !' : 'Désabonné',
         description: newState 
-          ? `Vous recevrez des notifications des nouveautés de ${profile.shop_name}.`
+          ? `Vous serez notifié des nouveautés et promotions de ${profile.shop_name}.`
           : 'Vous ne recevrez plus de notifications de cette boutique.'
       });
       
@@ -448,11 +454,9 @@ const VendorShop: React.FC = () => {
               
               <div className="min-w-0">
                 <h1 className="text-base font-bold truncate">{profile.shop_name}</h1>
-                {profile.shop_description && (
-                  <p className="text-xs text-muted-foreground truncate max-w-[180px]">
-                    {profile.shop_description}
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  Bienvenue chez vous ! 👋
+                </p>
               </div>
             </div>
 
@@ -529,26 +533,35 @@ const VendorShop: React.FC = () => {
             </span>
           </div>
 
-          {/* Bouton S'abonner compact */}
+          {/* Bouton S'abonner avec notifications */}
           {!user ? (
             <Button
               variant="default"
               size="sm"
               onClick={() => navigate('/auth')}
-              className="shrink-0"
+              className="shrink-0 gap-1.5"
             >
-              <Heart className="h-4 w-4 mr-1.5" />
+              <Bell className="h-4 w-4" />
               S'abonner
             </Button>
           ) : (
             <Button
               variant={isSubscribed ? "outline" : "default"}
               size="sm"
-              className={`shrink-0 ${isSubscribed ? 'border-green-500 text-green-600' : ''}`}
+              className={`shrink-0 gap-1.5 ${isSubscribed ? 'border-green-500 text-green-600' : ''}`}
               onClick={handleSubscribe}
             >
-              <Heart className={`h-4 w-4 mr-1.5 ${isSubscribed ? 'fill-current text-red-500' : ''}`} />
-              {isSubscribed ? 'Abonné' : 'S\'abonner'}
+              {isSubscribed ? (
+                <>
+                  <BellRing className="h-4 w-4" />
+                  Abonné
+                </>
+              ) : (
+                <>
+                  <Bell className="h-4 w-4" />
+                  S'abonner
+                </>
+              )}
             </Button>
           )}
         </div>
