@@ -14347,34 +14347,31 @@ export type Database = {
       }
       driver_service_preferences_legacy: {
         Row: {
-          created_at: string | null
+          delivery_capacity: string | null
           driver_id: string | null
-          id: string | null
-          is_active: boolean | null
-          preferred_zones: string[] | null
-          service_types: string[] | null
-          updated_at: string | null
-          vehicle_classes: string[] | null
+          service_areas: string[] | null
+          service_specialization: string | null
+          service_type: string | null
+          vehicle_class: string | null
+          vehicle_type: string | null
         }
         Insert: {
-          created_at?: string | null
+          delivery_capacity?: string | null
           driver_id?: string | null
-          id?: never
-          is_active?: boolean | null
-          preferred_zones?: string[] | null
-          service_types?: never
-          updated_at?: string | null
-          vehicle_classes?: never
+          service_areas?: string[] | null
+          service_specialization?: string | null
+          service_type?: string | null
+          vehicle_class?: string | null
+          vehicle_type?: string | null
         }
         Update: {
-          created_at?: string | null
+          delivery_capacity?: string | null
           driver_id?: string | null
-          id?: never
-          is_active?: boolean | null
-          preferred_zones?: string[] | null
-          service_types?: never
-          updated_at?: string | null
-          vehicle_classes?: never
+          service_areas?: string[] | null
+          service_specialization?: string | null
+          service_type?: string | null
+          vehicle_class?: string | null
+          vehicle_type?: string | null
         }
         Relationships: []
       }
@@ -14424,52 +14421,55 @@ export type Database = {
       }
       partner_profiles: {
         Row: {
-          company_address: string | null
+          address: string | null
+          bank_account_number: string | null
+          city: string | null
+          commission_rate: number | null
           company_name: string | null
-          company_phone: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string | null
+          description: string | null
           id: string | null
           is_active: boolean | null
-          license_number: string | null
-          rejection_reason: string | null
-          tax_number: string | null
+          logo_url: string | null
           updated_at: string | null
           user_id: string | null
-          validated_at: string | null
-          validated_by: string | null
-          validation_status: string | null
+          verification_status: string | null
         }
         Insert: {
-          company_address?: string | null
+          address?: string | null
+          bank_account_number?: string | null
+          city?: string | null
+          commission_rate?: number | null
           company_name?: string | null
-          company_phone?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string | null
           is_active?: boolean | null
-          license_number?: string | null
-          rejection_reason?: string | null
-          tax_number?: string | null
+          logo_url?: string | null
           updated_at?: string | null
           user_id?: string | null
-          validated_at?: string | null
-          validated_by?: string | null
-          validation_status?: string | null
+          verification_status?: string | null
         }
         Update: {
-          company_address?: string | null
+          address?: string | null
+          bank_account_number?: string | null
+          city?: string | null
+          commission_rate?: number | null
           company_name?: string | null
-          company_phone?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string | null
           is_active?: boolean | null
-          license_number?: string | null
-          rejection_reason?: string | null
-          tax_number?: string | null
+          logo_url?: string | null
           updated_at?: string | null
           user_id?: string | null
-          validated_at?: string | null
-          validated_by?: string | null
-          validation_status?: string | null
+          verification_status?: string | null
         }
         Relationships: []
       }
