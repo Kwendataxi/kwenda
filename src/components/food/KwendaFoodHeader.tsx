@@ -196,7 +196,7 @@ export const KwendaFoodHeader = ({
               {/* Pulse ring animation - seulement si panier non vide */}
               {cartItemsCount > 0 && (
                 <motion.div
-                  className="absolute inset-0 rounded-xl bg-orange-500/50"
+                  className="absolute inset-0 rounded-xl bg-orange-500/50 pointer-events-none"
                   animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
