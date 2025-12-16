@@ -36,7 +36,6 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
       const biddingClosesAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
       
       // Mettre à jour le booking avec la proposition du client
-      // Note: Les nouveaux champs de transport_bookings nécessitent la régénération des types Supabase
       const { error: updateError } = await supabase
         .from('transport_bookings')
         .update({
@@ -44,7 +43,7 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
           bidding_mode: true,
           bidding_closes_at: biddingClosesAt,
           status: 'searching_driver'
-        } as any)
+        })
         .eq('id', bookingId);
 
       if (updateError) throw updateError;
@@ -106,14 +105,13 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
   const increaseProposal = useCallback(async (newPrice: number) => {
     setLoading(true);
     try {
-      // Note: Les nouveaux champs de transport_bookings nécessitent la régénération des types Supabase
       const { error } = await supabase
         .from('transport_bookings')
         .update({
           client_proposed_price: newPrice,
           bidding_closes_at: new Date(Date.now() + 300 * 1000).toISOString(),
           status: 'searching_driver'
-        } as any)
+        })
         .eq('id', bookingId);
 
       if (error) throw error;
@@ -166,7 +164,7 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
       // Marquer l'offre comme acceptée
       const { error: offerError } = await supabase
         .from('ride_offers')
-        .update({ status: 'accepted' } as any)
+        .update({ status: 'accepted' })
         .eq('id', offerId);
 
       if (offerError) throw offerError;
@@ -178,7 +176,7 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
           assigned_driver_id: driverId,
           status: 'driver_assigned',
           bidding_mode: false
-        } as any)
+        })
         .eq('id', bookingId);
 
       if (bookingError) throw bookingError;
@@ -203,7 +201,7 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
     try {
       const { error } = await supabase
         .from('ride_offers')
-        .update({ status: 'rejected' } as any)
+        .update({ status: 'rejected' })
         .eq('id', offerId);
 
       if (error) throw error;

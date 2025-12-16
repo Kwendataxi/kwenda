@@ -10200,35 +10200,64 @@ export type Database = {
       ride_offers: {
         Row: {
           accepted_at: string | null
+          booking_id: string | null
+          client_proposal_price: number | null
           created_at: string
+          distance_to_pickup: number | null
           driver_id: string
           expires_at: string | null
           id: string
+          is_counter_offer: boolean | null
+          message: string | null
+          offered_price: number | null
+          original_estimated_price: number | null
           ride_request_id: string
           status: string
           updated_at: string
         }
         Insert: {
           accepted_at?: string | null
+          booking_id?: string | null
+          client_proposal_price?: number | null
           created_at?: string
+          distance_to_pickup?: number | null
           driver_id: string
           expires_at?: string | null
           id?: string
+          is_counter_offer?: boolean | null
+          message?: string | null
+          offered_price?: number | null
+          original_estimated_price?: number | null
           ride_request_id: string
           status?: string
           updated_at?: string
         }
         Update: {
           accepted_at?: string | null
+          booking_id?: string | null
+          client_proposal_price?: number | null
           created_at?: string
+          distance_to_pickup?: number | null
           driver_id?: string
           expires_at?: string | null
           id?: string
+          is_counter_offer?: boolean | null
+          message?: string | null
+          offered_price?: number | null
+          original_estimated_price?: number | null
           ride_request_id?: string
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ride_offers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "transport_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ride_requests: {
         Row: {
@@ -11660,11 +11689,14 @@ export type Database = {
       transport_bookings: {
         Row: {
           actual_price: number | null
+          assigned_driver_id: string | null
           assignment_version: number
           beneficiary_id: string | null
           beneficiary_instructions: string | null
           beneficiary_name: string | null
           beneficiary_phone: string | null
+          bidding_closes_at: string | null
+          bidding_mode: boolean | null
           booked_for_other: boolean | null
           booking_time: string
           cancellation_reason: string | null
@@ -11672,6 +11704,7 @@ export type Database = {
           cancelled_at: string | null
           cancelled_by: string | null
           city: string | null
+          client_proposed_price: number | null
           completed_at: string | null
           completion_time: string | null
           created_at: string
@@ -11709,11 +11742,14 @@ export type Database = {
         }
         Insert: {
           actual_price?: number | null
+          assigned_driver_id?: string | null
           assignment_version?: number
           beneficiary_id?: string | null
           beneficiary_instructions?: string | null
           beneficiary_name?: string | null
           beneficiary_phone?: string | null
+          bidding_closes_at?: string | null
+          bidding_mode?: boolean | null
           booked_for_other?: boolean | null
           booking_time?: string
           cancellation_reason?: string | null
@@ -11721,6 +11757,7 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           city?: string | null
+          client_proposed_price?: number | null
           completed_at?: string | null
           completion_time?: string | null
           created_at?: string
@@ -11758,11 +11795,14 @@ export type Database = {
         }
         Update: {
           actual_price?: number | null
+          assigned_driver_id?: string | null
           assignment_version?: number
           beneficiary_id?: string | null
           beneficiary_instructions?: string | null
           beneficiary_name?: string | null
           beneficiary_phone?: string | null
+          bidding_closes_at?: string | null
+          bidding_mode?: boolean | null
           booked_for_other?: boolean | null
           booking_time?: string
           cancellation_reason?: string | null
@@ -11770,6 +11810,7 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           city?: string | null
+          client_proposed_price?: number | null
           completed_at?: string | null
           completion_time?: string | null
           created_at?: string
