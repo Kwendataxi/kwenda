@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ShoppingCart, Home, Sparkles } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Home, Sparkles, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FoodSearchBar } from './FoodSearchBar';
 import BrandLogo from '@/components/brand/BrandLogo';
@@ -46,11 +46,13 @@ export const KwendaFoodHeader = ({
 
   return (
     <motion.header 
-      className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30 shadow-lg shadow-black/5"
+      className="sticky top-0 z-50 bg-background/90 backdrop-blur-2xl border-b border-border/20 shadow-xl shadow-black/5"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
     >
+      {/* Accent line */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-orange-500 to-red-500" />
       {/* Ligne principale - Design premium */}
       <motion.div 
         className="h-16 px-4 flex items-center justify-between gap-3"
@@ -90,33 +92,46 @@ export const KwendaFoodHeader = ({
             </motion.div>
           )}
           
-          {/* Logo avec animation pulse subtile */}
-          <motion.div 
-            className="flex items-center gap-2"
-            animate={{ scale: [1, 1.02, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <div className="relative">
-              <BrandLogo size={36} className="hidden sm:block" />
+          {/* Logo avec design premium */}
+          <div className="flex items-center gap-3">
+            {/* Icon container avec glow */}
+            <motion.div 
+              className="relative hidden sm:flex"
+              whileHover={{ rotate: [0, -10, 10, 0] }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-lg shadow-primary/30">
+                <UtensilsCrossed className="w-5 h-5 text-white" />
+              </div>
               {/* Glow effect */}
-              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full hidden sm:block" />
-            </div>
+              <div className="absolute inset-0 bg-primary/30 blur-xl rounded-xl" />
+            </motion.div>
             
             <div className="hidden sm:block">
-              <h1 className="text-xl font-extrabold leading-none font-montserrat bg-gradient-to-r from-primary via-orange-500 to-red-500 bg-clip-text text-transparent">
+              <h1 className="text-xl font-black leading-none tracking-tight bg-gradient-to-r from-primary via-orange-500 to-red-500 bg-clip-text text-transparent">
                 KWENDA
               </h1>
-              <div className="flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-orange-500" />
-                <p className="text-xs text-muted-foreground leading-none font-semibold tracking-wide">Food</p>
+              <div className="flex items-center gap-1.5">
+                <motion.div
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                >
+                  <Sparkles className="w-3 h-3 text-amber-500" />
+                </motion.div>
+                <p className="text-xs text-muted-foreground leading-none font-bold tracking-widest uppercase">Food</p>
               </div>
             </div>
             
             {/* Mobile logo */}
-            <h1 className="text-xl font-extrabold sm:hidden font-montserrat bg-gradient-to-r from-primary via-orange-500 to-red-500 bg-clip-text text-transparent">
-              KWENDA Food
-            </h1>
-          </motion.div>
+            <div className="sm:hidden flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
+                <UtensilsCrossed className="w-4 h-4 text-white" />
+              </div>
+              <h1 className="text-lg font-black bg-gradient-to-r from-primary via-orange-500 to-red-500 bg-clip-text text-transparent">
+                KWENDA
+              </h1>
+            </div>
+          </div>
         </motion.div>
 
         {/* Centre : Recherche (desktop uniquement) */}
