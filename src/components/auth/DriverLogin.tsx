@@ -158,7 +158,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-rose-50/30 to-white dark:from-background dark:via-background dark:to-background flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-white via-orange-50/30 to-white dark:from-background dark:via-orange-950/10 dark:to-background flex items-center justify-center p-4 py-12">
       <div className="w-full max-w-md animate-auth-fade">
         {/* Header */}
         <div className="text-center mb-8 space-y-5">
@@ -168,9 +168,9 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
             </div>
           </div>
           
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800">
-            <Car className="w-4 h-4 text-rose-500" />
-            <span className="text-xs font-medium text-rose-600 dark:text-rose-400">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800">
+            <Car className="w-4 h-4 text-orange-500" />
+            <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
               {t('auth.driver_space')}
             </span>
           </div>
@@ -195,7 +195,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                   {t('auth.email')}
                 </Label>
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-rose-500 transition-colors" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                   <Input
                     id="email"
                     type="email"
@@ -203,7 +203,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-11 pl-10 pr-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all"
+                    className="h-11 pl-10 pr-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all"
                   />
                 </div>
               </div>
@@ -214,7 +214,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                   {t('auth.password')}
                 </Label>
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-rose-500 transition-colors" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -222,7 +222,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-11 pl-10 pr-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all"
+                    className="h-11 pl-10 pr-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all"
                   />
                   <Button
                     type="button"
@@ -238,9 +238,9 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
 
               {/* Error */}
               {error && (
-                <Alert variant="destructive" className="bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 rounded-xl animate-fade-in">
-                  <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
-                  <AlertDescription className="text-sm text-rose-700 dark:text-rose-300">
+                <Alert variant="destructive" className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 rounded-xl animate-fade-in">
+                  <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                  <AlertDescription className="text-sm text-orange-700 dark:text-orange-300">
                     {error}
                   </AlertDescription>
                 </Alert>
@@ -252,13 +252,13 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                   id="terms-driver"
                   checked={acceptTerms}
                   onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-                  className="mt-0.5 border-gray-300 data-[state=checked]:bg-rose-500 data-[state=checked]:border-rose-500"
+                  className="mt-0.5 border-gray-300 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
                 />
                 <Label htmlFor="terms-driver" className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer leading-relaxed">
                   {t('auth.accept_terms_part1')}{' '}
-                  <Link to="/terms" className="text-rose-500 hover:underline font-medium">{t('auth.terms_of_service')}</Link>{' '}
+                  <Link to="/terms" className="text-orange-500 hover:underline font-medium">{t('auth.terms_of_service')}</Link>{' '}
                   {t('auth.accept_terms_part2')}{' '}
-                  <Link to="/privacy" className="text-rose-500 hover:underline font-medium">{t('auth.privacy_policy')}</Link>{' '}
+                  <Link to="/privacy" className="text-orange-500 hover:underline font-medium">{t('auth.privacy_policy')}</Link>{' '}
                   {t('auth.accept_terms_part3')}
                 </Label>
               </div>
@@ -266,7 +266,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
               {/* Login Button */}
               <Button 
                 type="submit" 
-                className="w-full h-11 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all"
+                className="w-full h-11 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all"
                 disabled={loading || !acceptTerms}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -278,7 +278,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                 <Button
                   type="button"
                   variant="link"
-                  className="text-sm text-rose-500 hover:text-rose-600 p-0 h-auto"
+                  className="text-sm text-orange-500 hover:text-orange-600 p-0 h-auto"
                   onClick={() => setShowForgotPassword(true)}
                 >
                   {t('auth.forgot_password')}
@@ -291,7 +291,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
               <Button
                 variant="outline"
                 onClick={() => navigate('/driver/register')}
-                className="w-full h-11 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 font-medium rounded-xl"
+                className="w-full h-11 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 font-medium rounded-xl"
               >
                 {t('auth.become_driver')}
               </Button>
@@ -300,7 +300,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
               <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
                 <Link to="/app/auth" className="text-rose-500 hover:underline font-medium">Client</Link>
                 <span className="text-gray-300">•</span>
-                <Link to="/partner/auth" className="text-rose-500 hover:underline font-medium">Partenaire</Link>
+                <Link to="/partner/auth" className="text-emerald-500 hover:underline font-medium">Partenaire</Link>
               </div>
             </div>
           </CardContent>
