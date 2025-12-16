@@ -12,39 +12,41 @@ export const UnifiedAuthPage = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen auth-congo-bg flex flex-col relative">
-      {/* Language Selector - Fixed top-right */}
+    <div className="min-h-screen bg-gradient-to-b from-white via-rose-50/30 to-white dark:from-background dark:via-background dark:to-background flex flex-col">
+      {/* Language Selector */}
       <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50">
         <AuthLanguageSelector />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md flex flex-col space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-6">
+      <div className="flex-1 flex items-center justify-center p-4 py-12">
+        <div className="w-full max-w-md flex flex-col space-y-8 animate-auth-fade">
+          {/* Header - Clean & Simple */}
+          <div className="text-center space-y-5">
             <div className="flex justify-center">
-              <BrandLogo size={72} className="mx-auto" />
+              <div className="p-3 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+                <BrandLogo size={56} />
+              </div>
             </div>
             
-            <div>
-              <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-congo-red via-congo-yellow to-congo-red bg-clip-text text-transparent">
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                 {t('auth.welcome')}
               </h1>
-              <p className="text-lg text-muted-foreground/80 mt-3 font-light">
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
                 {t('auth.client_subtitle')}
               </p>
             </div>
           </div>
 
-          {/* Auth Card - Formulaire client unique */}
-          <Card className="auth-glass shadow-lg border border-border/50">
-            <div className="p-8 space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold text-foreground">
+          {/* Auth Card - Modern & Clean */}
+          <Card className="bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 rounded-2xl animate-auth-scale">
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="text-center space-y-1">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {t('auth.client_login_title')}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {t('auth.client_login_subtitle')}
                 </p>
               </div>
@@ -53,51 +55,51 @@ export const UnifiedAuthPage = () => {
             </div>
           </Card>
 
-          {/* Section autres espaces */}
-          <div className="pt-6 border-t border-border/30">
-            <p className="text-center text-sm text-muted-foreground mb-4">
+          {/* Professional Spaces Section */}
+          <div className="pt-4">
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
               {t('auth.professional_question')}
             </p>
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-wrap gap-2 justify-center">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/driver/auth')}
-                className="flex items-center gap-2 rounded-xl"
+                className="flex items-center gap-2 rounded-xl border-gray-200 dark:border-gray-700 hover:border-rose-300 dark:hover:border-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
               >
-                <Car className="h-4 w-4" />
-                <span>{t('auth.driver_deliverer')}</span>
+                <Car className="h-4 w-4 text-rose-500" />
+                <span className="text-gray-700 dark:text-gray-300">{t('auth.driver_deliverer')}</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/partner/auth')}
-                className="flex items-center gap-2 rounded-xl"
+                className="flex items-center gap-2 rounded-xl border-gray-200 dark:border-gray-700 hover:border-rose-300 dark:hover:border-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
               >
-                <Handshake className="h-4 w-4" />
-                <span>{t('role.partner')}</span>
+                <Handshake className="h-4 w-4 text-rose-500" />
+                <span className="text-gray-700 dark:text-gray-300">{t('role.partner')}</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/restaurant/auth')}
-                className="flex items-center gap-2 rounded-xl"
+                className="flex items-center gap-2 rounded-xl border-gray-200 dark:border-gray-700 hover:border-rose-300 dark:hover:border-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
               >
-                <UtensilsCrossed className="h-4 w-4" />
-                <span>{t('role.restaurant')}</span>
+                <UtensilsCrossed className="h-4 w-4 text-rose-500" />
+                <span className="text-gray-700 dark:text-gray-300">{t('role.restaurant')}</span>
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer - Retour à l'accueil */}
-      <div className="mt-auto py-8 flex justify-center">
+      {/* Footer */}
+      <div className="py-6 flex justify-center">
         <Button 
           onClick={() => navigate('/')}
           variant="ghost"
           size="sm"
-          className="text-xs text-muted-foreground/60 hover:text-foreground/80 transition-colors"
+          className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           <ArrowLeft className="h-3 w-3 mr-1.5" />
           {t('auth.back_home')}

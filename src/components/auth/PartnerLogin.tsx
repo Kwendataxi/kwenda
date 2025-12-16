@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Briefcase, Lock, Eye, EyeOff, Mail } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Briefcase, Lock, Eye, EyeOff, Mail, AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 import BrandLogo from '@/components/brand/BrandLogo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,6 +24,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const navigate = useNavigate();
@@ -31,16 +33,18 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
     e.preventDefault();
     
     if (!acceptTerms) {
-      toast.error(t('auth.must_accept_terms'));
+      setError(t('auth.must_accept_terms'));
       return;
     }
     
     if (!email || !password) {
-      toast.error(t('auth.fill_all_fields'));
+      setError(t('auth.fill_all_fields'));
       return;
     }
 
     setLoading(true);
+    setError(null);
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -49,27 +53,15 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
 
       if (error) throw error;
 
-      logger.info('✅ Login successful', { userId: data.user?.id });
-
-      // ✅ CORRECTION : Attendre stabilisation session (augmenter à 1000ms)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // ✅ CORRECTION : Forcer refresh session + attendre confirmation
       const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !refreshedSession) {
-        logger.error('❌ Session non établie après connexion', sessionError);
         throw new Error('Session non établie. Veuillez réessayer.');
       }
-      
-      logger.info('📦 Session refreshed', { 
-        hasSession: !!refreshedSession,
-        expiresAt: refreshedSession.expires_at,
-        userId: data.user?.id
-      });
 
       if (data.user) {
-        // ✅ CORRECTION : Vérifier rôle avec retry si échec
         let roles;
         let retries = 3;
         
@@ -80,16 +72,12 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
 
           if (!rolesError && rolesData) {
             roles = rolesData;
-            logger.info('✅ Roles verified:', {
-              roles: roles.map((r: any) => r.role)
-            });
             break;
           }
           
           if (rolesError?.message?.includes('JWT') || rolesError?.message?.includes('session')) {
             retries--;
             await new Promise(resolve => setTimeout(resolve, 500));
-            logger.warn(`⚠️ Retry get_user_roles (${3 - retries}/3)`);
             continue;
           }
           
@@ -104,33 +92,24 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
 
         if (!hasPartnerRole) {
           await supabase.auth.signOut();
-          
           const otherRole = roles[0]?.role;
           let suggestion = '';
           
-          if (otherRole === 'client') {
-            suggestion = t('auth.login_via_client');
-          } else if (otherRole === 'driver') {
-            suggestion = t('auth.login_via_driver');
-          } else if (otherRole === 'admin') {
-            suggestion = t('auth.login_via_admin');
-          }
+          if (otherRole === 'client') suggestion = t('auth.login_via_client');
+          else if (otherRole === 'driver') suggestion = t('auth.login_via_driver');
+          else if (otherRole === 'admin') suggestion = t('auth.login_via_admin');
           
-          toast.error(t('auth.access_denied'), {
-            description: t('auth.not_partner_account') + suggestion
-          });
+          setError(t('auth.not_partner_account') + suggestion);
           return;
         }
       }
 
-      // ✅ Stocker uniquement loginIntent (non critique - juste pour UX redirection)
       localStorage.setItem('kwenda_login_intent', 'partner');
 
       toast.success(t('auth.login_success'), {
         description: t('auth.welcome_partner')
       });
 
-      // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
       await new Promise(resolve => setTimeout(resolve, 300));
       
       if (onSuccess) {
@@ -140,45 +119,51 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
       }
     } catch (error: any) {
       logger.error('Erreur de connexion partenaire', error);
-      toast.error(t('auth.login_error'), {
-        description: error.message || t('auth.check_credentials')
-      });
+      setError(error.message || t('auth.check_credentials'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 dark:from-background dark:to-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-10 space-y-6 animate-fade-in">
-          <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white dark:bg-gray-950 shadow-lg mb-6 overflow-hidden hover:scale-105 transition-transform duration-300">
-            <BrandLogo size={72} />
+    <div className="min-h-screen bg-gradient-to-b from-white via-rose-50/30 to-white dark:from-background dark:via-background dark:to-background flex items-center justify-center p-4 py-12">
+      <div className="w-full max-w-md animate-auth-fade">
+        {/* Header */}
+        <div className="text-center mb-8 space-y-5">
+          <div className="flex justify-center">
+            <div className="p-3 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+              <BrandLogo size={56} />
+            </div>
           </div>
           
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-            <Briefcase className="w-4 h-4 text-gray-700 dark:text-gray-300" />
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800">
+            <Briefcase className="w-4 h-4 text-rose-500" />
+            <span className="text-xs font-medium text-rose-600 dark:text-rose-400">
               {t('auth.partner_space')}
             </span>
           </div>
           
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-            {t('auth.partner_title')}
-          </h1>
-          
-          <p className="text-base text-gray-600 dark:text-gray-400">
-            {t('auth.partner_subtitle')}
-          </p>
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              {t('auth.partner_title')}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              {t('auth.partner_subtitle')}
+            </p>
+          </div>
         </div>
 
-        <Card className="shadow-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 animate-scale-in">
-          <CardContent className="pt-8 pb-6">
+        {/* Login Card */}
+        <Card className="bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 rounded-2xl animate-auth-scale">
+          <CardContent className="p-6 sm:p-8">
             <form onSubmit={handleLogin} className="space-y-5">
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">{t('auth.email')}</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  {t('auth.email')}
+                </Label>
                 <div className="relative group">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-rose-500 transition-colors" />
                   <Input
                     id="email"
                     type="email"
@@ -186,15 +171,18 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-12 pl-10 pr-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all"
+                    className="h-11 pl-10 pr-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all"
                   />
                 </div>
               </div>
               
+              {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">{t('auth.password')}</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  {t('auth.password')}
+                </Label>
                 <div className="relative group">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-rose-500 transition-colors" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -202,58 +190,63 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 pl-10 pr-12 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all"
+                    className="h-11 pl-10 pr-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20 transition-all"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
                   </Button>
                 </div>
               </div>
 
-              {/* Acceptation CGU */}
-              <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+              {/* Error */}
+              {error && (
+                <Alert variant="destructive" className="bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 rounded-xl animate-fade-in">
+                  <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                  <AlertDescription className="text-sm text-rose-700 dark:text-rose-300">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Terms */}
+              <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                 <Checkbox
                   id="terms-partner"
                   checked={acceptTerms}
                   onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-                  className="mt-0.5"
+                  className="mt-0.5 border-gray-300 data-[state=checked]:bg-rose-500 data-[state=checked]:border-rose-500"
                 />
-                <Label htmlFor="terms-partner" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+                <Label htmlFor="terms-partner" className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer leading-relaxed">
                   {t('auth.accept_terms_part1')}{' '}
-                  <Link to="/terms" className="text-green-600 hover:underline font-medium">
-                    {t('auth.terms_of_service')}
-                  </Link>{' '}
+                  <Link to="/terms" className="text-rose-500 hover:underline font-medium">{t('auth.terms_of_service')}</Link>{' '}
                   {t('auth.accept_terms_part2')}{' '}
-                  <Link to="/privacy" className="text-green-600 hover:underline font-medium">
-                    {t('auth.privacy_policy')}
-                  </Link>{' '}
+                  <Link to="/privacy" className="text-rose-500 hover:underline font-medium">{t('auth.privacy_policy')}</Link>{' '}
                   {t('auth.accept_terms_part3')}
                 </Label>
               </div>
 
+              {/* Login Button */}
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
+                className="w-full h-11 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all"
                 disabled={loading || !acceptTerms}
               >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {loading ? t('auth.logging_in') : t('auth.login_button')}
               </Button>
 
-              <div className="flex items-center justify-center pt-2">
+              {/* Forgot Password */}
+              <div className="flex items-center justify-center">
                 <Button
                   type="button"
                   variant="link"
-                  className="text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium underline-offset-4 hover:underline"
+                  className="text-sm text-rose-500 hover:text-rose-600 p-0 h-auto"
                   onClick={() => setShowForgotPassword(true)}
                 >
                   {t('auth.forgot_password')}
@@ -261,56 +254,40 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
               </div>
             </form>
 
-            {/* Footer avec liens vers autres espaces */}
-            <div className="text-center mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-3">
+            {/* Footer Links */}
+            <div className="text-center mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 space-y-4">
               <Button
                 variant="outline"
                 onClick={() => navigate('/partner/register')}
-                className="w-full h-12 text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 font-medium"
+                className="w-full h-11 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 font-medium rounded-xl"
               >
                 {t('auth.become_partner')}
               </Button>
               
-              <p className="text-sm text-muted-foreground">
-                {t('auth.not_partner')}
-              </p>
+              <p className="text-sm text-gray-500">{t('auth.not_partner')}</p>
               <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
-                <Link to="/app/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
-                  Client
-                </Link>
-                <span className="text-muted-foreground/50">•</span>
-                <Link to="/driver/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
-                  Chauffeur
-                </Link>
+                <Link to="/app/auth" className="text-rose-500 hover:underline font-medium">Client</Link>
+                <span className="text-gray-300">•</span>
+                <Link to="/driver/auth" className="text-rose-500 hover:underline font-medium">Chauffeur</Link>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <ForgotPasswordModal 
-          isOpen={showForgotPassword}
-          onClose={() => setShowForgotPassword(false)}
-        />
-
-        {/* Footer - Bouton Retour à l'accueil */}
-        <div className="mt-8 pt-6 border-t border-border/30 pb-8">
-          <div className="flex flex-col items-center gap-3">
-            <Button 
-              onClick={() => navigate('/')}
-              variant="outline"
-              size="default"
-              className="group relative overflow-hidden w-full sm:w-auto sm:min-w-[200px] border-border/50 hover:border-green-500/50 hover:shadow-md dark:border-border/30 dark:hover:border-green-400/40 dark:hover:bg-green-500/5 transition-all duration-300"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <Briefcase className="h-4 w-4 mr-2 relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
-              <span className="relative z-10 font-medium">Retour à l'accueil</span>
-            </Button>
-            
-            <p className="text-xs text-muted-foreground text-center px-4">
-              {t('auth.discover_services')}
-            </p>
-          </div>
+        {/* Back Button */}
+        <div className="mt-8 flex justify-center">
+          <Button 
+            onClick={() => navigate('/')}
+            variant="ghost"
+            size="sm"
+            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3 mr-1.5" />
+            Retour à l'accueil
+          </Button>
         </div>
+
+        <ForgotPasswordModal isOpen={showForgotPassword} onClose={() => setShowForgotPassword(false)} />
       </div>
     </div>
   );
