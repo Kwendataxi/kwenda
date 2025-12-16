@@ -24,9 +24,10 @@ type Step = 'restaurants' | 'menu' | 'checkout' | 'all-dishes' | 'all-restaurant
 interface FoodOrderInterfaceProps {
   onOrderComplete?: (orderId: string) => void;
   onBack?: () => void;
+  onCartStateChange?: (cartCount: number, openCart: () => void) => void;
 }
 
-export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfaceProps) => {
+export const FoodOrderInterface = ({ onOrderComplete, onBack, onCartStateChange }: FoodOrderInterfaceProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -48,6 +49,13 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
     }
     // Ne pas vider le panier automatiquement quand on change de vue
   }, [selectedRestaurant, step, cart.length]);
+
+  // Notifier le parent du changement de panier pour le footer
+  useEffect(() => {
+    if (onCartStateChange) {
+      onCartStateChange(cart.length, () => setShowCartSheet(true));
+    }
+  }, [cart.length, onCartStateChange]);
 
   const handleSelectRestaurant = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
@@ -329,37 +337,47 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
         </AnimatePresence>
       </div>
 
-      {/* Global Cart Sheet */}
-      {cart.length > 0 && (
-        <FoodCart
-          open={showCartSheet}
-          onOpenChange={setShowCartSheet}
-          cart={cart}
-          restaurant={selectedRestaurant || {
-            id: cart[0]?.restaurant_id || '',
-            restaurant_name: 'Restaurant',
-            city: selectedCity,
-            address: '',
-            is_active: true,
-            verification_status: 'approved',
-            minimum_order_amount: 0
-          }}
-          onUpdateQuantity={handleUpdateCartItem}
-          onRemove={handleRemoveFromCart}
-          onCheckout={() => {
-            // Si pas de restaurant sélectionné, naviguer vers celui du panier
-            if (!selectedRestaurant && cart.length > 0) {
-              const restaurant = restaurants.find(r => r.id === cart[0].restaurant_id);
-              if (restaurant) {
-                setSelectedRestaurant(restaurant);
-                setStep('menu');
-              }
-            }
+      {/* Global Cart Sheet - toujours accessible */}
+      <FoodCart
+        open={showCartSheet}
+        onOpenChange={setShowCartSheet}
+        cart={cart}
+        restaurant={selectedRestaurant || (cart.length > 0 ? {
+          id: cart[0]?.restaurant_id || '',
+          restaurant_name: 'Restaurant',
+          city: selectedCity,
+          address: '',
+          is_active: true,
+          verification_status: 'approved',
+          minimum_order_amount: 0
+        } : {
+          id: '',
+          restaurant_name: 'Kwenda Food',
+          city: selectedCity,
+          address: '',
+          is_active: true,
+          verification_status: 'approved',
+          minimum_order_amount: 0
+        })}
+        onUpdateQuantity={handleUpdateCartItem}
+        onRemove={handleRemoveFromCart}
+        onCheckout={() => {
+          if (cart.length === 0) {
             setShowCartSheet(false);
-            setStep('checkout');
-          }}
-        />
-      )}
+            return;
+          }
+          // Si pas de restaurant sélectionné, naviguer vers celui du panier
+          if (!selectedRestaurant && cart.length > 0) {
+            const restaurant = restaurants.find(r => r.id === cart[0].restaurant_id);
+            if (restaurant) {
+              setSelectedRestaurant(restaurant);
+              setStep('menu');
+            }
+          }
+          setShowCartSheet(false);
+          setStep('checkout');
+        }}
+      />
 
       {/* Success Modal */}
       {selectedRestaurant && (
