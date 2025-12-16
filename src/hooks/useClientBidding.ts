@@ -231,14 +231,31 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
         async (payload) => {
           console.log('📩 New offer received:', payload.new);
           
-          // Pour l'instant, simuler les offres car la fonction RPC n'existe pas encore dans les types
+          // Récupérer le nom du chauffeur
+          let driverName = 'Chauffeur';
+          try {
+            const { data: driverData } = await supabase
+              .from('chauffeurs')
+              .select('display_name')
+              .eq('user_id', payload.new.driver_id)
+              .maybeSingle();
+            
+            if (driverData?.display_name) {
+              driverName = driverData.display_name;
+            }
+          } catch (e) {
+            console.warn('Could not fetch driver name:', e);
+          }
+          
           const newOffer: DriverOffer = {
             offerId: payload.new.id as string,
             driverId: payload.new.driver_id as string,
-            driverName: 'Chauffeur',
-            offeredPrice: 5000,
-            isCounterOffer: false,
-            createdAt: new Date().toISOString()
+            driverName,
+            offeredPrice: payload.new.offered_price || 0,
+            isCounterOffer: payload.new.is_counter_offer || false,
+            message: payload.new.message || '',
+            distanceToPickup: payload.new.distance_to_pickup,
+            createdAt: payload.new.created_at || new Date().toISOString()
           };
 
           setOffers(prev => [...prev, newOffer]);

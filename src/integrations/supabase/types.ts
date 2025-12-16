@@ -10211,7 +10211,7 @@ export type Database = {
           message: string | null
           offered_price: number | null
           original_estimated_price: number | null
-          ride_request_id: string
+          ride_request_id: string | null
           status: string
           updated_at: string
         }
@@ -10228,7 +10228,7 @@ export type Database = {
           message?: string | null
           offered_price?: number | null
           original_estimated_price?: number | null
-          ride_request_id: string
+          ride_request_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -10245,7 +10245,7 @@ export type Database = {
           message?: string | null
           offered_price?: number | null
           original_estimated_price?: number | null
-          ride_request_id?: string
+          ride_request_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -11724,6 +11724,7 @@ export type Database = {
           id: string
           intermediate_stops: Json | null
           notes: string | null
+          offer_count: number | null
           pickup_coordinates: Json | null
           pickup_google_address: string | null
           pickup_google_place_id: string | null
@@ -11777,6 +11778,7 @@ export type Database = {
           id?: string
           intermediate_stops?: Json | null
           notes?: string | null
+          offer_count?: number | null
           pickup_coordinates?: Json | null
           pickup_google_address?: string | null
           pickup_google_place_id?: string | null
@@ -11830,6 +11832,7 @@ export type Database = {
           id?: string
           intermediate_stops?: Json | null
           notes?: string | null
+          offer_count?: number | null
           pickup_coordinates?: Json | null
           pickup_google_address?: string | null
           pickup_google_place_id?: string | null
@@ -15886,6 +15889,10 @@ export type Database = {
         Returns: undefined
       }
       increment_job_views: { Args: { job_id: string }; Returns: undefined }
+      increment_offer_count: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
       insert_booking_report: {
         Args: {
           p_booking_id: string

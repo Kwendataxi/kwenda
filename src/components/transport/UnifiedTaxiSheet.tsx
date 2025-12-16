@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Loader2 } from 'lucide-react';
+import { Zap, Loader2, Gavel, ChevronDown, ChevronUp } from 'lucide-react';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import CompactDestinationSearch from './CompactDestinationSearch';
 import HorizontalVehicleCarousel from './HorizontalVehicleCarousel';
@@ -20,6 +22,11 @@ interface UnifiedTaxiSheetProps {
   isSearching: boolean;
   distance: number;
   city: string;
+  // Nouveaux props pour le bidding
+  biddingMode?: boolean;
+  onBiddingModeChange?: (enabled: boolean) => void;
+  clientProposedPrice?: number | null;
+  onClientProposedPriceChange?: (price: number | null) => void;
 }
 
 export default function UnifiedTaxiSheet({
@@ -32,13 +39,20 @@ export default function UnifiedTaxiSheet({
   onBook,
   isSearching,
   distance,
-  city
+  city,
+  biddingMode = false,
+  onBiddingModeChange,
+  clientProposedPrice,
+  onClientProposedPriceChange
 }: UnifiedTaxiSheetProps) {
   // Charger les véhicules avec prix réels depuis la DB
   const { vehicles, isLoading: vehiclesLoading } = useVehicleTypes({ 
     distance, 
     city 
   });
+  
+  // État local pour l'expansion de la section bidding
+  const [biddingExpanded, setBiddingExpanded] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -125,6 +139,91 @@ export default function UnifiedTaxiSheet({
               onVehicleSelect={onVehicleSelect}
               city={city}
             />
+            )}
+
+            {/* Section 3 : Mode Enchères (Bidding) */}
+            {destination && selectedVehicle && selectedVehiclePrice > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-2xl border border-amber-200/50 dark:border-amber-800/50 overflow-hidden"
+              >
+                {/* Header cliquable */}
+                <button
+                  onClick={() => setBiddingExpanded(!biddingExpanded)}
+                  className="w-full flex items-center justify-between p-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
+                      <Gavel className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-foreground">Mode Enchères</p>
+                      <p className="text-xs text-muted-foreground">
+                        {biddingMode ? 'Activé - Les chauffeurs peuvent proposer leurs prix' : 'Négociez le prix avec les chauffeurs'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={biddingMode}
+                      onCheckedChange={(checked) => {
+                        onBiddingModeChange?.(checked);
+                        if (checked && !clientProposedPrice) {
+                          onClientProposedPriceChange?.(selectedVehiclePrice);
+                        }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="data-[state=checked]:bg-amber-500"
+                    />
+                    {biddingExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Contenu expandable */}
+                {biddingExpanded && biddingMode && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="px-4 pb-4 space-y-4"
+                  >
+                    <div className="bg-white/60 dark:bg-black/20 rounded-xl p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Votre offre</span>
+                        <span className="font-bold text-lg text-amber-600">
+                          {(clientProposedPrice || selectedVehiclePrice).toLocaleString()} CDF
+                        </span>
+                      </div>
+                      
+                      <Slider
+                        value={[clientProposedPrice || selectedVehiclePrice]}
+                        onValueChange={([value]) => onClientProposedPriceChange?.(value)}
+                        min={Math.round(selectedVehiclePrice * 0.5)}
+                        max={Math.round(selectedVehiclePrice * 1.5)}
+                        step={500}
+                        className="[&_[role=slider]]:bg-amber-500"
+                      />
+                      
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Min: {Math.round(selectedVehiclePrice * 0.5).toLocaleString()} CDF</span>
+                        <span className="text-amber-600 font-medium">
+                          Kwenda: {selectedVehiclePrice.toLocaleString()} CDF
+                        </span>
+                        <span>Max: {Math.round(selectedVehiclePrice * 1.5).toLocaleString()} CDF</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground text-center">
+                      💡 Les chauffeurs à proximité recevront votre demande et pourront proposer leurs prix
+                    </p>
+                  </motion.div>
+                )}
+              </motion.div>
             )}
           </div>
         </ScrollArea>
