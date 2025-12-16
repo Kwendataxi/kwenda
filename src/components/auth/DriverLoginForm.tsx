@@ -57,11 +57,11 @@ export const DriverLoginForm = () => {
   return (
     <form onSubmit={handleLogin} className="space-y-5">
       <div className="space-y-2">
-        <Label htmlFor="driver-email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
+        <Label htmlFor="driver-email" className="text-sm font-medium text-gray-700 dark:text-gray-200">
           Adresse email
         </Label>
         <div className="relative group">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-600 transition-colors" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
           <Input
             id="driver-email"
             type="email"
@@ -69,17 +69,17 @@ export const DriverLoginForm = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="h-12 pl-10 pr-4"
+            className="h-11 pl-10 pr-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="driver-password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
+        <Label htmlFor="driver-password" className="text-sm font-medium text-gray-700 dark:text-gray-200">
           Mot de passe
         </Label>
         <div className="relative group">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-600 transition-colors" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
           <Input
             id="driver-password"
             type={showPassword ? 'text' : 'password'}
@@ -87,42 +87,42 @@ export const DriverLoginForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="h-12 pl-10 pr-12"
+            className="h-11 pl-10 pr-12 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all"
           />
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-500" />}
+            {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
           </Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="destructive" className="animate-fade-in">
-          <AlertCircle className="h-5 w-5" />
-          <AlertDescription className="text-sm font-medium">{error}</AlertDescription>
+        <Alert variant="destructive" className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 rounded-xl animate-fade-in">
+          <AlertCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+          <AlertDescription className="text-sm text-orange-700 dark:text-orange-300">{error}</AlertDescription>
         </Alert>
       )}
 
       {/* Acceptation CGU */}
-      <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+      <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
         <Checkbox
           id="terms-driver"
           checked={acceptTerms}
           onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-          className="mt-0.5"
+          className="mt-0.5 border-gray-300 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
         />
-        <Label htmlFor="terms-driver" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+        <Label htmlFor="terms-driver" className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer leading-relaxed">
           {t('auth.accept_terms_part1')}{' '}
-          <Link to="/terms" className="text-primary hover:underline font-medium">
+          <Link to="/terms" className="text-orange-500 hover:underline font-medium">
             {t('auth.terms_of_service')}
           </Link>{' '}
           {t('auth.accept_terms_part2')}{' '}
-          <Link to="/privacy" className="text-primary hover:underline font-medium">
+          <Link to="/privacy" className="text-orange-500 hover:underline font-medium">
             {t('auth.privacy_policy')}
           </Link>{' '}
           {t('auth.accept_terms_part3')}
@@ -131,7 +131,7 @@ export const DriverLoginForm = () => {
 
       <Button 
         type="submit" 
-        className="w-full h-12 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-semibold"
+        className="w-full h-11 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all"
         disabled={loading || !acceptTerms}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -142,20 +142,20 @@ export const DriverLoginForm = () => {
         <Button
           type="button"
           variant="link"
-          className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700"
+          className="text-sm text-orange-500 hover:text-orange-600 p-0 h-auto"
           onClick={() => navigate('/forgot-password')}
         >
           Mot de passe oublié ?
         </Button>
       </div>
 
-      <div className="text-center text-sm text-muted-foreground mt-4 pt-4 border-t">
+      <div className="text-center text-sm text-gray-500 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
         <p>
           Pas encore de compte chauffeur ?{' '}
           <Button
             type="button"
             variant="link"
-            className="p-0 h-auto text-secondary hover:text-secondary/80 font-semibold"
+            className="p-0 h-auto text-orange-500 hover:text-orange-600 font-medium"
             onClick={() => navigate('/driver/register')}
           >
             Devenir chauffeur Kwenda
