@@ -107,29 +107,24 @@ export const KwendaFoodHeader = ({
               <div className="absolute inset-0 bg-primary/30 blur-xl rounded-xl" />
             </motion.div>
             
-            <div className="hidden sm:block">
+            {/* Desktop title */}
+            <div className="hidden sm:flex items-baseline gap-1.5">
               <h1 className="text-xl font-black leading-none tracking-tight bg-gradient-to-r from-primary via-orange-500 to-red-500 bg-clip-text text-transparent">
-                KWENDA
+                Kwenda
               </h1>
-              <div className="flex items-center gap-1.5">
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-                >
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                </motion.div>
-                <p className="text-xs text-muted-foreground leading-none font-bold tracking-widest uppercase">Food</p>
-              </div>
+              <span className="text-xl font-satisfy text-orange-500 leading-none">
+                Food
+              </span>
             </div>
             
-            {/* Mobile logo */}
-            <div className="sm:hidden flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center">
-                <UtensilsCrossed className="w-4 h-4 text-white" />
-              </div>
+            {/* Mobile title */}
+            <div className="sm:hidden flex items-baseline gap-1">
               <h1 className="text-lg font-black bg-gradient-to-r from-primary via-orange-500 to-red-500 bg-clip-text text-transparent">
-                KWENDA
+                Kwenda
               </h1>
+              <span className="text-lg font-satisfy text-orange-500">
+                Food
+              </span>
             </div>
           </div>
         </motion.div>
