@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { 
   ArrowLeft,
   CheckCircle2,
@@ -16,7 +17,6 @@ import {
   Package,
   Loader2
 } from 'lucide-react';
-
 interface DeliveryLocation {
   address: string;
   coordinates: { lat: number; lng: number };
@@ -70,14 +70,7 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
   const { toast } = useToast();
   const { createDeliveryOrder } = useEnhancedDeliveryOrders();
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const handleConfirm = async () => {
     // ✅ ACTION 4: Logs détaillés bout-en-bout

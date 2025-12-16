@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, Plus, Minus, ExternalLink, Star, Store, MapPin, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { MarketplaceProduct } from '@/types/marketplace';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 type Product = MarketplaceProduct;
 
 interface ProductQuickViewProps {
@@ -38,14 +38,7 @@ export const ProductQuickView = ({
 
   if (!product) return null;
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const handleAddToCart = () => {
     onAddToCart(product, quantity);

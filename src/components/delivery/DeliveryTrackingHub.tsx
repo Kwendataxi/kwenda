@@ -30,7 +30,7 @@ import { useEnhancedDeliveryTracking } from '@/hooks/useEnhancedDeliveryTracking
 import { useUserRole } from '@/hooks/useUserRole';
 import DriverDeliveryActions from '@/components/driver/DriverDeliveryActions';
 import { DeliveryDriverChatModal } from './DeliveryDriverChatModal';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface DeliveryTrackingHubProps {
   orderId: string;
   onBack?: () => void;
@@ -158,14 +158,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
     return undefined;
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   const getStatusColor = (status: string) => {
     const colors = {

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, TrendingUp, Wallet, Calculator } from 'lucide-react';
 import { usePartnerEarnings } from '@/hooks/usePartnerEarnings';
-
+import { formatCurrency as formatCurrencyUtil } from '@/utils/formatCurrency';
 interface PartnerEarningsCardProps {
   range?: '7d' | '30d' | 'all';
 }
@@ -11,13 +11,7 @@ interface PartnerEarningsCardProps {
 export const PartnerEarningsCard: React.FC<PartnerEarningsCardProps> = ({ range = '30d' }) => {
   const { loading, data } = usePartnerEarnings(range);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => formatCurrencyUtil(amount, 'CDF');
 
   const getRangeLabel = () => {
     switch (range) {

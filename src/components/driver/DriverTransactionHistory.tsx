@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowUpIcon, ArrowDownIcon, RefreshCw, Download, Filter, TrendingUp, Wallet, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
+import { formatCurrency } from '@/utils/formatCurrency';
 interface Transaction {
   id: string;
   transaction_type: string;
@@ -143,13 +143,7 @@ export const DriverTransactionHistory: React.FC = () => {
     }
   };
 
-  const formatAmount = (amount: number, currency: string = 'CDF') => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  const formatAmount = (amount: number, currency: string = 'CDF') => formatCurrency(amount, currency as 'CDF' | 'XOF');
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Wallet, ArrowUpRight, Clock, CheckCircle, XCircle, CreditCard, Smartphone, Building } from 'lucide-react';
 import { usePartnerWithdrawals } from '@/hooks/usePartnerWithdrawals';
 import { useIsMobile } from '@/hooks/use-mobile';
-
+import { formatCurrency as formatCurrencyUtil } from '@/utils/formatCurrency';
 export const CommissionWithdrawal = () => {
   const { withdrawals, stats, loading, requestWithdrawal, cancelWithdrawal } = usePartnerWithdrawals();
   const isMobile = useIsMobile();
@@ -25,13 +25,7 @@ export const CommissionWithdrawal = () => {
     phoneNumber: ''
   });
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => formatCurrencyUtil(amount, 'CDF');
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {

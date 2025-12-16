@@ -180,11 +180,7 @@ export const useRestaurantWallet = () => {
   };
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0
-    }).format(amount).replace('CDF', 'FC');
+    return `${amount.toLocaleString()} CDF`;
   };
 
   useEffect(() => {

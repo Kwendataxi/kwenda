@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, DollarSign, AlertTriangle, TrendingUp, X } from 'lucide-react';
-
+import { formatCurrency as formatCurrencyUtil } from '@/utils/formatCurrency';
 interface RideCompletionData {
   totalAmount: number;
   driverAmountGross: number;
@@ -29,13 +29,7 @@ export const RideCompletionNotification: React.FC<RideCompletionNotificationProp
 }) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => formatCurrencyUtil(amount, 'CDF');
 
   if (!data) return null;
 

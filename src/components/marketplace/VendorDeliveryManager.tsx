@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { VendorOrderValidationPanel } from './VendorOrderValidationPanel';
+import { formatCurrency } from '@/utils/formatCurrency';
 
 interface VendorOrder {
   id: string;
@@ -211,7 +212,7 @@ export const VendorDeliveryManager = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-success">
-                    {order.total_amount.toLocaleString()} FC
+                    {formatCurrency(order.total_amount, 'CDF')}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Qté: {order.quantity}

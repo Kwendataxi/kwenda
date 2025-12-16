@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import HorizontalServiceSelector from './HorizontalServiceSelector';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -9,7 +10,6 @@ import {
   Truck,
   Package
 } from 'lucide-react';
-
 interface DeliveryLocation {
   address: string;
   coordinates: { lat: number; lng: number };
@@ -149,14 +149,7 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
     setSelectedService(service);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 
   return (
     <div className="min-h-screen bg-background p-4">
