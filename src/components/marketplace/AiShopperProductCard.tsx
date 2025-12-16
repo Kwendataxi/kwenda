@@ -152,14 +152,14 @@ export const AiShopperProductCard = React.memo<AiShopperProductCardProps>(({
       >
         {/* Image Container - Ratio carré */}
         <div className="relative aspect-square overflow-hidden bg-muted">
-          {/* Discount Badge OU Badge Nouveauté */}
+          {/* Discount Badge OU Badge Nouveauté - Plus discret */}
           {actualDiscount > 0 ? (
-            <Badge className="absolute top-2.5 left-2.5 z-10 bg-red-600 text-white font-black text-base px-3 py-1.5 rounded-lg shadow-lg">
-              {actualDiscount}%
+            <Badge className="absolute top-2 left-2 z-10 bg-red-600 text-white font-bold text-xs px-2 py-0.5 rounded-md">
+              -{actualDiscount}%
             </Badge>
           ) : isNewProduct(product.created_at) && (
-            <Badge className="absolute top-2.5 left-2.5 z-10 bg-white text-red-600 font-bold text-xs px-2.5 py-1 rounded-md shadow-md">
-              NOUVEAUTÉ
+            <Badge className="absolute top-2 left-2 z-10 bg-primary/90 text-primary-foreground font-medium text-[10px] px-2 py-0.5 rounded-md">
+              NEW
             </Badge>
           )}
 
@@ -253,16 +253,16 @@ export const AiShopperProductCard = React.memo<AiShopperProductCardProps>(({
 
         {/* Product Info - ULTRA MINIMALISTE */}
         <div className="p-2.5 space-y-1.5">
-          {/* 1. PRIX (grand, gras, rouge) */}
-          <div className="space-y-0.5">
-            <div className="text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400 tracking-tight">
+          {/* 1. PRIX (plus sobre sur mobile) */}
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-lg sm:text-xl font-bold text-foreground">
               {formatCurrency(product.price)}
-            </div>
+            </span>
             {/* Prix barré si promo */}
             {actualOriginalPrice && actualOriginalPrice > product.price && (
-              <div className="text-sm text-gray-400 dark:text-gray-500 line-through font-normal">
+              <span className="text-xs text-muted-foreground line-through">
                 {formatCurrency(actualOriginalPrice)}
-              </div>
+              </span>
             )}
           </div>
 

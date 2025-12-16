@@ -413,88 +413,67 @@ const VendorShop: React.FC = () => {
         />
       )}
       
-      {/* Header Boutique Moderne */}
-      <header className="bg-gradient-to-br from-background via-muted/30 to-background border-b sticky top-0 z-20 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-4">
+      {/* Header Boutique Épuré */}
+      <header className="bg-background/95 border-b sticky top-0 z-20 backdrop-blur-lg">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            {/* Logo + Nom Boutique avec badge vérifié */}
+            {/* Retour + Logo + Nom */}
             <div className="flex items-center gap-3">
-              <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate(-1)}
+                className="shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              
+              <div className="relative shrink-0">
                 {profile.shop_logo_url ? (
                   <img 
                     src={profile.shop_logo_url} 
                     alt={profile.shop_name}
-                    className="w-14 h-14 rounded-xl object-cover border-2 border-primary/20 shadow-lg"
+                    className="w-11 h-11 rounded-xl object-cover border border-border"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-primary/20">
-                    <Store className="h-7 w-7 text-primary" />
+                  <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Store className="h-5 w-5 text-primary" />
                   </div>
                 )}
-                {/* Badge vérifié */}
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-blue-500 border-2 border-background flex items-center justify-center">
-                  <Shield className="h-3.5 w-3.5 text-white" />
+                {/* Badge vérifié petit */}
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-blue-500 border border-background flex items-center justify-center">
+                  <Shield className="h-2.5 w-2.5 text-white" />
                 </div>
               </div>
               
-              <div>
-                <h1 className="text-xl font-bold flex items-center gap-2">
-                  {profile.shop_name}
-                </h1>
+              <div className="min-w-0">
+                <h1 className="text-base font-bold truncate">{profile.shop_name}</h1>
                 {profile.shop_description && (
-                  <p className="text-xs text-muted-foreground line-clamp-1 max-w-[200px]">
+                  <p className="text-xs text-muted-foreground truncate max-w-[180px]">
                     {profile.shop_description}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              {/* Bouton Accueil Client */}
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/app/client')}
-                className="gap-2 hidden sm:flex"
-              >
-                <Home className="h-4 w-4" />
-                Accueil
-              </Button>
-              
-              {/* Avatar Vendeur */}
-              {profile.shop_name && (
-                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg">
-                  {profile.shop_name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setShowShareDialog(true)}
-                className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Partager</span>
-              </Button>
-              
+            {/* Actions compactes */}
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate('/marketplace')}
-                title="Retour Marketplace"
+                onClick={() => setShowShareDialog(true)}
+                className="h-9 w-9"
               >
-                <Store className="h-5 w-5" />
+                <Share2 className="h-4 w-4" />
               </Button>
               
               <Button 
                 variant="ghost" 
-                size="icon" 
-                onClick={() => navigate(-1)}
-                title="Fermer"
+                size="icon"
+                onClick={() => navigate('/marketplace')}
+                className="h-9 w-9"
               >
-                <X className="h-5 w-5" />
+                <Store className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -503,7 +482,7 @@ const VendorShop: React.FC = () => {
 
       {/* Banner (si disponible) */}
       {profile.shop_banner_url && (
-        <div className="w-full h-32 md:h-48 overflow-hidden">
+        <div className="w-full h-28 md:h-40 overflow-hidden">
           <img
             src={profile.shop_banner_url}
             alt={profile.shop_name}
@@ -512,83 +491,72 @@ const VendorShop: React.FC = () => {
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Statistiques Modernes */}
-        <div className="grid grid-cols-4 gap-3 bg-gradient-to-br from-card to-muted/20 rounded-2xl p-5 border shadow-sm">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-              <Package className="h-5 w-5 text-blue-500" />
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold">{products.length}</div>
-              <div className="text-xs text-muted-foreground">Produits</div>
-            </div>
+      <div className="container mx-auto px-4 py-4 space-y-4">
+        {/* Stats Inline Horizontales + Bouton S'abonner */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-card rounded-xl p-4 border shadow-sm">
+          {/* Stats en ligne */}
+          <div className="flex items-center gap-3 text-sm flex-wrap">
+            <span className="flex items-center gap-1.5 text-foreground">
+              <Package className="h-4 w-4 text-muted-foreground" />
+              <span className="font-semibold">{products.length}</span>
+              <span className="text-muted-foreground">produits</span>
+            </span>
+            
+            <span className="text-muted-foreground/50">•</span>
+            
+            <span className="flex items-center gap-1.5 text-foreground">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <span className="font-semibold">{profile.total_sales || 0}</span>
+              <span className="text-muted-foreground">ventes</span>
+            </span>
+            
+            <span className="text-muted-foreground/50">•</span>
+            
+            <button 
+              onClick={() => setShowRatingDialog(true)}
+              className="flex items-center gap-1.5 hover:text-primary transition-colors"
+            >
+              <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+              <span className="font-semibold">{profile.average_rating?.toFixed(1) || '0.0'}</span>
+            </button>
+            
+            <span className="text-muted-foreground/50">•</span>
+            
+            <span className="flex items-center gap-1.5 text-foreground">
+              <Heart className="h-4 w-4 text-muted-foreground" />
+              <span className="font-semibold">{profile.follower_count || 0}</span>
+              <span className="text-muted-foreground hidden sm:inline">abonnés</span>
+            </span>
           </div>
-          
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold">{(profile.total_sales || 0).toLocaleString()} CDF</div>
-              <div className="text-xs text-muted-foreground">Ventes</div>
-            </div>
-          </div>
-          
-          <button 
-            onClick={() => setShowRatingDialog(true)}
-            className="flex flex-col items-center gap-2 hover:scale-105 transition-transform active:scale-95"
-          >
-            <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
-              <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold">{profile.average_rating?.toFixed(1) || '0.0'}</div>
-              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">👆 Notez</div>
-            </div>
-          </button>
-          
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-              <Heart className="h-5 w-5 text-red-500" />
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold">{profile.follower_count || 0}</div>
-              <div className="text-xs text-muted-foreground">Abonnés</div>
-            </div>
-          </div>
-        </div>
 
-        {/* ✅ PHASE 2: Bouton S'abonner adaptatif */}
-        {!user ? (
-          <Button
-            variant="default"
-            size="lg"
-            className="w-full"
-            onClick={() => navigate('/auth')}
-          >
-            <Heart className="h-5 w-5 mr-2" />
-            Créer un compte pour s'abonner
-          </Button>
-        ) : (
-          <Button
-            variant={isSubscribed ? "outline" : "default"}
-            size="lg"
-            className={`w-full transition-all ${
-              isSubscribed ? 'border-green-500 text-green-600 dark:text-green-400' : ''
-            }`}
-            onClick={handleSubscribe}
-          >
-            <Heart className={`h-5 w-5 mr-2 ${isSubscribed ? 'fill-current text-red-500' : ''}`} />
-            {isSubscribed ? '✓ Abonné' : 'S\'abonner'}
-          </Button>
-        )}
+          {/* Bouton S'abonner compact */}
+          {!user ? (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => navigate('/auth')}
+              className="shrink-0"
+            >
+              <Heart className="h-4 w-4 mr-1.5" />
+              S'abonner
+            </Button>
+          ) : (
+            <Button
+              variant={isSubscribed ? "outline" : "default"}
+              size="sm"
+              className={`shrink-0 ${isSubscribed ? 'border-green-500 text-green-600' : ''}`}
+              onClick={handleSubscribe}
+            >
+              <Heart className={`h-4 w-4 mr-1.5 ${isSubscribed ? 'fill-current text-red-500' : ''}`} />
+              {isSubscribed ? 'Abonné' : 'S\'abonner'}
+            </Button>
+          )}
+        </div>
 
         {/* Grille Produits */}
         <div>
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Produits ({products.length})
+          <h2 className="text-lg font-semibold mb-3">
+            Produits disponibles ({products.length})
           </h2>
           
           {products.length === 0 ? (
