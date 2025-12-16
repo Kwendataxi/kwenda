@@ -74,7 +74,7 @@ export const MobileProductCard: React.FC<MobileProductCardProps> = ({
                   <h3 className="font-medium text-sm truncate">{product.title}</h3>
                   <p className="text-xs text-muted-foreground truncate">{product.category}</p>
                   <p className="font-semibold text-primary text-sm mt-1">
-                    {product.price.toLocaleString()} FC
+                    {product.price.toLocaleString()} CDF
                   </p>
                 </div>
 

@@ -58,7 +58,7 @@ const LoadingAssistanceToggle = ({ hasAssistance, onToggle }: LoadingAssistanceT
               </div>
               <div className="text-right">
                 <p className="font-bold text-lg text-red-600">
-                  {option.price > 0 ? `+${option.price.toLocaleString()} FC` : 'Gratuit'}
+                  {option.price > 0 ? `+${option.price.toLocaleString()} CDF` : 'Gratuit'}
                 </p>
               </div>
             </div>

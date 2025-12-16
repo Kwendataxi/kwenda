@@ -185,7 +185,7 @@ export default function DeliveryTrackingDemo() {
                   
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Prix estimé:</span>
-                    <Badge variant="outline">{demoOrderData.estimated_price.toLocaleString()} FC</Badge>
+                    <Badge variant="outline">{demoOrderData.estimated_price.toLocaleString()} CDF</Badge>
                   </div>
                   
                   <div className="flex gap-2 pt-4">

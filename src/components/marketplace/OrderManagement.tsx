@@ -194,10 +194,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
                   {t('marketplace.quantity')}: {order.quantity}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {t('marketplace.unitPrice')}: {order.unit_price.toLocaleString()} FC
+                  {t('marketplace.unitPrice')}: {order.unit_price.toLocaleString()} CDF
                 </p>
                 <p className="font-semibold">
-                  {t('marketplace.total')}: {order.total_amount.toLocaleString()} FC
+                  {t('marketplace.total')}: {order.total_amount.toLocaleString()} CDF
                 </p>
               </div>
             </div>

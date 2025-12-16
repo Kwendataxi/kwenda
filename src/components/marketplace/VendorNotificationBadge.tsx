@@ -159,7 +159,7 @@ export default function VendorNotificationBadge() {
                         </p>
                         {notification.metadata?.total_amount && (
                           <p className="text-xs font-medium text-primary mt-1">
-                            {Number(notification.metadata.total_amount).toLocaleString()} FC
+                            {Number(notification.metadata.total_amount).toLocaleString()} CDF
                           </p>
                         )}
                       </div>

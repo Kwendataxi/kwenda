@@ -183,7 +183,7 @@ export default function FoodExplore() {
                   <div>
                     <Label className="text-base font-semibold mb-3 flex items-center gap-2">
                       <DollarSign className="w-4 h-4" />
-                      Prix ({priceRange[0].toLocaleString()} - {priceRange[1].toLocaleString()} FC)
+                      Prix ({priceRange[0].toLocaleString()} - {priceRange[1].toLocaleString()} CDF)
                     </Label>
                     <Slider
                       value={priceRange}

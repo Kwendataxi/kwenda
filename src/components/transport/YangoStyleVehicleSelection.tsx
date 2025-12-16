@@ -197,7 +197,7 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
                   {/* Price - Compact */}
                   <div className="text-center">
                     <p className={`text-[10px] sm:text-[11px] font-bold ${textColorClass} leading-tight`}>
-                      {vehicle.available ? `${price.toLocaleString()} FC` : 'N/A'}
+                      {vehicle.available ? `${price.toLocaleString()} CDF` : 'N/A'}
                     </p>
                   </div>
 
@@ -246,7 +246,7 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
                 </div>
                 <div className="text-right">
                   <p className="text-sm sm:text-base font-bold text-primary">
-                    {calculatePrice(selectedVehicle).toLocaleString()} FC
+                    {calculatePrice(selectedVehicle).toLocaleString()} CDF
                   </p>
                 </div>
               </div>

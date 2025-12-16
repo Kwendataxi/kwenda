@@ -141,7 +141,7 @@ export const OrderTracker: React.FC = () => {
               </div>
               <div>
                 <span className="text-muted-foreground">Total:</span>
-                <span className="ml-1 font-medium">{order.total_amount.toLocaleString()} FC</span>
+                <span className="ml-1 font-medium">{order.total_amount.toLocaleString()} CDF</span>
               </div>
             </div>
 
@@ -191,7 +191,7 @@ export const OrderTracker: React.FC = () => {
                   Quantité: {selectedOrder.quantity}
                 </p>
                 <p className="font-semibold text-primary">
-                  {selectedOrder.total_amount.toLocaleString()} FC
+                  {selectedOrder.total_amount.toLocaleString()} CDF
                 </p>
               </div>
             </div>

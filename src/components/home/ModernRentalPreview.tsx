@@ -101,7 +101,7 @@ const ModernRentalPreview = ({ onOpenRental }: ModernRentalPreviewProps) => {
                     </Badge>
                     <div className="text-right">
                       <p className="text-sm font-bold text-primary">
-                        {minPrice > 0 ? `${minPrice.toLocaleString()} FC` : 'Sur demande'}
+                        {minPrice > 0 ? `${minPrice.toLocaleString()} CDF` : 'Sur demande'}
                       </p>
                       <p className="text-xs text-muted-foreground">par jour</p>
                     </div>
@@ -139,7 +139,7 @@ const ModernRentalPreview = ({ onOpenRental }: ModernRentalPreviewProps) => {
                     {vehicle.seats} places
                   </Badge>
                   <span className="text-sm font-bold text-primary">
-                    {calculateCityPrice(vehicle.daily_rate).toLocaleString()} FC/jour
+                    {calculateCityPrice(vehicle.daily_rate).toLocaleString()} CDF/jour
                   </span>
                 </div>
               </div>

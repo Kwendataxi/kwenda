@@ -118,7 +118,7 @@ const PackageTypeSelector = ({ onPackageSelect, selectedPackageId }: PackageType
                       <div className="flex items-center gap-2">
                         <Truck className="w-4 h-4 text-grey-500" />
                         <span className="text-xs text-primary font-medium">
-                          À partir de {packageType.basePrice.toLocaleString()} FC
+                          À partir de {packageType.basePrice.toLocaleString()} CDF
                         </span>
                       </div>
                     </div>

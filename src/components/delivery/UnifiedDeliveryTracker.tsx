@@ -230,7 +230,7 @@ export default function UnifiedDeliveryTracker({ orderId, onBack }: UnifiedDeliv
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-sm text-muted-foreground">Prix</span>
                   <span className="font-semibold text-primary">
-                    {(order.actual_price || order.estimated_price).toLocaleString()} FC
+                    {(order.actual_price || order.estimated_price).toLocaleString()} CDF
                   </span>
                 </div>
               </div>

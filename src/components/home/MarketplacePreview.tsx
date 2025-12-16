@@ -99,7 +99,7 @@ export const MarketplacePreview = ({
               </h3>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-foreground">
-                  {product.price.toLocaleString()} FC
+                  {product.price.toLocaleString()} CDF
                 </span>
                 {product.rating && (
                   <div className="flex items-center gap-1">

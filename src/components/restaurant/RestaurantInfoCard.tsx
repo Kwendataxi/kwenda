@@ -85,7 +85,7 @@ export function RestaurantInfoCard() {
               <DollarSign className="h-3 w-3" />
               Commande minimum
             </p>
-            <p className="font-medium">{info.minimum_order_amount.toLocaleString()} FC</p>
+            <p className="font-medium">{info.minimum_order_amount.toLocaleString()} CDF</p>
           </div>
 
           <div>

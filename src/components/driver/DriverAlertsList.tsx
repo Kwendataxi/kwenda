@@ -124,7 +124,7 @@ export default function DriverAlertsList() {
                 </div>
                 <div className="flex items-center gap-1 text-sm font-bold text-primary">
                   <DollarSign className="h-4 w-4" />
-                  <span>{alert.estimatedPrice?.toLocaleString()} FC</span>
+                  <span>{alert.estimatedPrice?.toLocaleString()} CDF</span>
                 </div>
               </div>
             </div>

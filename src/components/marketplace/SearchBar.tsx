@@ -106,8 +106,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                       className="w-full"
                     />
                     <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                      <span>{filters.priceRange[0].toLocaleString()} FC</span>
-                      <span>{filters.priceRange[1].toLocaleString()} FC</span>
+                      <span>{filters.priceRange[0].toLocaleString()} CDF</span>
+                      <span>{filters.priceRange[1].toLocaleString()} CDF</span>
                     </div>
                   </div>
                 </div>

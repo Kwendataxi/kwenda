@@ -121,7 +121,7 @@ export const DeliveryHistory = () => {
               {/* Price */}
               <div className="flex items-center gap-2 text-lg font-semibold">
                 <DollarSign className="w-5 h-5" />
-                {delivery.actual_price?.toLocaleString() || delivery.estimated_price?.toLocaleString()} FC
+                {delivery.actual_price?.toLocaleString() || delivery.estimated_price?.toLocaleString()} CDF
               </div>
 
               {/* Actions */}

@@ -99,7 +99,7 @@ const VehicleSizeSelector = ({ selectedSize, onSizeChange }: VehicleSizeSelector
               </div>
               <div className="text-right ml-4">
                 <p className="font-bold text-lg text-red-600">
-                  {size.price.toLocaleString()} FC
+                  {size.price.toLocaleString()} CDF
                 </p>
                 <p className="text-xs text-grey-500">Prix de base</p>
               </div>

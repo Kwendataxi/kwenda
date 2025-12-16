@@ -35,13 +35,13 @@ export const MobileVendorStats: React.FC<MobileVendorStatsProps> = ({
     },
     {
       label: 'Revenus effectifs',
-      value: `${stats.effectiveRevenue.toLocaleString()} FC`,
+      value: `${stats.effectiveRevenue.toLocaleString()} CDF`,
       icon: DollarSign,
       color: 'text-red-600'
     },
     {
       label: 'En attente',
-      value: `${stats.pendingRevenue.toLocaleString()} FC`,
+      value: `${stats.pendingRevenue.toLocaleString()} CDF`,
       icon: Clock,
       color: 'text-orange-500'
     }

@@ -567,7 +567,7 @@ export default function DriverDeliveryDashboard({ onSelectDelivery }: DriverDeli
                     
                     <div className="flex items-center justify-between pt-2 border-t">
                       <span className="text-sm font-medium text-primary">
-                        {delivery.estimated_price.toLocaleString()} FC
+                        {delivery.estimated_price.toLocaleString()} CDF
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {new Date(delivery.created_at).toLocaleDateString('fr-FR')}

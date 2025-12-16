@@ -182,10 +182,10 @@ const VehicleSelection = ({ distance, onVehicleSelect, selectedVehicleId }: Vehi
                 <p className="text-lg font-bold text-primary">
                   {finalPrice.toLocaleString()}
                 </p>
-                <p className="text-xs text-grey-500">FC</p>
+                <p className="text-xs text-grey-500">CDF</p>
                 {distance > 0 && (
                   <p className="text-xs text-grey-400 mt-1">
-                    ~{(finalPrice / distance).toFixed(0)} FC/km
+                    ~{(finalPrice / distance).toFixed(0)} CDF/km
                   </p>
                 )}
               </div>

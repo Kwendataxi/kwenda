@@ -129,7 +129,7 @@ const BookingFlow = ({
               </div>
               <div className="text-right">
                 <p className="text-xl font-bold text-primary">
-                  {selectedVehicle.price.toLocaleString()} FC
+                  {selectedVehicle.price.toLocaleString()} CDF
                 </p>
                 <p className="text-sm text-grey-600">Prix estimé</p>
               </div>
@@ -259,7 +259,7 @@ const BookingFlow = ({
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-medium text-grey-900">Détails du trajet</h4>
               <span className="text-sm text-primary font-medium">
-                {selectedVehicle.price.toLocaleString()} FC
+                {selectedVehicle.price.toLocaleString()} CDF
               </span>
             </div>
             <div className="space-y-2 text-sm">

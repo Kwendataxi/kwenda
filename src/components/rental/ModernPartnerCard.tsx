@@ -107,7 +107,7 @@ export const ModernPartnerCard: React.FC<ModernPartnerCardProps> = ({
                 </div>
                 <p className="text-xs font-semibold line-clamp-1">{vehicle.name}</p>
                 <p className="text-xs text-primary font-bold">
-                  {vehicle.daily_rate.toLocaleString()} FC
+                  {vehicle.daily_rate.toLocaleString()} CDF
                 </p>
               </div>
             ))}

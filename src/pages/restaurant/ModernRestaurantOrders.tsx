@@ -198,7 +198,7 @@ export default function ModernRestaurantOrders() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold">{order.total_amount.toLocaleString()} FC</p>
+                        <p className="font-bold">{order.total_amount.toLocaleString()} CDF</p>
                         <Badge>{order.status}</Badge>
                       </div>
                     </div>
@@ -230,7 +230,7 @@ export default function ModernRestaurantOrders() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">{order.total_amount.toLocaleString()} FC</p>
+                    <p className="font-bold">{order.total_amount.toLocaleString()} CDF</p>
                     <Badge variant={order.status === 'delivered' ? 'default' : 'destructive'}>
                       {order.status === 'delivered' ? 'Livré' : 'Annulé'}
                     </Badge>
