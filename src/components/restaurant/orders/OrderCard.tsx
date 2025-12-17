@@ -1,0 +1,186 @@
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Phone, MapPin, Clock, ChevronRight, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
+interface OrderItem {
+  name: string;
+  quantity: number;
+  price?: number;
+}
+
+interface OrderCardProps {
+  order: {
+    id: string;
+    order_number: string;
+    status: string;
+    created_at: string;
+    items: OrderItem[];
+    total_amount: number;
+    delivery_phone: string;
+    delivery_address: string;
+    delivery_coordinates?: { lat: number; lng: number };
+    estimated_preparation_time?: number;
+  };
+  elapsedMinutes: number;
+  onConfirm?: (prepTime: number) => void;
+  onStatusChange?: (newStatus: string) => void;
+  nextStatus?: string;
+  showDeliveryPanel?: React.ReactNode;
+  index?: number;
+}
+
+const STATUS_CONFIG = {
+  pending: { label: 'Nouveau', color: 'bg-blue-500', nextAction: 'Confirmer' },
+  confirmed: { label: 'Confirmé', color: 'bg-purple-500', nextAction: 'Commencer' },
+  preparing: { label: 'En préparation', color: 'bg-orange-500', nextAction: 'Marquer prêt' },
+  ready: { label: 'Prêt', color: 'bg-green-500', nextAction: 'Récupéré' },
+  picked_up: { label: 'Récupéré', color: 'bg-emerald-500', nextAction: '' },
+  delivered: { label: 'Livré', color: 'bg-emerald-600', nextAction: '' },
+  cancelled: { label: 'Annulé', color: 'bg-destructive', nextAction: '' },
+};
+
+export const OrderCard = ({
+  order,
+  elapsedMinutes,
+  onConfirm,
+  onStatusChange,
+  nextStatus,
+  showDeliveryPanel,
+  index = 0
+}: OrderCardProps) => {
+  const statusConfig = STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+  
+  const getTimerColor = () => {
+    if (order.status === 'pending' && elapsedMinutes > 5) return 'text-destructive';
+    if (order.status === 'preparing' && elapsedMinutes > 30) return 'text-destructive';
+    if (elapsedMinutes > 15) return 'text-orange-500';
+    return 'text-muted-foreground';
+  };
+
+  const isUrgent = order.status === 'pending' && elapsedMinutes > 5;
+
+  const handleCall = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.location.href = `tel:${order.delivery_phone}`;
+  };
+
+  const handleOpenMap = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const query = order.delivery_coordinates 
+      ? `${order.delivery_coordinates.lat},${order.delivery_coordinates.lng}`
+      : encodeURIComponent(order.delivery_address);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03 }}
+    >
+      <Card className={cn(
+        "hover:shadow-lg transition-all cursor-pointer group border-l-4",
+        isUrgent && "animate-pulse border-l-destructive bg-destructive/5",
+        !isUrgent && "border-l-transparent"
+      )}>
+        <CardContent className="p-4 space-y-3">
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-base">#{order.order_number}</span>
+                {isUrgent && (
+                  <Badge variant="destructive" className="text-xs animate-pulse">
+                    Urgent
+                  </Badge>
+                )}
+              </div>
+              <div className={cn("flex items-center gap-1 text-sm", getTimerColor())}>
+                <Clock className="h-3.5 w-3.5" />
+                <span>{elapsedMinutes} min</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="font-bold text-primary text-lg">{order.total_amount.toLocaleString()} FC</p>
+              <Badge className={cn(statusConfig.color, "text-white text-xs")}>
+                {statusConfig.label}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Items */}
+          <div className="bg-muted/50 rounded-lg p-3 space-y-1.5">
+            {order.items.slice(0, 3).map((item, idx) => (
+              <div key={idx} className="flex justify-between text-sm">
+                <span className="text-foreground">{item.quantity}x {item.name}</span>
+                {item.price && (
+                  <span className="text-muted-foreground">{(item.quantity * item.price).toLocaleString()} FC</span>
+                )}
+              </div>
+            ))}
+            {order.items.length > 3 && (
+              <p className="text-xs text-muted-foreground pt-1">+{order.items.length - 3} autre(s)</p>
+            )}
+          </div>
+
+          {/* Contact - Clickable */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs h-9"
+              onClick={handleCall}
+            >
+              <Phone className="h-3.5 w-3.5 mr-1.5" />
+              {order.delivery_phone}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9"
+              onClick={handleOpenMap}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {/* Address */}
+          <div className="flex items-start gap-2 text-xs text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <span className="line-clamp-2">{order.delivery_address}</span>
+          </div>
+
+          {/* Actions */}
+          {order.status === 'pending' && onConfirm ? (
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              <Button size="sm" onClick={() => onConfirm(15)} className="text-xs">
+                15 min
+              </Button>
+              <Button size="sm" variant="secondary" onClick={() => onConfirm(20)} className="text-xs">
+                20 min
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => onConfirm(30)} className="text-xs">
+                30 min
+              </Button>
+            </div>
+          ) : showDeliveryPanel ? (
+            <div className="pt-1">{showDeliveryPanel}</div>
+          ) : nextStatus && onStatusChange ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+              onClick={() => onStatusChange(nextStatus)}
+            >
+              <span>{statusConfig.nextAction}</span>
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          ) : null}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
