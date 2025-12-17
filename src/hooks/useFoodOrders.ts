@@ -127,29 +127,55 @@ export const useFoodOrders = () => {
     }
   };
 
-  // Récupérer les commandes du restaurant
+  // Récupérer les commandes du restaurant (2 étapes pour éviter les problèmes de FK)
   const fetchRestaurantOrders = async (restaurantId: string) => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
+      // Étape 1: Récupérer les commandes
+      const { data: ordersData, error: ordersError } = await supabase
         .from('food_orders')
-        .select(`
-          *,
-          customer:clients(
-            display_name,
-            phone_number,
-            user_id,
-            profile:profiles(phone_number)
-          )
-        `)
+        .select('*')
         .eq('restaurant_id', restaurantId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (ordersError) throw ordersError;
 
-      setOrders(data || []);
-      return data || [];
+      if (!ordersData || ordersData.length === 0) {
+        setOrders([]);
+        return [];
+      }
+
+      // Étape 2: Récupérer les profils des clients
+      const customerIds = [...new Set(ordersData.map(o => o.customer_id).filter(Boolean))];
+      
+      let profilesMap: Record<string, { display_name: string | null; phone_number: string | null }> = {};
+      
+      if (customerIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, phone_number')
+          .in('user_id', customerIds);
+        
+        if (profilesData) {
+          profilesMap = profilesData.reduce((acc, profile) => {
+            acc[profile.user_id] = {
+              display_name: profile.display_name,
+              phone_number: profile.phone_number
+            };
+            return acc;
+          }, {} as Record<string, { display_name: string | null; phone_number: string | null }>);
+        }
+      }
+
+      // Étape 3: Mapper les profils aux commandes
+      const ordersWithCustomers = ordersData.map(order => ({
+        ...order,
+        customer: profilesMap[order.customer_id] || null
+      }));
+
+      setOrders(ordersWithCustomers);
+      return ordersWithCustomers;
     } catch (error: any) {
       console.error('Error fetching restaurant orders:', error);
       toast({

@@ -24,12 +24,9 @@ interface OrderCardProps {
     delivery_coordinates?: { lat: number; lng: number };
     estimated_preparation_time?: number;
     customer?: {
-      display_name?: string;
-      phone_number?: string;
-      profile?: {
-        phone_number?: string;
-      };
-    };
+      display_name?: string | null;
+      phone_number?: string | null;
+    } | null;
   };
   elapsedMinutes: number;
   onConfirm?: (prepTime: number) => void;
@@ -69,11 +66,8 @@ export const OrderCard = ({
 
   const isUrgent = order.status === 'pending' && elapsedMinutes > 5;
 
-  // Triple fallback: clients.phone_number -> profiles.phone_number -> delivery_phone
-  const customerPhone = 
-    order.customer?.phone_number || 
-    order.customer?.profile?.phone_number || 
-    order.delivery_phone;
+  // Fallback: profiles.phone_number -> delivery_phone
+  const customerPhone = order.customer?.phone_number || order.delivery_phone;
 
   const handleCall = (e: React.MouseEvent) => {
     e.stopPropagation();
