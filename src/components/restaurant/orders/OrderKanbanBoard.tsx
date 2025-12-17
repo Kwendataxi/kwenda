@@ -1,10 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Phone, MapPin, Clock, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { RestaurantOrderDeliveryPanel } from '../RestaurantOrderDeliveryPanel';
+import { OrderCard } from './OrderCard';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface Order {
   id: string;
@@ -31,178 +32,171 @@ interface OrderKanbanBoardProps {
     longitude?: number;
     phone_number?: string;
   };
+  orderTimers?: { [key: string]: number };
 }
 
 const COLUMNS = [
   { id: 'pending', label: 'Nouveau', color: 'from-blue-500 to-cyan-500', nextStatus: 'confirmed' },
   { id: 'confirmed', label: 'Confirmé', color: 'from-purple-500 to-pink-500', nextStatus: 'preparing' },
-  { id: 'preparing', label: 'En préparation', color: 'from-orange-500 to-red-500', nextStatus: 'ready' },
+  { id: 'preparing', label: 'Préparation', color: 'from-orange-500 to-red-500', nextStatus: 'ready' },
   { id: 'ready', label: 'Prêt', color: 'from-green-500 to-emerald-500', nextStatus: 'picked_up' },
 ];
 
-export const OrderKanbanBoard = ({ orders, onStatusChange, onConfirmOrder, restaurantAddress = '', restaurantProfile }: OrderKanbanBoardProps) => {
-  const [orderTimers, setOrderTimers] = useState<{ [key: string]: number }>({});
-
-  // Timer pour chaque commande
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setOrderTimers(prev => {
-        const newTimers = { ...prev };
-        orders.forEach(order => {
-          const createdAt = new Date(order.created_at).getTime();
-          const now = Date.now();
-          const elapsed = Math.floor((now - createdAt) / 1000 / 60); // minutes
-          newTimers[order.id] = elapsed;
-        });
-        return newTimers;
-      });
-    }, 10000); // Update every 10 seconds
-
-    return () => clearInterval(interval);
-  }, [orders]);
+export const OrderKanbanBoard = ({ 
+  orders, 
+  onStatusChange, 
+  onConfirmOrder, 
+  restaurantAddress = '', 
+  restaurantProfile,
+  orderTimers = {}
+}: OrderKanbanBoardProps) => {
+  const [activeColumn, setActiveColumn] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const getOrdersByStatus = (status: string) => {
     return orders.filter(order => order.status === status);
   };
 
-  const getTimerColor = (minutes: number, status: string) => {
-    if (status === 'pending' && minutes > 5) return 'text-red-500';
-    if (status === 'preparing' && minutes > 30) return 'text-red-500';
-    if (minutes > 15) return 'text-orange-500';
-    return 'text-muted-foreground';
+  const scrollToColumn = (direction: 'left' | 'right') => {
+    const newIndex = direction === 'left' 
+      ? Math.max(0, activeColumn - 1)
+      : Math.min(COLUMNS.length - 1, activeColumn + 1);
+    setActiveColumn(newIndex);
+    
+    if (scrollRef.current) {
+      const columnWidth = scrollRef.current.scrollWidth / COLUMNS.length;
+      scrollRef.current.scrollTo({
+        left: columnWidth * newIndex,
+        behavior: 'smooth'
+      });
+    }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {COLUMNS.map((column) => {
-        const columnOrders = getOrdersByStatus(column.id);
+    <div className="space-y-3">
+      {/* Mobile Column Indicators */}
+      <div className="flex md:hidden items-center justify-between px-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => scrollToColumn('left')}
+          disabled={activeColumn === 0}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
         
-        return (
-          <div key={column.id} className="space-y-3">
-            {/* Column Header */}
-            <div className={`rounded-xl bg-gradient-to-r ${column.color} p-4 text-white`}>
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-lg">{column.label}</h3>
-                <Badge variant="secondary" className="bg-white/20 text-white border-0">
-                  {columnOrders.length}
-                </Badge>
+        <div className="flex gap-1.5">
+          {COLUMNS.map((col, idx) => {
+            const count = getOrdersByStatus(col.id).length;
+            return (
+              <button
+                key={col.id}
+                onClick={() => {
+                  setActiveColumn(idx);
+                  if (scrollRef.current) {
+                    const columnWidth = scrollRef.current.scrollWidth / COLUMNS.length;
+                    scrollRef.current.scrollTo({
+                      left: columnWidth * idx,
+                      behavior: 'smooth'
+                    });
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all",
+                  activeColumn === idx 
+                    ? `bg-gradient-to-r ${col.color} text-white` 
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                <span className="hidden xs:inline">{col.label.split(' ')[0]}</span>
+                <span className="font-bold">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => scrollToColumn('right')}
+          disabled={activeColumn === COLUMNS.length - 1}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Kanban Grid - Scrollable on mobile */}
+      <div 
+        ref={scrollRef}
+        className="flex md:grid md:grid-cols-4 gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {COLUMNS.map((column, colIndex) => {
+          const columnOrders = getOrdersByStatus(column.id);
+          
+          return (
+            <div 
+              key={column.id} 
+              className="min-w-[85vw] sm:min-w-[70vw] md:min-w-0 snap-center space-y-3"
+            >
+              {/* Column Header */}
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: colIndex * 0.1 }}
+                className={`rounded-xl bg-gradient-to-r ${column.color} p-3 md:p-4 text-white shadow-lg`}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-base md:text-lg">{column.label}</h3>
+                  <Badge variant="secondary" className="bg-white/20 text-white border-0 text-sm">
+                    {columnOrders.length}
+                  </Badge>
+                </div>
+              </motion.div>
+
+              {/* Orders */}
+              <div className="space-y-3 min-h-[200px]">
+                {columnOrders.map((order, index) => {
+                  const elapsed = orderTimers[order.id] || 0;
+                  
+                  return (
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      elapsedMinutes={elapsed}
+                      onConfirm={order.status === 'pending' ? (prepTime) => onConfirmOrder(order.id, prepTime) : undefined}
+                      onStatusChange={(status) => onStatusChange(order.id, status)}
+                      nextStatus={column.nextStatus}
+                      index={index}
+                      showDeliveryPanel={order.status === 'ready' ? (
+                        <RestaurantOrderDeliveryPanel
+                          orderId={order.id}
+                          orderStatus={order.status}
+                          restaurantAddress={restaurantAddress}
+                          deliveryAddress={order.delivery_address}
+                          deliveryCoordinates={order.delivery_coordinates}
+                          restaurantProfile={restaurantProfile}
+                          deliveryPhone={order.delivery_phone}
+                          orderNumber={order.order_number}
+                          onStatusChange={() => window.location.reload()}
+                        />
+                      ) : undefined}
+                    />
+                  );
+                })}
+
+                {columnOrders.length === 0 && (
+                  <div className="flex items-center justify-center h-32 text-muted-foreground text-sm border-2 border-dashed rounded-xl bg-muted/30">
+                    Aucune commande
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Orders */}
-            <div className="space-y-3 min-h-[200px]">
-              {columnOrders.map((order, index) => {
-                const elapsed = orderTimers[order.id] || 0;
-                
-                return (
-                  <motion.div
-                    key={order.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-base">#{order.order_number}</CardTitle>
-                            <div className={`flex items-center gap-1 text-sm ${getTimerColor(elapsed, order.status)} mt-1`}>
-                              <Clock className="h-3 w-3" />
-                              <span>{elapsed} min</span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-primary">{order.total_amount.toLocaleString()} FC</p>
-                            <p className="text-xs text-muted-foreground">
-                              {order.items.length} article{order.items.length > 1 ? 's' : ''}
-                            </p>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      
-                      <CardContent className="space-y-3">
-                        {/* Items summary */}
-                        <div className="bg-muted/50 rounded-lg p-2 text-xs space-y-1">
-                          {order.items.slice(0, 2).map((item: any, idx: number) => (
-                            <div key={idx} className="flex justify-between">
-                              <span>{item.quantity}x {item.name}</span>
-                            </div>
-                          ))}
-                          {order.items.length > 2 && (
-                            <p className="text-muted-foreground">+{order.items.length - 2} autre(s)</p>
-                          )}
-                        </div>
-
-                        {/* Contact */}
-                        <div className="space-y-1 text-xs">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Phone className="h-3 w-3" />
-                            <span className="truncate">{order.delivery_phone}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            <span className="truncate">{order.delivery_address}</span>
-                          </div>
-                        </div>
-
-                        {/* Action button ou panel de livraison */}
-                        {order.status === 'pending' ? (
-                          <Button
-                            size="sm"
-                            className="w-full"
-                            onClick={() => onConfirmOrder(order.id, 15)}
-                          >
-                            Confirmer (15 min)
-                          </Button>
-                        ) : order.status === 'ready' ? (
-                          <div className="pt-2">
-                            <RestaurantOrderDeliveryPanel
-                              orderId={order.id}
-                              orderStatus={order.status}
-                              restaurantAddress={restaurantAddress}
-                              deliveryAddress={order.delivery_address}
-                              deliveryCoordinates={order.delivery_coordinates}
-                              restaurantProfile={restaurantProfile}
-                              deliveryPhone={order.delivery_phone}
-                              orderNumber={order.order_number}
-                              onStatusChange={() => window.location.reload()}
-                            />
-                          </div>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                            onClick={() => onStatusChange(order.id, column.nextStatus!)}
-                          >
-                            <span>{getNextActionLabel(column.id)}</span>
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-
-              {columnOrders.length === 0 && (
-                <div className="flex items-center justify-center h-32 text-muted-foreground text-sm border-2 border-dashed rounded-lg">
-                  Aucune commande
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
-};
-
-const getNextActionLabel = (status: string) => {
-  const labels: { [key: string]: string } = {
-    confirmed: 'Commencer',
-    preparing: 'Marquer prêt',
-    ready: 'Récupéré',
-  };
-  return labels[status] || 'Suivant';
 };

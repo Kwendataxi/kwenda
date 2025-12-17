@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Loader2, LayoutGrid, List, Truck } from 'lucide-react';
+import { Loader2, Clock } from 'lucide-react';
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { OrderKanbanBoard } from '@/components/restaurant/orders/OrderKanbanBoard';
+import { OrderFilters } from '@/components/restaurant/orders/OrderFilters';
+import { OrderCard } from '@/components/restaurant/orders/OrderCard';
 import { motion } from 'framer-motion';
-import { RestaurantLayout } from '@/components/restaurant/RestaurantLayout';
 
 export default function ModernRestaurantOrders() {
   const navigate = useNavigate();
@@ -20,6 +20,9 @@ export default function ModernRestaurantOrders() {
   const [restaurantAddress, setRestaurantAddress] = useState<string>('');
   const [orders, setOrders] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [orderTimers, setOrderTimers] = useState<{ [key: string]: number }>({});
 
   const { fetchRestaurantOrders, updateOrderStatus, subscribeToOrders } = useFoodOrders();
 
@@ -34,7 +37,6 @@ export default function ModernRestaurantOrders() {
       const unsubscribe = subscribeToOrders(
         restaurantId,
         (newOrder) => {
-          // Notification sonore
           const audio = new Audio('/notification.mp3');
           audio.play().catch(() => {});
 
@@ -51,6 +53,33 @@ export default function ModernRestaurantOrders() {
       return unsubscribe;
     }
   }, [restaurantId]);
+
+  // Timer for orders
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOrderTimers(prev => {
+        const newTimers = { ...prev };
+        orders.forEach(order => {
+          const createdAt = new Date(order.created_at).getTime();
+          const now = Date.now();
+          const elapsed = Math.floor((now - createdAt) / 1000 / 60);
+          newTimers[order.id] = elapsed;
+        });
+        return newTimers;
+      });
+    }, 10000);
+
+    // Initial calculation
+    const initialTimers: { [key: string]: number } = {};
+    orders.forEach(order => {
+      const createdAt = new Date(order.created_at).getTime();
+      const elapsed = Math.floor((Date.now() - createdAt) / 1000 / 60);
+      initialTimers[order.id] = elapsed;
+    });
+    setOrderTimers(initialTimers);
+
+    return () => clearInterval(interval);
+  }, [orders]);
 
   const loadRestaurantProfile = async () => {
     try {
@@ -110,6 +139,35 @@ export default function ModernRestaurantOrders() {
     }
   };
 
+  // Filter orders
+  const activeOrders = useMemo(() => {
+    let filtered = orders.filter(o => !['delivered', 'cancelled'].includes(o.status));
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(o => 
+        o.order_number?.toLowerCase().includes(query) ||
+        o.delivery_phone?.includes(query) ||
+        o.delivery_address?.toLowerCase().includes(query)
+      );
+    }
+    
+    if (statusFilter) {
+      filtered = filtered.filter(o => o.status === statusFilter);
+    }
+    
+    return filtered;
+  }, [orders, searchQuery, statusFilter]);
+
+  const completedOrders = orders.filter(o => ['delivered', 'cancelled'].includes(o.status));
+
+  const orderCounts = useMemo(() => ({
+    pending: orders.filter(o => o.status === 'pending').length,
+    confirmed: orders.filter(o => o.status === 'confirmed').length,
+    preparing: orders.filter(o => o.status === 'preparing').length,
+    ready: orders.filter(o => o.status === 'ready').length,
+  }), [orders]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -118,27 +176,26 @@ export default function ModernRestaurantOrders() {
     );
   }
 
-  const activeOrders = orders.filter(o => !['delivered', 'cancelled'].includes(o.status));
-  const completedOrders = orders.filter(o => ['delivered', 'cancelled'].includes(o.status));
+  const totalActive = Object.values(orderCounts).reduce((a, b) => a + b, 0);
 
   return (
-    <RestaurantLayout>
-      <div className="container mx-auto px-4 space-y-6">
-        {/* Header avec gradient */}
+    <div className="space-y-4 pb-20 md:pb-6">
+      {/* Compact Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 p-6 text-white"
+        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 p-4 md:p-6 text-white"
       >
         <div className="relative z-10">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Gestion des Commandes</h1>
-              <p className="text-white/90">Gérez vos commandes en temps réel</p>
+              <h1 className="text-xl md:text-2xl font-bold">Commandes</h1>
+              <p className="text-white/80 text-sm hidden sm:block">Gérez en temps réel</p>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-white/20 text-white text-lg px-4 py-2">
-                {activeOrders.length} actives
+              <Badge variant="secondary" className="bg-white/20 text-white border-0 text-sm md:text-base px-3 py-1.5">
+                <Clock className="h-4 w-4 mr-1.5" />
+                {totalActive} actives
               </Badge>
             </div>
           </div>
@@ -146,64 +203,49 @@ export default function ModernRestaurantOrders() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
       </motion.div>
 
-      <Tabs defaultValue="active" className="space-y-6">
-        <div className="flex items-center justify-between">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="active">
-              Actives ({activeOrders.length})
-            </TabsTrigger>
-            <TabsTrigger value="history">
-              Historique ({completedOrders.length})
-            </TabsTrigger>
-          </TabsList>
+      {/* Filters */}
+      <OrderFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        orderCounts={orderCounts}
+      />
 
-          <div className="flex gap-2">
-            <Badge
-              variant={viewMode === 'kanban' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setViewMode('kanban')}
-            >
-              <LayoutGrid className="h-4 w-4 mr-1" />
-              Kanban
-            </Badge>
-            <Badge
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              className="cursor-pointer"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="h-4 w-4 mr-1" />
-              Liste
-            </Badge>
-          </div>
-        </div>
+      {/* Tabs */}
+      <Tabs defaultValue="active" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2 h-11">
+          <TabsTrigger value="active" className="text-sm">
+            Actives ({totalActive})
+          </TabsTrigger>
+          <TabsTrigger value="history" className="text-sm">
+            Historique ({completedOrders.length})
+          </TabsTrigger>
+        </TabsList>
 
-        <TabsContent value="active" className="space-y-4">
+        <TabsContent value="active" className="space-y-4 mt-0">
           {viewMode === 'kanban' ? (
             <OrderKanbanBoard
               orders={activeOrders}
               onStatusChange={handleStatusChange}
               onConfirmOrder={handleConfirmOrder}
               restaurantAddress={restaurantAddress}
+              orderTimers={orderTimers}
             />
           ) : (
             <div className="space-y-3">
-              {activeOrders.map((order) => (
-                <Card key={order.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-bold">#{order.order_number}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(order.created_at).toLocaleTimeString('fr-FR')}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold">{order.total_amount.toLocaleString()} CDF</p>
-                        <Badge>{order.status}</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              {activeOrders.map((order, index) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  elapsedMinutes={orderTimers[order.id] || 0}
+                  onConfirm={order.status === 'pending' ? (prepTime) => handleConfirmOrder(order.id, prepTime) : undefined}
+                  onStatusChange={(status) => handleStatusChange(order.id, status)}
+                  nextStatus={getNextStatus(order.status)}
+                  index={index}
+                />
               ))}
             </div>
           )}
@@ -211,6 +253,9 @@ export default function ModernRestaurantOrders() {
           {activeOrders.length === 0 && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Clock className="h-8 w-8 text-muted-foreground" />
+                </div>
                 <p className="text-lg font-medium">Aucune commande active</p>
                 <p className="text-sm text-muted-foreground">Les nouvelles commandes apparaîtront ici</p>
               </CardContent>
@@ -218,19 +263,24 @@ export default function ModernRestaurantOrders() {
           )}
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-3">
-          {completedOrders.slice(0, 10).map((order) => (
+        <TabsContent value="history" className="space-y-3 mt-0">
+          {completedOrders.slice(0, 20).map((order, index) => (
             <Card key={order.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">#{order.order_number}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                      {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">{order.total_amount.toLocaleString()} CDF</p>
+                    <p className="font-bold">{order.total_amount.toLocaleString()} FC</p>
                     <Badge variant={order.status === 'delivered' ? 'default' : 'destructive'}>
                       {order.status === 'delivered' ? 'Livré' : 'Annulé'}
                     </Badge>
@@ -239,9 +289,26 @@ export default function ModernRestaurantOrders() {
               </CardContent>
             </Card>
           ))}
+
+          {completedOrders.length === 0 && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <p className="text-muted-foreground">Aucune commande dans l'historique</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
-      </div>
-    </RestaurantLayout>
+    </div>
   );
+}
+
+function getNextStatus(currentStatus: string): string | undefined {
+  const statusFlow: { [key: string]: string } = {
+    pending: 'confirmed',
+    confirmed: 'preparing',
+    preparing: 'ready',
+    ready: 'picked_up',
+  };
+  return statusFlow[currentStatus];
 }
