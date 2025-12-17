@@ -14,7 +14,8 @@ import {
   History,
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Gift
 } from 'lucide-react';
 import { usePOSSession, POSSession } from '@/hooks/usePOSSession';
 import { usePOSTransactions } from '@/hooks/usePOSTransactions';
@@ -25,11 +26,13 @@ import { ModernPOSLayout } from './ModernPOSLayout';
 
 interface POSHubProps {
   restaurantId: string;
+  isInTrial?: boolean;
+  trialDaysRemaining?: number;
 }
 
 type HubView = 'dashboard' | 'pos' | 'close' | 'history';
 
-export const POSHub = ({ restaurantId }: POSHubProps) => {
+export const POSHub = ({ restaurantId, isInTrial = false, trialDaysRemaining = 0 }: POSHubProps) => {
   const [view, setView] = useState<HubView>('dashboard');
   const [todayStats, setTodayStats] = useState({
     totalSales: 0,
@@ -116,16 +119,42 @@ export const POSHub = ({ restaurantId }: POSHubProps) => {
   // Dashboard view
   return (
     <div className="space-y-6">
+      {/* Trial Banner */}
+      {isInTrial && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg p-4 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-amber-500/20">
+              <Gift className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-medium text-amber-900 dark:text-amber-100">Période d'essai gratuite</p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                {trialDaysRemaining} jour{trialDaysRemaining > 1 ? 's' : ''} restant{trialDaysRemaining > 1 ? 's' : ''} pour tester la caisse Pro
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-300">
+            Essai
+          </Badge>
+        </motion.div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Gestion de Caisse</h1>
           <p className="text-muted-foreground">Gérez vos sessions et transactions</p>
         </div>
-        <Button variant="outline" onClick={() => setView('history')}>
-          <History className="h-4 w-4 mr-2" />
-          Historique
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setView('history')}>
+            <History className="h-4 w-4 mr-2" />
+            Historique
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

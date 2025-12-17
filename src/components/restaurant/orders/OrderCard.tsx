@@ -66,9 +66,14 @@ export const OrderCard = ({
 
   const isUrgent = order.status === 'pending' && elapsedMinutes > 5;
 
+  // Use customer phone with fallback to delivery_phone
+  const customerPhone = order.customer?.phone_number || order.delivery_phone;
+
   const handleCall = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.location.href = `tel:${order.delivery_phone}`;
+    if (customerPhone) {
+      window.location.href = `tel:${customerPhone}`;
+    }
   };
 
   const handleOpenMap = (e: React.MouseEvent) => {
@@ -140,15 +145,22 @@ export const OrderCard = ({
 
           {/* Contact - Clickable */}
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs h-9"
-              onClick={handleCall}
-            >
-              <Phone className="h-3.5 w-3.5 mr-1.5" />
-              {order.delivery_phone}
-            </Button>
+            {customerPhone ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs h-9"
+                onClick={handleCall}
+              >
+                <Phone className="h-3.5 w-3.5 mr-1.5" />
+                {customerPhone}
+              </Button>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground h-9 border rounded-md">
+                <Phone className="h-3.5 w-3.5 mr-1.5 opacity-50" />
+                Téléphone non renseigné
+              </div>
+            )}
             <Button
               variant="outline"
               size="sm"
