@@ -15,6 +15,7 @@ interface Order {
   total_amount: number;
   delivery_phone: string;
   delivery_address: string;
+  delivery_coordinates?: { lat: number; lng: number };
   estimated_preparation_time?: number;
 }
 
@@ -23,6 +24,13 @@ interface OrderKanbanBoardProps {
   onStatusChange: (orderId: string, newStatus: string) => void;
   onConfirmOrder: (orderId: string, prepTime: number) => void;
   restaurantAddress?: string;
+  restaurantProfile?: {
+    restaurant_name?: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    phone_number?: string;
+  };
 }
 
 const COLUMNS = [
@@ -32,7 +40,7 @@ const COLUMNS = [
   { id: 'ready', label: 'Prêt', color: 'from-green-500 to-emerald-500', nextStatus: 'picked_up' },
 ];
 
-export const OrderKanbanBoard = ({ orders, onStatusChange, onConfirmOrder, restaurantAddress = '' }: OrderKanbanBoardProps) => {
+export const OrderKanbanBoard = ({ orders, onStatusChange, onConfirmOrder, restaurantAddress = '', restaurantProfile }: OrderKanbanBoardProps) => {
   const [orderTimers, setOrderTimers] = useState<{ [key: string]: number }>({});
 
   // Timer pour chaque commande
@@ -153,6 +161,10 @@ export const OrderKanbanBoard = ({ orders, onStatusChange, onConfirmOrder, resta
                               orderStatus={order.status}
                               restaurantAddress={restaurantAddress}
                               deliveryAddress={order.delivery_address}
+                              deliveryCoordinates={order.delivery_coordinates}
+                              restaurantProfile={restaurantProfile}
+                              deliveryPhone={order.delivery_phone}
+                              orderNumber={order.order_number}
                               onStatusChange={() => window.location.reload()}
                             />
                           </div>

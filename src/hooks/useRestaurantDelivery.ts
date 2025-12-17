@@ -20,14 +20,17 @@ export const useRestaurantDelivery = () => {
   const [loading, setLoading] = useState(false);
   const [assignment, setAssignment] = useState<DeliveryAssignment | null>(null);
 
-  const requestDelivery = async (orderId: string) => {
+  const requestDelivery = async (
+    orderId: string, 
+    serviceType: 'flash' | 'flex' | 'maxicharge' = 'flash'
+  ) => {
     setLoading(true);
     try {
-      console.log('🍽️ Requesting Kwenda delivery for order:', orderId);
+      console.log('🍽️ Requesting Kwenda delivery for order:', orderId, 'service:', serviceType);
 
-      // ✅ Nouvelle edge function qui gère paiement séparé
+      // ✅ Edge function avec support du type de service
       const { data, error } = await supabase.functions.invoke('request-food-delivery', {
-        body: { orderId }
+        body: { orderId, serviceType }
       });
 
       if (error) {
