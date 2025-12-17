@@ -146,7 +146,7 @@ export const RentalFilterDrawer: React.FC<RentalFilterDrawerProps> = ({
                 min={0}
                 max={500000}
                 step={10000}
-                className="w-full"
+                className="w-full pointer-events-auto"
               />
               <div className="flex justify-between mt-2 text-sm text-muted-foreground">
                 <span>{formatPrice(filters.priceRange[0])}</span>
@@ -278,7 +278,7 @@ export const RentalFilterDrawer: React.FC<RentalFilterDrawerProps> = ({
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[200] pointer-events-auto">
                 {YEARS.map((year) => (
                   <SelectItem key={year} value={year.toString()}>
                     {year}
