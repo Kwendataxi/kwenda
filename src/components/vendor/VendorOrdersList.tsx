@@ -78,11 +78,31 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
       if (completedError) throw completedError;
 
-      // ✅ ÉTAPE 4 : Enrichir avec les données produits (côté client)
+      // ✅ ÉTAPE 4 : Récupérer les infos acheteurs depuis la table clients
+      const allOrders = [...(active || []), ...(completed || [])];
+      const buyerIds = [...new Set(allOrders.map(o => o.buyer_id).filter(Boolean))];
+      
+      let buyersMap: Record<string, { display_name: string; phone_number: string }> = {};
+      if (buyerIds.length > 0) {
+        const { data: buyers } = await supabase
+          .from('clients')
+          .select('user_id, display_name, phone_number')
+          .in('user_id', buyerIds);
+        
+        if (buyers) {
+          buyersMap = buyers.reduce((acc, b) => {
+            acc[b.user_id] = { display_name: b.display_name, phone_number: b.phone_number };
+            return acc;
+          }, {} as Record<string, { display_name: string; phone_number: string }>);
+        }
+      }
+
+      // ✅ ÉTAPE 5 : Enrichir avec les données produits ET acheteurs
       const enrichOrders = (orders: any[]) => 
         orders.map(order => ({
           ...order,
-          product: vendorProducts.find(p => p.id === order.product_id)
+          product: vendorProducts.find(p => p.id === order.product_id),
+          buyer: buyersMap[order.buyer_id] || null
         }));
 
       setActiveOrders(enrichOrders(active || []));
@@ -407,7 +427,8 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
                         {getStatusBadge(order.status)}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Client: {order.buyer_phone || 'Non renseigné'} • Qté: {order.quantity}
+                        Client: {order.buyer?.display_name || 'Non renseigné'}
+                        {order.buyer_phone && ` • ${order.buyer_phone}`} • Qté: {order.quantity}
                       </p>
                     </div>
                     <div className="text-right">
