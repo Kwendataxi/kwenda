@@ -1060,13 +1060,15 @@ const ClientApp = () => {
       
         </main>
         
-        {/* Footer de navigation fixe global */}
-        <ModernBottomNavigation
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={0}
-          favoritesCount={0}
-        />
+        {/* Footer de navigation - Visible uniquement sur l'accueil */}
+        {currentView === 'home' && (
+          <ModernBottomNavigation
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            notificationCount={0}
+            favoritesCount={0}
+          />
+        )}
         
         {/* Toast notifications */}
         <div id="toast-container" />
