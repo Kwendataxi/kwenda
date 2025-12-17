@@ -13,13 +13,19 @@ interface TopUpRequest {
   currency: string;
 }
 
+interface OrangeMoneyTokenResponse {
+  token_type: string;
+  access_token: string;
+  expires_in: number;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    Deno.env.get('SUPABASE_URL') && console.log('💰 [wallet-restaurant-topup] Starting top-up process');
+    console.log('💰 [wallet-restaurant-topup] Starting top-up process');
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -31,6 +37,12 @@ serve(async (req) => {
       }
     );
 
+    const supabaseService = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+
     // Vérifier l'authentification
     const {
       data: { user },
@@ -38,11 +50,11 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
-      Deno.env.get('SUPABASE_URL') && console.error('❌ [wallet-restaurant-topup] Auth error:', authError);
+      console.error('❌ [wallet-restaurant-topup] Auth error:', authError);
       throw new Error('Non authentifié');
     }
 
-    Deno.env.get('SUPABASE_URL') && console.log('✅ [wallet-restaurant-topup] User authenticated:', user.id);
+    console.log('✅ [wallet-restaurant-topup] User authenticated:', user.id);
 
     // Vérifier que l'utilisateur est un restaurant
     const { data: restaurant, error: restaurantError } = await supabaseClient
@@ -52,11 +64,11 @@ serve(async (req) => {
       .single();
 
     if (restaurantError || !restaurant) {
-      Deno.env.get('SUPABASE_URL') && console.error('❌ [wallet-restaurant-topup] Not a restaurant:', restaurantError);
+      console.error('❌ [wallet-restaurant-topup] Not a restaurant:', restaurantError);
       throw new Error('Profil restaurant non trouvé');
     }
 
-    Deno.env.get('SUPABASE_URL') && console.log('✅ [wallet-restaurant-topup] Restaurant found:', restaurant.restaurant_name);
+    console.log('✅ [wallet-restaurant-topup] Restaurant found:', restaurant.restaurant_name);
 
     const body: TopUpRequest = await req.json();
     const { amount, payment_method, phone_number, currency } = body;
@@ -70,22 +82,22 @@ serve(async (req) => {
       throw new Error('Numéro de téléphone invalide');
     }
 
-    Deno.env.get('SUPABASE_URL') && console.log('💰 [wallet-restaurant-topup] Processing:', {
+    console.log('💰 [wallet-restaurant-topup] Processing:', {
       amount,
       payment_method,
-      phone_number,
+      phone_number: phone_number.substring(0, 5) + '***',
       currency,
     });
 
     // Calculer les frais (2%)
-    const feesAmount = amount * 0.02;
+    const feesAmount = Math.round(amount * 0.02);
     const netAmount = amount - feesAmount;
 
-    // Générer référence unique
-    const transactionRef = `REST-TOP-${Date.now()}-${user.id.slice(0, 8)}`;
+    // Générer référence unique (UUID pour Orange Money B2B)
+    const transactionRef = crypto.randomUUID();
 
     // Récupérer ou créer le wallet
-    let { data: wallet, error: walletError } = await supabaseClient
+    let { data: wallet, error: walletError } = await supabaseService
       .from('user_wallets')
       .select('*')
       .eq('user_id', user.id)
@@ -93,8 +105,8 @@ serve(async (req) => {
       .single();
 
     if (walletError && walletError.code === 'PGRST116') {
-      Deno.env.get('SUPABASE_URL') && console.log('💰 [wallet-restaurant-topup] Creating new wallet');
-      const { data: newWallet, error: createError } = await supabaseClient
+      console.log('💰 [wallet-restaurant-topup] Creating new wallet');
+      const { data: newWallet, error: createError } = await supabaseService
         .from('user_wallets')
         .insert({
           user_id: user.id,
@@ -111,55 +123,163 @@ serve(async (req) => {
       throw walletError;
     }
 
-    Deno.env.get('SUPABASE_URL') && console.log('💰 [wallet-restaurant-topup] Wallet found:', wallet?.id);
+    console.log('💰 [wallet-restaurant-topup] Wallet found:', wallet?.id);
 
-    // Simulation du paiement Mobile Money
-    // En production, appeler l'API réelle du provider
-    Deno.env.get('SUPABASE_URL') && console.log(`📱 [wallet-restaurant-topup] Simulating ${payment_method} payment to ${phone_number}`);
+    // ============================================
+    // INTÉGRATION ORANGE MONEY B2B RÉEL
+    // ============================================
+    let paymentSuccessful = false;
+    let orangeTransactionId = null;
 
-    // Pour la démo, on approuve immédiatement
-    const paymentSuccessful = true;
+    if (payment_method === 'orange_money') {
+      console.log('🍊 [wallet-restaurant-topup] Starting Orange Money B2B payment');
+
+      const orangeApiUrl = Deno.env.get('ORANGE_MONEY_API_URL');
+      const clientId = Deno.env.get('ORANGE_MONEY_CLIENT_ID');
+      const clientSecret = Deno.env.get('ORANGE_MONEY_CLIENT_SECRET');
+      const posId = Deno.env.get('ORANGE_MONEY_POS_ID');
+
+      if (!orangeApiUrl || !clientId || !clientSecret || !posId) {
+        console.warn('⚠️ [wallet-restaurant-topup] Orange Money API not configured, using simulation');
+        // Simulation pour dev
+        paymentSuccessful = true;
+      } else {
+        try {
+          // Calculer auth header
+          const basicAuth = btoa(`${clientId}:${clientSecret}`);
+          const authHeaderValue = `Basic ${basicAuth}`;
+
+          // Étape 1 : Obtenir le token OAuth
+          console.log('🔑 [wallet-restaurant-topup] Getting OAuth token...');
+          const tokenResponse = await fetch('https://api.orange.com/oauth/v3/token', {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeaderValue,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'grant_type=client_credentials',
+          });
+
+          if (!tokenResponse.ok) {
+            const errorText = await tokenResponse.text();
+            console.error('❌ [wallet-restaurant-topup] Token error:', errorText);
+            throw new Error(`OAuth token failed: ${tokenResponse.status}`);
+          }
+
+          const tokenData: OrangeMoneyTokenResponse = await tokenResponse.json();
+          console.log('✅ [wallet-restaurant-topup] OAuth token obtained');
+
+          // Format téléphone pour Orange Money B2B RDC (9 chiffres)
+          let formattedPhone = phone_number.replace(/[\s\-\(\)]/g, '');
+          if (formattedPhone.startsWith('+243')) {
+            formattedPhone = formattedPhone.substring(4);
+          } else if (formattedPhone.startsWith('243')) {
+            formattedPhone = formattedPhone.substring(3);
+          } else if (formattedPhone.startsWith('0')) {
+            formattedPhone = formattedPhone.substring(1);
+          }
+
+          if (!/^[0-9]{9}$/.test(formattedPhone)) {
+            throw new Error(`Format téléphone invalide: ${formattedPhone}. Attendu: 9 chiffres`);
+          }
+
+          // Étape 2 : Initier le paiement B2B
+          console.log('💳 [wallet-restaurant-topup] Initiating B2B payment...');
+          
+          const paymentPayload = {
+            peerId: formattedPhone,
+            peerIdType: 'msisdn',
+            amount: amount,
+            currency: 'CDF',
+            posId: posId,
+            transactionId: transactionRef,
+          };
+
+          const baseUrl = orangeApiUrl.replace(/\/+$/, '');
+          const fullEndpointUrl = `${baseUrl}/transactions/cashout`;
+
+          console.log('🔗 [wallet-restaurant-topup] Endpoint:', fullEndpointUrl);
+
+          const paymentResponse = await fetch(fullEndpointUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${tokenData.access_token}`,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(paymentPayload),
+          });
+
+          if (!paymentResponse.ok && paymentResponse.status !== 202) {
+            const errorText = await paymentResponse.text();
+            console.error('❌ [wallet-restaurant-topup] B2B Error:', {
+              status: paymentResponse.status,
+              body: errorText,
+            });
+            throw new Error(`B2B payment failed: ${paymentResponse.status}`);
+          }
+
+          const paymentData = await paymentResponse.json();
+          console.log('✅ [wallet-restaurant-topup] B2B Payment response:', JSON.stringify(paymentData));
+
+          // Orange Money renvoie SUCCESS ou PENDING
+          paymentSuccessful = paymentData.status === 'SUCCESS' || paymentData.status === 'PENDING';
+          orangeTransactionId = paymentData.transactionData?.transactionId || transactionRef;
+
+        } catch (orangeError: any) {
+          console.error('❌ [wallet-restaurant-topup] Orange Money error:', orangeError.message);
+          throw new Error(`Paiement Orange Money échoué: ${orangeError.message}`);
+        }
+      }
+    } else {
+      // Pour les autres providers (M-Pesa, Airtel), simulation pour le moment
+      console.log(`📱 [wallet-restaurant-topup] Simulating ${payment_method} payment`);
+      paymentSuccessful = true;
+    }
 
     if (paymentSuccessful) {
       // Créditer le wallet
-      const { error: updateError } = await supabaseClient
+      const { error: updateError } = await supabaseService
         .from('user_wallets')
         .update({
           balance: (wallet!.balance || 0) + netAmount,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', wallet!.id);
 
       if (updateError) {
-        Deno.env.get('SUPABASE_URL') && console.error('❌ [wallet-restaurant-topup] Update error:', updateError);
+        console.error('❌ [wallet-restaurant-topup] Update error:', updateError);
         throw updateError;
       }
 
-      Deno.env.get('SUPABASE_URL') && console.log('✅ [wallet-restaurant-topup] Wallet updated with:', netAmount);
+      console.log('✅ [wallet-restaurant-topup] Wallet credited with:', netAmount);
 
       // Logger la transaction
-      const { error: txError } = await supabaseClient.from('wallet_transactions').insert({
+      const { error: txError } = await supabaseService.from('wallet_transactions').insert({
         user_id: user.id,
         transaction_type: 'credit',
         amount: netAmount,
         currency: currency,
         description: `Recharge wallet restaurant via ${payment_method}`,
         reference_id: transactionRef,
-        reference_type: 'top_up',
+        reference_type: 'restaurant_topup',
         status: 'completed',
         metadata: {
           payment_method,
-          phone_number,
+          phone_number: phone_number.substring(0, 5) + '***',
           fees_amount: feesAmount,
           gross_amount: amount,
+          orange_transaction_id: orangeTransactionId,
+          restaurant_id: restaurant.id,
+          restaurant_name: restaurant.restaurant_name,
         },
       });
 
       if (txError) {
-        Deno.env.get('SUPABASE_URL') && console.error('⚠️ [wallet-restaurant-topup] Transaction log error:', txError);
+        console.warn('⚠️ [wallet-restaurant-topup] Transaction log error:', txError);
       }
 
-      // Notification (optionnelle)
-      Deno.env.get('SUPABASE_URL') && console.log('📧 [wallet-restaurant-topup] Sending notification to restaurant');
+      console.log('📧 [wallet-restaurant-topup] Top-up completed for restaurant:', restaurant.restaurant_name);
 
       return new Response(
         JSON.stringify({
@@ -179,7 +299,7 @@ serve(async (req) => {
       throw new Error('Paiement Mobile Money échoué');
     }
   } catch (error: any) {
-    Deno.env.get('SUPABASE_URL') && console.error('❌ [wallet-restaurant-topup] Error:', error);
+    console.error('❌ [wallet-restaurant-topup] Error:', error);
     return new Response(
       JSON.stringify({
         success: false,
