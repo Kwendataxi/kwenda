@@ -26,33 +26,33 @@ interface ModernProfileHeaderProps {
   className?: string;
 }
 
-// Animation variants
+// Animation variants - Plus rapides
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    transition: { staggerChildren: 0.05, delayChildren: 0.1 }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, x: -10 },
   show: { 
     opacity: 1, 
-    y: 0, 
-    transition: { type: "spring" as const, damping: 25, stiffness: 200 }
+    x: 0, 
+    transition: { type: "spring" as const, damping: 20, stiffness: 300 }
   }
 };
 
-// Composant Particules
+// Particules réduites
 const FloatingParticles = () => {
   const particles = useMemo(() => 
-    [...Array(15)].map((_, i) => ({
+    [...Array(8)].map((_, i) => ({
       id: i,
       left: Math.random() * 100,
       top: Math.random() * 100,
-      size: 2 + Math.random() * 3,
-      duration: 3 + Math.random() * 4,
+      size: 2 + Math.random() * 2,
+      duration: 3 + Math.random() * 3,
       delay: Math.random() * 2
     })), []
   );
@@ -62,7 +62,7 @@ const FloatingParticles = () => {
       {particles.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute rounded-full bg-rose-500/20"
+          className="absolute rounded-full bg-rose-500/15"
           style={{
             left: `${particle.left}%`,
             top: `${particle.top}%`,
@@ -70,9 +70,8 @@ const FloatingParticles = () => {
             height: particle.size,
           }}
           animate={{
-            opacity: [0.2, 0.6, 0.2],
-            scale: [1, 1.5, 1],
-            y: [0, -10, 0],
+            opacity: [0.2, 0.5, 0.2],
+            scale: [1, 1.3, 1],
           }}
           transition={{
             duration: particle.duration,
@@ -100,29 +99,13 @@ export const ModernProfileHeader = ({
   const getUserTypeConfig = (userType: string) => {
     switch (userType) {
       case 'driver': 
-        return { 
-          label: 'Conducteur', 
-          icon: Car,
-          gradient: 'from-emerald-500 to-teal-500'
-        };
+        return { label: 'Conducteur', icon: Car, gradient: 'from-emerald-500 to-teal-500' };
       case 'partner': 
-        return { 
-          label: 'Partenaire', 
-          icon: Building,
-          gradient: 'from-amber-500 to-orange-500'
-        };
+        return { label: 'Partenaire', icon: Building, gradient: 'from-amber-500 to-orange-500' };
       case 'premium': 
-        return { 
-          label: 'Premium', 
-          icon: Crown,
-          gradient: 'from-amber-400 to-yellow-300'
-        };
+        return { label: 'Premium', icon: Crown, gradient: 'from-amber-400 to-yellow-300' };
       default: 
-        return { 
-          label: 'Client', 
-          icon: User,
-          gradient: 'from-rose-500 to-red-500'
-        };
+        return { label: 'Client', icon: User, gradient: 'from-rose-500 to-red-500' };
     }
   };
 
@@ -135,39 +118,37 @@ export const ModernProfileHeader = ({
   };
 
   return (
-    <div className={cn("relative overflow-hidden rounded-3xl", className)}>
+    <div className={cn("relative overflow-hidden rounded-2xl", className)}>
       {/* Background gradient avec particules */}
-      <div className="absolute inset-0 bg-gradient-to-br from-rose-950/30 via-background to-rose-900/20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-rose-950/20 via-background to-rose-900/10" />
       <FloatingParticles />
       
-      {/* Contenu principal */}
-      <div className="relative px-4 py-8">
+      {/* Contenu principal - Compact */}
+      <div className="relative px-3 py-4">
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="flex flex-col items-center"
         >
-          {/* Card Glassmorphism */}
-          <Card className="w-full max-w-sm backdrop-blur-xl bg-card/40 border border-white/10 rounded-3xl shadow-2xl p-6">
-            <motion.div variants={itemVariants} className="flex flex-col items-center">
-              {/* Avatar avec Glow */}
-              <div className="relative group mb-5">
-                {/* Glow effect */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-rose-500/30 to-red-500/30 rounded-full blur-xl opacity-70" />
+          {/* Card Glassmorphism - Layout Horizontal */}
+          <Card className="backdrop-blur-xl bg-card/40 border border-white/10 rounded-2xl shadow-xl p-4">
+            <div className="flex items-center gap-4">
+              {/* Avatar avec Glow - Plus petit */}
+              <motion.div variants={itemVariants} className="relative group shrink-0">
+                {/* Glow effect subtil */}
+                <div className="absolute -inset-2 bg-gradient-to-r from-rose-500/20 to-red-500/20 rounded-full blur-lg opacity-60" />
                 
-                {/* Ring gradient animé */}
+                {/* Ring gradient animé - Plus fin */}
                 <motion.div 
-                  className="absolute -inset-1 bg-gradient-to-r from-rose-500 via-red-500 to-rose-500 rounded-full"
+                  className="absolute -inset-0.5 bg-gradient-to-r from-rose-500 via-red-500 to-rose-500 rounded-full"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                  style={{ backgroundSize: '200% 100%' }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                 />
                 
-                {/* Avatar principal */}
-                <Avatar className="relative w-28 h-28 border-4 border-background shadow-2xl">
+                {/* Avatar 80px */}
+                <Avatar className="relative w-20 h-20 border-2 border-background shadow-xl">
                   <AvatarImage src={currentAvatarUrl || ''} className="object-cover" />
-                  <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/50 dark:to-rose-800/50 text-rose-600 dark:text-rose-300">
+                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/50 dark:to-rose-800/50 text-rose-600 dark:text-rose-300">
                     {profile.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -178,112 +159,79 @@ export const ModernProfileHeader = ({
                   whileHover={{ scale: 1.05 }}
                   onClick={() => setShowUpload(!showUpload)}
                 >
-                  <Camera className="h-6 w-6 text-white" />
+                  <Camera className="h-5 w-5 text-white" />
                 </motion.div>
                 
-                {/* Badge statut en ligne */}
+                {/* Badge statut */}
                 <motion.div 
-                  className="absolute -bottom-1 -right-1"
-                  animate={{ scale: [1, 1.2, 1] }}
+                  className="absolute -bottom-0.5 -right-0.5"
+                  animate={{ scale: [1, 1.15, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <div className="w-5 h-5 bg-emerald-500 rounded-full border-3 border-background shadow-lg" />
+                  <div className="w-4 h-4 bg-emerald-500 rounded-full border-2 border-background shadow" />
                 </motion.div>
-              </div>
-
-              {/* Nom */}
-              <motion.div variants={itemVariants} className="flex items-center gap-2 group/name mb-2">
-                <h1 className="text-2xl font-bold text-foreground">
-                  {profile.display_name || user?.email?.split('@')[0] || 'Utilisateur'}
-                </h1>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={onEditName}
-                  className="p-1.5 h-7 w-7 opacity-0 group-hover/name:opacity-100 text-rose-500 hover:bg-rose-500/10 transition-all rounded-full"
-                >
-                  <Edit2 className="h-3.5 w-3.5" />
-                </Button>
               </motion.div>
 
-              {/* Badge Type Utilisateur */}
-              <motion.div 
-                variants={itemVariants}
-                whileHover={{ scale: 1.05 }}
-                className={cn(
-                  "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold text-white shadow-lg mb-5",
-                  "bg-gradient-to-r",
-                  userTypeConfig.gradient
-                )}
-              >
-                <TypeIcon className="h-4 w-4" />
-                <span>{userTypeConfig.label}</span>
-              </motion.div>
+              {/* Infos à droite */}
+              <div className="flex-1 min-w-0 space-y-1.5">
+                {/* Ligne 1: Nom + Badge */}
+                <motion.div variants={itemVariants} className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 group/name">
+                    <h1 className="text-lg font-bold text-foreground truncate">
+                      {profile.display_name || user?.email?.split('@')[0] || 'Utilisateur'}
+                    </h1>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={onEditName}
+                      className="p-1 h-6 w-6 opacity-0 group-hover/name:opacity-100 text-rose-500 hover:bg-rose-500/10 transition-all rounded-full"
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  {/* Badge compact */}
+                  <span className={cn(
+                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-white",
+                    "bg-gradient-to-r",
+                    userTypeConfig.gradient
+                  )}>
+                    <TypeIcon className="h-3 w-3" />
+                    {userTypeConfig.label}
+                  </span>
 
-              {/* Informations de contact - Glassmorphism cards */}
-              <motion.div variants={itemVariants} className="space-y-3 w-full">
-                {/* Email */}
-                <motion.div 
-                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 transition-all"
-                >
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-600/20">
-                    <Mail className="h-4 w-4 text-rose-400" />
-                  </div>
-                  <span className="text-sm text-foreground/80 truncate flex-1">{user?.email}</span>
+                  {/* Rating inline */}
+                  {rating && rating.total_ratings > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs text-amber-500">
+                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                      {rating.rating.toFixed(1)}
+                    </span>
+                  )}
                 </motion.div>
-                
-                {/* Téléphone */}
-                <motion.div 
-                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 transition-all group/phone"
-                >
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-600/20">
-                    <Phone className="h-4 w-4 text-rose-400" />
-                  </div>
-                  <span className="text-sm text-foreground/80 truncate flex-1">
+
+                {/* Ligne 2: Email */}
+                <motion.div variants={itemVariants} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Mail className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+                  <span className="truncate">{user?.email}</span>
+                </motion.div>
+
+                {/* Ligne 3: Téléphone */}
+                <motion.div variants={itemVariants} className="flex items-center gap-2 text-sm text-muted-foreground group/phone">
+                  <Phone className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+                  <span className="truncate">
                     {profile.phone_number || "Ajouter un numéro"}
                   </span>
                   <Button 
                     size="sm" 
                     variant="ghost" 
                     onClick={onEditPhone}
-                    className="p-1.5 h-7 w-7 opacity-0 group-hover/phone:opacity-100 text-rose-400 hover:bg-rose-500/10 transition-all rounded-full"
+                    className="p-1 h-5 w-5 opacity-0 group-hover/phone:opacity-100 text-rose-400 hover:bg-rose-500/10 transition-all rounded-full ml-auto"
                   >
-                    <Edit2 className="h-3 w-3" />
+                    <Edit2 className="h-2.5 w-2.5" />
                   </Button>
                 </motion.div>
-              </motion.div>
-
-              {/* Rating */}
-              {rating && rating.total_ratings > 0 && (
-                <motion.div 
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.05 }}
-                  className="mt-5 flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 backdrop-blur-sm border border-amber-500/20"
-                >
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star 
-                        key={star}
-                        className={cn(
-                          "h-4 w-4",
-                          star <= Math.round(rating.rating) 
-                            ? "fill-amber-400 text-amber-400" 
-                            : "fill-transparent text-amber-400/30"
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm font-bold text-amber-500">
-                    {rating.rating.toFixed(1)}
-                  </span>
-                  <span className="text-xs text-amber-500/70">
-                    ({rating.total_ratings} avis)
-                  </span>
-                </motion.div>
-              )}
-            </motion.div>
+              </div>
+            </div>
           </Card>
         </motion.div>
       </div>
@@ -294,9 +242,9 @@ export const ModernProfileHeader = ({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-4 z-10"
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-10"
         >
-          <Card className="backdrop-blur-xl bg-card/80 border border-white/10 rounded-2xl shadow-2xl p-4">
+          <Card className="backdrop-blur-xl bg-card/80 border border-white/10 rounded-xl shadow-xl p-3">
             <ProfilePictureUpload onUploadComplete={handleAvatarUpload} />
           </Card>
         </motion.div>
