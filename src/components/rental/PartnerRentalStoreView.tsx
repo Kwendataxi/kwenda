@@ -36,7 +36,7 @@ export const PartnerRentalStoreView = () => {
   const [showShareDialog, setShowShareDialog] = useState(false);
 
   // Fetch partner data with stats
-  const { data: partnerData, isLoading: partnerLoading } = useQuery({
+  const { data: partnerData, isLoading: partnerLoading, error: partnerError, refetch: refetchPartner } = useQuery({
     queryKey: ['partner-rental-store', partnerId],
     queryFn: async () => {
       const { data: partner, error } = await supabase
@@ -48,14 +48,14 @@ export const PartnerRentalStoreView = () => {
       if (error) throw error;
       if (!partner) throw new Error('Partenaire introuvable');
 
-      // Fetch profile separately
+      // Fetch profile separately - use user_id column, not id
       const { data: profile } = await supabase
         .from('profiles')
         .select('avatar_url, display_name')
-        .eq('id', partner.user_id)
+        .eq('user_id', partner.user_id)
         .maybeSingle();
 
-      // Fetch stats from materialized view
+      // Fetch stats from materialized view - don't throw on error
       const { data: stats } = await supabase
         .from('partner_rental_stats')
         .select('*')
@@ -85,7 +85,9 @@ export const PartnerRentalStoreView = () => {
         }
       };
     },
-    enabled: !!partnerId
+    enabled: !!partnerId,
+    retry: 2,
+    staleTime: 30000
   });
 
   // Fetch partner subscription tier
@@ -214,6 +216,34 @@ export const PartnerRentalStoreView = () => {
             {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-24" />)}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (partnerError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 text-center space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
+              <Car className="w-8 h-8 text-destructive" />
+            </div>
+            <h2 className="text-xl font-semibold">Boutique indisponible</h2>
+            <p className="text-muted-foreground text-sm">
+              {partnerError.message === 'Partenaire introuvable' 
+                ? 'Cette boutique de location n\'existe pas ou a été supprimée.'
+                : 'Une erreur est survenue lors du chargement. Veuillez réessayer.'}
+            </p>
+            <div className="flex gap-3 justify-center pt-2">
+              <Button variant="outline" onClick={() => navigate('/rental')}>
+                Retour
+              </Button>
+              <Button onClick={() => refetchPartner()} className="bg-emerald-600 hover:bg-emerald-700">
+                Réessayer
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
