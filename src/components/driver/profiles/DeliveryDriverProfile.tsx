@@ -179,9 +179,9 @@ export const DeliveryDriverProfile = () => {
         <Button 
           variant="destructive" 
           className="w-full justify-start gap-3"
-          onClick={() => {
-            signOut();
-            navigate('/');
+          onClick={async () => {
+            await signOut();
+            // 🛡️ signOut gère la redirection via ProtectedRoute
           }}
         >
           <LogOut className="w-5 h-5" />

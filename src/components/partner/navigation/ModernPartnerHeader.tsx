@@ -239,11 +239,6 @@ export const ModernPartnerHeader = ({
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={() => navigate('/')}>
-                <ArrowLeftRight className="w-4 h-4 mr-2" />
-                Changer de rôle
-              </DropdownMenuItem>
-
               <DropdownMenuSeparator />
 
               <DropdownMenuItem 

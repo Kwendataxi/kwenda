@@ -40,7 +40,7 @@ export const DriverProfilePage: React.FC = () => {
     try {
       await supabase.auth.signOut();
       toast.success('Déconnexion réussie');
-      navigate('/');
+      // 🛡️ signOut gère la redirection via ProtectedRoute
     } catch (error) {
       toast.error('Erreur lors de la déconnexion');
     }

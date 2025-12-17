@@ -25,7 +25,7 @@ export const PartnerProfile = () => {
     try {
       await signOut();
       toast.success('✅ Déconnexion réussie');
-      navigate('/');
+      // 🛡️ signOut gère la redirection via ProtectedRoute
     } catch (error) {
       toast.error('❌ Erreur lors de la déconnexion');
     }
