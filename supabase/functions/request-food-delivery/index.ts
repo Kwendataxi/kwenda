@@ -50,8 +50,7 @@ serve(async (req) => {
         restaurant_profiles (
           restaurant_name,
           address,
-          latitude,
-          longitude
+          coordinates
         )
       `)
       .eq('id', orderId)
@@ -74,9 +73,11 @@ serve(async (req) => {
     }
 
     const restaurantData = order.restaurant_profiles as any;
+    
+    // Extraire lat/lng depuis coordinates (jsonb)
     const restaurantCoords = {
-      lat: restaurantData.latitude,
-      lng: restaurantData.longitude
+      lat: restaurantData?.coordinates?.lat || -4.4419,
+      lng: restaurantData?.coordinates?.lng || 15.2663
     };
 
     const deliveryCoords = order.delivery_coordinates as any;
