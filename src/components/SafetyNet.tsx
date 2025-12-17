@@ -135,7 +135,14 @@ export class SafetyNet extends Component<Props, State> {
   };
 
   private handleGoHome = () => {
-    window.location.href = '/';
+    // 🛡️ Rediriger vers le dashboard approprié, pas vers '/'
+    const selectedRole = localStorage.getItem('kwenda_selected_role');
+    const dashboardPath = selectedRole === 'driver' ? '/app/chauffeur'
+      : selectedRole === 'partner' ? '/app/partenaire'
+      : selectedRole === 'admin' ? '/app/admin'
+      : '/app/client';
+    
+    window.location.href = dashboardPath;
   };
 
   private handleRetry = () => {
@@ -223,7 +230,7 @@ export class SafetyNet extends Component<Props, State> {
                 variant="ghost"
               >
                 <Home className="w-4 h-4 mr-2" />
-                Retour à l'accueil
+                Retour au tableau de bord
               </Button>
             </div>
 

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAppReady } from '@/contexts/AppReadyContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useSelectedRole } from '@/hooks/useSelectedRole';
 import { APP_CONFIG } from '@/config/appConfig';
 import { InvisibleLoadingBar } from '@/components/loading/InvisibleLoadingBar';
+import { useBlockBackNavigation } from '@/hooks/useBlockBackNavigation';
+import { getDashboardPathFromStorage } from '@/hooks/useProtectedNavigation';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,6 +18,7 @@ interface ProtectedRouteProps {
  * 🚀 PROTECTED ROUTE OPTIMISÉ
  * Utilise AppReadyContext pour éviter vérifications redondantes
  * Transition invisible avec barre de 2px
+ * 🛡️ Bloque la navigation retour vers les routes publiques
  */
 const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: ProtectedRouteProps) => {
   const { user, sessionReady, contentReady } = useAppReady();
@@ -23,6 +26,20 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
   const { hasSelectedRole, setSelectedRole, selectedRole } = useSelectedRole();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // 🛡️ Bloquer la navigation retour si l'utilisateur est connecté
+  useBlockBackNavigation(requireAuth && !!user);
+
+  // 🛡️ Remplacer l'historique pour empêcher le retour vers les pages publiques
+  useEffect(() => {
+    if (user && requireAuth) {
+      window.history.replaceState(
+        { protected: true, path: location.pathname },
+        '',
+        location.pathname
+      );
+    }
+  }, [user, requireAuth, location.pathname]);
 
   // Attendre que tout soit prêt (transition invisible)
   if (!sessionReady || !contentReady || rolesLoading) {
@@ -102,30 +119,17 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     return <Navigate to="/role-selection" replace />;
   }
 
-  // Si l'utilisateur est connecté mais ne devrait pas accéder à cette page
+  // 🛡️ Si l'utilisateur est connecté et essaie d'accéder à une page d'auth
+  // Rediriger vers le dashboard approprié (pas vers '/')
   if (!requireAuth && user && location.pathname !== '/role-selection') {
     if (!primaryRole) {
       return <Navigate to="/auth" replace />;
     }
     
-    switch (primaryRole) {
-      case 'driver':
-        return <Navigate to="/app/chauffeur" replace />;
-      case 'partner':
-        return <Navigate to="/app/partenaire" replace />;
-      case 'admin':
-        // ✅ CORRECTION : Vérifier explicitement le rôle admin avant redirection
-        const hasAdminRole = userRoles.some(ur => ur.role === 'admin');
-        if (!hasAdminRole) {
-          console.error('❌ [ProtectedRoute] Admin role required but not found');
-          return <Navigate to="/operatorx/admin/auth" replace />;
-        }
-        return <Navigate to="/app/admin" replace />;
-      case 'client':
-        return <Navigate to="/app/client" replace />;
-      default:
-        return <Navigate to={APP_CONFIG.defaultRoute} replace />;
-    }
+    // Rediriger vers le dashboard du rôle actuel
+    const dashboardPath = getDashboardPathFromStorage();
+    console.log('🔄 [ProtectedRoute] Utilisateur connecté sur page publique, redirection:', dashboardPath);
+    return <Navigate to={dashboardPath} replace />;
   }
 
   return <>{children}</>;

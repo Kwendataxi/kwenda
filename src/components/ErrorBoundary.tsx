@@ -51,7 +51,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleClearAndReload = () => {
     // Nettoyer tout le localStorage et recharger
-    const keysToKeep = ['kwenda_theme', 'kwenda_language'];
+    const keysToKeep = ['kwenda_theme', 'kwenda_language', 'kwenda_selected_role'];
     const storage: Record<string, string> = {};
     
     keysToKeep.forEach(key => {
@@ -65,7 +65,14 @@ export class ErrorBoundary extends Component<Props, State> {
       localStorage.setItem(key, value);
     });
     
-    window.location.href = '/';
+    // 🛡️ Rediriger vers le dashboard approprié, pas vers '/'
+    const selectedRole = storage['kwenda_selected_role'];
+    const dashboardPath = selectedRole === 'driver' ? '/app/chauffeur'
+      : selectedRole === 'partner' ? '/app/partenaire'
+      : selectedRole === 'admin' ? '/app/admin'
+      : '/app/client';
+    
+    window.location.href = dashboardPath;
   };
 
   public render() {

@@ -73,7 +73,7 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
     try {
       await signOut();
       toast({ title: "✅ Déconnexion réussie" });
-      navigate('/');
+      // 🛡️ signOut gère la redirection via ProtectedRoute
     } catch (error) {
       toast({ title: "❌ Erreur lors de la déconnexion", variant: "destructive" });
     }

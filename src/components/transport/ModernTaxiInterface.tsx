@@ -363,9 +363,9 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
   return (
     <div className="relative h-screen bg-background">
-      {/* Bouton retour accueil - toujours visible */}
+      {/* 🛡️ Bouton retour dashboard - redirige vers le tableau de bord client */}
       <FloatingHomeButton 
-        onClick={() => window.location.href = '/'}
+        onClick={() => window.location.href = '/app/client'}
         serviceType="taxi"
         variant="circle"
       />

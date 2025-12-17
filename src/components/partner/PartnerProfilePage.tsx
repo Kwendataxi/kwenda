@@ -32,7 +32,7 @@ export const PartnerProfilePage: React.FC = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/');
+      // 🛡️ signOut gère la redirection via ProtectedRoute
       toast.success('Déconnexion réussie');
     } catch (error) {
       toast.error('Erreur lors de la déconnexion');
