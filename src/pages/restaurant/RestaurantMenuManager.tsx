@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 import { ProductImageUpload } from '@/components/restaurant/ProductImageUpload';
-import { RestaurantLayout } from '@/components/restaurant/RestaurantLayout';
+
 import { cn } from '@/lib/utils';
 import { FOOD_CATEGORIES } from '@/config/foodCategories';
 
@@ -325,9 +325,7 @@ export default function RestaurantMenuManager() {
   }
 
   return (
-    <RestaurantLayout>
-      <div className="container mx-auto px-4">
-        <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Gestion du Menu</h1>
@@ -530,8 +528,6 @@ export default function RestaurantMenuManager() {
             </CardContent>
           </Card>
         )}
-        </div>
       </div>
-    </RestaurantLayout>
   );
 }

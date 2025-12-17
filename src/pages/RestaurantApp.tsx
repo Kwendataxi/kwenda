@@ -1,13 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Store, User, Settings, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { UnifiedNotificationBell } from '@/components/notifications/UnifiedNotificationBell';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 // Composants
 import { RestaurantMobileTabs } from '@/components/restaurant/RestaurantMobileTabs';
 import { RestaurantSidebar } from '@/components/restaurant/RestaurantSidebar';
-import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import RestaurantDashboard from '@/pages/restaurant/RestaurantDashboard';
 import RestaurantOrders from '@/pages/restaurant/RestaurantOrders';
 import RestaurantMenuManager from '@/pages/restaurant/RestaurantMenuManager';
@@ -21,12 +33,26 @@ type RestaurantTab = 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 
 export default function RestaurantApp() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentTab, setCurrentTab] = useState<RestaurantTab>('dashboard');
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurantName, setRestaurantName] = useState<string>('');
   const [pendingOrders, setPendingOrders] = useState(0);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/restaurant/auth');
+      toast({
+        title: 'Déconnexion réussie',
+        description: 'À bientôt !',
+      });
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -117,9 +143,58 @@ export default function RestaurantApp() {
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      {/* Header - Fixe en haut (mobile uniquement) */}
-      <header className="flex-shrink-0 border-b md:hidden">
-        <UniversalAppHeader title="Kwenda Food" />
+      {/* Header Unifié Modern - Mobile uniquement */}
+      <header className="flex-shrink-0 md:hidden border-b border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+        <div className="px-4 h-14 flex items-center justify-between">
+          {/* Logo + Nom */}
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-sm">
+              <Store className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-semibold text-base tracking-tight">Kwenda Food</span>
+          </div>
+          
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            <UnifiedNotificationBell userType="restaurant" />
+            <ThemeToggle />
+            
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+                  <Avatar className="h-7 w-7">
+                    <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-500 text-white text-xs font-medium">
+                      {user?.email?.[0]?.toUpperCase() || 'R'}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-popover">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{restaurantName || 'Mon Restaurant'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleTabChange('profile')}>
+                  <User className="mr-2 h-4 w-4" />
+                  Profil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleTabChange('profile')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Paramètres
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Déconnexion
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </header>
       
       {/* Container principal avec sidebar */}

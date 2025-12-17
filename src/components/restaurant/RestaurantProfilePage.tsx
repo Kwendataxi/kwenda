@@ -14,7 +14,7 @@ import { RestaurantSettings } from './RestaurantSettings';
 import { ImageOnboardingBanner } from './ImageOnboardingBanner';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState as useStateForProfile } from 'react';
-import { RestaurantLayout } from './RestaurantLayout';
+
 
 export function RestaurantProfilePage() {
   const navigate = useNavigate();
@@ -118,95 +118,92 @@ export function RestaurantProfilePage() {
   ];
 
   return (
-    <RestaurantLayout>
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto space-y-6">
-        <RestaurantProfileHeader />
-        
-        {/* Banner d'onboarding pour les nouveaux restaurants */}
-        {profile && (
-          <ImageOnboardingBanner
-            hasLogo={!!profile.logo_url}
-            hasBanner={!!profile.banner_url}
-            onAddImages={() => setShowSettings(true)}
-          />
-        )}
-        
-        <RestaurantStats />
+    <div className="max-w-4xl mx-auto space-y-6">
+      <RestaurantProfileHeader />
+      
+      {/* Banner d'onboarding pour les nouveaux restaurants */}
+      {profile && (
+        <ImageOnboardingBanner
+          hasLogo={!!profile.logo_url}
+          hasBanner={!!profile.banner_url}
+          onAddImages={() => setShowSettings(true)}
+        />
+      )}
+      
+      <RestaurantStats />
 
-        {/* Actions rapides */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Actions rapides</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {quickActions.map((action, index) => {
-                const Icon = action.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={action.onClick}
-                    className="flex flex-col items-center gap-3 p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary transition-colors"
-                  >
-                    <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/20">
-                      <Icon className="h-6 w-6 text-orange-600 dark:text-orange-500" />
-                    </div>
-                    <div className="text-center">
-                      <p className="font-medium text-sm">{action.label}</p>
-                      <p className="text-xs text-muted-foreground">{action.description}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Actions rapides */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Actions rapides</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={index}
+                  onClick={action.onClick}
+                  className="flex flex-col items-center gap-3 p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary transition-colors"
+                >
+                  <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/20">
+                    <Icon className="h-6 w-6 text-orange-600 dark:text-orange-500" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-medium text-sm">{action.label}</p>
+                    <p className="text-xs text-muted-foreground">{action.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-        <RestaurantInfoCard />
+      <RestaurantInfoCard />
 
-        {/* Menu de navigation */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Menu</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {menuSections.map((section, sectionIndex) => (
-              <div key={sectionIndex} className="space-y-2">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  {section.title}
-                </h3>
-                <div className="space-y-1">
-                  {section.items.map((item, itemIndex) => {
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={itemIndex}
-                        onClick={item.onClick}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"
-                      >
-                        <Icon className="h-5 w-5 text-muted-foreground" />
-                        <span className="flex-1 font-medium">{item.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+      {/* Menu de navigation */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Menu</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {menuSections.map((section, sectionIndex) => (
+            <div key={sectionIndex} className="space-y-2">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                {section.title}
+              </h3>
+              <div className="space-y-1">
+                {section.items.map((item, itemIndex) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={itemIndex}
+                      onClick={item.onClick}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"
+                    >
+                      <Icon className="h-5 w-5 text-muted-foreground" />
+                      <span className="flex-1 font-medium">{item.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            ))}
-          </CardContent>
-        </Card>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
-        {/* Déconnexion */}
-        <Button 
-          variant="destructive" 
-          className="w-full" 
-          onClick={handleLogout}
-          size="lg"
-        >
-          <LogOut className="h-5 w-5 mr-2" />
-          Se déconnecter
-        </Button>
-      </div>
+      {/* Déconnexion */}
+      <Button 
+        variant="destructive" 
+        className="w-full" 
+        onClick={handleLogout}
+        size="lg"
+      >
+        <LogOut className="h-5 w-5 mr-2" />
+        Se déconnecter
+      </Button>
 
       {/* Dialogs */}
       <Dialog open={showDocuments} onOpenChange={setShowDocuments}>
@@ -220,7 +217,6 @@ export function RestaurantProfilePage() {
           <RestaurantSettings />
         </DialogContent>
       </Dialog>
-      </div>
-    </RestaurantLayout>
+    </div>
   );
 }
