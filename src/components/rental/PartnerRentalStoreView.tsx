@@ -13,8 +13,8 @@ import { PartnerRentalRatingDialog } from './PartnerRentalRatingDialog';
 import { PartnerRentalShareSheet } from './PartnerRentalShareSheet';
 import { PartnerRentalReviewsSection } from './PartnerRentalReviewsSection';
 import { 
-  Heart, Share2, MessageCircle, Star, Users, Car, 
-  Award, MapPin, Search, Filter, Phone, Mail, Globe
+  Heart, Share2, Star, Users, Car, 
+  Award, MapPin, Search, Phone, Mail, Globe, ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -274,84 +274,56 @@ export const PartnerRentalStoreView = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Facebook-Style Banner with Floating Particles - Hauteur réduite pour mobile */}
-      <motion.div 
-        className="relative h-40 sm:h-56 md:h-72 lg:h-80 overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
+      {/* Sticky Navigation Header */}
+      <div className="sticky top-0 z-50 bg-background/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-border/40">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/rental')}
+            className="gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Retour</span>
+          </Button>
+          
+          <h2 className="font-semibold text-sm truncate max-w-[200px] sm:max-w-none">
+            {partnerData?.company_name || 'Boutique'}
+          </h2>
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowShareDialog(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Clean Banner - Static gradient, no particles */}
+      <div className="relative h-32 sm:h-44 md:h-52 overflow-hidden">
         {bannerImage ? (
           <>
-            <motion.img 
+            <img 
               src={bannerImage}
               alt={partnerData.company_name}
               className="w-full h-full object-cover"
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
             />
-            {/* Gradient Overlay */}
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
           </>
         ) : (
-          <>
-            {/* Animated Gradient Background */}
-            <motion.div
-              className={`w-full h-full bg-gradient-to-br ${getTierGradient(tier)}`}
-              animate={{
-                backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-              }}
-              transition={{
-                duration: 15,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-              style={{ backgroundSize: '400% 400%' }}
-            />
-            {/* Glassmorphism Overlay */}
-            <div className="absolute inset-0 backdrop-blur-sm bg-black/20" />
-            {/* Floating Particles */}
-            <div className="absolute inset-0 overflow-hidden">
-              {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-2 h-2 bg-white/30 rounded-full"
-                  style={{
-                    left: `${20 + i * 15}%`,
-                    top: `${30 + i * 10}%`,
-                  }}
-                  animate={{
-                    y: [-20, 20, -20],
-                    opacity: [0.3, 0.6, 0.3],
-                  }}
-                  transition={{
-                    duration: 3 + i,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-              ))}
-            </div>
-          </>
+          <div className={`w-full h-full bg-gradient-to-br ${getTierGradient(tier)}`} />
         )}
-      </motion.div>
+      </div>
 
-      {/* Facebook-Style Logo Container (Overlap) - Marges réduites pour mobile */}
+      {/* Profile Section - Simplified */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 -mt-12 sm:-mt-16 md:-mt-20 relative z-20">
-          {/* Avatar with Hover Effect & Fallback */}
-          <motion.div 
-            className="relative shrink-0"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full border-4 sm:border-[6px] border-background shadow-2xl overflow-hidden bg-white">
+        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 -mt-10 sm:-mt-14 relative z-20">
+          {/* Avatar - No hover scale */}
+          <div className="relative shrink-0">
+            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-background shadow-lg overflow-hidden bg-muted dark:bg-slate-800">
               {partnerData.avatar_url ? (
                 <img 
                   src={partnerData.avatar_url}
@@ -362,204 +334,105 @@ export const PartnerRentalStoreView = () => {
                 generateLogoFallback(partnerData.company_name)
               )}
             </div>
-            {/* Badge Tier with Rotation Hover */}
-            <motion.div 
-              className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2"
-              whileHover={{ rotate: 12, scale: 1.1 }}
-            >
-              <PartnerTierBadge tier={tier} className="shadow-xl" />
-            </motion.div>
-          </motion.div>
+            <div className="absolute -bottom-1 -right-1">
+              <PartnerTierBadge tier={tier} className="shadow-md" />
+            </div>
+          </div>
           
           {/* Company Info */}
-          <div className="flex-1 text-center sm:text-left pb-3 sm:pb-4">
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 break-words">
+          <div className="flex-1 text-center sm:text-left pb-2">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
               {partnerData.company_name}
             </h1>
-            {partnerData.slogan ? (
-              <p className="text-sm sm:text-base md:text-lg text-muted-foreground">
+            {partnerData.slogan && (
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {partnerData.slogan}
               </p>
-            ) : (
-              <p className="text-xs sm:text-sm text-muted-foreground italic">
-                {partnerData.stats.available_vehicles} véhicule{partnerData.stats.available_vehicles > 1 ? 's' : ''} disponible{partnerData.stats.available_vehicles > 1 ? 's' : ''}
-              </p>
-            )}
-          </div>
-
-          {/* Desktop Action Buttons - Thème vert */}
-          <div className="hidden sm:flex gap-2 pb-4">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                variant={isFollowing ? "secondary" : "default"}
-                size="lg"
-                onClick={handleFollow}
-                disabled={followLoading}
-                className={`gap-2 shadow-lg hover:shadow-xl transition-shadow ${!isFollowing ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0' : ''}`}
-              >
-                <motion.div
-                  animate={isFollowing ? { scale: [1, 1.2, 1] } : {}}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Heart className={isFollowing ? "fill-current" : ""} />
-                </motion.div>
-                {isFollowing ? 'Suivi' : 'Suivre'}
-              </Button>
-            </motion.div>
-            
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setShowShareDialog(true)}
-                className="gap-2 shadow-lg hover:shadow-xl transition-all"
-              >
-                <Share2 className="h-5 w-5" />
-                Partager
-              </Button>
-            </motion.div>
-            
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="outline" size="lg" onClick={() => setShowRatingDialog(true)} className="gap-2 shadow-lg">
-                <Star className="h-5 w-5" />
-                Noter
-              </Button>
-            </motion.div>
-            
-            {partnerData.phone && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="outline" size="lg" onClick={handleContact} className="gap-2 shadow-lg">
-                  <Phone className="h-5 w-5" />
-                  Appeler
-                </Button>
-              </motion.div>
             )}
           </div>
         </div>
-        
-        {/* Mobile Action Buttons - Full Width - Thème vert */}
-        <div className="flex sm:hidden flex-col gap-2 w-full mt-4">
-          <div className="grid grid-cols-2 gap-2">
-            <Button 
-              size="lg" 
-              variant={isFollowing ? "secondary" : "default"} 
-              onClick={handleFollow} 
-              disabled={followLoading} 
-              className={`w-full ${!isFollowing ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0' : ''}`}
-            >
-              <Heart className={cn("mr-2", isFollowing && "fill-current")} />
-              {isFollowing ? 'Suivi' : 'Suivre'}
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="w-full border-emerald-500/30 hover:bg-emerald-500/10"
-              onClick={() => setShowShareDialog(true)}
-            >
-              <Share2 className="mr-2 h-5 w-5" />
-              Partager
-            </Button>
+
+        {/* Inline Stats - Modern Horizontal Layout */}
+        <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-6 mt-4 py-3 border-y border-border/40 dark:border-slate-700/50">
+          <div className="text-center">
+            <div className="text-lg font-bold text-foreground">{partnerData.stats.available_vehicles}</div>
+            <div className="text-xs text-muted-foreground">Véhicules</div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button size="lg" variant="outline" onClick={() => setShowRatingDialog(true)} className="w-full border-emerald-500/30 hover:bg-emerald-500/10">
-              <Star className="mr-2 h-5 w-5" />
-              Noter
-            </Button>
-            {partnerData.phone && (
-              <Button size="lg" variant="outline" onClick={handleContact} className="w-full border-emerald-500/30 hover:bg-emerald-500/10">
-                <Phone className="mr-2 h-5 w-5" />
-                Appeler
-              </Button>
+          <div className="w-px h-8 bg-border/50 dark:bg-slate-700" />
+          <div 
+            className="text-center cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            <div className="text-lg font-bold text-foreground flex items-center gap-1 justify-center">
+              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+              {partnerData.stats.rating_average ? partnerData.stats.rating_average.toFixed(1) : '0.0'}
+            </div>
+            <div className="text-xs text-muted-foreground">{partnerData.stats.rating_count} avis</div>
+          </div>
+          <div className="w-px h-8 bg-border/50 dark:bg-slate-700" />
+          <div className="text-center">
+            <div className="text-lg font-bold text-foreground">{followersCount}</div>
+            <div className="text-xs text-muted-foreground">Abonnés</div>
+          </div>
+          <div className="w-px h-8 bg-border/50 dark:bg-slate-700 hidden sm:block" />
+          <div className="text-center hidden sm:block">
+            <div className="text-lg font-bold text-foreground">{partnerData.stats.completed_bookings}</div>
+            <div className="text-xs text-muted-foreground">Locations</div>
+          </div>
+        </div>
+
+        {/* Action Buttons - Horizontal Pills */}
+        <div className="flex gap-2 mt-4 overflow-x-auto scrollbar-hide pb-1">
+          <Button 
+            size="sm"
+            variant={isFollowing ? "secondary" : "default"} 
+            onClick={handleFollow} 
+            disabled={followLoading} 
+            className={cn(
+              "rounded-full gap-1.5 shrink-0",
+              !isFollowing && "bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white"
             )}
-          </div>
+          >
+            <Heart className={cn("h-4 w-4", isFollowing && "fill-current")} />
+            {isFollowing ? 'Suivi' : 'Suivre'}
+          </Button>
+          
+          <Button 
+            size="sm"
+            variant="outline" 
+            onClick={() => setShowShareDialog(true)}
+            className="rounded-full gap-1.5 shrink-0 border-border/60 dark:border-slate-600 hover:bg-muted/50 dark:hover:bg-slate-800"
+          >
+            <Share2 className="h-4 w-4" />
+            Partager
+          </Button>
+          
+          <Button 
+            size="sm"
+            variant="outline" 
+            onClick={() => setShowRatingDialog(true)} 
+            className="rounded-full gap-1.5 shrink-0 border-border/60 dark:border-slate-600 hover:bg-muted/50 dark:hover:bg-slate-800"
+          >
+            <Star className="h-4 w-4" />
+            Noter
+          </Button>
+          
+          {partnerData.phone && (
+            <Button 
+              size="sm"
+              variant="outline" 
+              onClick={handleContact} 
+              className="rounded-full gap-1.5 shrink-0 border-border/60 dark:border-slate-600 hover:bg-muted/50 dark:hover:bg-slate-800"
+            >
+              <Phone className="h-4 w-4" />
+              Appeler
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Stats Cards - Clean Design */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-3 sm:p-4 text-center">
-                <Car className="h-6 w-6 sm:h-7 sm:w-7 mx-auto mb-2 text-emerald-500 dark:text-emerald-400" />
-                <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {partnerData.stats.available_vehicles}
-                </div>
-                <div className="text-xs text-muted-foreground">Véhicules dispos</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
-            <Card className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-3 sm:p-4 text-center">
-                <Award className="h-6 w-6 sm:h-7 sm:w-7 mx-auto mb-2 text-emerald-500 dark:text-emerald-400" />
-                <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {partnerData.stats.completed_bookings}
-                </div>
-                <div className="text-xs text-muted-foreground">Locations</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card 
-              className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200 cursor-pointer"
-              onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              <CardContent className="p-3 sm:p-4 text-center">
-                <Star className="h-6 w-6 sm:h-7 sm:w-7 mx-auto mb-2 text-yellow-500 fill-yellow-500" />
-                <div className="text-xl sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                  {partnerData.stats.rating_average ? partnerData.stats.rating_average.toFixed(1) : '0.0'}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {partnerData.stats.rating_count} avis
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-          >
-            <Card className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-3 sm:p-4 text-center">
-                <Users className="h-6 w-6 sm:h-7 sm:w-7 mx-auto mb-2 text-teal-500 dark:text-teal-400" />
-                <div className="text-xl sm:text-2xl font-bold text-teal-600 dark:text-teal-400">
-                  {followersCount}
-                </div>
-                <div className="text-xs text-muted-foreground">Abonnés</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-3 sm:p-4 text-center">
-                <PartnerTierBadge tier={tier} />
-                <div className="text-xs text-muted-foreground mt-2">Abonnement</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6">
 
         {/* Enhanced About Section */}
         {partnerData.shop_description && (
