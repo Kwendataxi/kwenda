@@ -445,35 +445,18 @@ export const PartnerRentalStoreView = () => {
         </div>
       </div>
 
-      {/* Stats Cards with 3D Effect & Shine */}
+      {/* Stats Cards - Clean Design */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ 
-              y: -8,
-              rotateX: 5,
-              transition: { duration: 0.2 }
-            }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-emerald-500/20 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer">
-              {/* Shine Effect */}
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-              />
-              <CardContent className="relative p-3 sm:p-4 text-center">
-                <motion.div
-                  animate={{ 
-                    rotate: [0, 5, -5, 0],
-                    scale: [1, 1.05, 1]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Car className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-emerald-500 drop-shadow-lg" />
-                </motion.div>
-                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
+            <Card className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-3 sm:p-4 text-center">
+                <Car className="h-6 w-6 sm:h-7 sm:w-7 mx-auto mb-2 text-emerald-500 dark:text-emerald-400" />
+                <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                   {partnerData.stats.available_vehicles}
                 </div>
                 <div className="text-xs text-muted-foreground">Véhicules dispos</div>
@@ -482,27 +465,14 @@ export const PartnerRentalStoreView = () => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ 
-              y: -8,
-              rotateX: 5,
-              transition: { duration: 0.2 }
-            }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.15 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-emerald-500/20 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer">
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-              />
-              <CardContent className="relative p-3 sm:p-4 text-center">
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Award className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-emerald-500 drop-shadow-lg" />
-                </motion.div>
-                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
+            <Card className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-3 sm:p-4 text-center">
+                <Award className="h-6 w-6 sm:h-7 sm:w-7 mx-auto mb-2 text-emerald-500 dark:text-emerald-400" />
+                <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                   {partnerData.stats.completed_bookings}
                 </div>
                 <div className="text-xs text-muted-foreground">Locations</div>
@@ -511,30 +481,17 @@ export const PartnerRentalStoreView = () => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ 
-              y: -8,
-              rotateX: 5,
-              transition: { duration: 0.2 }
-            }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.2 }}
           >
             <Card 
-              className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-yellow-500/20 shadow-xl hover:shadow-2xl hover:shadow-yellow-500/30 cursor-pointer transition-all duration-300"
+              className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200 cursor-pointer"
               onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-              />
-              <CardContent className="relative p-3 sm:p-4 text-center">
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                >
-                  <Star className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-yellow-500 fill-yellow-500 drop-shadow-lg" />
-                </motion.div>
-                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent">
+              <CardContent className="p-3 sm:p-4 text-center">
+                <Star className="h-6 w-6 sm:h-7 sm:w-7 mx-auto mb-2 text-yellow-500 fill-yellow-500" />
+                <div className="text-xl sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                   {partnerData.stats.rating_average ? partnerData.stats.rating_average.toFixed(1) : '0.0'}
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -545,27 +502,14 @@ export const PartnerRentalStoreView = () => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ 
-              y: -8,
-              rotateX: 5,
-              transition: { duration: 0.2 }
-            }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.25 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-teal-500/20 shadow-xl hover:shadow-2xl hover:shadow-teal-500/30 transition-all duration-300 cursor-pointer">
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-500/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-              />
-              <CardContent className="relative p-3 sm:p-4 text-center">
-                <motion.div
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Users className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-teal-500 drop-shadow-lg" />
-                </motion.div>
-                <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-teal-500 to-emerald-500 bg-clip-text text-transparent">
+            <Card className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-3 sm:p-4 text-center">
+                <Users className="h-6 w-6 sm:h-7 sm:w-7 mx-auto mb-2 text-teal-500 dark:text-teal-400" />
+                <div className="text-xl sm:text-2xl font-bold text-teal-600 dark:text-teal-400">
                   {followersCount}
                 </div>
                 <div className="text-xs text-muted-foreground">Abonnés</div>
@@ -574,20 +518,12 @@ export const PartnerRentalStoreView = () => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ 
-              y: -8,
-              rotateX: 5,
-              transition: { duration: 0.2 }
-            }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.3 }}
           >
-            <Card className="group relative overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-background to-background/80 border-2 border-border/30 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer">
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-              />
-              <CardContent className="relative p-3 sm:p-4 text-center">
+            <Card className="bg-card dark:bg-card/90 border border-border/50 dark:border-border/40 hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-3 sm:p-4 text-center">
                 <PartnerTierBadge tier={tier} />
                 <div className="text-xs text-muted-foreground mt-2">Abonnement</div>
               </CardContent>
@@ -711,31 +647,31 @@ export const PartnerRentalStoreView = () => {
               return (
                 <motion.div
                   key={vehicle.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  transition={{ duration: 0.25, delay: index * 0.04 }}
                 >
                   <Card 
-                    className="rental-card-premium overflow-hidden cursor-pointer group"
+                    className="overflow-hidden cursor-pointer group bg-card dark:bg-card/95 border border-border/50 dark:border-border/40 hover:shadow-md hover:border-border dark:hover:border-border/60 transition-all duration-200"
                     onClick={() => navigate(`/rental/${vehicle.id}/details`)}
                   >
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative h-48 overflow-hidden bg-muted dark:bg-muted/50">
                       {hasRealImage ? (
                         <img 
                           src={vehicleImage} 
                           alt={vehicle.name}
                           loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
                         />
                       ) : (
                         <div className={`flex items-center justify-center h-full bg-gradient-to-br ${getVehicleGradient(vehicle)}`}>
-                          <Car className="h-20 w-20 text-white/50" />
+                          <Car className="h-16 w-16 text-white/40" />
                         </div>
                       )}
 
                       {categoryTheme && vehicle.category && (
                         <div className="absolute top-2 left-2">
-                          <Badge className={`bg-gradient-to-r ${categoryTheme.gradient} text-white shadow-lg`}>
+                          <Badge className="bg-white/95 dark:bg-slate-800/95 text-foreground shadow-sm border-0">
                             {categoryTheme.icon} {vehicle.category.name}
                           </Badge>
                         </div>
@@ -743,16 +679,16 @@ export const PartnerRentalStoreView = () => {
 
                       {vehicle.driver_available && (
                         <div className="absolute top-2 right-2">
-                          <Badge className="bg-green-500 text-white shadow-lg animate-pulse">
+                          <Badge className="bg-emerald-500 dark:bg-emerald-600 text-white shadow-sm border-0">
                             Avec chauffeur
                           </Badge>
                         </div>
                       )}
                     </div>
 
-                    <CardContent className="p-4 space-y-3">
+                    <CardContent className="p-4 space-y-3 bg-card dark:bg-card/90">
                       <div>
-                        <h3 className="font-bold text-lg line-clamp-1">{vehicle.name}</h3>
+                        <h3 className="font-semibold text-lg line-clamp-1 text-foreground">{vehicle.name}</h3>
                         <p className="text-sm text-muted-foreground">
                           {vehicle.brand} {vehicle.model} · {vehicle.year}
                         </p>
@@ -760,12 +696,12 @@ export const PartnerRentalStoreView = () => {
 
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">À partir de</span>
-                        <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+                        <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
                           {vehicle.daily_rate.toLocaleString()} CDF/j
                         </span>
                       </div>
 
-                      <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 border-0" size="sm">
+                      <Button className="w-full bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white border-0" size="sm">
                         Voir les détails
                       </Button>
                     </CardContent>
