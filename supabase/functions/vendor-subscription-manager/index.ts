@@ -72,7 +72,7 @@ serve(async (req) => {
     }
 
     // 2. Si plan gratuit, activer directement
-    if (plan.monthly_price === 0) {
+    if (plan.price === 0) {
       const { error: subError } = await supabaseClient
         .from('vendor_active_subscriptions')
         .upsert({
@@ -106,11 +106,11 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .single()
 
-    if (!wallet || wallet.balance < plan.monthly_price) {
+    if (!wallet || wallet.balance < plan.price) {
       return new Response(JSON.stringify({
         success: false,
         error: 'Solde insuffisant',
-        required: plan.monthly_price,
+        required: plan.price,
         current: wallet?.balance || 0
       }), {
         status: 400,
@@ -121,7 +121,7 @@ serve(async (req) => {
     // 4. Débiter le wallet
     const { error: walletError } = await supabaseClient
       .from('user_wallets')
-      .update({ balance: wallet.balance - plan.monthly_price })
+      .update({ balance: wallet.balance - plan.price })
       .eq('user_id', user.id)
 
     if (walletError) throw walletError
