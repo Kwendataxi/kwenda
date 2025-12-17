@@ -18,6 +18,10 @@ interface Order {
   delivery_address: string;
   delivery_coordinates?: { lat: number; lng: number };
   estimated_preparation_time?: number;
+  customer?: {
+    display_name?: string;
+    phone_number?: string;
+  };
 }
 
 interface OrderKanbanBoardProps {

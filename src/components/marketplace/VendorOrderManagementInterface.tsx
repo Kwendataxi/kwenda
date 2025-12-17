@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Package, Truck, CheckCircle, Clock, MapPin } from 'lucide-react';
+import { Package, Truck, CheckCircle, Clock, MapPin, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface VendorOrderManagementInterfaceProps {
@@ -191,6 +191,16 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
 
         {/* Informations livraison */}
         <div className="space-y-2 text-sm">
+          {/* Nom du client */}
+          {order.buyer?.display_name && (
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <p>
+                <span className="font-medium">Client:</span> {order.buyer.display_name}
+                {order.buyer_phone && ` • ${order.buyer_phone}`}
+              </p>
+            </div>
+          )}
           <div className="flex items-start gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
             <div>
@@ -209,7 +219,7 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
             <Package className="h-4 w-4 text-muted-foreground" />
             <p>
               <span className="font-medium">Frais de livraison:</span>{' '}
-              {order.delivery_fee} FC ({order.delivery_fee_payment_method === 'cash_on_delivery' ? 'Espèces' : 'KwendaPay'})
+              {order.delivery_fee} CDF ({order.delivery_fee_payment_method === 'cash_on_delivery' ? 'Espèces' : 'KwendaPay'})
             </p>
           </div>
         </div>

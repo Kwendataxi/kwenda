@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Phone, MapPin, Clock, ChevronRight, ExternalLink } from 'lucide-react';
+import { Phone, MapPin, Clock, ChevronRight, ExternalLink, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +23,10 @@ interface OrderCardProps {
     delivery_address: string;
     delivery_coordinates?: { lat: number; lng: number };
     estimated_preparation_time?: number;
+    customer?: {
+      display_name?: string;
+      phone_number?: string;
+    };
   };
   elapsedMinutes: number;
   onConfirm?: (prepTime: number) => void;
@@ -104,7 +108,7 @@ export const OrderCard = ({
               </div>
             </div>
             <div className="text-right">
-              <p className="font-bold text-primary text-lg">{order.total_amount.toLocaleString()} FC</p>
+              <p className="font-bold text-primary text-lg">{order.total_amount.toLocaleString()} CDF</p>
               <Badge className={cn(statusConfig.color, "text-white text-xs")}>
                 {statusConfig.label}
               </Badge>
@@ -117,7 +121,7 @@ export const OrderCard = ({
               <div key={idx} className="flex justify-between text-sm">
                 <span className="text-foreground">{item.quantity}x {item.name}</span>
                 {item.price && (
-                  <span className="text-muted-foreground">{(item.quantity * item.price).toLocaleString()} FC</span>
+                  <span className="text-muted-foreground">{(item.quantity * item.price).toLocaleString()} CDF</span>
                 )}
               </div>
             ))}
@@ -125,6 +129,14 @@ export const OrderCard = ({
               <p className="text-xs text-muted-foreground pt-1">+{order.items.length - 3} autre(s)</p>
             )}
           </div>
+
+          {/* Nom du client */}
+          {order.customer?.display_name && (
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <User className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>{order.customer.display_name}</span>
+            </div>
+          )}
 
           {/* Contact - Clickable */}
           <div className="flex gap-2">
