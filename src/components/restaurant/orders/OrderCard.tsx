@@ -26,6 +26,9 @@ interface OrderCardProps {
     customer?: {
       display_name?: string;
       phone_number?: string;
+      profile?: {
+        phone_number?: string;
+      };
     };
   };
   elapsedMinutes: number;
@@ -66,8 +69,11 @@ export const OrderCard = ({
 
   const isUrgent = order.status === 'pending' && elapsedMinutes > 5;
 
-  // Use customer phone with fallback to delivery_phone
-  const customerPhone = order.customer?.phone_number || order.delivery_phone;
+  // Triple fallback: clients.phone_number -> profiles.phone_number -> delivery_phone
+  const customerPhone = 
+    order.customer?.phone_number || 
+    order.customer?.profile?.phone_number || 
+    order.delivery_phone;
 
   const handleCall = (e: React.MouseEvent) => {
     e.stopPropagation();

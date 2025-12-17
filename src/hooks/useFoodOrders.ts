@@ -138,7 +138,9 @@ export const useFoodOrders = () => {
           *,
           customer:clients(
             display_name,
-            phone_number
+            phone_number,
+            user_id,
+            profile:profiles(phone_number)
           )
         `)
         .eq('restaurant_id', restaurantId)
