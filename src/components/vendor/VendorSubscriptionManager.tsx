@@ -291,7 +291,7 @@ export const VendorSubscriptionManager = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Produits</p>
                   <p className="font-semibold">
-                    {currentPlan.max_products ? `${currentPlan.max_products} max` : 'Illimités'}
+                    {currentPlan.max_products && currentPlan.max_products > 0 ? `${currentPlan.max_products} max` : 'Illimités'}
                   </p>
                 </div>
               </div>
@@ -381,7 +381,7 @@ export const VendorSubscriptionManager = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Produits</span>
                         <span className="font-semibold">
-                          {plan.max_products ? plan.max_products : 'Illimités'}
+                          {plan.max_products && plan.max_products > 0 ? plan.max_products : 'Illimités'}
                         </span>
                       </div>
                     </div>

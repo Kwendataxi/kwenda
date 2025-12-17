@@ -103,7 +103,7 @@ serve(async (req) => {
 
     // Calculate and distribute commissions
     const totalAmount = order.total_amount
-    const commissionData = await calculateCommissions(totalAmount, order)
+    const commissionData = await calculateCommissions(totalAmount, order, supabaseClient)
 
     // Record commission transactions
     for (const commission of commissionData) {
@@ -172,7 +172,7 @@ function calculateDeliveryFee(coordinates: any): number {
   return 5000; // 5000 FC base fee
 }
 
-async function calculateCommissions(totalAmount: number, order: any): Promise<any[]> {
+async function calculateCommissions(totalAmount: number, order: any, supabaseClient: any): Promise<any[]> {
   // Get commission settings
   const platformRate = 0.05; // 5%
   const deliveryRate = 0.15; // 15% for delivery driver (if applicable)
@@ -180,6 +180,84 @@ async function calculateCommissions(totalAmount: number, order: any): Promise<an
 
   const platformCommission = totalAmount * platformRate;
   const sellerAmount = totalAmount * sellerRate;
+
+  // ✅ CRÉDITER LE WALLET VENDEUR (vendor_wallets)
+  try {
+    // Récupérer ou créer le wallet vendeur
+    let { data: vendorWallet, error: walletError } = await supabaseClient
+      .from('vendor_wallets')
+      .select('*')
+      .eq('vendor_id', order.seller_id)
+      .eq('currency', 'CDF')
+      .single();
+
+    if (walletError && walletError.code === 'PGRST116') {
+      // Créer le wallet s'il n'existe pas
+      const { data: newWallet, error: createError } = await supabaseClient
+        .from('vendor_wallets')
+        .insert({
+          vendor_id: order.seller_id,
+          balance: sellerAmount,
+          currency: 'CDF',
+          total_earned: sellerAmount,
+          total_withdrawn: 0,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Erreur création wallet vendeur:', createError);
+      } else {
+        vendorWallet = newWallet;
+        console.log(`Wallet vendeur créé avec ${sellerAmount} CDF`);
+      }
+    } else if (!walletError && vendorWallet) {
+      // Mettre à jour le wallet existant
+      const newBalance = (vendorWallet.balance || 0) + sellerAmount;
+      const newTotalEarned = (vendorWallet.total_earned || 0) + sellerAmount;
+      
+      const { error: updateError } = await supabaseClient
+        .from('vendor_wallets')
+        .update({
+          balance: newBalance,
+          total_earned: newTotalEarned,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', vendorWallet.id);
+
+      if (updateError) {
+        console.error('Erreur mise à jour wallet vendeur:', updateError);
+      } else {
+        console.log(`Wallet vendeur crédité: +${sellerAmount} CDF (nouveau solde: ${newBalance} CDF)`);
+      }
+    }
+
+    // Enregistrer la transaction dans vendor_wallet_transactions
+    if (vendorWallet) {
+      const { error: txError } = await supabaseClient
+        .from('vendor_wallet_transactions')
+        .insert({
+          vendor_id: order.seller_id,
+          wallet_id: vendorWallet.id,
+          transaction_type: 'sale_credit',
+          amount: sellerAmount,
+          currency: 'CDF',
+          description: `Vente - Commande #${order.id.substring(0, 8)}`,
+          reference_id: order.id,
+          reference_type: 'marketplace_order',
+          status: 'completed',
+          balance_before: vendorWallet.balance || 0,
+          balance_after: (vendorWallet.balance || 0) + sellerAmount
+        });
+
+      if (txError) {
+        console.error('Erreur enregistrement transaction vendeur:', txError);
+      }
+    }
+  } catch (error) {
+    console.error('Erreur crédit wallet vendeur:', error);
+  }
 
   const commissions = [
     {

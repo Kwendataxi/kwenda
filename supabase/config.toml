@@ -244,3 +244,6 @@ verify_jwt = false  # ✅ CASHIN: Webhook serveur-à-serveur Orange Money WebPay
 
 [functions.vendor-withdrawal]
 verify_jwt = true  # ✅ CASHOUT: Retrait automatique vendeurs via Orange Money B2B
+
+[functions.vendor-wallet-manager]
+verify_jwt = true  # ✅ Gestion wallet vendeur (get_or_create, credit, get_balance)
