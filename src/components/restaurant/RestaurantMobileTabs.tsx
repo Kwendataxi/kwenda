@@ -1,24 +1,27 @@
-import { LayoutDashboard, ShoppingBag, ChefHat, BarChart3, Wallet, User } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ChefHat, Wallet, User, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
+type RestaurantTab = 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile' | 'subscription';
+
 interface RestaurantMobileTabsProps {
-  currentTab: 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile';
-  onTabChange: (tab: 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile') => void;
+  currentTab: RestaurantTab;
+  onTabChange: (tab: RestaurantTab) => void;
 }
 
 export function RestaurantMobileTabs({ currentTab, onTabChange }: RestaurantMobileTabsProps) {
+  // 5 tabs principaux pour mobile (menu + profil regroupés)
   const tabs = [
-    { id: 'dashboard', label: 'Accueil', icon: LayoutDashboard },
-    { id: 'orders', label: 'Commandes', icon: ShoppingBag },
-    { id: 'menu', label: 'Menu', icon: ChefHat },
-    { id: 'analytics', label: 'Stats', icon: BarChart3 },
-    { id: 'wallet', label: 'Wallet', icon: Wallet },
-    { id: 'profile', label: 'Profil', icon: User },
+    { id: 'dashboard' as RestaurantTab, label: 'Accueil', icon: LayoutDashboard },
+    { id: 'orders' as RestaurantTab, label: 'Commandes', icon: ShoppingBag },
+    { id: 'menu' as RestaurantTab, label: 'Menu', icon: ChefHat },
+    { id: 'wallet' as RestaurantTab, label: 'Wallet', icon: Wallet },
+    { id: 'subscription' as RestaurantTab, label: 'Abo', icon: CreditCard },
+    { id: 'profile' as RestaurantTab, label: 'Profil', icon: User },
   ] as const;
 
   return (
-    <div className="bottom-nav-standard md:hidden">
+    <div className="bottom-nav-standard md:hidden border-t bg-card/95 backdrop-blur-md">
       <div className="grid grid-cols-6 h-16 relative">
         {/* Active indicator */}
         <motion.div
@@ -40,7 +43,7 @@ export function RestaurantMobileTabs({ currentTab, onTabChange }: RestaurantMobi
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 transition-all relative',
+                'flex flex-col items-center justify-center gap-0.5 transition-all relative',
                 isActive 
                   ? 'text-orange-600 dark:text-orange-500' 
                   : 'text-muted-foreground hover:text-foreground'
@@ -48,7 +51,7 @@ export function RestaurantMobileTabs({ currentTab, onTabChange }: RestaurantMobi
             >
               <motion.div
                 animate={{
-                  scale: isActive ? 1.1 : 1,
+                  scale: isActive ? 1.15 : 1,
                   y: isActive ? -2 : 0,
                 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 17 }}
@@ -56,7 +59,7 @@ export function RestaurantMobileTabs({ currentTab, onTabChange }: RestaurantMobi
                 <Icon className="h-5 w-5" />
               </motion.div>
               <motion.span
-                className="text-xs font-medium"
+                className="text-[10px] font-medium"
                 animate={{
                   opacity: isActive ? 1 : 0.7,
                   fontWeight: isActive ? 600 : 500,
@@ -67,7 +70,7 @@ export function RestaurantMobileTabs({ currentTab, onTabChange }: RestaurantMobi
               
               {isActive && (
                 <motion.div
-                  layoutId="bubble"
+                  layoutId="mobile-bubble"
                   className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent rounded-t-xl"
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 />
