@@ -1,17 +1,34 @@
+/**
+ * Panel de livraison moderne pour restaurants
+ * Design glassmorphism avec cards cliquables
+ */
+
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { useRestaurantDelivery, DeliveryAssignment } from '@/hooks/useRestaurantDelivery';
-import { Truck, Phone, User, MapPin, Clock, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { useDynamicDeliveryPricing } from '@/hooks/useDynamicDeliveryPricing';
+import { RestaurantDeliveryDrawer } from './RestaurantDeliveryDrawer';
+import { Truck, Phone, User, MapPin, Clock, CheckCircle2, Loader2, Bike } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { motion } from 'framer-motion';
 
 interface RestaurantOrderDeliveryPanelProps {
   orderId: string;
   orderStatus: string;
   restaurantAddress: string;
   deliveryAddress: string;
+  deliveryCoordinates?: { lat: number; lng: number };
+  restaurantProfile?: {
+    restaurant_name?: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    phone_number?: string;
+  };
+  deliveryPhone?: string;
+  orderNumber?: string;
   onStatusChange?: () => void;
 }
 
@@ -20,6 +37,10 @@ export function RestaurantOrderDeliveryPanel({
   orderStatus,
   restaurantAddress,
   deliveryAddress,
+  deliveryCoordinates,
+  restaurantProfile,
+  deliveryPhone,
+  orderNumber,
   onStatusChange
 }: RestaurantOrderDeliveryPanelProps) {
   const { 
@@ -31,13 +52,41 @@ export function RestaurantOrderDeliveryPanel({
     getDeliveryStatus 
   } = useRestaurantDelivery();
   
+  const { calculatePrice, formatPrice } = useDynamicDeliveryPricing();
+  
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryAssignment | null>(null);
+  const [showDeliveryDrawer, setShowDeliveryDrawer] = useState(false);
+  const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
+  const [selectedMethod, setSelectedMethod] = useState<'kwenda' | 'self' | null>(null);
 
   useEffect(() => {
     if (orderId && (orderStatus === 'ready' || orderStatus === 'driver_assigned' || orderStatus === 'picked_up')) {
       loadDeliveryInfo();
     }
   }, [orderId, orderStatus]);
+
+  // Calculer le prix estimé
+  useEffect(() => {
+    const estimate = async () => {
+      if (restaurantProfile?.latitude && restaurantProfile?.longitude && deliveryCoordinates) {
+        const R = 6371;
+        const dLat = (deliveryCoordinates.lat - restaurantProfile.latitude) * Math.PI / 180;
+        const dLon = (deliveryCoordinates.lng - restaurantProfile.longitude) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(restaurantProfile.latitude * Math.PI / 180) * Math.cos(deliveryCoordinates.lat * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+        
+        const result = await calculatePrice('flash', distance);
+        setEstimatedPrice(result?.calculated_price || 7500);
+      } else {
+        // Prix par défaut
+        setEstimatedPrice(7500);
+      }
+    };
+    estimate();
+  }, [restaurantProfile, deliveryCoordinates]);
 
   const loadDeliveryInfo = async () => {
     const info = await getDeliveryStatus(orderId);
@@ -46,8 +95,8 @@ export function RestaurantOrderDeliveryPanel({
     }
   };
 
-  const handleRequestDelivery = async () => {
-    const result = await requestDelivery(orderId);
+  const handleDeliveryRequested = async (deliveryFee: number, serviceType: string) => {
+    const result = await requestDelivery(orderId, serviceType as 'flash' | 'flex' | 'maxicharge');
     if (result.success) {
       await loadDeliveryInfo();
       onStatusChange?.();
@@ -55,6 +104,7 @@ export function RestaurantOrderDeliveryPanel({
   };
 
   const handleSelfDelivery = async () => {
+    setSelectedMethod('self');
     const result = await startSelfDelivery(orderId);
     if (result.success) {
       onStatusChange?.();
@@ -86,21 +136,18 @@ export function RestaurantOrderDeliveryPanel({
   // Si commande pas encore prête
   if (orderStatus === 'pending' || orderStatus === 'confirmed' || orderStatus === 'preparing') {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Truck className="h-5 w-5" />
+      <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-border/40">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Truck className="h-4 w-4" />
             Livraison
           </CardTitle>
-          <CardDescription>
-            Préparez la commande avant de demander un livreur
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert>
+          <Alert className="bg-muted/50 border-border/40">
             <Clock className="h-4 w-4" />
-            <AlertDescription>
-              La livraison sera disponible une fois la commande prête
+            <AlertDescription className="text-xs">
+              Disponible une fois la commande prête
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -111,104 +158,140 @@ export function RestaurantOrderDeliveryPanel({
   // Si commande prête mais pas encore de livreur assigné
   if (orderStatus === 'ready' && !deliveryInfo) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Truck className="h-5 w-5" />
-            Demander un livreur
-          </CardTitle>
-          <CardDescription>
-            Commande prête à être livrée
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-start gap-2 text-sm">
-              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-              <div>
-                <p className="font-medium">Récupération</p>
-                <p className="text-muted-foreground">{restaurantAddress}</p>
-              </div>
+      <>
+        <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-border/40 overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Truck className="h-4 w-4 text-primary" />
+              Livraison
+            </CardTitle>
+            <CardDescription className="text-xs">Choisissez votre mode de livraison</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Adresses compactes */}
+            <div className="flex items-center gap-2 text-xs bg-muted/30 rounded-lg p-2">
+              <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+              <span className="truncate text-muted-foreground">{deliveryAddress}</span>
             </div>
-            <div className="flex items-start gap-2 text-sm">
-              <MapPin className="h-4 w-4 mt-0.5 text-primary" />
-              <div>
-                <p className="font-medium">Livraison</p>
-                <p className="text-muted-foreground">{deliveryAddress}</p>
-              </div>
+
+            {/* Cards de sélection */}
+            <div className="space-y-2">
+              {/* Kwenda Delivery */}
+              <motion.div whileTap={{ scale: 0.98 }}>
+                <Card 
+                  className={`p-3 cursor-pointer transition-all duration-300 border-2 ${
+                    selectedMethod === 'kwenda'
+                      ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-500/40 shadow-md'
+                      : 'bg-white/40 dark:bg-slate-900/40 border-border/40 hover:border-red-500/30 hover:bg-red-500/5'
+                  }`}
+                  onClick={() => {
+                    setSelectedMethod('kwenda');
+                    setShowDeliveryDrawer(true);
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/30 to-orange-500/30 flex items-center justify-center">
+                        <Truck className="h-5 w-5 text-red-500" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">Livreur Kwenda</p>
+                        <p className="text-xs text-muted-foreground">
+                          {estimatedPrice > 0 ? `~${formatPrice(estimatedPrice)}` : 'Cliquez pour voir les tarifs'}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs bg-red-500/10 text-red-600 border-0">
+                      Express
+                    </Badge>
+                  </div>
+                </Card>
+              </motion.div>
+
+              {/* Self Delivery */}
+              <motion.div whileTap={{ scale: 0.98 }}>
+                <Card 
+                  className={`p-3 cursor-pointer transition-all duration-300 border-2 ${
+                    selectedMethod === 'self'
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-emerald-500/40 shadow-md'
+                      : 'bg-white/40 dark:bg-slate-900/40 border-border/40 hover:border-emerald-500/30 hover:bg-emerald-500/5'
+                  }`}
+                  onClick={handleSelfDelivery}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/30 to-teal-500/30 flex items-center justify-center">
+                        <Bike className="h-5 w-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">Je livre moi-même</p>
+                        <p className="text-xs text-muted-foreground">Livraison personnelle</p>
+                      </div>
+                    </div>
+                    {loading && selectedMethod === 'self' ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                    ) : (
+                      <Badge variant="secondary" className="text-xs bg-emerald-500/10 text-emerald-600 border-0">
+                        Gratuit
+                      </Badge>
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <Separator />
-
-          <div className="space-y-2">
-            <Button 
-              onClick={handleRequestDelivery} 
-              disabled={loading}
-              className="w-full"
-              size="lg"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Recherche en cours...
-                </>
-              ) : (
-                <>
-                  <Truck className="mr-2 h-4 w-4" />
-                  Demander un livreur Kwenda
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={handleSelfDelivery} 
-              disabled={loading}
-              variant="outline"
-              className="w-full"
-            >
-              <User className="mr-2 h-4 w-4" />
-              Je livre moi-même
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Drawer de livraison */}
+        <RestaurantDeliveryDrawer
+          isOpen={showDeliveryDrawer}
+          onClose={() => setShowDeliveryDrawer(false)}
+          order={{
+            id: orderId,
+            order_number: orderNumber,
+            delivery_address: deliveryAddress,
+            delivery_coordinates: deliveryCoordinates,
+            delivery_phone: deliveryPhone
+          }}
+          restaurantProfile={restaurantProfile}
+          onDeliveryRequested={handleDeliveryRequested}
+        />
+      </>
     );
   }
 
   // Si livreur assigné ou en cours de livraison
   if (deliveryInfo && orderStatus !== 'delivered') {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-border/40">
+        <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="h-5 w-5" />
-                Suivi de livraison
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Truck className="h-4 w-4 text-primary" />
+                Suivi livraison
               </CardTitle>
-              <CardDescription>Livreur assigné</CardDescription>
             </div>
             {getStatusBadge(deliveryInfo.assignment_status)}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {deliveryInfo.driver && (
-            <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+            <div className="bg-muted/50 p-3 rounded-xl space-y-2">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-5 w-5 text-primary" />
+                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{deliveryInfo.driver.display_name}</p>
-                  <p className="text-sm text-muted-foreground">{deliveryInfo.driver.vehicle_type}</p>
+                  <p className="font-medium text-sm">{deliveryInfo.driver.display_name}</p>
+                  <p className="text-xs text-muted-foreground">{deliveryInfo.driver.vehicle_type}</p>
                 </div>
               </div>
               
               {deliveryInfo.driver.phone_number && (
-                <Button variant="outline" size="sm" className="w-full" asChild>
+                <Button variant="outline" size="sm" className="w-full h-8 text-xs" asChild>
                   <a href={`tel:${deliveryInfo.driver.phone_number}`}>
-                    <Phone className="mr-2 h-4 w-4" />
+                    <Phone className="mr-2 h-3 w-3" />
                     {deliveryInfo.driver.phone_number}
                   </a>
                 </Button>
@@ -216,36 +299,11 @@ export function RestaurantOrderDeliveryPanel({
             </div>
           )}
 
-          <div className="space-y-2 text-sm">
-            {deliveryInfo.estimated_pickup_time && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Récupération estimée</span>
-                <span className="font-medium">
-                  {new Date(deliveryInfo.estimated_pickup_time).toLocaleTimeString('fr-FR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </span>
-              </div>
-            )}
-            {deliveryInfo.estimated_delivery_time && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Livraison estimée</span>
-                <span className="font-medium">
-                  {new Date(deliveryInfo.estimated_delivery_time).toLocaleTimeString('fr-FR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </span>
-              </div>
-            )}
-          </div>
-
           {deliveryInfo.actual_pickup_time && (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertDescription>
-                Commande récupérée à {new Date(deliveryInfo.actual_pickup_time).toLocaleTimeString('fr-FR', { 
+            <Alert className="bg-emerald-500/10 border-emerald-500/20">
+              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+              <AlertDescription className="text-xs">
+                Récupérée à {new Date(deliveryInfo.actual_pickup_time).toLocaleTimeString('fr-FR', { 
                   hour: '2-digit', 
                   minute: '2-digit' 
                 })}
@@ -260,22 +318,19 @@ export function RestaurantOrderDeliveryPanel({
   // Si auto-livraison
   if (orderStatus === 'self_delivery') {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+      <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-border/40">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Bike className="h-4 w-4 text-emerald-500" />
             Auto-livraison
           </CardTitle>
-          <CardDescription>
-            Vous livrez cette commande vous-même
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <Button 
             onClick={handleCompleteDelivery}
             disabled={loading}
-            className="w-full"
-            size="lg"
+            className="w-full bg-emerald-500 hover:bg-emerald-600"
+            size="sm"
           >
             {loading ? (
               <>
@@ -297,20 +352,12 @@ export function RestaurantOrderDeliveryPanel({
   // Si livraison terminée
   if (orderStatus === 'delivered') {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-600">
-            <CheckCircle2 className="h-5 w-5" />
-            Livraison terminée
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert>
+      <Card className="bg-emerald-500/10 border-emerald-500/20">
+        <CardContent className="py-3">
+          <div className="flex items-center gap-2 text-emerald-600">
             <CheckCircle2 className="h-4 w-4" />
-            <AlertDescription>
-              Cette commande a été livrée avec succès
-            </AlertDescription>
-          </Alert>
+            <span className="text-sm font-medium">Livraison terminée</span>
+          </div>
         </CardContent>
       </Card>
     );
