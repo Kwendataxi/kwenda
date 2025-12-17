@@ -315,14 +315,14 @@ export function RestaurantOrderDeliveryPanel({
     );
   }
 
-  // Si auto-livraison
-  if (orderStatus === 'self_delivery') {
+  // Si auto-livraison (in_transit sans livreur Kwenda assigné)
+  if (orderStatus === 'in_transit' && !deliveryInfo) {
     return (
       <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-border/40">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Bike className="h-4 w-4 text-emerald-500" />
-            Auto-livraison
+            Auto-livraison en cours
           </CardTitle>
         </CardHeader>
         <CardContent>
