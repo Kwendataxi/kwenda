@@ -1,17 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUniversalChat } from '@/hooks/useUniversalChat';
 import { useChat } from '@/components/chat/ChatProvider';
 import { useToast } from '@/hooks/use-toast';
-import { MessageSquare, Package, MapPin, Calculator } from 'lucide-react';
+import { useDynamicDeliveryPricing } from '@/hooks/useDynamicDeliveryPricing';
+import { 
+  MessageSquare, Package, MapPin, Truck, Bike, 
+  CheckCircle2, Loader2, ArrowRight
+} from 'lucide-react';
 import { DeliveryMapModal } from './DeliveryMapModal';
+import { VendorDeliveryDrawer } from './VendorDeliveryDrawer';
+import { motion } from 'framer-motion';
 
 interface VendorOrderValidationPanelProps {
   orders: any[];
@@ -23,9 +26,14 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
   const { toast } = useToast();
   const { createOrFindConversation } = useUniversalChat();
   const { openChat } = useChat();
+  const { calculatePrice, formatPrice } = useDynamicDeliveryPricing();
+  
   const [validatingOrder, setValidatingOrder] = useState<string | null>(null);
   const [deliveryFees, setDeliveryFees] = useState<Record<string, number>>({});
-  const [deliveryMethods, setDeliveryMethods] = useState<Record<string, string>>({});
+  const [deliveryMethods, setDeliveryMethods] = useState<Record<string, 'kwenda' | 'self'>>({});
+  const [estimatedPrices, setEstimatedPrices] = useState<Record<string, number>>({});
+  const [vendorProfile, setVendorProfile] = useState<any>(null);
+  const [deliveryDrawerOrder, setDeliveryDrawerOrder] = useState<any>(null);
   const [mapModalData, setMapModalData] = useState<{
     orderId: string;
     deliveryCoordinates: { lat: number; lng: number };
@@ -33,16 +41,30 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
     pickupCoordinates?: { lat: number; lng: number };
   } | null>(null);
 
-  // ✅ PHASE 2: Les commandes sont déjà filtrées par le hook useVendorOrders
-  // On garde une sécurité pour filtrer sur vendor_confirmation_status
+  // Charger le profil vendeur
+  useEffect(() => {
+    const loadVendorProfile = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('vendor_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (data) setVendorProfile(data);
+    };
+    loadVendorProfile();
+  }, [user]);
+
+  // Filtrer les commandes en attente
   const pendingOrders = orders.filter(order => 
     order.vendor_confirmation_status === 'awaiting_confirmation' || 
     order.status === 'pending'
   );
 
+  // Calculer la distance
   const calculateDistance = (coords1: any, coords2: any) => {
     if (!coords1 || !coords2) return 0;
-    const R = 6371; // Rayon de la Terre en km
+    const R = 6371;
     const dLat = (coords2.lat - coords1.lat) * Math.PI / 180;
     const dLon = (coords2.lng - coords1.lng) * Math.PI / 180;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -52,24 +74,30 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
     return R * c;
   };
 
-  const estimateDeliveryFee = (orderId: string) => {
-    const order = pendingOrders.find(o => o.id === orderId);
-    if (!order?.delivery_coordinates || !order?.pickup_coordinates) {
-      toast({ title: "Coordonnées manquantes", description: "Impossible de calculer la distance automatiquement", variant: "destructive" });
-      return;
-    }
-
-    const distance = calculateDistance(order.pickup_coordinates, order.delivery_coordinates);
-    // Base Flash 2025: 7000 FC + 500 FC/km
-    const estimatedFee = Math.round(7000 + (distance * 500));
-    setDeliveryFees(prev => ({ ...prev, [orderId]: estimatedFee }));
+  // Estimer les prix à l'ouverture
+  useEffect(() => {
+    const estimatePrices = async () => {
+      const newPrices: Record<string, number> = {};
+      
+      for (const order of pendingOrders) {
+        if (order.delivery_coordinates && vendorProfile?.coordinates) {
+          const distance = calculateDistance(vendorProfile.coordinates, order.delivery_coordinates);
+          const result = await calculatePrice('flex', distance);
+          if (result) {
+            newPrices[order.id] = result.calculated_price;
+          }
+        }
+      }
+      
+      setEstimatedPrices(newPrices);
+    };
     
-    toast({ 
-      title: "Estimation calculée", 
-      description: `Distance: ${distance.toFixed(1)} km - Frais estimés: ${estimatedFee.toLocaleString()} CDF` 
-    });
-  };
+    if (vendorProfile && pendingOrders.length > 0) {
+      estimatePrices();
+    }
+  }, [vendorProfile, pendingOrders.length]);
 
+  // Valider la commande
   const handleValidateOrder = async (orderId: string) => {
     if (!user) return;
 
@@ -77,7 +105,11 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
     const deliveryMethod = deliveryMethods[orderId] || 'kwenda';
 
     if (!deliveryFee || deliveryFee <= 0) {
-      toast({ title: "Frais requis", description: "Veuillez entrer les frais de livraison", variant: "destructive" });
+      toast({ 
+        title: "Frais requis", 
+        description: "Veuillez sélectionner un mode de livraison", 
+        variant: "destructive" 
+      });
       return;
     }
 
@@ -96,7 +128,10 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
 
       if (error) throw error;
 
-      toast({ title: "✅ Commande validée", description: "Le client a reçu votre proposition de frais de livraison" });
+      toast({ 
+        title: "✅ Commande validée", 
+        description: "Le client a reçu votre proposition" 
+      });
       onRefresh();
     } catch (error: any) {
       console.error('Error validating order:', error);
@@ -106,8 +141,8 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
     }
   };
 
+  // Ouvrir le chat
   const handleOpenChat = async (order: any) => {
-    // ✅ Empêcher les conversations avec soi-même
     if (order.buyer_id === user?.id) {
       toast({
         title: "❌ Action impossible",
@@ -134,24 +169,32 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
           title: `💬 Chat avec ${order.buyer?.display_name || order.buyer?.phone_number || 'le client'}`,
           quickActions: [
             { label: "Commande prête", action: () => {} },
-            { label: "Retard de préparation", action: () => {} },
-            { label: "Produit manquant", action: () => {} }
+            { label: "Retard de préparation", action: () => {} }
           ]
-        });
-
-        toast({
-          title: "💬 Chat ouvert",
-          description: `Conversation avec ${order.buyer?.display_name || 'le client'}`,
         });
       }
     } catch (error: any) {
-      console.error('Erreur ouverture chat:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'ouvrir le chat",
         variant: "destructive",
       });
     }
+  };
+
+  // Sélectionner le mode de livraison
+  const handleSelectDeliveryMethod = (orderId: string, method: 'kwenda' | 'self', fee?: number) => {
+    setDeliveryMethods(prev => ({ ...prev, [orderId]: method }));
+    if (fee) {
+      setDeliveryFees(prev => ({ ...prev, [orderId]: fee }));
+    }
+  };
+
+  // Callback quand livraison créée
+  const handleDeliveryCreated = (orderId: string, fee: number, deliveryOrderId?: string) => {
+    setDeliveryFees(prev => ({ ...prev, [orderId]: fee }));
+    setDeliveryMethods(prev => ({ ...prev, [orderId]: 'kwenda' }));
+    setDeliveryDrawerOrder(null);
   };
 
   if (pendingOrders.length === 0) {
@@ -167,171 +210,222 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
 
   return (
     <div className="space-y-4">
-      {pendingOrders.map((order) => (
-        <Card key={order.id}>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  {order.product?.title || 'Produit inconnu'}
-                  <Badge variant="outline">Nouvelle commande</Badge>
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Client: {order.buyer?.display_name || order.buyer?.phone_number || order.buyer_contact || 'Client'} • Quantité: {order.quantity}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg font-semibold">{(order.unit_price * order.quantity).toLocaleString()} CDF</p>
-                <p className="text-xs text-muted-foreground">Montant produit</p>
-              </div>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            {/* Adresse de livraison */}
-            {(order.delivery_address || order.delivery_coordinates) && (
-              <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
-                <div className="text-sm">
-                  <p className="font-medium">Adresse de livraison:</p>
-                  {order.delivery_address ? (
-                    <p className="text-muted-foreground">{order.delivery_address}</p>
-                  ) : order.delivery_coordinates ? (
-                    <p className="text-muted-foreground text-xs">
-                      📍 Coordonnées: {order.delivery_coordinates.lat?.toFixed(4)}, {order.delivery_coordinates.lng?.toFixed(4)}
-                      <br />
-                    <button
-                      onClick={() => {
-                        setMapModalData({
-                          orderId: order.id,
-                          deliveryCoordinates: order.delivery_coordinates,
-                          deliveryAddress: order.delivery_address,
-                          pickupCoordinates: order.pickup_coordinates
-                        });
-                      }}
-                      className="text-primary cursor-pointer hover:underline text-xs font-medium"
-                    >
-                      🗺️ Voir sur la carte (livreurs disponibles) →
-                    </button>
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground">Non renseignée</p>
-                  )}
-                </div>
-              </div>
-            )}
+      {pendingOrders.map((order) => {
+        const selectedMethod = deliveryMethods[order.id] || null;
+        const currentFee = deliveryFees[order.id] || 0;
+        const estimatedFee = estimatedPrices[order.id] || 0;
 
-            {/* Notes client */}
-            {order.notes && (
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <p className="text-sm font-medium mb-1">Notes du client:</p>
-                <p className="text-sm text-muted-foreground">{order.notes}</p>
-              </div>
-            )}
-
-            {/* Configuration frais de livraison */}
-            <div className="space-y-3 pt-3 border-t">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Frais de livraison</Label>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => estimateDeliveryFee(order.id)}
-                  disabled={!order.delivery_coordinates || !order.pickup_coordinates}
-                >
-                  <Calculator className="h-4 w-4 mr-2" />
-                  Estimer distance
-                </Button>
-              </div>
-
-              <div className="grid gap-3">
-                <div>
-                  <Label htmlFor={`fee-${order.id}`}>Montant (CDF)</Label>
-                  <Input
-                    id={`fee-${order.id}`}
-                    type="number"
-                    placeholder="Ex: 7000"
-                    value={deliveryFees[order.id] || ''}
-                    onChange={(e) => setDeliveryFees(prev => ({ ...prev, [order.id]: parseInt(e.target.value) || 0 }))}
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-base font-semibold mb-3 block">Mode de livraison</Label>
-                  <RadioGroup
-                    value={deliveryMethods[order.id] || 'kwenda'}
-                    onValueChange={(value) => setDeliveryMethods(prev => ({ ...prev, [order.id]: value }))}
-                    className="grid grid-cols-1 gap-3"
-                  >
-                    <label 
-                      htmlFor={`kwenda-${order.id}`}
-                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        (deliveryMethods[order.id] || 'kwenda') === 'kwenda' 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <RadioGroupItem value="kwenda" id={`kwenda-${order.id}`} />
-                      <div className="flex-1">
-                        <p className="font-semibold">🚚 Livreur Kwenda</p>
-                        <p className="text-xs text-muted-foreground">Un coursier prendra en charge la livraison automatiquement</p>
-                      </div>
-                    </label>
-
-                    <label 
-                      htmlFor={`self-${order.id}`}
-                      className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        deliveryMethods[order.id] === 'self' 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <RadioGroupItem value="self" id={`self-${order.id}`} />
-                      <div className="flex-1">
-                        <p className="font-semibold">🏍️ Je livre moi-même</p>
-                        <p className="text-xs text-muted-foreground">Vous assurerez la livraison personnellement</p>
-                      </div>
-                    </label>
-                  </RadioGroup>
-                </div>
-              </div>
-
-              {deliveryFees[order.id] > 0 && (
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <p className="text-sm font-semibold">Total commande</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {((order.unit_price * order.quantity) + deliveryFees[order.id]).toLocaleString()} CDF
+        return (
+          <Card key={order.id} className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    {order.product?.title || 'Produit inconnu'}
+                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">
+                      Nouvelle
+                    </Badge>
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Client: {order.buyer?.display_name || order.buyer?.phone_number || order.buyer_contact || 'Client'} • Qté: {order.quantity}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Produit: {(order.unit_price * order.quantity).toLocaleString()} CDF + Livraison: {deliveryFees[order.id]?.toLocaleString() || 0} CDF
-                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold">{(order.unit_price * order.quantity).toLocaleString()} CDF</p>
+                  <p className="text-xs text-muted-foreground">Montant produit</p>
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              {/* Adresse de livraison */}
+              {(order.delivery_address || order.delivery_coordinates) && (
+                <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-xl">
+                  <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="h-4 w-4 text-red-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Adresse de livraison</p>
+                    {order.delivery_address ? (
+                      <p className="text-sm font-medium truncate">{order.delivery_address}</p>
+                    ) : order.delivery_coordinates ? (
+                      <div>
+                        <p className="text-sm">
+                          📍 {order.delivery_coordinates.lat?.toFixed(4)}, {order.delivery_coordinates.lng?.toFixed(4)}
+                        </p>
+                        <button
+                          onClick={() => setMapModalData({
+                            orderId: order.id,
+                            deliveryCoordinates: order.delivery_coordinates,
+                            deliveryAddress: order.delivery_address,
+                            pickupCoordinates: vendorProfile?.coordinates
+                          })}
+                          className="text-primary text-xs hover:underline mt-1"
+                        >
+                          🗺️ Voir sur la carte →
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               )}
-            </div>
 
-            {/* Actions */}
-            <div className="flex gap-2 pt-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => handleOpenChat(order)}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Discuter
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={() => handleValidateOrder(order.id)}
-                disabled={validatingOrder === order.id || !deliveryFees[order.id]}
-              >
-                {validatingOrder === order.id ? 'Validation...' : 'Valider et envoyer'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              {/* Notes client */}
+              {order.notes && (
+                <div className="p-3 bg-muted/30 rounded-xl">
+                  <p className="text-xs text-muted-foreground mb-1">Notes du client</p>
+                  <p className="text-sm">{order.notes}</p>
+                </div>
+              )}
 
-      {/* Modal carte de livraison */}
+              {/* Section Livraison Moderne */}
+              <div className="pt-3 border-t border-border/40">
+                <p className="text-sm font-semibold mb-3">Mode de livraison</p>
+                
+                <div className="grid gap-3">
+                  {/* Option Kwenda Delivery */}
+                  <motion.div whileTap={{ scale: 0.98 }}>
+                    <Card 
+                      onClick={() => setDeliveryDrawerOrder(order)}
+                      className={`p-4 cursor-pointer transition-all duration-300 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-2 ${
+                        selectedMethod === 'kwenda' 
+                          ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' 
+                          : 'border-border/40 hover:border-primary/50 hover:shadow-md'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
+                            <Truck className="h-6 w-6 text-red-500" />
+                          </div>
+                          <div>
+                            <p className="font-semibold flex items-center gap-2">
+                              Livreur Kwenda
+                              {selectedMethod === 'kwenda' && (
+                                <CheckCircle2 className="h-4 w-4 text-primary" />
+                              )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {currentFee > 0 && selectedMethod === 'kwenda'
+                                ? `${formatPrice(currentFee)} • Confirmé ✓`
+                                : estimatedFee > 0 
+                                  ? `~${formatPrice(estimatedFee)} • Cliquez pour commander`
+                                  : 'Cliquez pour commander un livreur'
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </Card>
+                  </motion.div>
+
+                  {/* Option Self Delivery */}
+                  <motion.div whileTap={{ scale: 0.98 }}>
+                    <Card 
+                      onClick={() => {
+                        const selfFee = Math.round(estimatedFee * 0.7) || 5000;
+                        handleSelectDeliveryMethod(order.id, 'self', selfFee);
+                      }}
+                      className={`p-4 cursor-pointer transition-all duration-300 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-2 ${
+                        selectedMethod === 'self' 
+                          ? 'border-emerald-500 bg-emerald-500/5 shadow-lg shadow-emerald-500/10' 
+                          : 'border-border/40 hover:border-emerald-500/50 hover:shadow-md'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                            <Bike className="h-6 w-6 text-emerald-500" />
+                          </div>
+                          <div>
+                            <p className="font-semibold flex items-center gap-2">
+                              Je livre moi-même
+                              {selectedMethod === 'self' && (
+                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                              )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {selectedMethod === 'self' && currentFee > 0
+                                ? `${formatPrice(currentFee)} • Vous assurez la livraison`
+                                : 'Économisez sur les frais'
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        {selectedMethod === 'self' && (
+                          <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600">
+                            -{30}%
+                          </Badge>
+                        )}
+                      </div>
+                    </Card>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Total commande */}
+              {currentFee > 0 && (
+                <Card className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Total commande</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {((order.unit_price * order.quantity) + currentFee).toLocaleString()} CDF
+                      </p>
+                    </div>
+                    <div className="text-right text-xs text-muted-foreground">
+                      <p>Produit: {(order.unit_price * order.quantity).toLocaleString()} CDF</p>
+                      <p>Livraison: {currentFee.toLocaleString()} CDF</p>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => handleOpenChat(order)}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Discuter
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => handleValidateOrder(order.id)}
+                  disabled={validatingOrder === order.id || !currentFee}
+                >
+                  {validatingOrder === order.id ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Validation...
+                    </>
+                  ) : (
+                    'Valider et envoyer'
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {/* Drawer Kwenda Delivery */}
+      {deliveryDrawerOrder && (
+        <VendorDeliveryDrawer
+          isOpen={!!deliveryDrawerOrder}
+          onClose={() => setDeliveryDrawerOrder(null)}
+          order={deliveryDrawerOrder}
+          vendorProfile={vendorProfile}
+          onDeliveryCreated={(fee, deliveryId) => 
+            handleDeliveryCreated(deliveryDrawerOrder.id, fee, deliveryId)
+          }
+        />
+      )}
+
+      {/* Modal carte */}
       {mapModalData && (
         <DeliveryMapModal
           open={!!mapModalData}
