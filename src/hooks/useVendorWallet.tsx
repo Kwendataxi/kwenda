@@ -41,37 +41,20 @@ export const useVendorWallet = () => {
   const fetchWallet = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) return;
+      // Utiliser l'edge function pour bypass RLS
+      const { data, error } = await supabase.functions.invoke('vendor-wallet-manager', {
+        body: { action: 'get_or_create', currency: 'CDF' }
+      });
 
-      // Créer ou récupérer le wallet vendeur
-      let { data: wallet, error } = await supabase
-        .from('vendor_wallets')
-        .select('*')
-        .eq('vendor_id', user.id)
-        .eq('currency', 'CDF')
-        .single();
+      if (error) throw error;
 
-      if (error && error.code === 'PGRST116') {
-        // Créer le wallet s'il n'existe pas
-        const { data: newWallet, error: createError } = await supabase
-          .from('vendor_wallets')
-          .insert({
-            vendor_id: user.id,
-            balance: 0,
-            currency: 'CDF'
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        wallet = newWallet;
-      } else if (error) {
-        throw error;
+      if (data?.success) {
+        setWallet(data.wallet);
+        setTransactions(data.transactions || []);
+      } else {
+        throw new Error(data?.error || 'Erreur inconnue');
       }
-
-      setWallet(wallet);
     } catch (error) {
       console.error('Erreur lors du chargement du wallet:', error);
       toast({
@@ -85,19 +68,17 @@ export const useVendorWallet = () => {
   };
 
   const fetchTransactions = async () => {
+    // Les transactions sont déjà chargées via get_or_create
+    // Cette fonction peut être appelée pour rafraîchir uniquement
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('vendor_wallet_transactions')
-        .select('*')
-        .eq('vendor_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const { data, error } = await supabase.functions.invoke('vendor-wallet-manager', {
+        body: { action: 'get_or_create', currency: 'CDF' }
+      });
 
       if (error) throw error;
-      setTransactions(data || []);
+      if (data?.success && data.transactions) {
+        setTransactions(data.transactions);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des transactions:', error);
     }
