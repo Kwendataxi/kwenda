@@ -32,6 +32,11 @@ export default function ModernRestaurantAnalytics() {
     topDishes: [],
   });
 
+  const handleRefresh = useCallback(async () => {
+    setLoading(true);
+    await loadAnalytics();
+  }, []);
+
   useEffect(() => {
     loadAnalytics();
   }, []);
@@ -203,10 +208,7 @@ export default function ModernRestaurantAnalytics() {
     },
   ];
 
-  const handleRefresh = useCallback(async () => {
-    setLoading(true);
-    await loadAnalytics();
-  }, []);
+  // handleRefresh moved to top with other hooks
 
   return (
     <PullToRefresh onRefresh={handleRefresh} disabled={loading}>

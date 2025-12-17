@@ -53,6 +53,10 @@ export default function ModernRestaurantDashboard() {
   
   useFoodNotifications(restaurantId || undefined);
 
+  const handleRefresh = useCallback(async () => {
+    await loadRestaurantData();
+  }, []);
+
   useEffect(() => {
     loadRestaurantData();
   }, []);
@@ -189,9 +193,7 @@ export default function ModernRestaurantDashboard() {
     },
   ];
 
-  const handleRefresh = useCallback(async () => {
-    await loadRestaurantData();
-  }, []);
+  // handleRefresh moved above early return
 
   return (
     <PullToRefresh onRefresh={handleRefresh} disabled={loading}>
