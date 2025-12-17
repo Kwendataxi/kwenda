@@ -40,37 +40,57 @@ serve(async (req) => {
 
     switch (action) {
       case 'get_or_create': {
-        // Récupérer ou créer le wallet vendeur
-        let { data: wallet, error: walletError } = await supabaseAdmin
+        // Récupérer ou créer le wallet vendeur avec UPSERT pour éviter les race conditions
+        let wallet = null;
+        
+        // D'abord essayer de récupérer
+        const { data: existingWallet, error: fetchError } = await supabaseAdmin
           .from('vendor_wallets')
           .select('*')
           .eq('vendor_id', user.id)
           .eq('currency', currency)
-          .single();
+          .maybeSingle();
 
-        if (walletError && walletError.code === 'PGRST116') {
-          // Créer le wallet s'il n'existe pas
-          console.log(`[vendor-wallet-manager] Création wallet pour ${user.id}`);
-          const { data: newWallet, error: createError } = await supabaseAdmin
+        if (fetchError) {
+          console.error('[vendor-wallet-manager] Erreur fetch:', fetchError);
+          throw fetchError;
+        }
+
+        if (existingWallet) {
+          wallet = existingWallet;
+        } else {
+          // Créer avec upsert pour gérer les race conditions
+          const { data: upsertedWallet, error: upsertError } = await supabaseAdmin
             .from('vendor_wallets')
-            .insert({
+            .upsert({
               vendor_id: user.id,
               balance: 0,
               currency: currency,
               total_earned: 0,
               total_withdrawn: 0,
               is_active: true
+            }, { 
+              onConflict: 'vendor_id,currency',
+              ignoreDuplicates: false 
             })
             .select()
             .single();
 
-          if (createError) {
-            console.error('[vendor-wallet-manager] Erreur création wallet:', createError);
-            throw createError;
+          if (upsertError) {
+            console.error('[vendor-wallet-manager] Erreur upsert wallet:', upsertError);
+            // En cas d'erreur, re-tenter de récupérer (peut arriver avec race condition)
+            const { data: retryWallet } = await supabaseAdmin
+              .from('vendor_wallets')
+              .select('*')
+              .eq('vendor_id', user.id)
+              .eq('currency', currency)
+              .single();
+            
+            wallet = retryWallet;
+          } else {
+            wallet = upsertedWallet;
+            console.log(`[vendor-wallet-manager] Wallet créé pour ${user.id}`);
           }
-          wallet = newWallet;
-        } else if (walletError) {
-          throw walletError;
         }
 
         // Récupérer les transactions
