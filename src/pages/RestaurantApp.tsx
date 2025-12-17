@@ -27,8 +27,11 @@ import { RestaurantAnalytics } from '@/components/restaurant/RestaurantAnalytics
 import RestaurantWalletPage from '@/pages/restaurant/RestaurantWalletPage';
 import { RestaurantProfilePage } from '@/components/restaurant/RestaurantProfilePage';
 import RestaurantSubscriptionPage from '@/pages/restaurant/RestaurantSubscriptionPage';
+import { POSHub } from '@/components/restaurant/pos/POSHub';
+import { POSProLock } from '@/components/restaurant/pos/POSProLock';
+import { useSubscriptionAccess } from '@/hooks/useSubscriptionAccess';
 
-type RestaurantTab = 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile' | 'subscription';
+type RestaurantTab = 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile' | 'subscription' | 'pos';
 
 export default function RestaurantApp() {
   const navigate = useNavigate();
@@ -54,9 +57,11 @@ export default function RestaurantApp() {
     }
   };
 
+  const { canAccessPOS, isLoading: subscriptionLoading } = useSubscriptionAccess(restaurantId);
+
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['dashboard', 'orders', 'menu', 'analytics', 'wallet', 'profile', 'subscription'].includes(tab)) {
+    if (tab && ['dashboard', 'orders', 'menu', 'analytics', 'wallet', 'profile', 'subscription', 'pos'].includes(tab)) {
       setCurrentTab(tab as RestaurantTab);
     }
   }, [searchParams]);
@@ -128,6 +133,11 @@ export default function RestaurantApp() {
         return <RestaurantProfilePage />;
       case 'subscription':
         return <RestaurantSubscriptionPage />;
+      case 'pos':
+        if (!canAccessPOS) {
+          return <POSProLock onUpgrade={() => handleTabChange('subscription')} />;
+        }
+        return <POSHub restaurantId={restaurantId!} />;
       default:
         return <RestaurantDashboard />;
     }
