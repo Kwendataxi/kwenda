@@ -27,6 +27,10 @@ export default function ModernRestaurantOrders() {
 
   const { fetchRestaurantOrders, updateOrderStatus, subscribeToOrders } = useFoodOrders();
 
+  const handleRefresh = useCallback(async () => {
+    await loadOrders();
+  }, [restaurantId]);
+
   useEffect(() => {
     loadRestaurantProfile();
   }, []);
@@ -179,9 +183,7 @@ export default function ModernRestaurantOrders() {
 
   const totalActive = Object.values(orderCounts).reduce((a, b) => a + b, 0);
 
-  const handleRefresh = useCallback(async () => {
-    await loadOrders();
-  }, [restaurantId]);
+  // handleRefresh moved to top with other hooks
 
   return (
     <PullToRefresh onRefresh={handleRefresh} disabled={loading || !restaurantId}>

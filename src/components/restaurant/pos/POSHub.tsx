@@ -46,6 +46,10 @@ export const POSHub = ({ restaurantId, isInTrial = false, trialDaysRemaining = 0
   const { currentSession, loading, getCurrentSession, getSessionHistory } = usePOSSession();
   const { getTodayTransactions } = usePOSTransactions();
 
+  const handleRefresh = useCallback(async () => {
+    await loadData();
+  }, [restaurantId]);
+
   useEffect(() => {
     if (restaurantId) {
       loadData();
@@ -117,9 +121,7 @@ export const POSHub = ({ restaurantId, isInTrial = false, trialDaysRemaining = 0
     );
   }
 
-  const handleRefresh = useCallback(async () => {
-    await loadData();
-  }, [restaurantId]);
+  // handleRefresh moved to top with other hooks
 
   // Dashboard view
   return (

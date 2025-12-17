@@ -51,6 +51,10 @@ export default function RestaurantMenuManager() {
   });
   const [productImages, setProductImages] = useState<string[]>([]);
 
+  const handleRefresh = useCallback(async () => {
+    await loadProducts();
+  }, [restaurantId]);
+
   useEffect(() => {
     loadRestaurantProfile();
   }, []);
@@ -324,9 +328,7 @@ export default function RestaurantMenuManager() {
     );
   }
 
-  const handleRefresh = useCallback(async () => {
-    await loadProducts();
-  }, [restaurantId]);
+  // handleRefresh moved to top with other hooks
 
   return (
     <PullToRefresh onRefresh={handleRefresh} disabled={loading || !restaurantId}>
