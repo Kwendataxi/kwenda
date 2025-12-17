@@ -24,11 +24,12 @@ interface VendorOrderValidationPanelProps {
 export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderValidationPanelProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { createOrFindConversation } = useUniversalChat();
+  const { createOrFindConversation, sendMessage } = useUniversalChat();
   const { openChat } = useChat();
   const { calculatePrice, formatPrice } = useDynamicDeliveryPricing();
   
   const [validatingOrder, setValidatingOrder] = useState<string | null>(null);
+  const [openingChat, setOpeningChat] = useState<string | null>(null);
   const [deliveryFees, setDeliveryFees] = useState<Record<string, number>>({});
   const [deliveryMethods, setDeliveryMethods] = useState<Record<string, 'kwenda' | 'self'>>({});
   const [estimatedPrices, setEstimatedPrices] = useState<Record<string, number>>({});
@@ -130,7 +131,7 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
 
       toast({ 
         title: "✅ Commande validée", 
-        description: "Le client a reçu votre proposition" 
+        description: `Frais de livraison: ${formatPrice(deliveryFee)} • Le client a reçu votre proposition`
       });
       onRefresh();
     } catch (error: any) {
@@ -138,6 +139,23 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } finally {
       setValidatingOrder(null);
+    }
+  };
+
+  // Envoyer un message rapide
+  const sendQuickMessage = async (conversationId: string, message: string) => {
+    try {
+      await sendMessage(conversationId, message);
+      toast({
+        title: "✅ Message envoyé",
+        description: message.substring(0, 50) + (message.length > 50 ? "..." : "")
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer le message",
+        variant: "destructive"
+      });
     }
   };
 
@@ -151,6 +169,8 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
       });
       return;
     }
+
+    setOpeningChat(order.id);
 
     try {
       const conversation = await createOrFindConversation(
@@ -168,8 +188,18 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
           participantId: order.buyer_id,
           title: `💬 Chat avec ${order.buyer?.display_name || order.buyer?.phone_number || 'le client'}`,
           quickActions: [
-            { label: "Commande prête", action: () => {} },
-            { label: "Retard de préparation", action: () => {} }
+            { 
+              label: "✅ Commande prête", 
+              action: () => sendQuickMessage(conversation.id, "Bonjour ! Votre commande est prête pour la livraison. 📦")
+            },
+            { 
+              label: "⏰ Retard préparation", 
+              action: () => sendQuickMessage(conversation.id, "Bonjour, il y a un léger retard dans la préparation de votre commande. Merci de votre patience. 🙏")
+            },
+            { 
+              label: "📍 Confirmer adresse", 
+              action: () => sendQuickMessage(conversation.id, "Pouvez-vous me confirmer votre adresse de livraison exacte ? 📍")
+            }
           ]
         });
       }
@@ -179,6 +209,8 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
         description: error.message || "Impossible d'ouvrir le chat",
         variant: "destructive",
       });
+    } finally {
+      setOpeningChat(null);
     }
   };
 
@@ -383,23 +415,27 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
               )}
 
               {/* Actions */}
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-3 pt-2">
                 <Button
-                  variant="outline"
-                  className="flex-1"
+                  className="flex-1 bg-amber-400 hover:bg-amber-500 text-black border-amber-500 font-semibold rounded-xl h-12 shadow-md hover:shadow-lg transition-all"
                   onClick={() => handleOpenChat(order)}
+                  disabled={openingChat === order.id}
                 >
-                  <MessageSquare className="h-4 w-4 mr-2" />
+                  {openingChat === order.id ? (
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  ) : (
+                    <MessageSquare className="h-5 w-5 mr-2" />
+                  )}
                   Discuter
                 </Button>
                 <Button
-                  className="flex-1"
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl h-12 shadow-md hover:shadow-lg transition-all"
                   onClick={() => handleValidateOrder(order.id)}
                   disabled={validatingOrder === order.id || !currentFee}
                 >
                   {validatingOrder === order.id ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                       Validation...
                     </>
                   ) : (
