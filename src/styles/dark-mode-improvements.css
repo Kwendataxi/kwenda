@@ -206,3 +206,137 @@
 .dark .category-pill-inactive {
   @apply bg-muted/80 text-muted-foreground/90 border-2 border-transparent;
 }
+
+/* ========================================
+   Rental Section - Dark Mode Optimized
+   ======================================== */
+
+/* Vehicle Cards */
+.rental-vehicle-card {
+  @apply bg-card border border-border/50;
+  @apply shadow-sm hover:shadow-md;
+  @apply transition-all duration-200;
+}
+
+.dark .rental-vehicle-card {
+  @apply bg-card/95 border-border/40;
+  @apply hover:border-border/60;
+}
+
+/* Price Tags */
+.rental-price-tag {
+  @apply bg-white/95 text-emerald-600;
+  @apply border border-white/20;
+  @apply backdrop-blur-sm rounded-lg;
+}
+
+.dark .rental-price-tag {
+  @apply bg-slate-800/95 text-emerald-400;
+  @apply border-slate-700/50;
+}
+
+/* Stat Cards */
+.rental-stat-card {
+  @apply bg-card border border-border/50;
+  @apply hover:shadow-md transition-shadow duration-200;
+}
+
+.dark .rental-stat-card {
+  @apply bg-card/90 border-border/40;
+}
+
+/* Category Badges */
+.rental-category-badge {
+  @apply bg-white/95 text-foreground;
+  @apply shadow-sm border-0;
+}
+
+.dark .rental-category-badge {
+  @apply bg-slate-800/95 text-slate-200;
+}
+
+/* Driver Badge */
+.rental-driver-badge {
+  @apply bg-emerald-500 text-white shadow-sm;
+}
+
+.dark .rental-driver-badge {
+  @apply bg-emerald-600;
+}
+
+/* Specs Pills */
+.rental-spec-pill {
+  @apply bg-muted/50 px-2 py-1 rounded-md;
+  @apply text-muted-foreground;
+}
+
+.dark .rental-spec-pill {
+  @apply bg-muted/30;
+}
+
+/* Button Styles */
+.rental-btn-primary {
+  @apply bg-emerald-500 hover:bg-emerald-600;
+  @apply text-white border-0;
+}
+
+.dark .rental-btn-primary {
+  @apply bg-emerald-600 hover:bg-emerald-700;
+}
+
+/* Search Input */
+.rental-search-input {
+  @apply border-border/50 bg-background;
+  @apply focus:border-emerald-500 focus:ring-emerald-500/20;
+}
+
+.dark .rental-search-input {
+  @apply border-border/40 bg-card/50;
+  @apply focus:border-emerald-400;
+}
+
+/* Filter Chips */
+.rental-filter-chip {
+  @apply border-border/50 hover:bg-muted/50;
+}
+
+.dark .rental-filter-chip {
+  @apply border-border/40 hover:bg-muted/30;
+}
+
+.rental-filter-chip-active {
+  @apply bg-emerald-500 text-white border-0;
+}
+
+.dark .rental-filter-chip-active {
+  @apply bg-emerald-600;
+}
+
+/* Partner Store Header */
+.rental-store-header {
+  @apply bg-background;
+}
+
+.dark .rental-store-header {
+  @apply bg-background/95;
+}
+
+/* About Section Card */
+.rental-about-card {
+  @apply bg-card border border-border/50;
+}
+
+.dark .rental-about-card {
+  @apply bg-card/90 border-border/40;
+}
+
+/* Contact Info Pills */
+.rental-contact-pill {
+  @apply bg-emerald-500/5 border border-emerald-500/20;
+  @apply hover:bg-emerald-500/10 transition-colors;
+}
+
+.dark .rental-contact-pill {
+  @apply bg-emerald-400/10 border-emerald-400/20;
+  @apply hover:bg-emerald-400/15;
+}
