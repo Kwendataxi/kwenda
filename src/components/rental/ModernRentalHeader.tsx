@@ -2,6 +2,7 @@ import React from 'react';
 import { MapPin, Search, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -16,6 +17,8 @@ interface ModernRentalHeaderProps {
   availableCities: string[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  onFilterClick?: () => void;
+  activeFiltersCount?: number;
 }
 
 export const ModernRentalHeader: React.FC<ModernRentalHeaderProps> = ({
@@ -24,6 +27,8 @@ export const ModernRentalHeader: React.FC<ModernRentalHeaderProps> = ({
   availableCities,
   searchTerm,
   setSearchTerm,
+  onFilterClick,
+  activeFiltersCount = 0,
 }) => {
   return (
     <div className="sticky top-[60px] z-40">
@@ -56,11 +61,20 @@ export const ModernRentalHeader: React.FC<ModernRentalHeaderProps> = ({
 
             {/* Filter button */}
             <Button 
-              variant="outline" 
+              variant={activeFiltersCount > 0 ? 'default' : 'outline'}
               size="icon"
-              className="rounded-lg"
+              className={`rounded-lg relative ${activeFiltersCount > 0 ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500' : ''}`}
+              onClick={onFilterClick}
             >
               <SlidersHorizontal className="h-4 w-4" />
+              {activeFiltersCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                >
+                  {activeFiltersCount}
+                </Badge>
+              )}
             </Button>
           </div>
 

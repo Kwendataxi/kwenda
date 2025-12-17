@@ -11,6 +11,7 @@ import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import { ModernRentalHeader } from '@/components/rental/ModernRentalHeader';
 import { ModernRentalNavigationV2 } from '@/components/rental/ModernRentalNavigationV2';
 import { PremiumPartnersCarousel } from '@/components/rental/PremiumPartnersCarousel';
+import { RentalFilterDrawer, RentalFilters, defaultRentalFilters } from '@/components/rental/RentalFilterDrawer';
 
 import { ModernPartnerCard } from '@/components/rental/ModernPartnerCard';
 import { ModernVehicleCard } from '@/components/rental/ModernVehicleCard';
@@ -40,6 +41,10 @@ export const ClientRentalInterface = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [myRentals, setMyRentals] = useState<any[]>([]);
   const [rentalsLoading, setRentalsLoading] = useState(false);
+  
+  // États pour les filtres
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<RentalFilters>(defaultRentalFilters);
   
   // États pour le paiement
   const [depositSheetOpen, setDepositSheetOpen] = useState(false);
@@ -208,8 +213,8 @@ export const ClientRentalInterface = () => {
     return counts;
   }, [vehicles, categories]);
 
-  // Filtrage des véhicules et partenaires
-  const { filteredVehicles, filteredPartners } = useMemo(() => {
+  // Filtrage des véhicules et partenaires avec compteur de filtres actifs
+  const { filteredVehicles, filteredPartners, activeFiltersCount } = useMemo(() => {
     const filteredVehs = vehicles.filter((v) => {
       const matchesSearch = !searchTerm || 
         v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -218,7 +223,26 @@ export const ClientRentalInterface = () => {
       
       const matchesCategory = !selectedCategory || v.category_id === selectedCategory;
       
-      return matchesSearch && matchesCategory;
+      // Nouveaux filtres
+      const matchesPrice = v.daily_rate >= filters.priceRange[0] && 
+                           v.daily_rate <= filters.priceRange[1];
+      
+      const matchesTransmission = filters.transmission.length === 0 || 
+                                  filters.transmission.includes(v.transmission?.toLowerCase() || '');
+      
+      const matchesFuel = filters.fuelType.length === 0 || 
+                          filters.fuelType.includes(v.fuel_type?.toLowerCase() || '');
+      
+      const matchesSeats = !filters.minSeats || (v.seats && v.seats >= filters.minSeats);
+      
+      const matchesDriver = filters.driverAvailable === null || 
+                            v.driver_available === filters.driverAvailable;
+      
+      const matchesYear = !v.year || v.year >= filters.minYear;
+      
+      return matchesSearch && matchesCategory && matchesPrice && 
+             matchesTransmission && matchesFuel && matchesSeats && 
+             matchesDriver && matchesYear;
     });
 
     const filteredParts = partnerGroups.filter((p) => {
@@ -226,8 +250,17 @@ export const ClientRentalInterface = () => {
       return p.partnerName.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
-    return { filteredVehicles: filteredVehs, filteredPartners: filteredParts };
-  }, [vehicles, partnerGroups, searchTerm, selectedCategory]);
+    // Calcul du nombre de filtres actifs
+    let count = 0;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500000) count++;
+    if (filters.transmission.length > 0) count++;
+    if (filters.fuelType.length > 0) count++;
+    if (filters.minSeats > 0) count++;
+    if (filters.driverAvailable !== null) count++;
+    if (filters.minYear > 2015) count++;
+
+    return { filteredVehicles: filteredVehs, filteredPartners: filteredParts, activeFiltersCount: count };
+  }, [vehicles, partnerGroups, searchTerm, selectedCategory, filters]);
 
   // Calcul du solde wallet pour le modal (balance + ecosystem_credits)
   const walletBalance = (wallet?.balance || 0) + (wallet?.ecosystem_credits || 0);
@@ -275,6 +308,8 @@ export const ClientRentalInterface = () => {
         availableCities={availableCities}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        onFilterClick={() => setIsFilterOpen(true)}
+        activeFiltersCount={activeFiltersCount}
       />
 
 
@@ -443,6 +478,16 @@ export const ClientRentalInterface = () => {
         walletBalance={walletBalance}
         onPayDeposit={handleDepositPayment}
         isProcessing={isProcessingPayment}
+      />
+
+      {/* Drawer de filtres */}
+      <RentalFilterDrawer
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        filters={filters}
+        onUpdateFilters={setFilters}
+        onReset={() => setFilters(defaultRentalFilters)}
+        activeFiltersCount={activeFiltersCount}
       />
     </div>
   );
