@@ -17,11 +17,13 @@ import {
   ChevronRight,
   LogOut,
   Store,
-  Utensils
+  Utensils,
+  Calculator,
+  Crown
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-type RestaurantTab = 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile' | 'subscription';
+type RestaurantTab = 'dashboard' | 'orders' | 'menu' | 'analytics' | 'wallet' | 'profile' | 'subscription' | 'pos';
 
 interface RestaurantSidebarProps {
   currentTab: RestaurantTab;
@@ -53,6 +55,13 @@ export function RestaurantSidebar({
       icon: ShoppingBag,
       badge: pendingOrders > 0 ? pendingOrders : undefined,
       color: 'from-blue-500 to-cyan-500'
+    },
+    { 
+      id: 'pos' as RestaurantTab, 
+      label: 'Caisse', 
+      icon: Calculator,
+      color: 'from-emerald-500 to-teal-500',
+      proBadge: true
     },
     { 
       id: 'menu' as RestaurantTab, 
@@ -186,6 +195,17 @@ export function RestaurantSidebar({
               )}
               {item.badge && collapsed && (
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              )}
+              
+              {/* Pro Badge */}
+              {'proBadge' in item && item.proBadge && !collapsed && (
+                <Badge 
+                  variant="outline" 
+                  className="h-5 px-1.5 text-[10px] border-orange-500/50 text-orange-600 bg-orange-500/10"
+                >
+                  <Crown className="h-2.5 w-2.5 mr-0.5" />
+                  Pro
+                </Badge>
               )}
             </motion.button>
           );

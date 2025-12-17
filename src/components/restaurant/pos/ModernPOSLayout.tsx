@@ -223,7 +223,7 @@ export const ModernPOSLayout = () => {
               onClick={() => setShowCart(true)}
             >
               <ShoppingCart className="h-5 w-5 mr-2" />
-              Voir le panier ({cartItemCount}) • {cartTotal.toLocaleString()} FC
+              Voir le panier ({cartItemCount}) • {cartTotal.toLocaleString()} CDF
             </Button>
           </motion.div>
         )}

@@ -47,7 +47,7 @@ export const POSCart = ({ cart, onUpdateQuantity, onCheckout, session }: POSCart
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h4 className="font-medium text-sm">{item.name}</h4>
-                  <p className="text-xs text-muted-foreground">{item.price.toLocaleString()} FC</p>
+                  <p className="text-xs text-muted-foreground">{item.price.toLocaleString()} CDF</p>
                 </div>
                 <Button
                   variant="ghost"
@@ -68,7 +68,7 @@ export const POSCart = ({ cart, onUpdateQuantity, onCheckout, session }: POSCart
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <span className="w-8 text-center font-medium">{item.quantity}</span>
+                  <span className="w-10 text-center font-medium">{item.quantity}</span>
                   <Button
                     variant="outline"
                     size="icon"
@@ -78,7 +78,7 @@ export const POSCart = ({ cart, onUpdateQuantity, onCheckout, session }: POSCart
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <span className="font-bold">{item.total.toLocaleString()} FC</span>
+                <span className="font-bold">{item.total.toLocaleString()} CDF</span>
               </div>
             </div>
           ))}
@@ -97,18 +97,18 @@ export const POSCart = ({ cart, onUpdateQuantity, onCheckout, session }: POSCart
         <div className="border-t p-4 space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Sous-total</span>
-            <span>{subtotal.toLocaleString()} FC</span>
+            <span>{subtotal.toLocaleString()} CDF</span>
           </div>
           {tax > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">TVA</span>
-              <span>{tax.toLocaleString()} FC</span>
+              <span>{tax.toLocaleString()} CDF</span>
             </div>
           )}
           <Separator />
           <div className="flex justify-between font-bold text-lg">
             <span>Total</span>
-            <span>{total.toLocaleString()} FC</span>
+            <span>{total.toLocaleString()} CDF</span>
           </div>
 
           {/* Payment Methods */}
@@ -132,10 +132,10 @@ export const POSCart = ({ cart, onUpdateQuantity, onCheckout, session }: POSCart
           {/* Checkout Button */}
           <Button
             onClick={() => onCheckout(selectedPayment)}
-            className="w-full h-12 text-lg font-bold"
+            className="w-full h-12 text-lg font-bold bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
             size="lg"
           >
-            Encaisser {total.toLocaleString()} FC
+            Encaisser {total.toLocaleString()} CDF
           </Button>
         </div>
       )}
