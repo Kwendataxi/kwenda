@@ -218,86 +218,101 @@ export const KwendaGrattaCard: React.FC<KwendaGrattaCardProps> = ({
         <div className={cn('absolute inset-0', `wax-pattern-${card.cardType === 'mega' ? 'gold' : card.cardType === 'rare' ? 'purple' : card.cardType === 'active' ? 'green' : 'blue'}`)} />
 
         <CardContent className="p-4 relative z-10">
-          {/* Zone de grattage ou contenu révélé */}
-          <div className="relative h-32 rounded-xl overflow-hidden bg-card/80 backdrop-blur-sm">
-            <AnimatePresence mode="wait">
-              {!revealed ? (
-                <motion.div
-                  key="scratch"
-                  className="scratch-area absolute inset-0"
-                  exit={{ opacity: 0, scale: 0.8 }}
-                >
-                  <canvas
-                    ref={canvasRef}
-                    className="absolute inset-0 cursor-crosshair touch-none"
-                    onMouseDown={handleMouseDown}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                    onMouseMove={handleMouseMove}
-                    onTouchStart={handleMouseDown}
-                    onTouchEnd={handleMouseUp}
-                    onTouchMove={handleTouchMove}
-                  />
-                  
-                  {/* Contenu caché derrière */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0">
-                    <span className="text-4xl">{rewardConfig.icon}</span>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="revealed"
-                  initial={{ opacity: 0, scale: 0.5, rotateY: 180 }}
-                  animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                  className="absolute inset-0 flex flex-col items-center justify-center p-4"
-                >
-                  <motion.span
-                    className="text-5xl mb-2"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 0.5, repeat: 2 }}
-                  >
-                    {rewardConfig.icon}
-                  </motion.span>
-                  
-                  <h3 className={cn('font-bold text-lg', rewardConfig.colorClass)}>
-                    {card.name}
-                  </h3>
-                  
-                  <p className="text-sm text-muted-foreground">
-                    {rewardConfig.description}
-                  </p>
-                  
-                  {card.value > 0 && (
+          {/* Zone de grattage avec glassmorphism */}
+          <div className="relative rounded-2xl overflow-hidden">
+            {/* Glow effect autour de la zone */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-yellow-500/20 to-rose-500/20 rounded-3xl blur-lg opacity-60" />
+            
+            {/* Container glassmorphism */}
+            <div className="relative bg-card/50 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+              {/* Zone de grattage */}
+              <div className="relative h-36 m-2 rounded-xl overflow-hidden bg-gradient-to-br from-card/90 to-card/70">
+                <AnimatePresence mode="wait">
+                  {!revealed ? (
                     <motion.div
-                      className="mt-2 px-4 py-1 rounded-full bg-primary/10 font-bold"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.3 }}
+                      key="scratch"
+                      className="scratch-area absolute inset-0"
+                      exit={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
                     >
-                      +{card.value} {card.rewardCategory === 'xp_points' ? 'XP' : card.currency}
+                      <canvas
+                        ref={canvasRef}
+                        className="absolute inset-0 cursor-crosshair touch-none rounded-xl"
+                        onMouseDown={handleMouseDown}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
+                        onMouseMove={handleMouseMove}
+                        onTouchStart={handleMouseDown}
+                        onTouchEnd={handleMouseUp}
+                        onTouchMove={handleTouchMove}
+                      />
+                      
+                      {/* Contenu caché derrière */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0">
+                        <span className="text-4xl">{rewardConfig.icon}</span>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="revealed"
+                      initial={{ opacity: 0, scale: 0.5, rotateY: 180 }}
+                      animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                      className="absolute inset-0 flex flex-col items-center justify-center p-4"
+                    >
+                      <motion.span
+                        className="text-5xl mb-2"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 0.5, repeat: 2 }}
+                      >
+                        {rewardConfig.icon}
+                      </motion.span>
+                      
+                      <h3 className={cn('font-bold text-lg', rewardConfig.colorClass)}>
+                        {card.name}
+                      </h3>
+                      
+                      <p className="text-sm text-muted-foreground">
+                        {rewardConfig.description}
+                      </p>
+                      
+                      {card.value > 0 && (
+                        <motion.div
+                          className="mt-2 px-4 py-1 rounded-full bg-primary/10 font-bold"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          +{card.value} {card.rewardCategory === 'xp_points' ? 'XP' : card.currency}
+                        </motion.div>
+                      )}
                     </motion.div>
                   )}
-                </motion.div>
+                </AnimatePresence>
+              </div>
+              
+              {/* Barre de progression modernisée */}
+              {!revealed && (
+                <div className="px-4 pb-4">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="h-3 w-3 text-yellow-500" />
+                      Progression
+                    </span>
+                    <span className="font-medium">{scratchPercentage}%</span>
+                  </div>
+                  <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-500 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${scratchPercentage}%` }}
+                      transition={{ type: 'spring', stiffness: 100 }}
+                    />
+                    {/* Shimmer effect sur la barre */}
+                    <div className="absolute inset-0 scratch-progress-shimmer" />
+                  </div>
+                </div>
               )}
-            </AnimatePresence>
-          </div>
-
-          {/* Barre de progression du grattage */}
-          {!revealed && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Progression</span>
-                <span>{scratchPercentage}%</span>
-              </div>
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-blue-500 via-yellow-500 to-red-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${scratchPercentage}%` }}
-                />
-              </div>
             </div>
-          )}
+          </div>
 
           {/* Info expiration */}
           {card.expiresInHours && !revealed && (
