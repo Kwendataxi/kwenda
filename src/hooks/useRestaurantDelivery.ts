@@ -71,7 +71,8 @@ export const useRestaurantDelivery = () => {
       const { error } = await supabase
         .from('food_orders')
         .update({
-          status: 'self_delivery',
+          status: 'in_transit',  // Statut valide - restaurant livre lui-même
+          driver_id: null,       // Pas de livreur Kwenda assigné
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId);
