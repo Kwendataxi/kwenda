@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,7 @@ import { RestaurantShareButtons } from '@/components/food/RestaurantShareButtons
 import { RestaurantWalletCard } from '@/components/restaurant/RestaurantWalletCard';
 import { useRestaurantWallet } from '@/hooks/useRestaurantWallet';
 import { motion } from 'framer-motion';
-// Layout maintenant géré par RestaurantApp
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 
 interface RestaurantStats {
   todayOrders: number;
@@ -189,7 +189,12 @@ export default function ModernRestaurantDashboard() {
     },
   ];
 
+  const handleRefresh = useCallback(async () => {
+    await loadRestaurantData();
+  }, []);
+
   return (
+    <PullToRefresh onRefresh={handleRefresh} disabled={loading}>
     <div className="space-y-6">
         {/* Header avec gradient */}
       <motion.div
@@ -483,5 +488,6 @@ export default function ModernRestaurantDashboard() {
         </Card>
       </motion.div>
     </div>
+    </PullToRefresh>
   );
 }

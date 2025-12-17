@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +11,7 @@ import { OrderKanbanBoard } from '@/components/restaurant/orders/OrderKanbanBoar
 import { OrderFilters } from '@/components/restaurant/orders/OrderFilters';
 import { OrderCard } from '@/components/restaurant/orders/OrderCard';
 import { motion } from 'framer-motion';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 
 export default function ModernRestaurantOrders() {
   const navigate = useNavigate();
@@ -178,7 +179,12 @@ export default function ModernRestaurantOrders() {
 
   const totalActive = Object.values(orderCounts).reduce((a, b) => a + b, 0);
 
+  const handleRefresh = useCallback(async () => {
+    await loadOrders();
+  }, [restaurantId]);
+
   return (
+    <PullToRefresh onRefresh={handleRefresh} disabled={loading || !restaurantId}>
     <div className="space-y-4 pb-20 md:pb-6">
       {/* Compact Header */}
       <motion.div
@@ -300,6 +306,7 @@ export default function ModernRestaurantOrders() {
         </TabsContent>
       </Tabs>
     </div>
+    </PullToRefresh>
   );
 }
 

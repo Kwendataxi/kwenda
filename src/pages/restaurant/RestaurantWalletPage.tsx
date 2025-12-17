@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { RestaurantTopUpDialog } from '@/components/restaurant/RestaurantTopUpDi
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 
 export default function RestaurantWalletPage() {
   const navigate = useNavigate();
@@ -36,7 +37,13 @@ export default function RestaurantWalletPage() {
     return variants[status] || 'secondary';
   };
 
+  const handleRefresh = useCallback(async () => {
+    // The hook auto-refreshes, but we trigger a re-render
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }, []);
+
   return (
+    <PullToRefresh onRefresh={handleRefresh} disabled={loading}>
     <div className="space-y-6 pb-24 md:pb-6 max-w-7xl mx-auto p-4 md:p-6">
       {/* Header avec bouton retour */}
       <div className="flex items-center gap-4 mb-6">
@@ -256,5 +263,6 @@ export default function RestaurantWalletPage() {
         loading={topUpLoading}
       />
     </div>
+    </PullToRefresh>
   );
 }

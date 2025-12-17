@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 import { ProductImageUpload } from '@/components/restaurant/ProductImageUpload';
-
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { cn } from '@/lib/utils';
 import { FOOD_CATEGORIES } from '@/config/foodCategories';
 
@@ -324,7 +324,12 @@ export default function RestaurantMenuManager() {
     );
   }
 
+  const handleRefresh = useCallback(async () => {
+    await loadProducts();
+  }, [restaurantId]);
+
   return (
+    <PullToRefresh onRefresh={handleRefresh} disabled={loading || !restaurantId}>
     <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -529,5 +534,6 @@ export default function RestaurantMenuManager() {
           </Card>
         )}
       </div>
+    </PullToRefresh>
   );
 }

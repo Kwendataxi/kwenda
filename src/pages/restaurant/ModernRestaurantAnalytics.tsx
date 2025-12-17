@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, DollarSign, ShoppingBag, Star, Clock } from 'lucide-react';
 import { RevenueChart, TopDishesChart } from '@/components/restaurant/analytics/RevenueChart';
 import { motion } from 'framer-motion';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 
 
 interface AnalyticsData {
@@ -202,7 +203,13 @@ export default function ModernRestaurantAnalytics() {
     },
   ];
 
+  const handleRefresh = useCallback(async () => {
+    setLoading(true);
+    await loadAnalytics();
+  }, []);
+
   return (
+    <PullToRefresh onRefresh={handleRefresh} disabled={loading}>
     <div className="space-y-6">
       {/* Header */}
       <motion.div
@@ -302,5 +309,6 @@ export default function ModernRestaurantAnalytics() {
       </Card>
       </motion.div>
     </div>
+    </PullToRefresh>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import {
   XCircle,
   Gift
 } from 'lucide-react';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
 import { usePOSSession, POSSession } from '@/hooks/usePOSSession';
 import { usePOSTransactions } from '@/hooks/usePOSTransactions';
 import { POSSessionManager } from './POSSessionManager';
@@ -116,8 +117,13 @@ export const POSHub = ({ restaurantId, isInTrial = false, trialDaysRemaining = 0
     );
   }
 
+  const handleRefresh = useCallback(async () => {
+    await loadData();
+  }, [restaurantId]);
+
   // Dashboard view
   return (
+    <PullToRefresh onRefresh={handleRefresh} disabled={loading}>
     <div className="space-y-6">
       {/* Trial Banner */}
       {isInTrial && (
@@ -334,5 +340,6 @@ export const POSHub = ({ restaurantId, isInTrial = false, trialDaysRemaining = 0
         </Card>
       )}
     </div>
+    </PullToRefresh>
   );
 };
