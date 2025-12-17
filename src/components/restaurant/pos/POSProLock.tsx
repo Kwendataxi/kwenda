@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Crown, Check, Lock, Zap } from 'lucide-react';
+import { Crown, Check, Zap, Clock } from 'lucide-react';
 
 interface POSProLockProps {
   onUpgrade: () => void;
+  trialExpired?: boolean;
 }
 
-export const POSProLock = ({ onUpgrade }: POSProLockProps) => {
+export const POSProLock = ({ onUpgrade, trialExpired = false }: POSProLockProps) => {
   const features = [
     'Sessions de caisse avec suivi en temps réel',
     'Encaissement multi-mode (espèces, Mobile Money, carte)',
@@ -33,14 +34,23 @@ export const POSProLock = ({ onUpgrade }: POSProLockProps) => {
               transition={{ type: 'spring', delay: 0.2 }}
               className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-xl"
             >
-              <Crown className="h-10 w-10 text-white" />
+              {trialExpired ? (
+                <Clock className="h-10 w-10 text-white" />
+              ) : (
+                <Crown className="h-10 w-10 text-white" />
+              )}
             </motion.div>
 
             {/* Title */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Fonctionnalité Pro</h2>
+              <h2 className="text-2xl font-bold">
+                {trialExpired ? 'Période d\'essai terminée' : 'Fonctionnalité Pro'}
+              </h2>
               <p className="text-muted-foreground">
-                La gestion de caisse est réservée aux abonnements Pro et Premium.
+                {trialExpired 
+                  ? 'Votre essai gratuit de 15 jours est terminé. Passez au plan Pro pour continuer à utiliser la caisse.'
+                  : 'La gestion de caisse est réservée aux abonnements Pro et Premium.'
+                }
               </p>
             </div>
 

@@ -35,8 +35,12 @@ interface FoodDelivery {
   };
   order: {
     order_number: string;
-    customer_phone: string;
+    delivery_phone: string | null;
     special_instructions: string | null;
+    customer: {
+      display_name: string | null;
+      phone_number: string | null;
+    } | null;
   };
 }
 
@@ -65,8 +69,12 @@ export default function DriverFoodDeliveries() {
           ),
           order:food_orders!food_delivery_assignments_food_order_id_fkey(
             order_number,
-            customer_phone,
-            special_instructions
+            delivery_phone,
+            special_instructions,
+            customer:clients!food_orders_customer_id_fkey(
+              display_name,
+              phone_number
+            )
           )
         `)
         .eq('driver_id', user?.id)
@@ -307,18 +315,25 @@ export default function DriverFoodDeliveries() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">Livraison</p>
+                      {delivery.order.customer?.display_name && (
+                        <p className="text-sm font-semibold">{delivery.order.customer.display_name}</p>
+                      )}
                       <p className="text-sm text-muted-foreground break-words">{delivery.delivery_location}</p>
-                      <Button 
-                        variant="link" 
-                        size="sm" 
-                        className="h-auto p-0 text-xs"
-                        asChild
-                      >
-                        <a href={`tel:${delivery.order.customer_phone}`}>
-                          <Phone className="h-3 w-3 mr-1" />
-                          {delivery.order.customer_phone}
-                        </a>
-                      </Button>
+                      {(delivery.order.customer?.phone_number || delivery.order.delivery_phone) ? (
+                        <Button 
+                          variant="link" 
+                          size="sm" 
+                          className="h-auto p-0 text-xs"
+                          asChild
+                        >
+                          <a href={`tel:${delivery.order.customer?.phone_number || delivery.order.delivery_phone}`}>
+                            <Phone className="h-3 w-3 mr-1" />
+                            {delivery.order.customer?.phone_number || delivery.order.delivery_phone}
+                          </a>
+                        </Button>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Téléphone non renseigné</p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"

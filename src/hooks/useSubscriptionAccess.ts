@@ -5,16 +5,22 @@ interface SubscriptionAccess {
   canAccessPOS: boolean;
   isPro: boolean;
   isPremium: boolean;
+  isInTrial: boolean;
+  trialDaysRemaining: number;
   isLoading: boolean;
   subscription: any | null;
   planName: string | null;
 }
+
+const TRIAL_DAYS = 15;
 
 export const useSubscriptionAccess = (restaurantId: string | null) => {
   const [access, setAccess] = useState<SubscriptionAccess>({
     canAccessPOS: false,
     isPro: false,
     isPremium: false,
+    isInTrial: false,
+    trialDaysRemaining: 0,
     isLoading: true,
     subscription: null,
     planName: null,
@@ -31,6 +37,25 @@ export const useSubscriptionAccess = (restaurantId: string | null) => {
 
   const checkSubscription = async () => {
     try {
+      // Get restaurant creation date for trial calculation
+      const { data: restaurant } = await supabase
+        .from('restaurant_profiles')
+        .select('created_at')
+        .eq('id', restaurantId)
+        .single();
+
+      // Calculate trial status
+      let isInTrial = false;
+      let trialDaysRemaining = 0;
+      
+      if (restaurant?.created_at) {
+        const createdAt = new Date(restaurant.created_at);
+        const now = new Date();
+        const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+        isInTrial = daysSinceCreation <= TRIAL_DAYS;
+        trialDaysRemaining = Math.max(0, TRIAL_DAYS - daysSinceCreation);
+      }
+
       // Get active subscription with plan details
       const { data: subscription, error } = await supabase
         .from('restaurant_subscriptions')
@@ -50,18 +75,23 @@ export const useSubscriptionAccess = (restaurantId: string | null) => {
         const isPremium = priorityLevel >= 2;
 
         setAccess({
-          canAccessPOS: isPro || isPremium,
+          canAccessPOS: isPro || isPremium || isInTrial,
           isPro,
           isPremium,
+          isInTrial: !isPro && !isPremium && isInTrial,
+          trialDaysRemaining: isPro || isPremium ? 0 : trialDaysRemaining,
           isLoading: false,
           subscription,
           planName: subscription.plan.name,
         });
       } else {
+        // No subscription - check trial
         setAccess({
-          canAccessPOS: false,
+          canAccessPOS: isInTrial,
           isPro: false,
           isPremium: false,
+          isInTrial,
+          trialDaysRemaining,
           isLoading: false,
           subscription: null,
           planName: null,

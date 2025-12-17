@@ -57,7 +57,7 @@ export default function RestaurantApp() {
     }
   };
 
-  const { canAccessPOS, isLoading: subscriptionLoading } = useSubscriptionAccess(restaurantId);
+  const { canAccessPOS, isInTrial, trialDaysRemaining, isLoading: subscriptionLoading } = useSubscriptionAccess(restaurantId);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -135,9 +135,9 @@ export default function RestaurantApp() {
         return <RestaurantSubscriptionPage />;
       case 'pos':
         if (!canAccessPOS) {
-          return <POSProLock onUpgrade={() => handleTabChange('subscription')} />;
+          return <POSProLock onUpgrade={() => handleTabChange('subscription')} trialExpired={trialDaysRemaining === 0} />;
         }
-        return <POSHub restaurantId={restaurantId!} />;
+        return <POSHub restaurantId={restaurantId!} isInTrial={isInTrial} trialDaysRemaining={trialDaysRemaining} />;
       default:
         return <RestaurantDashboard />;
     }
