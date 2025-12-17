@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepByStepDeliveryInterface from '@/components/delivery/StepByStepDeliveryInterface';
 import { OrderConfirmationStep } from '@/components/delivery/OrderConfirmationStep';
 import DeliveryTrackingHub from '@/components/delivery/DeliveryTrackingHub';
-import { Package, ArrowLeft, Home } from 'lucide-react';
+import { Package, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRoleBasedNavigation } from '@/hooks/useRoleBasedNavigation';
 
@@ -54,28 +54,28 @@ const DeliveryPage = () => {
   if (activeView === 'confirm' && deliveryData) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Header moderne et épuré */}
-        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/10">
-          <div className="max-w-6xl mx-auto px-4 py-3">
-            <div className="flex items-center gap-4">
+        {/* Header soft et épuré */}
+        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/5">
+          <div className="max-w-6xl mx-auto px-4 py-2.5">
+            <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleBackToHome}
-                className="h-10 w-10 rounded-xl bg-card hover:bg-muted transition-colors"
+                className="h-8 w-8 -ml-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
               >
-                <Home className="h-5 w-5 text-muted-foreground" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
 
-              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-                <Package className="h-5 w-5 text-primary" />
+              <div className="h-9 w-9 rounded-xl bg-muted/50 flex items-center justify-center">
+                <Package className="h-4.5 w-4.5 text-foreground/60" />
               </div>
 
               <div className="flex flex-col">
-                <h1 className="text-lg font-semibold text-foreground tracking-tight">
+                <h1 className="text-base font-medium text-foreground tracking-tight">
                   Confirmation
                 </h1>
-                <p className="text-xs text-muted-foreground/70">Vérifiez votre livraison</p>
+                <p className="text-[11px] text-muted-foreground/60">Vérifiez votre livraison</p>
               </div>
             </div>
           </div>
@@ -113,31 +113,28 @@ const DeliveryPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header moderne et épuré */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/10">
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-4">
-            {/* Bouton retour minimaliste */}
+      {/* Header soft et épuré */}
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/5">
+        <div className="max-w-6xl mx-auto px-4 py-2.5">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleBackToHome}
-              className="h-10 w-10 rounded-xl bg-card hover:bg-muted transition-colors"
+              className="h-8 w-8 -ml-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
             >
-              <Home className="h-5 w-5 text-muted-foreground" />
+              <ArrowLeft className="h-5 w-5" />
             </Button>
 
-            {/* Icône service avec fond doux */}
-            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center">
-              <Package className="h-5 w-5 text-primary" />
+            <div className="h-9 w-9 rounded-xl bg-muted/50 flex items-center justify-center">
+              <Package className="h-[18px] w-[18px] text-foreground/60" />
             </div>
 
-            {/* Titre et sous-titre */}
             <div className="flex flex-col">
-              <h1 className="text-lg font-semibold text-foreground tracking-tight">
-                Kwenda <span className="text-primary">Delivery</span>
+              <h1 className="text-base font-medium text-foreground tracking-tight">
+                Kwenda <span className="text-foreground/50">Delivery</span>
               </h1>
-              <p className="text-xs text-muted-foreground/70">Livraison express</p>
+              <p className="text-[11px] text-muted-foreground/60">Livraison express</p>
             </div>
           </div>
         </div>
