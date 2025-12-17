@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 // Cache global pour le token OAuth (économise des appels API)
 let cachedOAuthToken: { token: string; expiresAt: number } | null = null;
@@ -38,6 +38,99 @@ interface OrangeMoneyB2BResponse {
     transactionId: string;
     txnId?: string;
   };
+}
+
+// ✅ Fonction pour créditer le wallet vendeur (merchant_accounts)
+async function creditVendorWallet(
+  supabaseService: SupabaseClient,
+  vendorId: string,
+  amount: number,
+  currency: string,
+  provider: string,
+  transactionId: string
+): Promise<void> {
+  try {
+    console.log(`💰 Crédit wallet vendeur: ${amount} ${currency} pour ${vendorId}`);
+    
+    // Récupérer ou créer le compte marchand
+    let { data: merchantAccount, error: fetchError } = await supabaseService
+      .from('merchant_accounts')
+      .select('*')
+      .eq('vendor_id', vendorId)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('[creditVendorWallet] Erreur fetch:', fetchError);
+      throw fetchError;
+    }
+
+    if (!merchantAccount) {
+      // Créer le compte marchand
+      const { data: newAccount, error: createError } = await supabaseService
+        .from('merchant_accounts')
+        .insert({
+          vendor_id: vendorId,
+          balance: 0,
+          currency: currency,
+          total_earned: 0,
+          total_withdrawn: 0
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('[creditVendorWallet] Erreur création compte:', createError);
+        throw createError;
+      }
+      merchantAccount = newAccount;
+      console.log('✅ Compte marchand créé:', merchantAccount.id);
+    }
+
+    const oldBalance = merchantAccount.balance || 0;
+    const newBalance = oldBalance + amount;
+
+    // Créditer le compte
+    const { error: updateError } = await supabaseService
+      .from('merchant_accounts')
+      .update({
+        balance: newBalance,
+        total_earned: (merchantAccount.total_earned || 0) + amount,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', merchantAccount.id);
+
+    if (updateError) {
+      console.error('[creditVendorWallet] Erreur update balance:', updateError);
+      throw updateError;
+    }
+
+    // Enregistrer la transaction
+    const { error: txError } = await supabaseService
+      .from('merchant_transactions')
+      .insert({
+        merchant_account_id: merchantAccount.id,
+        vendor_id: vendorId,
+        transaction_type: 'credit',
+        amount: amount,
+        currency: currency,
+        description: `Rechargement via ${provider}`,
+        reference_id: transactionId,
+        reference_type: 'wallet_topup',
+        balance_before: oldBalance,
+        balance_after: newBalance,
+        status: 'completed'
+      });
+
+    if (txError) {
+      console.error('[creditVendorWallet] Erreur insert transaction:', txError);
+      // On ne throw pas ici car le crédit est déjà fait
+    }
+
+    console.log(`✅ Wallet vendeur crédité: ${oldBalance} → ${newBalance} ${currency}`);
+  } catch (error) {
+    console.error('❌ Erreur crédit wallet vendeur:', error);
+    throw error;
+  }
 }
 
 serve(async (req) => {
@@ -380,6 +473,15 @@ serve(async (req) => {
           console.error('Error updating transaction metadata:', updateError);
         }
 
+        // ✅ Créditer le wallet vendeur si paiement réussi ou en cours
+        if ((isSuccess || isPending) && orderType === 'vendor_credit' && userType === 'vendor') {
+          try {
+            await creditVendorWallet(supabaseService, user.id, amount, currency, provider, transactionId);
+          } catch (creditError) {
+            console.error('❌ Erreur crédit wallet (non bloquant):', creditError);
+          }
+        }
+
         // Retourner la réponse (202 pour pending, 200 pour success)
         return new Response(
           JSON.stringify({
@@ -456,6 +558,15 @@ serve(async (req) => {
 
       if (updateError) {
         console.error('Error updating transaction:', updateError);
+      }
+
+      // ✅ Créditer le wallet vendeur si paiement réussi
+      if (orderType === 'vendor_credit' && userType === 'vendor') {
+        try {
+          await creditVendorWallet(supabaseService, user.id, amount, currency, provider, transactionId);
+        } catch (creditError) {
+          console.error('❌ Erreur crédit wallet (non bloquant):', creditError);
+        }
       }
 
       return new Response(
