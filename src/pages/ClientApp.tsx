@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { JobInterface } from '@/components/job/JobInterface';
+import { ModernJobInterface } from '@/components/job/modern/ModernJobInterface';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { FloatingChatButton as MarketplaceFloatingChatButton } from '@/components/marketplace/FloatingChatButton';
@@ -978,7 +978,7 @@ const ClientApp = () => {
                 />
               );
             case 'job':
-              return <JobInterface onBack={() => setCurrentView('home')} />;
+              return <ModernJobInterface onBack={() => setCurrentView('home')} />;
             default:
               return renderHome();
           }
