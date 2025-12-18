@@ -60,7 +60,7 @@ export default function DriverRideNotifications() {
         .from('push_notifications')
         .select('*')
         .eq('user_id', user.id)
-        .eq('notification_type', 'ride_assignment')
+        .in('notification_type', ['ride_assignment', 'ride_bidding'])
         .eq('is_sent', false)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -117,28 +117,36 @@ export default function DriverRideNotifications() {
           console.log('🔔 New notification received:', payload);
           
           const newNotif = payload.new as any;
-          if (newNotif.notification_type === 'ride_assignment') {
+          const isBidding = newNotif.notification_type === 'ride_bidding' || 
+                            newNotif.metadata?.biddingMode === true;
+          
+          if (newNotif.notification_type === 'ride_assignment' || newNotif.notification_type === 'ride_bidding') {
             const notification: RideNotification = {
               id: newNotif.reference_id || newNotif.id,
-              title: newNotif.title,
+              title: isBidding ? '🎯 Mode Enchères' : newNotif.title,
               message: newNotif.message,
               distance: newNotif.metadata?.distance || 0,
               estimatedTime: Math.ceil((newNotif.metadata?.distance || 0) * 3),
-              expiresIn: 120,
+              expiresIn: isBidding ? 180 : 120, // 3 min for bidding
               pickupAddress: newNotif.metadata?.pickupLocation?.address,
               destinationAddress: newNotif.metadata?.destinationLocation?.address,
               estimatedPrice: newNotif.metadata?.estimatedPrice,
               vehicleClass: newNotif.metadata?.vehicleClass,
               ridesRemaining: newNotif.metadata?.rides_remaining,
-              status: 'pending'
+              status: 'pending',
+              biddingMode: isBidding,
+              offerCount: newNotif.metadata?.offerCount || 0,
+              biddingClosesAt: newNotif.metadata?.biddingClosesAt
             };
 
             setNotifications(prev => [notification, ...prev]);
             
-            // Play notification sound
-            toast('🚗 Nouvelle course disponible !', {
-              description: `Distance: ${notification.distance.toFixed(1)}km`,
-              duration: 120000 // 2 minutes
+            // Play notification sound with different message for bidding
+            toast(isBidding ? '🎯 Nouvelle enchère disponible !' : '🚗 Nouvelle course disponible !', {
+              description: isBidding 
+                ? `${notification.estimatedPrice?.toLocaleString()} CDF • ${notification.distance.toFixed(1)}km`
+                : `Distance: ${notification.distance.toFixed(1)}km`,
+              duration: isBidding ? 180000 : 120000
             });
           }
         }

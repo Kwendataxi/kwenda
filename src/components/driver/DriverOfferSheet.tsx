@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { useDriverOffer } from '@/hooks/useDriverOffer';
-import { MapPin, Clock, DollarSign, Users, TrendingDown, TrendingUp } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Users, TrendingDown, TrendingUp, Zap, Percent, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface DriverOfferSheetProps {
@@ -19,6 +19,7 @@ interface DriverOfferSheetProps {
   pickupAddress: string;
   destinationAddress: string;
   offerCount?: number;
+  distanceToPickup?: number;
 }
 
 export const DriverOfferSheet = ({
@@ -29,12 +30,13 @@ export const DriverOfferSheet = ({
   distance,
   pickupAddress,
   destinationAddress,
-  offerCount = 0
+  offerCount = 0,
+  distanceToPickup = 0
 }: DriverOfferSheetProps) => {
   const { submitOffer, submitting } = useDriverOffer();
   const [offeredPrice, setOfferedPrice] = useState(estimatedPrice);
   const [message, setMessage] = useState('');
-  const [estimatedArrival, setEstimatedArrival] = useState(Math.ceil(distance * 3)); // 3 min/km
+  const [estimatedArrival, setEstimatedArrival] = useState(Math.ceil(distanceToPickup * 2.5)); // 2.5 min/km
 
   // Limites de prix (50% à 150% du tarif estimé)
   const minPrice = Math.floor(estimatedPrice * 0.5);
@@ -47,6 +49,14 @@ export const DriverOfferSheet = ({
   // Différence avec le tarif estimé
   const priceDifference = offeredPrice - estimatedPrice;
   const isCompetitive = priceDifference <= 0;
+  const discountPercent = Math.abs(Math.round((priceDifference / estimatedPrice) * 100));
+
+  // Quick price suggestions
+  const quickPrices = [
+    { label: '-10%', value: Math.floor(estimatedPrice * 0.9), icon: TrendingDown },
+    { label: 'Kwenda', value: estimatedPrice, icon: Zap },
+    { label: '+10%', value: Math.ceil(estimatedPrice * 1.1), icon: TrendingUp },
+  ];
 
   const handleSubmit = async () => {
     if (offeredPrice < minPrice || offeredPrice > maxPrice) {
@@ -63,7 +73,6 @@ export const DriverOfferSheet = ({
 
     if (success) {
       onOpenChange(false);
-      // Reset form
       setOfferedPrice(estimatedPrice);
       setMessage('');
     }
@@ -74,72 +83,112 @@ export const DriverOfferSheet = ({
     if (open) {
       setOfferedPrice(estimatedPrice);
       setMessage('');
-      setEstimatedArrival(Math.ceil(distance * 3));
+      setEstimatedArrival(Math.ceil(distanceToPickup * 2.5));
     }
-  }, [open, estimatedPrice, distance]);
+  }, [open, estimatedPrice, distanceToPickup]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] sm:h-[75vh]">
-        <SheetHeader className="mb-6">
-          <SheetTitle className="text-2xl">Faire une offre 💰</SheetTitle>
-          <SheetDescription className="flex items-center gap-2 text-base">
-            <MapPin className="h-4 w-4" />
-            {distance.toFixed(1)} km • Tarif estimé: {estimatedPrice.toLocaleString()} CDF
-          </SheetDescription>
+      <SheetContent side="bottom" className="h-[90vh] sm:h-[80vh] rounded-t-3xl">
+        <SheetHeader className="pb-4 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-xl font-bold flex items-center gap-2">
+              <Zap className="h-5 w-5 text-amber-500" />
+              Faire une offre
+            </SheetTitle>
+            {offerCount > 0 && (
+              <Badge variant="secondary" className="bg-primary/10">
+                <Users className="h-3 w-3 mr-1" />
+                {offerCount} concurrent{offerCount > 1 ? 's' : ''}
+              </Badge>
+            )}
+          </div>
         </SheetHeader>
 
-        <div className="space-y-6 overflow-y-auto max-h-[calc(85vh-180px)] pb-4">
-          {/* Compteur de compétition */}
-          {offerCount > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Badge variant="outline" className="w-full justify-center py-3 text-base">
-                <Users className="h-4 w-4 mr-2" />
-                {offerCount} autre{offerCount > 1 ? 's' : ''} chauffeur{offerCount > 1 ? 's' : ''} en compétition
-              </Badge>
-            </motion.div>
-          )}
-
-          {/* Itinéraire */}
-          <div className="bg-muted/30 rounded-xl p-4 space-y-3">
-            <div className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-muted-foreground">Départ</p>
-                <p className="font-medium text-sm truncate">{pickupAddress}</p>
+        <div className="space-y-5 overflow-y-auto max-h-[calc(90vh-200px)] py-4">
+          {/* Route summary - compact */}
+          <div className="bg-muted/30 rounded-2xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <div className="w-0.5 h-6 bg-gradient-to-b from-emerald-500 to-red-500" />
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+              </div>
+              <div className="flex-1 space-y-3">
+                <p className="text-sm font-medium truncate">{pickupAddress}</p>
+                <p className="text-sm font-medium truncate">{destinationAddress}</p>
               </div>
             </div>
-            <div className="ml-1 border-l-2 border-dashed border-muted-foreground/30 h-4" />
-            <div className="flex items-start gap-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-muted-foreground">Arrivée</p>
-                <p className="font-medium text-sm truncate">{destinationAddress}</p>
-              </div>
+            
+            {/* Stats row */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {distance.toFixed(1)} km
+              </span>
+              <span className="flex items-center gap-1">
+                <Navigation className="h-3 w-3" />
+                {distanceToPickup.toFixed(1)} km de vous
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                ~{estimatedArrival} min
+              </span>
             </div>
           </div>
 
-          {/* Prix proposé avec slider */}
+          {/* Quick price suggestions */}
+          <div className="space-y-2">
+            <Label className="text-sm text-muted-foreground">Suggestions rapides</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {quickPrices.map((preset) => {
+                const Icon = preset.icon;
+                const isSelected = offeredPrice === preset.value;
+                return (
+                  <motion.button
+                    key={preset.label}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setOfferedPrice(preset.value)}
+                    className={`
+                      p-3 rounded-xl border-2 transition-all
+                      ${isSelected 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border/50 bg-muted/30 hover:border-border'
+                      }
+                    `}
+                  >
+                    <Icon className={`h-4 w-4 mx-auto mb-1 ${
+                      isSelected ? 'text-primary' : 'text-muted-foreground'
+                    }`} />
+                    <p className={`text-xs font-medium ${isSelected ? 'text-primary' : ''}`}>
+                      {preset.label}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {preset.value.toLocaleString()}
+                    </p>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Price input with slider */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">Votre prix proposé</Label>
-              {isCompetitive ? (
-                <Badge variant="default" className="bg-green-500">
-                  <TrendingDown className="h-3 w-3 mr-1" />
-                  Compétitif
-                </Badge>
-              ) : (
-                <Badge variant="secondary">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  Plus cher
-                </Badge>
-              )}
+              <Label className="font-semibold">Votre prix</Label>
+              <Badge 
+                variant={isCompetitive ? 'default' : 'secondary'}
+                className={isCompetitive ? 'bg-emerald-500' : 'bg-amber-500/20 text-amber-600'}
+              >
+                {isCompetitive ? (
+                  <><TrendingDown className="h-3 w-3 mr-1" /> -{discountPercent}%</>
+                ) : (
+                  <><TrendingUp className="h-3 w-3 mr-1" /> +{discountPercent}%</>
+                )}
+              </Badge>
             </div>
 
-            {/* Input prix */}
+            {/* Large price display */}
             <div className="relative">
               <Input
                 type="number"
@@ -148,105 +197,106 @@ export const DriverOfferSheet = ({
                 min={minPrice}
                 max={maxPrice}
                 step={100}
-                className="text-3xl font-bold h-16 pr-16 text-center"
+                className="text-4xl font-bold h-20 pr-16 text-center bg-muted/30 border-0 rounded-2xl"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground font-medium">
                 CDF
               </span>
             </div>
 
-            {/* Slider pour ajustement rapide */}
-            <Slider
-              min={minPrice}
-              max={maxPrice}
-              step={100}
-              value={[offeredPrice]}
-              onValueChange={([val]) => setOfferedPrice(val)}
-              className="py-4"
-            />
-
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Min: {minPrice.toLocaleString()}</span>
-              <span>Max: {maxPrice.toLocaleString()}</span>
-            </div>
-
-            {/* Calcul gain */}
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Prix offert</span>
-                <span className="font-semibold">{offeredPrice.toLocaleString()} CDF</span>
-              </div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Commission (10%)</span>
-                <span className="text-sm text-destructive">-{commission.toLocaleString()} CDF</span>
-              </div>
-              <div className="border-t border-primary/20 pt-2 mt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-base font-semibold">Votre gain</span>
-                  <span className="text-2xl font-bold text-primary">
-                    {netEarning.toLocaleString()} CDF
-                  </span>
-                </div>
+            {/* Slider */}
+            <div className="px-2">
+              <Slider
+                min={minPrice}
+                max={maxPrice}
+                step={100}
+                value={[offeredPrice]}
+                onValueChange={([val]) => setOfferedPrice(val)}
+                className="py-4"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{minPrice.toLocaleString()}</span>
+                <span className="text-primary font-medium">{estimatedPrice.toLocaleString()} (Kwenda)</span>
+                <span>{maxPrice.toLocaleString()}</span>
               </div>
             </div>
-
-            {/* Différence avec estimation */}
-            {priceDifference !== 0 && (
-              <p className={`text-sm text-center ${
-                priceDifference > 0 
-                  ? 'text-orange-600 dark:text-orange-400' 
-                  : 'text-green-600 dark:text-green-400'
-              }`}>
-                {priceDifference > 0 ? '+' : ''}
-                {priceDifference.toLocaleString()} CDF par rapport au tarif estimé
-              </p>
-            )}
           </div>
 
-          {/* Temps d'arrivée estimé */}
+          {/* Net earning card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-4"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Votre gain net</p>
+                <p className="text-xs text-muted-foreground">(après 10% commission)</p>
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-bold text-primary">
+                  {netEarning.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">CDF</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Estimated arrival */}
           <div className="space-y-2">
-            <Label className="text-sm">Temps d'arrivée estimé (optionnel)</Label>
-            <div className="flex items-center gap-3">
-              <Clock className="h-5 w-5 text-muted-foreground" />
-              <Input
-                type="number"
-                value={estimatedArrival}
-                onChange={(e) => setEstimatedArrival(Number(e.target.value))}
-                min={1}
-                max={60}
-                className="flex-1"
-              />
-              <span className="text-sm text-muted-foreground">minutes</span>
+            <Label className="text-sm text-muted-foreground">Temps d'arrivée estimé</Label>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEstimatedArrival(Math.max(1, estimatedArrival - 1))}
+                className="h-10 w-10 p-0"
+              >
+                -
+              </Button>
+              <div className="flex-1 bg-muted/30 rounded-xl px-4 py-2 text-center">
+                <span className="text-2xl font-bold">{estimatedArrival}</span>
+                <span className="text-sm text-muted-foreground ml-1">min</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEstimatedArrival(Math.min(60, estimatedArrival + 1))}
+                className="h-10 w-10 p-0"
+              >
+                +
+              </Button>
             </div>
           </div>
 
           {/* Message optionnel */}
           <div className="space-y-2">
-            <Label className="text-sm">Message au client (optionnel)</Label>
+            <Label className="text-sm text-muted-foreground">Message (optionnel)</Label>
             <Textarea
-              placeholder="Ex: Je suis à 2 minutes de vous !"
+              placeholder="Ex: J'arrive dans 2 minutes..."
               maxLength={100}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="resize-none"
-              rows={3}
+              className="resize-none bg-muted/30 border-0 rounded-xl"
+              rows={2}
             />
-            <p className="text-xs text-muted-foreground text-right">
-              {message.length}/100 caractères
-            </p>
           </div>
         </div>
 
-        {/* Bouton validation fixe en bas */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 bg-background border-t">
+        {/* Submit button - sticky */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8">
           <Button
             onClick={handleSubmit}
             disabled={submitting || offeredPrice < minPrice || offeredPrice > maxPrice}
-            className="w-full h-14 text-lg font-bold"
+            className="w-full h-14 text-lg font-bold rounded-2xl bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 shadow-lg shadow-amber-500/25"
             size="lg"
           >
             {submitting ? (
-              'Envoi en cours...'
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                className="h-5 w-5 border-2 border-white border-t-transparent rounded-full"
+              />
             ) : (
               <>
                 <DollarSign className="h-5 w-5 mr-2" />
