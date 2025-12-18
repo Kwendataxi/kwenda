@@ -1,73 +1,99 @@
-# Welcome to your Lovable project
 
-## Project info
+🚀 Kwenda
+EN 🇬🇧 | FR 🇫🇷
+Kwenda is a modern mobility and delivery platform designed to make everyday transportation and logistics more accessible, reliable, and affordable.
+Kwenda est une plateforme moderne de mobilité et de livraison, conçue pour rendre les déplacements et la logistique du quotidien plus accessibles, fiables et abordables.
+🌍 Live app / Application en ligne: https://kwenda.app
 
-**URL**: https://kwenda.app
+🏗️ Developed by | Développé par
+ICON – Building scalable, people-centered digital platforms.
 
-## How can I edit this code?
+📌 Project Overview | Présentation du projet
+🇬🇧 English
+This repository contains the source code of the Kwenda web application, developed and maintained by ICON.
+It allows developers and contributors to run the project locally, customize features, and contribute to its evolution.
+🇫🇷 Français
+Ce dépôt contient le code source de l’application web Kwenda, développée et maintenue par ICON.
+Il permet aux développeurs et contributeurs d’exécuter le projet en local, de personnaliser les fonctionnalités et de contribuer à son évolution.
 
-There are several ways of editing your application.
+✏️ How to Edit the Code | Comment modifier le code
 
-**Use Lovable**
+🔹 Option 1: Local Development | Développement en local
+Prerequisites | Prérequis
+•	Node.js & npm
+👉 Install via nvm / Installer avec nvm :
+https://github.com/nvm-sh/nvm#installing-and-updating
 
-Simply visit the [Kwenda App](https://kwenda.app) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+Steps | Étapes
+# 1. Clone the repository | Cloner le dépôt
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# 2. Go to the project directory | Accéder au dossier du projet
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. Install dependencies | Installer les dépendances
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. Start the development server | Lancer le serveur de développement
 npm run dev
-```
+The application starts with hot reload and instant preview.
+L’application démarre avec rechargement automatique et aperçu instantané.
 
-**Edit a file directly in GitHub**
+🔹 Option 2: Edit Directly on GitHub | Modifier directement sur GitHub
+🇬🇧 English
+•	Navigate to the file you want to edit.
+•	Click the ✏️ Edit button.
+•	Commit your changes.
+🇫🇷 Français
+•	Ouvrez le fichier à modifier.
+•	Cliquez sur le bouton ✏️ Modifier.
+•	Validez (commit) vos changements.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+🔹 Option 3: GitHub Codespaces
+🇬🇧 English
+•	Go to the repository main page.
+•	Click Code → Codespaces.
+•	Click New codespace.
+•	Edit, commit, and push your changes.
+🇫🇷 Français
+•	Allez sur la page principale du dépôt.
+•	Cliquez sur Code → Codespaces.
+•	Sélectionnez New codespace.
+•	Modifiez, committez et poussez vos changements.
 
-**Use GitHub Codespaces**
+🛠️ Tech Stack | Technologies utilisées
+•	⚡ Vite
+•	🧠 TypeScript
+•	⚛️ React
+•	🎨 shadcn/ui
+•	💨 Tailwind CSS
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+🚀 Deployment | Déploiement
+🇬🇧 English
+The application is deployed and accessible at:
+👉 https://kwenda.app
+🇫🇷 Français
+L’application est déployée et accessible à l’adresse :
+👉 https://kwenda.app
+Deployment is handled automatically.
+Le déploiement est géré automatiquement.
 
-## What technologies are used for this project?
+🌐 Custom Domain | Domaine personnalisé
+🇬🇧 English
+You can connect a custom domain by navigating to:
+Project → Settings → Domains
+Then click Connect Domain and follow the instructions.
+🇫🇷 Français
+Vous pouvez connecter un domaine personnalisé via :
+Project → Settings → Domains
+Cliquez ensuite sur Connect Domain et suivez les instructions.
 
-This project is built with:
+🤝 Contributing | Contribution
+🇬🇧 English
+Contributions, ideas, and improvements are welcome.
+Please fork the repository, open issues, or submit pull requests.
+🇫🇷 Français
+Les contributions, idées et améliorations sont les bienvenues.
+Merci de forker le dépôt, ouvrir des issues ou soumettre des pull requests.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
 
-## How can I deploy this project?
-
-The application is deployed at [https://kwenda.app](https://kwenda.app).
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
