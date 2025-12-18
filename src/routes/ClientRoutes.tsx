@@ -23,7 +23,7 @@ const VendorEditProduct = lazy(() => import('@/pages/VendorEditProduct'));
 const VendorChatConversation = lazy(() => import('@/pages/VendorChatConversation'));
 const ClientRentalInterface = lazy(() => import('@/pages/ClientRentalInterface'));
 const RentalVehicleDetails = lazy(() => import('@/pages/RentalVehicleDetails'));
-const ModernRentalBooking = lazy(() => import('@/components/rental/ModernRentalBooking'));
+const SoftRentalBooking = lazy(() => import('@/components/rental/soft/SoftRentalBooking'));
 const ClientRentalBookings = lazy(() => import('@/pages/rental/ClientRentalBookings'));
 const PartnerRentalStoreView = lazy(() => import('@/components/rental/PartnerRentalStoreView'));
 // const ClientReferralPage = lazy(() => import('@/pages/ClientReferralPage')); // Supprimé
@@ -224,7 +224,7 @@ export const ClientRoutes = () => {
         path="/rental-booking/:vehicleId" 
         element={
           <ProtectedRoute>
-            <ModernRentalBooking />
+            <SoftRentalBooking />
           </ProtectedRoute>
         } 
       />
