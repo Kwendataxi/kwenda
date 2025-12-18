@@ -75,6 +75,9 @@ export default function UnifiedTaxiSheet({
 
   // Trouver le prix du véhicule sélectionné pour l'afficher dans le CTA
   const selectedVehiclePrice = vehicles.find(v => v.id === selectedVehicle)?.calculatedPrice || 0;
+  
+  // Prix à afficher : prix client en mode enchères, sinon prix Kwenda
+  const displayPrice = biddingMode && clientProposedPrice ? clientProposedPrice : selectedVehiclePrice;
 
   const canBook = !!destination && !!selectedVehicle && !isSearching;
 
@@ -261,17 +264,23 @@ export default function UnifiedTaxiSheet({
             ) : !selectedVehicle ? (
               <span>🚗 Sélectionnez un véhicule</span>
             ) : (
-              <div className="flex items-center justify-center gap-3">
-                <Zap className="w-5 h-5" />
-                <span>Continuer</span>
-                {selectedVehiclePrice > 0 && (
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="ml-1 px-3 py-1 bg-white/20 rounded-full text-sm font-extrabold"
-                  >
-                    {selectedVehiclePrice.toLocaleString()} CDF
-                  </motion.span>
+              <div className="flex flex-col items-center justify-center gap-1">
+                <div className="flex items-center gap-3">
+                  <Zap className="w-5 h-5" />
+                  <span>Continuer</span>
+                  {displayPrice > 0 && (
+                    <motion.span 
+                      key={displayPrice}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="ml-1 px-3 py-1 bg-white/20 rounded-full text-sm font-extrabold"
+                    >
+                      {displayPrice.toLocaleString()} CDF
+                    </motion.span>
+                  )}
+                </div>
+                {biddingMode && clientProposedPrice && clientProposedPrice !== selectedVehiclePrice && (
+                  <span className="text-xs opacity-80">Votre offre</span>
                 )}
               </div>
             )}
