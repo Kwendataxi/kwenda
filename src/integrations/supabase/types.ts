@@ -8315,10 +8315,12 @@ export type Database = {
           id: string
           is_sent: boolean
           message: string
+          metadata: Json | null
           notification_type: string
           reference_id: string | null
           sent_at: string | null
           title: string
+          transport_booking_id: string | null
           user_id: string
         }
         Insert: {
@@ -8326,10 +8328,12 @@ export type Database = {
           id?: string
           is_sent?: boolean
           message: string
+          metadata?: Json | null
           notification_type: string
           reference_id?: string | null
           sent_at?: string | null
           title: string
+          transport_booking_id?: string | null
           user_id: string
         }
         Update: {
@@ -8337,13 +8341,23 @@ export type Database = {
           id?: string
           is_sent?: boolean
           message?: string
+          metadata?: Json | null
           notification_type?: string
           reference_id?: string | null
           sent_at?: string | null
           title?: string
+          transport_booking_id?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "push_notifications_transport_booking_id_fkey"
+            columns: ["transport_booking_id"]
+            isOneToOne: false
+            referencedRelation: "transport_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_subscriptions: {
         Row: {
@@ -10204,7 +10218,9 @@ export type Database = {
           client_proposal_price: number | null
           created_at: string
           distance_to_pickup: number | null
+          driver_current_location: Json | null
           driver_id: string
+          estimated_arrival_time: number | null
           expires_at: string | null
           id: string
           is_counter_offer: boolean | null
@@ -10221,7 +10237,9 @@ export type Database = {
           client_proposal_price?: number | null
           created_at?: string
           distance_to_pickup?: number | null
+          driver_current_location?: Json | null
           driver_id: string
+          estimated_arrival_time?: number | null
           expires_at?: string | null
           id?: string
           is_counter_offer?: boolean | null
@@ -10238,7 +10256,9 @@ export type Database = {
           client_proposal_price?: number | null
           created_at?: string
           distance_to_pickup?: number | null
+          driver_current_location?: Json | null
           driver_id?: string
+          estimated_arrival_time?: number | null
           expires_at?: string | null
           id?: string
           is_counter_offer?: boolean | null

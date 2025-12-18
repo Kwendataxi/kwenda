@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { DriverArrivalButton } from './DriverArrivalButton';
 import { useDriverSubscriptions } from '@/hooks/useDriverSubscriptions';
 import { DriverOfferSheet } from './DriverOfferSheet';
-
+import { ModernBiddingCard } from './ModernBiddingCard';
 interface RideNotification {
   id: string;
   title: string;
@@ -27,6 +27,8 @@ interface RideNotification {
   biddingMode?: boolean;
   offerCount?: number;
   biddingClosesAt?: string;
+  clientProposedPrice?: number;
+  distanceToPickup?: number;
 }
 
 // Helper pour calculer temps restant
@@ -75,24 +77,26 @@ export default function DriverRideNotifications() {
         
         const mappedNotifications: RideNotification[] = data.map((notif: any) => {
           const isBidding = notif.notification_type === 'ride_bidding' || 
-                            (notif as any).metadata?.biddingMode === true;
+                            notif.metadata?.biddingMode === true;
           
           return {
             id: notif.reference_id || notif.id,
             title: isBidding ? '🎯 Mode Enchères' : notif.title,
             message: notif.message,
-            distance: (notif as any).metadata?.distance || 0,
-            estimatedTime: Math.ceil(((notif as any).metadata?.distance || 0) * 3),
-            expiresIn: 120,
-            pickupAddress: (notif as any).metadata?.pickupLocation?.address,
-            destinationAddress: (notif as any).metadata?.destinationLocation?.address,
-            estimatedPrice: (notif as any).metadata?.estimatedPrice,
-            vehicleClass: (notif as any).metadata?.vehicleClass,
-            ridesRemaining: (notif as any).metadata?.rides_remaining,
+            distance: notif.metadata?.distance || 0,
+            estimatedTime: Math.ceil((notif.metadata?.distance || 0) * 3),
+            expiresIn: isBidding ? 180 : 120,
+            pickupAddress: notif.metadata?.pickupLocation?.address,
+            destinationAddress: notif.metadata?.destinationLocation?.address,
+            estimatedPrice: notif.metadata?.estimatedPrice,
+            vehicleClass: notif.metadata?.vehicleClass,
+            ridesRemaining: notif.metadata?.rides_remaining,
             status: 'pending',
             biddingMode: isBidding,
-            offerCount: (notif as any).metadata?.offerCount || 0,
-            biddingClosesAt: (notif as any).metadata?.biddingClosesAt
+            offerCount: notif.metadata?.offerCount || 0,
+            biddingClosesAt: notif.metadata?.biddingClosesAt,
+            clientProposedPrice: notif.metadata?.clientProposedPrice,
+            distanceToPickup: notif.metadata?.distanceToPickup || 0
           };
         });
 
@@ -127,7 +131,7 @@ export default function DriverRideNotifications() {
               message: newNotif.message,
               distance: newNotif.metadata?.distance || 0,
               estimatedTime: Math.ceil((newNotif.metadata?.distance || 0) * 3),
-              expiresIn: isBidding ? 180 : 120, // 3 min for bidding
+              expiresIn: isBidding ? 180 : 120,
               pickupAddress: newNotif.metadata?.pickupLocation?.address,
               destinationAddress: newNotif.metadata?.destinationLocation?.address,
               estimatedPrice: newNotif.metadata?.estimatedPrice,
@@ -136,7 +140,9 @@ export default function DriverRideNotifications() {
               status: 'pending',
               biddingMode: isBidding,
               offerCount: newNotif.metadata?.offerCount || 0,
-              biddingClosesAt: newNotif.metadata?.biddingClosesAt
+              biddingClosesAt: newNotif.metadata?.biddingClosesAt,
+              clientProposedPrice: newNotif.metadata?.clientProposedPrice,
+              distanceToPickup: newNotif.metadata?.distanceToPickup || 0
             };
 
             setNotifications(prev => [notification, ...prev]);
@@ -300,6 +306,28 @@ export default function DriverRideNotifications() {
 
       {notifications.map((notification) => {
         const isAccepted = acceptedRides.get(notification.id);
+        
+        // Use ModernBiddingCard for bidding notifications
+        if (notification.biddingMode && !isAccepted) {
+          return (
+            <ModernBiddingCard
+              key={notification.id}
+              bookingId={notification.id}
+              pickupAddress={notification.pickupAddress || ''}
+              destinationAddress={notification.destinationAddress || ''}
+              distance={notification.distance}
+              estimatedPrice={notification.estimatedPrice || 0}
+              clientProposedPrice={notification.clientProposedPrice}
+              offerCount={notification.offerCount || 0}
+              biddingClosesAt={notification.biddingClosesAt}
+              distanceToPickup={notification.distanceToPickup}
+              onAccept={() => handleAccept(notification.id)}
+              onMakeOffer={() => handleMakeOffer(notification)}
+              onIgnore={() => handleReject(notification.id)}
+            />
+          );
+        }
+        
         return (
         <Card
           key={notification.id} 

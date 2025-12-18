@@ -75,20 +75,28 @@ export const useDriverOffer = () => {
         }
       }
 
-      // Créer l'offre
+      // Créer l'offre avec les colonnes maintenant disponibles
+      const offerData: Record<string, any> = {
+        booking_id: params.bookingId,
+        driver_id: user.id,
+        offered_price: params.offeredPrice,
+        original_estimated_price: params.originalEstimatedPrice,
+        message: params.message,
+        distance_to_pickup: distanceToPickup,
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes
+      };
+      
+      // Ajouter les nouveaux champs si disponibles
+      if (params.estimatedArrival) {
+        offerData.estimated_arrival_time = params.estimatedArrival;
+      }
+      if (driverLocation) {
+        offerData.driver_current_location = driverLocation;
+      }
+
       const { error: insertError } = await supabase
         .from('ride_offers' as any)
-        .insert({
-          booking_id: params.bookingId,
-          driver_id: user.id,
-          offered_price: params.offeredPrice,
-          original_estimated_price: params.originalEstimatedPrice,
-          message: params.message,
-          estimated_arrival_time: params.estimatedArrival,
-          driver_current_location: driverLocation,
-          distance_to_pickup: distanceToPickup,
-          expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes
-        });
+        .insert(offerData);
 
       if (insertError) throw insertError;
 
