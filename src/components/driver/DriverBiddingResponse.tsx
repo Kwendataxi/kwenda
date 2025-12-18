@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { MapPin, TrendingDown, TrendingUp, Clock, Star } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, TrendingDown, TrendingUp, Clock, Navigation, DollarSign, Zap, Minus, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Minus } from 'lucide-react';
 
 interface DriverBiddingResponseProps {
   bookingId: string;
@@ -31,20 +31,24 @@ export default function DriverBiddingResponse({
   const [loading, setLoading] = useState(false);
   const [showCounterOffer, setShowCounterOffer] = useState(false);
   const [counterOfferPrice, setCounterOfferPrice] = useState(
-    Math.floor((clientProposedPrice + estimatedPrice) / 2) // Milieu entre les deux
+    Math.floor((clientProposedPrice + estimatedPrice) / 2)
   );
 
-  const increment = 100; // 100 CDF
-  const minCounterOffer = clientProposedPrice + increment;
-  const maxCounterOffer = estimatedPrice;
+  const increment = 500; // 500 CDF pour des ajustements plus significatifs
+  const minCounterOffer = clientProposedPrice;
+  const maxCounterOffer = Math.ceil(estimatedPrice * 1.2);
 
-  const discount = ((estimatedPrice - clientProposedPrice) / estimatedPrice * 100).toFixed(1);
-  const isLowOffer = clientProposedPrice < estimatedPrice * 0.7; // Moins de 70% du prix
+  const discount = ((estimatedPrice - clientProposedPrice) / estimatedPrice * 100).toFixed(0);
+  const isLowOffer = clientProposedPrice < estimatedPrice * 0.7;
+  const estimatedArrival = Math.ceil(distanceToPickup * 2.5);
+
+  // Calcul gain net
+  const netGain = Math.floor(clientProposedPrice * 0.9);
+  const counterNetGain = Math.floor(counterOfferPrice * 0.9);
 
   const handleAccept = async () => {
     setLoading(true);
     try {
-      // Récupérer l'ID du chauffeur connecté
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Non authentifié');
 
@@ -56,8 +60,6 @@ export default function DriverBiddingResponse({
 
       if (!driver) throw new Error('Profil chauffeur non trouvé');
 
-      // Créer l'offre (acceptation directe)
-      // Note: Les nouveaux champs de ride_offers nécessitent la régénération des types Supabase
       const { error: offerError } = await supabase
         .from('ride_offers')
         .insert({
@@ -68,19 +70,19 @@ export default function DriverBiddingResponse({
           is_counter_offer: false,
           client_proposal_price: clientProposedPrice,
           status: 'pending',
-          message: 'Offre acceptée directement',
+          message: 'Offre acceptée',
           distance_to_pickup: distanceToPickup
         } as any);
 
       if (offerError) throw offerError;
 
-      toast.success('✅ Offre acceptée !', {
-        description: 'Le client a été notifié de votre acceptation'
+      toast.success('Offre acceptée !', {
+        description: 'Le client a été notifié'
       });
 
       onResponseSubmitted?.();
     } catch (error) {
-      console.error('❌ Error accepting offer:', error);
+      console.error('Error accepting offer:', error);
       toast.error('Erreur lors de l\'acceptation');
     } finally {
       setLoading(false);
@@ -101,8 +103,6 @@ export default function DriverBiddingResponse({
 
       if (!driver) throw new Error('Profil chauffeur non trouvé');
 
-      // Créer la contre-offre
-      // Note: Les nouveaux champs de ride_offers nécessitent la régénération des types Supabase
       const { error: offerError } = await supabase
         .from('ride_offers')
         .insert({
@@ -113,19 +113,19 @@ export default function DriverBiddingResponse({
           is_counter_offer: true,
           client_proposal_price: clientProposedPrice,
           status: 'pending',
-          message: `Contre-offre: ${counterOfferPrice} CDF`,
+          message: `Contre-offre: ${counterOfferPrice.toLocaleString()} ${currency}`,
           distance_to_pickup: distanceToPickup
         } as any);
 
       if (offerError) throw offerError;
 
-      toast.success('💰 Contre-offre envoyée !', {
-        description: `${counterOfferPrice.toLocaleString()} CDF proposés au client`
+      toast.success('Contre-offre envoyée !', {
+        description: `${counterOfferPrice.toLocaleString()} ${currency}`
       });
 
       onResponseSubmitted?.();
     } catch (error) {
-      console.error('❌ Error sending counter-offer:', error);
+      console.error('Error sending counter-offer:', error);
       toast.error('Erreur lors de l\'envoi');
     } finally {
       setLoading(false);
@@ -137,60 +137,101 @@ export default function DriverBiddingResponse({
     onResponseSubmitted?.();
   };
 
+  // Quick counter offer presets
+  const counterPresets = [
+    { label: 'Client', value: clientProposedPrice },
+    { label: 'Milieu', value: Math.floor((clientProposedPrice + estimatedPrice) / 2) },
+    { label: 'Kwenda', value: estimatedPrice },
+  ];
+
   if (showCounterOffer) {
     return (
-      <Card className="p-4 space-y-4">
-        <div className="text-center">
-          <h3 className="font-semibold text-lg">Votre contre-offre</h3>
-          <p className="text-xs text-muted-foreground">
-            Le client a proposé {clientProposedPrice.toLocaleString()} CDF
-          </p>
-        </div>
-
-        {/* Ajuster la contre-offre */}
-        <div className="flex items-center justify-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCounterOfferPrice(prev => Math.max(prev - increment, minCounterOffer))}
-            disabled={counterOfferPrice <= minCounterOffer}
-          >
-            <Minus className="h-5 w-5" />
-          </Button>
-
-          <div className="px-6 py-3 bg-primary/10 border-2 border-primary/30 rounded-xl min-w-[160px] text-center">
-            <p className="text-2xl font-bold">{counterOfferPrice.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">CDF</p>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+      >
+        <Card className="p-5 space-y-4 bg-gradient-to-br from-amber-50/50 to-background dark:from-amber-950/20">
+          <div className="text-center">
+            <h3 className="font-bold text-lg flex items-center justify-center gap-2">
+              <DollarSign className="h-5 w-5 text-amber-500" />
+              Votre contre-offre
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Client: {clientProposedPrice.toLocaleString()} {currency}
+            </p>
           </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCounterOfferPrice(prev => Math.min(prev + increment, maxCounterOffer))}
-            disabled={counterOfferPrice >= maxCounterOffer}
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
-        </div>
+          {/* Quick presets */}
+          <div className="grid grid-cols-3 gap-2">
+            {counterPresets.map((preset) => (
+              <button
+                key={preset.label}
+                onClick={() => setCounterOfferPrice(preset.value)}
+                className={`p-2 rounded-xl text-xs font-medium transition-all ${
+                  counterOfferPrice === preset.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/50 hover:bg-muted'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowCounterOffer(false)}
-            disabled={loading}
-            className="flex-1"
-          >
-            Retour
-          </Button>
-          <Button
-            onClick={handleCounterOffer}
-            disabled={loading}
-            className="flex-1"
-          >
-            Envoyer
-          </Button>
-        </div>
-      </Card>
+          {/* Price adjuster */}
+          <div className="flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-12 w-12 rounded-xl"
+              onClick={() => setCounterOfferPrice(prev => Math.max(prev - increment, minCounterOffer))}
+              disabled={counterOfferPrice <= minCounterOffer}
+            >
+              <Minus className="h-5 w-5" />
+            </Button>
+
+            <div className="px-6 py-4 bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-2xl min-w-[160px] text-center">
+              <p className="text-3xl font-bold text-primary">{counterOfferPrice.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">{currency}</p>
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-12 w-12 rounded-xl"
+              onClick={() => setCounterOfferPrice(prev => Math.min(prev + increment, maxCounterOffer))}
+              disabled={counterOfferPrice >= maxCounterOffer}
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Net gain */}
+          <div className="text-center p-3 bg-muted/30 rounded-xl">
+            <p className="text-xs text-muted-foreground">Votre gain net</p>
+            <p className="text-xl font-bold text-primary">{counterNetGain.toLocaleString()} {currency}</p>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowCounterOffer(false)}
+              disabled={loading}
+              className="flex-1 h-12 rounded-xl"
+            >
+              Retour
+            </Button>
+            <Button
+              onClick={handleCounterOffer}
+              disabled={loading}
+              className="flex-1 h-12 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600"
+            >
+              {loading ? 'Envoi...' : 'Envoyer'}
+            </Button>
+          </div>
+        </Card>
+      </motion.div>
     );
   }
 
@@ -198,70 +239,80 @@ export default function DriverBiddingResponse({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
     >
-      <Card className="p-4 space-y-4">
+      <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-amber-50/80 via-orange-50/50 to-background dark:from-amber-950/30 dark:via-orange-950/20">
         {/* Header */}
-        <div className="text-center">
-          <h3 className="font-bold text-lg">🎯 Nouvelle demande de course</h3>
+        <div className="p-4 pb-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-amber-500" />
+            <span className="font-bold">Enchère client</span>
+          </div>
           {isLowOffer && (
-            <div className="flex items-center justify-center gap-1 text-amber-600 dark:text-amber-400 text-xs mt-1">
-              <TrendingDown className="w-4 h-4" />
-              <span>Offre {discount}% inférieure au tarif</span>
-            </div>
+            <Badge variant="secondary" className="bg-amber-500/20 text-amber-600 dark:text-amber-400">
+              <TrendingDown className="h-3 w-3 mr-1" />
+              -{discount}%
+            </Badge>
           )}
         </div>
 
-        {/* Comparaison prix */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-muted/30 rounded-xl text-center">
-            <p className="text-xs text-muted-foreground mb-1">Prix Kwenda</p>
-            <p className="text-xl font-bold text-foreground">
-              {estimatedPrice.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground">CDF</p>
-          </div>
-
-          <div className="p-3 bg-primary/10 border-2 border-primary/30 rounded-xl text-center">
-            <p className="text-xs text-muted-foreground mb-1">Offre client</p>
-            <p className="text-xl font-bold text-primary">
-              {clientProposedPrice.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground">CDF</p>
+        {/* Price comparison */}
+        <div className="px-4 py-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-muted/50 rounded-xl p-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Prix Kwenda</p>
+              <p className="text-xl font-bold">{estimatedPrice.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">{currency}</p>
+            </div>
+            
+            <div className="bg-primary/10 border-2 border-primary/30 rounded-xl p-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Offre client</p>
+              <p className="text-xl font-bold text-primary">{clientProposedPrice.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">{currency}</p>
+            </div>
           </div>
         </div>
 
-        {/* Détails */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm">
-            <MapPin className="w-4 h-4 text-muted-foreground" />
-            <span className="text-muted-foreground">{pickupLocation}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              📍 {distanceToPickup.toFixed(1)} km de vous
-            </span>
-          </div>
+        {/* Info */}
+        <div className="px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            {pickupLocation?.slice(0, 25)}...
+          </span>
+          <span className="flex items-center gap-1">
+            <Navigation className="h-3 w-3" />
+            {distanceToPickup.toFixed(1)} km
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            ~{estimatedArrival} min
+          </span>
+        </div>
+
+        {/* Net gain info */}
+        <div className="mx-4 mb-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center">
+          <p className="text-xs text-muted-foreground">Votre gain net (après commission)</p>
+          <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{netGain.toLocaleString()} {currency}</p>
         </div>
 
         {/* Actions */}
-        <div className="space-y-2">
+        <div className="p-4 pt-2 space-y-2">
           <Button
             onClick={handleAccept}
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="w-full h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 font-semibold shadow-lg shadow-emerald-500/25"
           >
-            ✅ Accepter {clientProposedPrice.toLocaleString()} CDF
+            <DollarSign className="h-4 w-4 mr-2" />
+            Accepter {clientProposedPrice.toLocaleString()} {currency}
           </Button>
 
           <Button
             onClick={() => setShowCounterOffer(true)}
             disabled={loading}
             variant="outline"
-            className="w-full"
+            className="w-full h-12 rounded-xl font-semibold"
           >
-            💰 Contre-offre
+            <Zap className="h-4 w-4 mr-2" />
+            Contre-offre
           </Button>
 
           <Button
@@ -270,7 +321,7 @@ export default function DriverBiddingResponse({
             variant="ghost"
             className="w-full text-muted-foreground"
           >
-            Refuser
+            Ignorer
           </Button>
         </div>
       </Card>
