@@ -10,6 +10,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PushNotificationManager } from "@/components/notifications/PushNotificationManager";
 import { NativePushProvider } from "@/components/notifications/NativePushProvider";
+import { ModernToastProvider } from "@/components/notifications/ModernToastProvider";
 import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 import { ABTestProvider } from "@/contexts/ABTestContext";
 import { ClickTracker } from "@/components/tracking/ClickTracker";
