@@ -47,7 +47,7 @@ export const AdminRoutes = () => {
       <Route 
         path="/admin/production-config" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <ProductionConfig />
           </ProtectedRoute>
         } 
@@ -55,7 +55,7 @@ export const AdminRoutes = () => {
       <Route 
         path="/admin/qr-manager" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <QRCodeManager />
           </ProtectedRoute>
         } 
@@ -63,7 +63,7 @@ export const AdminRoutes = () => {
       <Route 
         path="/admin/qr-analytics" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <QRAnalytics />
           </ProtectedRoute>
         } 
@@ -71,7 +71,7 @@ export const AdminRoutes = () => {
       <Route 
         path="/admin/food" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <AdminFoodManagement />
           </ProtectedRoute>
         } 

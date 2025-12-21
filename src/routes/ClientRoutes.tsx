@@ -238,9 +238,23 @@ export const ClientRoutes = () => {
       />
 
       {/* Autres pages client */}
-      <Route path="/mes-adresses" element={<MesAdresses />} />
+      <Route 
+        path="/mes-adresses" 
+        element={
+          <ProtectedRoute>
+            <MesAdresses />
+          </ProtectedRoute>
+        } 
+      />
       {/* Route /referral temporairement désactivée */}
-      <Route path="/promos" element={<PromosPage />} />
+      <Route 
+        path="/promos" 
+        element={
+          <ProtectedRoute>
+            <PromosPage />
+          </ProtectedRoute>
+        } 
+      />
     </>
   );
 };

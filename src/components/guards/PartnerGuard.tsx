@@ -43,7 +43,7 @@ export const PartnerGuard = ({ children }: { children: React.ReactNode }) => {
       if (roleError || !roleData) {
         console.error('❌ PartnerGuard: Rôle partner manquant:', roleError);
         setLoading(false);
-        navigate('/');
+        navigate('/partner/auth', { replace: true });
         return;
       }
 
@@ -80,7 +80,7 @@ export const PartnerGuard = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('❌ PartnerGuard: Erreur inattendue:', error);
       setLoading(false);
-      navigate('/');
+      navigate('/partner/auth', { replace: true });
     }
   }, [user, sessionReady, navigate]);
 

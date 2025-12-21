@@ -48,7 +48,7 @@ const DriverApp = () => {
 
   useEffect(() => {
     if (!roleLoading && user && primaryRole !== 'driver') {
-      navigate('/');
+      navigate('/driver/auth', { replace: true });
     }
   }, [user, primaryRole, roleLoading, navigate]);
 

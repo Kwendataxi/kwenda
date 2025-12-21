@@ -56,6 +56,7 @@ import { PerformanceDashboard } from "@/components/debug/PerformanceDashboard";
 import Index from "./pages/Index";
 import { SmartHome } from "./components/navigation/SmartHome";
 import { PublicHome } from "./components/navigation/PublicHome";
+import { NavigationGuard } from "./components/navigation/NavigationGuard";
 
 // Route modules
 import {
@@ -150,34 +151,36 @@ const AppContent = () => {
                     <PushNotificationManager />
                     <InstallBanner />
                     <BrowserRouter>
-                      <ScrollToTop />
-                      <AppDownloadTopBanner />
-                      <OnboardingRedirect>
-                        <Suspense fallback={<RouteLoadingFallback />}>
-                          <Routes>
-                            {/* Landing page */}
-            {!isSpecificBuild() && <Route path="/" element={<PublicHome />} />}
-            {!isSpecificBuild() && <Route path="/landing" element={<Index />} />}
-                            {!isSpecificBuild() && <Route path="/app" element={<SmartHome />} />}
-                            
-                            {/* Shared routes */}
-                            {SharedRoutes()}
-                            
-                            {/* Role-specific routes */}
-                            {ClientRoutes()}
-                            {DriverRoutes()}
-                            {PartnerRoutes()}
-                            {AdminRoutes()}
-                            {PublicRoutes()}
-                            
-                            {/* Payment confirmation */}
-                            <Route path="/payment-confirmation" element={<PaymentConfirmation />} />
-                            
-                            {/* 404 - Must be last */}
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
-                        </Suspense>
-                      </OnboardingRedirect>
+                      <NavigationGuard>
+                        <ScrollToTop />
+                        <AppDownloadTopBanner />
+                        <OnboardingRedirect>
+                          <Suspense fallback={<RouteLoadingFallback />}>
+                            <Routes>
+                              {/* Landing page */}
+              {!isSpecificBuild() && <Route path="/" element={<PublicHome />} />}
+              {!isSpecificBuild() && <Route path="/landing" element={<Index />} />}
+                              {!isSpecificBuild() && <Route path="/app" element={<SmartHome />} />}
+                              
+                              {/* Shared routes */}
+                              {SharedRoutes()}
+                              
+                              {/* Role-specific routes */}
+                              {ClientRoutes()}
+                              {DriverRoutes()}
+                              {PartnerRoutes()}
+                              {AdminRoutes()}
+                              {PublicRoutes()}
+                              
+                              {/* Payment confirmation */}
+                              <Route path="/payment-confirmation" element={<PaymentConfirmation />} />
+                              
+                              {/* 404 - Must be last */}
+                              <Route path="*" element={<NotFound />} />
+                            </Routes>
+                          </Suspense>
+                        </OnboardingRedirect>
+                      </NavigationGuard>
                     </BrowserRouter>
                   </PerformanceOptimizer>
                   <OfflineIndicator />

@@ -21,7 +21,8 @@ const CampaignLanding = () => {
 
   useEffect(() => {
     if (!campaign) {
-      navigate('/');
+      // Campagne invalide : rediriger vers landing publique
+      navigate('/landing', { replace: true });
       return;
     }
 

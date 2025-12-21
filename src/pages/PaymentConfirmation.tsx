@@ -23,7 +23,16 @@ export const PaymentConfirmation = () => {
   useEffect(() => {
     if (!transactionId) {
       toast.error('Transaction non trouvée');
-      navigate('/');
+      // Rediriger vers le dashboard approprié
+      const userType = localStorage.getItem('kwenda_selected_role') || 'client';
+      const dashboardPaths: Record<string, string> = {
+        driver: '/app/chauffeur',
+        partner: '/app/partenaire',
+        admin: '/app/admin',
+        restaurant: '/app/restaurant',
+        client: '/app/client'
+      };
+      navigate(dashboardPaths[userType] || '/app/client', { replace: true });
       return;
     }
 
