@@ -65,8 +65,16 @@ export const ModernHomeScreen = memo(({
   };
 
   useEffect(() => {
+    // Si l'utilisateur a un rôle différent de client, le rediriger vers son dashboard
     if (!roleLoading && primaryRole && primaryRole !== 'client') {
-      navigate('/');
+      const dashboardPaths: Record<string, string> = {
+        driver: '/app/chauffeur',
+        partner: '/app/partenaire',
+        admin: '/app/admin',
+        restaurant: '/app/restaurant'
+      };
+      const targetPath = dashboardPaths[primaryRole] || '/app/client';
+      navigate(targetPath, { replace: true });
     }
   }, [primaryRole, roleLoading, navigate]);
 

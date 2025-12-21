@@ -27,7 +27,7 @@ const VendorSetupWizard = () => {
 
   const checkExistingProfile = async () => {
     if (!user) {
-      navigate('/');
+      navigate('/auth', { replace: true });
       return;
     }
 

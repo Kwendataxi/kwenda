@@ -41,7 +41,7 @@ export const DriverFindPartner = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate('/driver/auth', { replace: true });
       return;
     }
     
@@ -72,7 +72,7 @@ export const DriverFindPartner = () => {
     } catch (error) {
       console.error('Error loading driver profile:', error);
       toast.error('Erreur lors du chargement du profil');
-      navigate('/');
+      navigate('/driver/auth', { replace: true });
     }
   };
 
@@ -156,8 +156,8 @@ export const DriverFindPartner = () => {
               <p className="text-muted-foreground mb-4">
                 Nous n'avons pas trouvé votre profil chauffeur.
               </p>
-              <Button onClick={() => navigate('/')}>
-                Retour à l'accueil
+              <Button onClick={() => navigate('/driver/auth', { replace: true })}>
+                Retour à la connexion
               </Button>
             </CardContent>
           </Card>
