@@ -82,11 +82,21 @@ export default function VendorAddProduct() {
     setUploadProgress(0);
     
     try {
-      // ✅ PHASE 1: Validation stricte
-      if (formData.images.length === 0) {
+      // ✅ Validation conditionnelle selon le type de produit
+      if (!formData.is_digital && formData.images.length === 0) {
         toast({
           title: "Photos manquantes",
-          description: "Ajoutez au moins 1 photo de votre produit",
+          description: "Ajoutez au moins 1 photo de votre produit physique",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Pour les produits digitaux, vérifier que le fichier est uploadé
+      if (formData.is_digital && !formData.digital_file_url) {
+        toast({
+          title: "Fichier digital manquant",
+          description: "Téléchargez le fichier à vendre",
           variant: "destructive"
         });
         return false;
@@ -103,64 +113,67 @@ export default function VendorAddProduct() {
 
       const imageUrls: string[] = [];
       
-      for (let i = 0; i < formData.images.length; i++) {
-        let image = formData.images[i];
-        
-        // ✅ PHASE 3: Compression automatique si > 1MB
-        if (image.size > 1024 * 1024) {
-          console.log(`🗜️ Compressing ${image.name} (${(image.size / 1024 / 1024).toFixed(2)}MB)`);
-          image = await compressImage(image);
-          console.log(`✅ Compressed to ${(image.size / 1024 / 1024).toFixed(2)}MB`);
+      // Upload des images seulement si présentes (optionnelles pour digital)
+      if (formData.images && formData.images.length > 0) {
+        for (let i = 0; i < formData.images.length; i++) {
+          let image = formData.images[i];
+          
+          // ✅ PHASE 3: Compression automatique si > 1MB
+          if (image.size > 1024 * 1024) {
+            console.log(`🗜️ Compressing ${image.name} (${(image.size / 1024 / 1024).toFixed(2)}MB)`);
+            image = await compressImage(image);
+            console.log(`✅ Compressed to ${(image.size / 1024 / 1024).toFixed(2)}MB`);
+          }
+          
+          // ✅ PHASE 3: Mettre à jour la progression
+          setUploadProgress(Math.round((i / formData.images.length) * 100));
+          
+          // Vérifier la taille du fichier (max 5MB)
+          if (image.size > 5 * 1024 * 1024) {
+            throw new Error(`L'image ${image.name} dépasse 5MB même après compression`);
+          }
+
+          const fileExt = image.name.split('.').pop();
+          const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+          // ✅ Upload vers le bucket product-images avec timeout
+          const uploadPromise = supabase.storage
+            .from('product-images')
+            .upload(fileName, image, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          // Timeout de 30 secondes
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Upload timeout - Connexion trop lente')), 30000)
+          );
+
+          const { error: uploadError } = await Promise.race([
+            uploadPromise,
+            timeoutPromise
+          ]) as any;
+
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            throw new Error(`Erreur upload ${image.name}: ${uploadError.message}`);
+          }
+
+          // ✅ Obtenir l'URL publique
+          const { data: urlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(fileName);
+
+          imageUrls.push(urlData.publicUrl);
+          
+          console.log(`✅ Image ${i+1}/${formData.images.length} uploaded: ${image.name}`);
         }
-        
-        // ✅ PHASE 3: Mettre à jour la progression
-        setUploadProgress(Math.round((i / formData.images.length) * 100));
-        
-        // Vérifier la taille du fichier (max 5MB)
-        if (image.size > 5 * 1024 * 1024) {
-          throw new Error(`L'image ${image.name} dépasse 5MB même après compression`);
-        }
-
-        const fileExt = image.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-        // ✅ Upload vers le bucket product-images avec timeout
-        const uploadPromise = supabase.storage
-          .from('product-images')
-          .upload(fileName, image, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        // Timeout de 30 secondes
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Upload timeout - Connexion trop lente')), 30000)
-        );
-
-        const { error: uploadError } = await Promise.race([
-          uploadPromise,
-          timeoutPromise
-        ]) as any;
-
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          throw new Error(`Erreur upload ${image.name}: ${uploadError.message}`);
-        }
-
-        // ✅ Obtenir l'URL publique
-        const { data: urlData } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(fileName);
-
-        imageUrls.push(urlData.publicUrl);
-        
-        console.log(`✅ Image ${i+1}/${formData.images.length} uploaded: ${image.name}`);
       }
       
       // ✅ PHASE 3: Progression finale
       setUploadProgress(100);
 
-      // Insert product into database
+      // Insert product into database avec champs digitaux
       const { data: newProduct, error } = await supabase
         .from('marketplace_products')
         .insert({
@@ -169,13 +182,20 @@ export default function VendorAddProduct() {
           description: formData.description,
           price: parseFloat(formData.price),
           category: formData.category,
-          condition: formData.condition,
+          condition: formData.is_digital ? 'new' : formData.condition,
           images: imageUrls,
-          stock_count: formData.stock_count || 1,
+          stock_count: formData.is_digital ? 9999 : (formData.stock_count || 1),
           brand: formData.brand || null,
           specifications: formData.specifications || {},
           moderation_status: 'pending',
-          status: 'active'
+          status: 'active',
+          // ✅ Champs digitaux
+          is_digital: formData.is_digital || false,
+          digital_file_url: formData.digital_file_url || null,
+          digital_file_name: formData.digital_file_name || null,
+          digital_file_size: formData.digital_file_size || null,
+          digital_download_limit: formData.digital_download_limit || 5,
+          digital_file_type: formData.digital_file_type || null
         })
         .select()
         .single();
@@ -198,10 +218,18 @@ export default function VendorAddProduct() {
         // Ne pas bloquer la création du produit
       }
 
-      toast({
-        title: "✅ Produit publié !",
-        description: "Votre produit sera visible après modération par notre équipe.",
-      });
+      // Message de succès adapté au type de produit
+      if (formData.is_digital) {
+        toast({
+          title: "✅ Produit digital publié !",
+          description: "Votre fichier sera disponible au téléchargement après modération.",
+        });
+      } else {
+        toast({
+          title: "✅ Produit publié !",
+          description: "Votre produit sera visible après modération par notre équipe.",
+        });
+      }
 
       navigate('/vendeur');
       return true;
