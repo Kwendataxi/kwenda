@@ -324,13 +324,33 @@ export const UniversalChatInterface = ({
               )}
             </AnimatePresence>
 
-            <div className="p-3 border-t bg-background/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-              <div className="flex gap-2">
+            <div className="p-3 border-t border-border/50 bg-background pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <div className="flex items-center gap-2">
                 <ImageAttachment onImageSelect={handleImageSelect} disabled={uploadingImage} />
-                <Button onClick={handleSendLocation} variant="outline" size="icon" className="h-11 w-11 rounded-xl border-2 hover:bg-primary/10 hover:border-primary flex-shrink-0"><MapPin className="h-4 w-4" /></Button>
+                <Button 
+                  onClick={handleSendLocation} 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 flex-shrink-0 transition-colors"
+                >
+                  <MapPin className="h-5 w-5" />
+                </Button>
                 <div className="flex-1 relative">
-                  <Input ref={inputRef} value={newMessage} onChange={handleInputChange} onKeyPress={handleKeyPress} placeholder="Tapez votre message..." className="h-11 rounded-xl border-2 focus:border-primary pr-12 text-sm" disabled={uploadingImage} />
-                  <Button onClick={handleSendMessage} disabled={(!newMessage.trim() && !selectedImage) || uploadingImage} className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg p-0 bg-primary hover:bg-primary/90">
+                  <Input 
+                    ref={inputRef} 
+                    value={newMessage} 
+                    onChange={handleInputChange} 
+                    onKeyPress={handleKeyPress} 
+                    placeholder="Votre message..." 
+                    className="h-11 rounded-full border border-border/60 bg-muted/30 focus:bg-background focus:border-primary/50 pr-12 text-sm placeholder:text-muted-foreground/60 transition-all" 
+                    disabled={uploadingImage} 
+                  />
+                  <Button 
+                    onClick={handleSendMessage} 
+                    disabled={(!newMessage.trim() && !selectedImage) || uploadingImage} 
+                    size="icon"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-40 transition-all"
+                  >
                     {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   </Button>
                 </div>
@@ -346,27 +366,110 @@ export const UniversalChatInterface = ({
 };
 
 const ConversationsList = ({ conversations, onSelectConversation, loading }: { conversations: UniversalConversation[]; onSelectConversation: (id: string) => void; loading: boolean }) => {
-  if (loading) return <div className="flex-1 flex items-center justify-center"><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full" /></div>;
-  if (conversations.length === 0) return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }}><MessageCircle className="h-20 w-20 text-muted-foreground/40 mb-2" /></motion.div>
-      <div className="space-y-2"><h3 className="text-xl font-bold">Aucun message</h3><p className="text-sm text-muted-foreground max-w-sm">Commencez à discuter avec des vendeurs</p></div>
-      <Button onClick={() => window.location.href = '/marketplace'} className="mt-4">Explorer les produits</Button>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <motion.div 
+          animate={{ rotate: 360 }} 
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }} 
+          className="w-10 h-10 border-3 border-primary/20 border-t-primary rounded-full" 
+        />
+      </div>
+    );
+  }
+
+  if (conversations.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <motion.div 
+          initial={{ scale: 0, opacity: 0 }} 
+          animate={{ scale: 1, opacity: 1 }} 
+          transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+          className="mb-6"
+        >
+          <div className="relative">
+            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+              <MessageCircle className="h-10 w-10 text-primary/60" />
+            </div>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+              className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-muted flex items-center justify-center border-2 border-background"
+            >
+              <span className="text-xs">💬</span>
+            </motion.div>
+          </div>
+        </motion.div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.2 }}
+          className="space-y-2 mb-6"
+        >
+          <h3 className="text-lg font-semibold text-foreground">Aucune conversation</h3>
+          <p className="text-sm text-muted-foreground max-w-[240px] leading-relaxed">
+            Négociez directement avec les vendeurs pour obtenir les meilleurs prix
+          </p>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Button 
+            onClick={() => window.location.href = '/marketplace'} 
+            className="rounded-full px-6"
+          >
+            Parcourir les produits
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <ScrollArea className="flex-1">
-      <div className="p-2">
-        {conversations.map((conversation) => (
-          <motion.div key={conversation.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => onSelectConversation(conversation.id)} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors">
+      <div className="p-2 space-y-1">
+        {conversations.map((conversation, index) => (
+          <motion.div 
+            key={conversation.id} 
+            initial={{ opacity: 0, y: 8 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            onClick={() => onSelectConversation(conversation.id)} 
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 cursor-pointer transition-all active:scale-[0.98] group"
+          >
             <div className="relative">
-              <Avatar className="h-12 w-12 ring-2 ring-primary/20"><AvatarImage src={conversation.other_participant?.shop_logo_url || conversation.other_participant?.avatar_url} /><AvatarFallback className="bg-gradient-to-br from-primary to-purple-600 text-white">{conversation.other_participant?.shop_name?.[0] || conversation.other_participant?.display_name?.charAt(0) || 'V'}</AvatarFallback></Avatar>
+              <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
+                <AvatarImage src={conversation.other_participant?.shop_logo_url || conversation.other_participant?.avatar_url} />
+                <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-primary-foreground font-medium">
+                  {conversation.other_participant?.shop_name?.[0] || conversation.other_participant?.display_name?.charAt(0) || 'V'}
+                </AvatarFallback>
+              </Avatar>
               <OnlineStatusBadge isOnline={false} className="absolute -bottom-0.5 -right-0.5" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between"><p className="font-medium truncate">{conversation.other_participant?.shop_name || conversation.other_participant?.display_name || 'Vendeur'}</p><span className="text-xs text-muted-foreground">{conversation.last_message_at && new Date(conversation.last_message_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span></div>
-              <LastMessagePreview message={conversation.last_message} isRead={!conversation.unread_count} />
-              <div className="flex items-center justify-between mt-0.5"><Badge variant="outline" className="text-[10px] px-1.5 py-0">{conversation.context_type}</Badge>{conversation.unread_count && conversation.unread_count > 0 && <Badge className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">{conversation.unread_count}</Badge>}</div>
+              <div className="flex items-center justify-between mb-0.5">
+                <p className="font-medium text-foreground truncate text-sm">
+                  {conversation.other_participant?.shop_name || conversation.other_participant?.display_name || 'Vendeur'}
+                </p>
+                <span className="text-[11px] text-muted-foreground">
+                  {conversation.last_message_at && new Date(conversation.last_message_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0 pr-2">
+                  <LastMessagePreview message={conversation.last_message} isRead={!conversation.unread_count} />
+                </div>
+                {conversation.unread_count && conversation.unread_count > 0 && (
+                  <Badge className="h-5 min-w-5 rounded-full px-1.5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground font-medium">
+                    {conversation.unread_count}
+                  </Badge>
+                )}
+              </div>
             </div>
           </motion.div>
         ))}
@@ -391,18 +494,71 @@ const MessageBubble = ({ message, onReply, onRetry, allMessages, onImagePreview 
   };
 
   return (
-    <motion.div layout initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} className={cn("flex gap-2 max-w-[85%] group", isOwnMessage ? "ml-auto flex-row-reverse" : "mr-auto")}>
-      {!isOwnMessage && <Avatar className="h-8 w-8 ring-2 ring-primary/20 flex-shrink-0"><AvatarImage src={message.sender?.avatar_url} /><AvatarFallback className="bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground text-xs font-semibold">{message.sender?.display_name?.charAt(0) || 'V'}</AvatarFallback></Avatar>}
-      <div className="flex flex-col gap-1 flex-1 min-w-0">
-        {!isOwnMessage && <span className="text-xs text-muted-foreground font-medium px-1">{(message.sender as any)?.shop_name || message.sender?.display_name || 'Vendeur'}</span>}
+    <motion.div 
+      layout 
+      initial={{ opacity: 0, y: 8 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, y: -8 }} 
+      transition={{ duration: 0.15 }} 
+      className={cn("flex gap-2 max-w-[80%] group", isOwnMessage ? "ml-auto flex-row-reverse" : "mr-auto")}
+    >
+      {!isOwnMessage && (
+        <Avatar className="h-7 w-7 flex-shrink-0 shadow-sm">
+          <AvatarImage src={message.sender?.avatar_url} />
+          <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+            {message.sender?.display_name?.charAt(0) || 'V'}
+          </AvatarFallback>
+        </Avatar>
+      )}
+      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+        {!isOwnMessage && (
+          <span className="text-[11px] text-muted-foreground font-medium px-1 mb-0.5">
+            {(message.sender as any)?.shop_name || message.sender?.display_name || 'Vendeur'}
+          </span>
+        )}
         {replyToMessage && <MessageReplyPreview replyTo={replyToMessage} isOwnMessage={isOwnMessage} />}
-        <div className={cn("rounded-2xl px-4 py-2.5 max-w-full shadow-sm relative", isOwnMessage ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted/80 text-foreground rounded-bl-sm", message.status === 'error' && "opacity-70")}>
-          {message.metadata?.image_url && <ImageMessage imageUrl={message.metadata.image_url} onClick={() => onImagePreview(message.metadata?.image_url || '')} />}
-          {message.message_type === 'location' ? <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /><span className="text-sm font-medium">📍 Position partagée</span></div> : message.content && message.content !== '📷 Image' && <p className="text-sm leading-relaxed break-words">{message.content}</p>}
-          <div className={cn("text-[10px] mt-1.5 flex items-center gap-1.5", isOwnMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground")}>{new Date(message.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}{getStatusIcon()}</div>
-          <button onClick={() => onReply(message)} className={cn("absolute top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/80 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity", isOwnMessage ? "-left-8" : "-right-8")}><ReplyIcon className="h-3.5 w-3.5 text-muted-foreground" /></button>
+        <div 
+          className={cn(
+            "rounded-2xl px-3.5 py-2 max-w-full relative",
+            isOwnMessage 
+              ? "bg-primary text-primary-foreground rounded-br-md" 
+              : "bg-muted text-foreground rounded-bl-md",
+            message.status === 'error' && "opacity-70"
+          )}
+        >
+          {message.metadata?.image_url && (
+            <ImageMessage 
+              imageUrl={message.metadata.image_url} 
+              onClick={() => onImagePreview(message.metadata?.image_url || '')} 
+            />
+          )}
+          {message.message_type === 'location' ? (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span className="text-sm">📍 Position partagée</span>
+            </div>
+          ) : message.content && message.content !== '📷 Image' && (
+            <p className="text-sm leading-relaxed break-words">{message.content}</p>
+          )}
+          <div className={cn(
+            "text-[10px] mt-1 flex items-center gap-1",
+            isOwnMessage ? "text-primary-foreground/60 justify-end" : "text-muted-foreground"
+          )}>
+            {new Date(message.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            {getStatusIcon()}
+          </div>
+          <button 
+            onClick={() => onReply(message)} 
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 p-1 rounded-full bg-background shadow-sm border border-border/50 opacity-0 group-hover:opacity-100 transition-opacity",
+              isOwnMessage ? "-left-7" : "-right-7"
+            )}
+          >
+            <ReplyIcon className="h-3 w-3 text-muted-foreground" />
+          </button>
         </div>
       </div>
     </motion.div>
   );
 };
+
