@@ -8,11 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
-import { Camera, Upload, X, ArrowLeft, ArrowRight, CheckCircle, Eye, Plus, Minus, Loader2, AlertCircle } from 'lucide-react';
+import { Switch } from '../ui/switch';
+import { Camera, Upload, X, ArrowLeft, ArrowRight, CheckCircle, Eye, Plus, Minus, Loader2, AlertCircle, FileCode, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useProductFormValidation } from '@/hooks/useProductFormValidation';
 import { CompactProductCard } from './CompactProductCard';
+import { DigitalFileUpload } from './DigitalFileUpload';
 import { MARKETPLACE_CATEGORIES, PRODUCT_CONDITIONS } from '@/config/marketplaceCategories';
 import { cn } from '@/lib/utils';
 import { debounce } from '@/utils/performanceUtils';
@@ -27,6 +29,13 @@ interface SellProductFormData {
   stock_count: number;
   brand: string;
   specifications: Record<string, string>;
+  // Champs digitaux
+  is_digital: boolean;
+  digital_file_url: string;
+  digital_file_name: string;
+  digital_file_size: number;
+  digital_file_type: string;
+  digital_download_limit: number;
 }
 
 interface SellProductFormProps {
@@ -53,7 +62,14 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
     images: [],
     stock_count: 1,
     brand: '',
-    specifications: {}
+    specifications: {},
+    // Champs digitaux
+    is_digital: false,
+    digital_file_url: '',
+    digital_file_name: '',
+    digital_file_size: 0,
+    digital_file_type: '',
+    digital_download_limit: 5
   });
 
   const { 
@@ -77,7 +93,8 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
   ];
 
   const handleNext = () => {
-    if (currentStep === 1 && imagePreviews.length === 0) {
+    // Pour les produits digitaux, on peut passer sans photos (optionnelles)
+    if (currentStep === 1 && !formData.is_digital && imagePreviews.length === 0) {
       toast({
         title: "Photos requises",
         description: "Ajoutez au moins une photo de votre produit",
@@ -85,7 +102,48 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
       });
       return;
     }
+    // Pour les produits digitaux, vérifier que le fichier est uploadé
+    if (currentStep === 1 && formData.is_digital && !formData.digital_file_url) {
+      toast({
+        title: "Fichier requis",
+        description: "Téléchargez le fichier digital à vendre",
+        variant: "destructive"
+      });
+      return;
+    }
     setCurrentStep(prev => Math.min(prev + 1, 3));
+  };
+
+  const handleDigitalFileUploaded = (fileData: {
+    url: string;
+    name: string;
+    size: number;
+    type: string;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      digital_file_url: fileData.url,
+      digital_file_name: fileData.name,
+      digital_file_size: fileData.size,
+      digital_file_type: fileData.type
+    }));
+  };
+
+  const handleDigitalToggle = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      is_digital: checked,
+      // Reset digital fields si on désactive
+      ...(checked ? {} : {
+        digital_file_url: '',
+        digital_file_name: '',
+        digital_file_size: 0,
+        digital_file_type: '',
+        digital_download_limit: 5
+      }),
+      // Pour les produits digitaux, mettre stock illimité et condition "new"
+      ...(checked ? { stock_count: 9999, condition: 'new' } : {})
+    }));
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -201,85 +259,202 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
             exit={{ opacity: 0, x: -20 }}
             className="space-y-4"
           >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Camera className="h-5 w-5" />
-                  Photos du produit
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Drag & Drop Zone */}
-                <motion.div
-                  className={cn(
-                    "border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer",
-                    isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                  )}
-                  whileHover={{ scale: 1.01 }}
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={handleDrop}
-                  onClick={() => document.getElementById('image-upload')?.click()}
-                >
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-primary" />
-                  <p className="font-medium text-lg mb-1">Glissez vos photos ici</p>
-                  <p className="text-sm text-muted-foreground">ou cliquez pour parcourir</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Maximum 3 photos • Max 5MB par photo
-                  </p>
-                  <input
-                    id="image-upload"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => uploadImages(e.target.files)}
-                  />
-                </motion.div>
-
-                {/* ✅ PHASE 2: Image Previews - Réduire animations pour performance */}
-                {imagePreviews.length > 0 && (
-                  <div className="mt-6">
-                    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
-                      {imagePreviews.map((img, i) => (
-                        <div
-                          key={i}
-                          className="relative flex-shrink-0 w-32 h-32 sm:w-40 sm:h-40 group snap-start"
-                        >
-                          <img 
-                            src={img} 
-                            className="w-full h-full object-cover rounded-xl shadow-md" 
-                            alt={`Preview ${i + 1}`}
-                          />
-                          <button
-                            className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:scale-110"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeImage(i);
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                          {i === 0 && (
-                            <Badge className="absolute top-2 left-2 bg-primary text-xs">
-                              Principale
-                            </Badge>
-                          )}
-                          <div className="absolute bottom-2 left-2 right-2 flex justify-center">
-                            <Badge variant="secondary" className="text-[10px] bg-black/50 text-white">
-                              {i + 1}/{imagePreviews.length}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
+            {/* Toggle Produit Digital */}
+            <Card className={cn(
+              "transition-all",
+              formData.is_digital 
+                ? "bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 border-purple-200 dark:border-purple-800" 
+                : ""
+            )}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                      formData.is_digital 
+                        ? "bg-purple-100 dark:bg-purple-900/30" 
+                        : "bg-muted"
+                    )}>
+                      {formData.is_digital ? (
+                        <FileCode className="h-5 w-5 text-purple-600" />
+                      ) : (
+                        <Camera className="h-5 w-5 text-muted-foreground" />
+                      )}
                     </div>
-                    <p className="text-xs text-center text-muted-foreground mt-2">
-                      Faites glisser pour voir toutes les photos • La première sera l'image principale
-                    </p>
+                    <div>
+                      <Label htmlFor="is-digital" className="font-medium cursor-pointer">
+                        Produit Digital
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        {formData.is_digital 
+                          ? "Fichier téléchargeable (PDF, ZIP, MP3...)" 
+                          : "Produit physique à livrer"}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="is-digital"
+                    checked={formData.is_digital}
+                    onCheckedChange={handleDigitalToggle}
+                  />
+                </div>
+                {formData.is_digital && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                      <Download className="h-3 w-3 mr-1" />
+                      Téléchargement instantané
+                    </Badge>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                      Pas de livraison
+                    </Badge>
                   </div>
                 )}
               </CardContent>
             </Card>
+
+            {/* Upload Fichier Digital OU Photos selon le type */}
+            {formData.is_digital ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileCode className="h-5 w-5 text-purple-600" />
+                    Fichier à vendre
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DigitalFileUpload
+                    onFileUploaded={handleDigitalFileUploaded}
+                    downloadLimit={formData.digital_download_limit}
+                    onDownloadLimitChange={(limit) => setFormData(prev => ({ ...prev, digital_download_limit: limit }))}
+                    currentFile={formData.digital_file_url ? {
+                      url: formData.digital_file_url,
+                      name: formData.digital_file_name,
+                      size: formData.digital_file_size,
+                      type: formData.digital_file_type
+                    } : null}
+                  />
+                  
+                  {/* Photo de couverture optionnelle */}
+                  <div className="mt-6 pt-6 border-t">
+                    <Label className="text-sm text-muted-foreground mb-3 block">
+                      Photo de couverture (optionnelle)
+                    </Label>
+                    <motion.div
+                      className={cn(
+                        "border-2 border-dashed rounded-xl p-4 text-center transition-all cursor-pointer",
+                        isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                      )}
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={handleDrop}
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                    >
+                      {imagePreviews.length > 0 ? (
+                        <div className="flex items-center justify-center gap-4">
+                          <img src={imagePreviews[0]} className="h-16 w-16 object-cover rounded-lg" alt="Cover" />
+                          <div className="text-left">
+                            <p className="text-sm font-medium">Image de couverture</p>
+                            <p className="text-xs text-muted-foreground">Cliquez pour changer</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <Camera className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">Ajouter une image de couverture</p>
+                        </>
+                      )}
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => uploadImages(e.target.files)}
+                      />
+                    </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Camera className="h-5 w-5" />
+                    Photos du produit
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Drag & Drop Zone */}
+                  <motion.div
+                    className={cn(
+                      "border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer",
+                      isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                    )}
+                    whileHover={{ scale: 1.01 }}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                  >
+                    <Upload className="w-12 h-12 mx-auto mb-4 text-primary" />
+                    <p className="font-medium text-lg mb-1">Glissez vos photos ici</p>
+                    <p className="text-sm text-muted-foreground">ou cliquez pour parcourir</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Maximum 3 photos • Max 5MB par photo
+                    </p>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => uploadImages(e.target.files)}
+                    />
+                  </motion.div>
+
+                  {/* Image Previews */}
+                  {imagePreviews.length > 0 && (
+                    <div className="mt-6">
+                      <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
+                        {imagePreviews.map((img, i) => (
+                          <div
+                            key={i}
+                            className="relative flex-shrink-0 w-32 h-32 sm:w-40 sm:h-40 group snap-start"
+                          >
+                            <img 
+                              src={img} 
+                              className="w-full h-full object-cover rounded-xl shadow-md" 
+                              alt={`Preview ${i + 1}`}
+                            />
+                            <button
+                              className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:scale-110"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeImage(i);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                            {i === 0 && (
+                              <Badge className="absolute top-2 left-2 bg-primary text-xs">
+                                Principale
+                              </Badge>
+                            )}
+                            <div className="absolute bottom-2 left-2 right-2 flex justify-center">
+                              <Badge variant="secondary" className="text-[10px] bg-black/50 text-white">
+                                {i + 1}/{imagePreviews.length}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-center text-muted-foreground mt-2">
+                        Faites glisser pour voir toutes les photos • La première sera l'image principale
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </motion.div>
         )}
 
@@ -660,11 +835,17 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
                   images: [],
                   stock_count: 1,
                   brand: '',
-                  specifications: {}
+                  specifications: {},
+                  is_digital: false,
+                  digital_file_url: '',
+                  digital_file_name: '',
+                  digital_file_size: 0,
+                  digital_file_type: '',
+                  digital_download_limit: 5
                 });
               }
             }}
-            disabled={!isValid || uploadedFiles.length === 0 || isSubmitting}
+            disabled={!isValid || (!formData.is_digital && uploadedFiles.length === 0) || (formData.is_digital && !formData.digital_file_url) || isSubmitting}
             className="flex-1 bg-primary hover:bg-primary/90"
           >
             {isSubmitting ? (
