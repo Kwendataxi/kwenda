@@ -934,7 +934,9 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
                   digital_file_name: '',
                   digital_file_size: 0,
                   digital_file_type: '',
-                  digital_download_limit: 5
+                  digital_download_limit: 5,
+                  digital_category: '',
+                  digital_specs: {}
                 });
               }
             }}
