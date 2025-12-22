@@ -68,7 +68,14 @@ export const useMarketplaceProductDetails = (productId: string) => {
         salesCount: data.sales_count || 0,
         popularityScore: data.popularity_score || 0,
         moderation_status: data.moderation_status,
-        status: data.status
+        status: data.status,
+        // Champs produits digitaux
+        is_digital: data.is_digital || false,
+        digital_file_url: data.digital_file_url,
+        digital_file_name: data.digital_file_name,
+        digital_file_size: data.digital_file_size,
+        digital_download_limit: data.digital_download_limit || 5,
+        digital_file_type: data.digital_file_type
       };
       
       // Ajouter vendor comme propriété additionnelle
