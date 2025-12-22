@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +23,7 @@ import { VendorAnalytics } from './VendorAnalytics';
 import { VendorFollowers } from './VendorFollowers';
 import { VendorShopSettings } from '@/components/marketplace/VendorShopSettings';
 import { LegalFooterLinks } from '@/components/shared/LegalFooterLinks';
+import { StaggerContainer, StaggerItem } from './animations';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -54,7 +56,6 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
       
       if (error) throw error;
       
-      // Debug log pour vérifier l'UUID
       console.log('[VendorProfile] Loaded vendor:', {
         user_id: data?.user_id,
         id: data?.id,
@@ -65,15 +66,14 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
       return data;
     },
     enabled: !!user,
-    staleTime: 0,  // Force refresh à chaque visite
-    gcTime: 0      // Pas de cache
+    staleTime: 0,
+    gcTime: 0
   });
 
   const handleSignOut = async () => {
     try {
       await signOut();
       toast({ title: "✅ Déconnexion réussie" });
-      // 🛡️ signOut gère la redirection via ProtectedRoute
     } catch (error) {
       toast({ title: "❌ Erreur lors de la déconnexion", variant: "destructive" });
     }
@@ -114,12 +114,12 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
     {
       title: "Ma Boutique",
       items: [
-    { 
-      icon: Store, 
-      label: "Informations de la boutique",
-      description: "Nom, description, logo",
-      onClick: () => setShopSettingsOpen(true)
-    },
+        { 
+          icon: Store, 
+          label: "Informations de la boutique",
+          description: "Nom, description, logo",
+          onClick: () => setShopSettingsOpen(true)
+        },
         { 
           icon: Package, 
           label: "Mes produits",
@@ -204,77 +204,134 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
 
   return (
     <div className="container max-w-6xl mx-auto p-4 space-y-6">
-      <VendorProfileHeader />
-      <VendorStatsCards />
+      {/* Header avec animation */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <VendorProfileHeader />
+      </motion.div>
 
-      <VendorShopInfoCard
-        shopName={vendor?.shop_name || 'Ma Boutique'}
-        description={vendor?.shop_description || 'Bienvenue dans ma boutique Kwenda Market'}
-        email={user?.email || 'Non renseigné'}
-        totalSales={vendor?.total_sales || 0}
-        rating={vendor?.average_rating || 0.0}
-        memberSince={vendor?.created_at ? format(new Date(vendor.created_at), 'dd MMMM yyyy', { locale: fr }) : 'Non renseigné'}
-        status="active"
-        vendorId={vendor?.user_id || ''}
-        onEditClick={() => setShopSettingsOpen(true)}
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <VendorStatsCards />
+      </motion.div>
 
-      {/* Quick Actions */}
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Actions Rapides</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {quickActions.map((action, idx) => (
-            <button
-              key={idx}
-              onClick={action.onClick}
-              className="flex flex-col items-center p-3 rounded-lg border hover:bg-accent transition-colors text-center"
-            >
-              <action.icon className={`h-6 w-6 mb-2 ${action.color}`} />
-              <span className="font-medium text-sm">{action.label}</span>
-              <span className="text-xs text-muted-foreground">{action.description}</span>
-            </button>
-          ))}
-        </div>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
+      >
+        <VendorShopInfoCard
+          shopName={vendor?.shop_name || 'Ma Boutique'}
+          description={vendor?.shop_description || 'Bienvenue dans ma boutique Kwenda Market'}
+          email={user?.email || 'Non renseigné'}
+          totalSales={vendor?.total_sales || 0}
+          rating={vendor?.average_rating || 0.0}
+          memberSince={vendor?.created_at ? format(new Date(vendor.created_at), 'dd MMMM yyyy', { locale: fr }) : 'Non renseigné'}
+          status="active"
+          vendorId={vendor?.user_id || ''}
+          onEditClick={() => setShopSettingsOpen(true)}
+        />
+      </motion.div>
 
-      {/* Menu Sections */}
-      <div className="grid gap-6">
-        {menuSections.map((section, idx) => (
-          <Card key={idx} className="p-6">
-            <h2 className="text-xl font-semibold mb-4">{section.title}</h2>
-            <div className="grid gap-3">
-              {section.items.map((item, itemIdx) => (
-                <button
-                  key={itemIdx}
-                  onClick={item.onClick}
-                  className="flex items-center gap-4 p-4 rounded-lg border hover:bg-accent transition-colors text-left"
+      {/* Quick Actions avec stagger */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Actions Rapides</h2>
+          <StaggerContainer 
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+            staggerDelay={0.05}
+          >
+            {quickActions.map((action, idx) => (
+              <StaggerItem key={idx}>
+                <motion.button
+                  onClick={action.onClick}
+                  className="flex flex-col items-center p-3 rounded-lg border hover:bg-accent transition-colors text-center w-full"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400 }}
                 >
-                  <item.icon className="h-5 w-5 text-primary" />
-                  <div className="flex-1">
-                    <div className="font-medium">{item.label}</div>
-                    <div className="text-sm text-muted-foreground">{item.description}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </Card>
-        ))}
-      </div>
+                  <action.icon className={`h-6 w-6 mb-2 ${action.color}`} />
+                  <span className="font-medium text-sm">{action.label}</span>
+                  <span className="text-xs text-muted-foreground">{action.description}</span>
+                </motion.button>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+        </Card>
+      </motion.div>
 
-      {/* Déconnexion */}
-      <Card className="p-6">
-        <Button 
-          onClick={handleSignOut} 
-          variant="destructive" 
-          className="w-full"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Déconnexion
-        </Button>
-      </Card>
+      {/* Menu Sections avec animations */}
+      <StaggerContainer className="grid gap-6" staggerDelay={0.08}>
+        {menuSections.map((section, idx) => (
+          <StaggerItem key={idx}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.3, delay: idx * 0.05 }}
+            >
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4">{section.title}</h2>
+                <div className="grid gap-3">
+                  {section.items.map((item, itemIdx) => (
+                    <motion.button
+                      key={itemIdx}
+                      onClick={item.onClick}
+                      className="flex items-center gap-4 p-4 rounded-lg border hover:bg-accent transition-colors text-left w-full"
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.99 }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                    >
+                      <item.icon className="h-5 w-5 text-primary" />
+                      <div className="flex-1">
+                        <div className="font-medium">{item.label}</div>
+                        <div className="text-sm text-muted-foreground">{item.description}</div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </Card>
+            </motion.div>
+          </StaggerItem>
+        ))}
+      </StaggerContainer>
+
+      {/* Déconnexion avec animation */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <Card className="p-6">
+          <Button 
+            onClick={handleSignOut} 
+            variant="destructive" 
+            className="w-full transition-transform hover:scale-[1.01] active:scale-[0.99]"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Déconnexion
+          </Button>
+        </Card>
+      </motion.div>
 
       {/* Liens légaux */}
-      <LegalFooterLinks />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        <LegalFooterLinks />
+      </motion.div>
 
       {/* Dialogs */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
