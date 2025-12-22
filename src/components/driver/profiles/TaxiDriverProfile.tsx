@@ -39,13 +39,7 @@ export const TaxiDriverProfile = () => {
 
       const { data: chauffeur, error } = await supabase
         .from('chauffeurs')
-        .select(`
-          *,
-          driver_subscriptions(
-            *,
-            subscription_plans(*)
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .single();
 

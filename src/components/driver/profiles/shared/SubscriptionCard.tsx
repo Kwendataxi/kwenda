@@ -153,7 +153,7 @@ export const SubscriptionCard = ({ serviceType }: SubscriptionCardProps) => {
                 isPro ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700' :
                 'bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80'
               }`}
-              onClick={() => navigate('/driver/subscription')}
+              onClick={() => navigate('/app/chauffeur?tab=subscription')}
             >
               {isExpired ? 'Renouveler' : 'Upgrader mon plan'}
               <ArrowRight className="w-4 h-4 ml-2" />
