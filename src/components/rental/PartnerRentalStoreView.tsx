@@ -48,13 +48,6 @@ export const PartnerRentalStoreView = () => {
       if (error) throw error;
       if (!partner) throw new Error('Partenaire introuvable');
 
-      // Fetch profile separately - use user_id column, not id
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('avatar_url, display_name')
-        .eq('user_id', partner.user_id)
-        .maybeSingle();
-
       // Fetch stats from materialized view - don't throw on error
       const { data: stats } = await supabase
         .from('partner_rental_stats')
@@ -67,13 +60,12 @@ export const PartnerRentalStoreView = () => {
         user_id: partner.user_id,
         company_name: partner.company_name,
         banner_image: partner.banner_image,
+        logo_url: partner.logo_url,
         slogan: partner.slogan,
         shop_description: partner.shop_description,
         phone: partner.phone,
         email: partner.email,
         website: partner.website,
-        avatar_url: profile?.avatar_url,
-        display_name: profile?.display_name,
         stats: stats || {
           total_vehicles: 0,
           available_vehicles: 0,
@@ -324,9 +316,9 @@ export const PartnerRentalStoreView = () => {
           {/* Avatar - No hover scale */}
           <div className="relative shrink-0">
             <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-background shadow-lg overflow-hidden bg-muted dark:bg-slate-800">
-              {partnerData.avatar_url ? (
+              {partnerData.logo_url ? (
                 <img 
-                  src={partnerData.avatar_url}
+                  src={partnerData.logo_url}
                   alt={partnerData.company_name}
                   className="w-full h-full object-cover"
                 />

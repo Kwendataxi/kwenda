@@ -186,7 +186,7 @@ export const RentalVehicleDetails = () => {
                     >
                       <div className="relative">
                         <img 
-                          src={partnerGroup.partnerAvatar || '/placeholder.svg'}
+                          src={partnerGroup.partnerLogo || '/placeholder.svg'}
                           alt={partnerGroup.partnerName}
                           className="w-14 h-14 rounded-xl object-cover ring-2 ring-primary/20 shadow-lg"
                         />

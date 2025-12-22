@@ -381,7 +381,7 @@ export const ClientRentalInterface = () => {
                   key={partner.partnerId}
                   partnerId={partner.partnerId}
                   partnerName={partner.partnerName}
-                  partnerAvatar={partner.partnerAvatar}
+                  partnerLogo={partner.partnerLogo}
                   tier={partner.tier}
                   vehicleCount={partner.vehicleCount}
                   avgRating={partner.avgRating}
@@ -424,7 +424,7 @@ export const ClientRentalInterface = () => {
                   vehicle={vehicle}
                   categoryName={vehicleCategory?.name}
                   partnerName={vehiclePartner?.partnerName}
-                  partnerAvatar={vehiclePartner?.partnerAvatar}
+                  partnerLogo={vehiclePartner?.partnerLogo}
                   index={index}
                 />
               );

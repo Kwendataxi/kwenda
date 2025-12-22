@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 interface PartnerGroup {
   partnerId: string;
   partnerName: string;
-  partnerAvatar: string | null;
+  partnerLogo: string | null;
+  partnerBanner: string | null;
   vehicleCount: number;
   avgRating: number;
   ratingCount: number;
@@ -20,23 +21,16 @@ export const usePartnerRentalGroups = (city?: string) => {
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ['rental-vehicles-grouped', city],
     queryFn: async () => {
-      // Fetch partners
+      // Fetch partners with logo_url and banner_image directly
       const { data: allPartners } = await supabase
         .from('partenaires')
-        .select('id, user_id, company_name');
+        .select('id, user_id, company_name, logo_url, banner_image');
 
-      // Fetch profiles for avatars - using user_id column
-      const userIds = allPartners?.map(p => p.user_id).filter(Boolean) || [];
-      const { data: allProfiles } = await supabase
-        .from('profiles')
-        .select('user_id, avatar_url, display_name')
-        .in('user_id', userIds);
-
-      // Merge partners with profiles - match on user_id
+      // Map partners data
       const partnersWithProfiles = allPartners?.map(p => ({
         ...p,
-        avatar_url: allProfiles?.find(pr => pr.user_id === p.user_id)?.avatar_url,
-        display_name: allProfiles?.find(pr => pr.user_id === p.user_id)?.display_name
+        logo_url: p.logo_url,
+        banner_image: p.banner_image
       }));
 
       let query = supabase
@@ -133,7 +127,8 @@ export const usePartnerRentalGroups = (city?: string) => {
         groupsMap.set(partnerId, {
           partnerId,
           partnerName: partner.company_name,
-          partnerAvatar: partner.avatar_url || null,
+          partnerLogo: partner.logo_url || null,
+          partnerBanner: partner.banner_image || null,
           vehicleCount: 0,
           avgRating: partnerStats?.rating_average || 0,
           ratingCount: partnerStats?.rating_count || 0,

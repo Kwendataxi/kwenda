@@ -16,7 +16,7 @@ import { Crown, Star, Car, ChevronRight } from 'lucide-react';
 interface PremiumPartner {
   partnerId: string;
   partnerName: string;
-  partnerAvatar: string | null;
+  partnerLogo: string | null;
   tier: string;
   vehicleCount: number;
   avgRating: number;
@@ -109,7 +109,7 @@ export const PremiumPartnersCarousel: React.FC<PremiumPartnersCarouselProps> = (
                     <div className="flex items-center gap-3 mb-3">
                       <div className="relative">
                         <img 
-                          src={partner.partnerAvatar || '/placeholder.svg'}
+                          src={partner.partnerLogo || '/placeholder.svg'}
                           alt={partner.partnerName}
                           className="w-12 h-12 rounded-xl object-cover ring-2 ring-white/30"
                         />

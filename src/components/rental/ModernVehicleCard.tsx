@@ -26,7 +26,7 @@ interface ModernVehicleCardProps {
   };
   categoryName?: string;
   partnerName?: string;
-  partnerAvatar?: string;
+  partnerLogo?: string;
   index: number;
 }
 
@@ -34,7 +34,7 @@ export const ModernVehicleCard: React.FC<ModernVehicleCardProps> = ({
   vehicle,
   categoryName,
   partnerName,
-  partnerAvatar,
+  partnerLogo,
   index,
 }) => {
   const navigate = useNavigate();
@@ -150,7 +150,7 @@ export const ModernVehicleCard: React.FC<ModernVehicleCardProps> = ({
             <div className="flex items-center gap-3 pt-3 border-t border-border/50 dark:border-border/30">
               <div className="relative">
                 <img 
-                  src={partnerAvatar || '/placeholder.svg'}
+                  src={partnerLogo || '/placeholder.svg'}
                   alt={partnerName}
                   className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500/20 dark:ring-emerald-400/30"
                 />
