@@ -2,18 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-interface PresenceState {
-  onlineUsers: Set<string>;
-  typingUsers: Map<string, { conversationId: string; timestamp: number }>;
-}
-
-interface UserPresence {
-  user_id: string;
-  online_at: string;
-  typing_in?: string;
-}
-
-export const useChatPresence = (conversationId?: string) => {
+export const useChatPresence = (conversationId?: string, otherUserId?: string) => {
   const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
@@ -161,6 +150,12 @@ export const useChatPresence = (conversationId?: string) => {
     return onlineUsers.has(userId);
   }, [onlineUsers]);
 
+  // Check if the other user is typing
+  const isTyping = otherUserId ? typingUsers.has(otherUserId) : typingUsers.size > 0;
+
+  // Check if the other user is online
+  const isOnline = otherUserId ? onlineUsers.has(otherUserId) : false;
+
   // Get typing users for current conversation (excluding self)
   const getTypingUsers = useCallback(() => {
     return Array.from(typingUsers.entries()).map(([userId, userName]) => ({
@@ -176,5 +171,7 @@ export const useChatPresence = (conversationId?: string) => {
     getTypingUsers,
     broadcastTyping,
     broadcastStopTyping,
+    isTyping,
+    isOnline,
   };
 };
