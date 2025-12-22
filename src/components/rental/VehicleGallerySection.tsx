@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Images, ChevronRight, Car } from 'lucide-react';
+import { Images, ChevronRight } from 'lucide-react';
 import { VehicleGalleryLightbox } from './VehicleGalleryLightbox';
+import type { Json } from '@/integrations/supabase/types';
 
 interface Vehicle {
   id: string;
-  name: string;
   brand: string;
   model: string;
-  images?: string[] | any[] | null;
+  images?: Json | null;
 }
 
 interface Props {
