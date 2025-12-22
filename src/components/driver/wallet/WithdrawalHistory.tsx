@@ -1,5 +1,5 @@
 /**
- * 📜 Historique des retraits pour chauffeurs
+ * 📜 Historique des retraits pour chauffeurs (avec statut 'paid')
  */
 
 import { useState } from 'react';
@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   Banknote, Clock, CheckCircle, XCircle, 
   ChevronDown, ChevronUp, Phone, Calendar,
-  Zap, AlertCircle
+  AlertCircle, DollarSign
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -29,12 +29,13 @@ interface WithdrawalRequest {
   mobile_money_phone: string | null;
   created_at: string;
   processed_at: string | null;
+  paid_at: string | null;
   failure_reason: string | null;
-  auto_approved?: boolean | null;
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   pending: { label: 'En attente', color: 'bg-yellow-500', icon: Clock },
+  paid: { label: 'Payé', color: 'bg-green-500', icon: DollarSign },
   approved: { label: 'Approuvé', color: 'bg-green-500', icon: CheckCircle },
   rejected: { label: 'Rejeté', color: 'bg-red-500', icon: XCircle },
   processing: { label: 'En cours', color: 'bg-blue-500', icon: Clock }
@@ -67,7 +68,7 @@ export const WithdrawalHistory = () => {
   // Stats rapides
   const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
   const totalWithdrawn = withdrawals
-    .filter(w => w.status === 'approved')
+    .filter(w => w.status === 'paid' || w.status === 'approved')
     .reduce((sum, w) => sum + w.amount, 0);
 
   if (isLoading) {
@@ -143,13 +144,15 @@ export const WithdrawalHistory = () => {
                         <div className="flex items-center gap-3">
                           <div className={cn(
                             "w-10 h-10 rounded-full flex items-center justify-center",
-                            withdrawal.status === 'approved' ? "bg-green-100 dark:bg-green-900/30" :
+                            withdrawal.status === 'paid' || withdrawal.status === 'approved' 
+                              ? "bg-green-100 dark:bg-green-900/30" :
                             withdrawal.status === 'rejected' ? "bg-red-100 dark:bg-red-900/30" :
                             "bg-yellow-100 dark:bg-yellow-900/30"
                           )}>
                             <StatusIcon className={cn(
                               "w-5 h-5",
-                              withdrawal.status === 'approved' ? "text-green-600" :
+                              withdrawal.status === 'paid' || withdrawal.status === 'approved' 
+                                ? "text-green-600" :
                               withdrawal.status === 'rejected' ? "text-red-600" :
                               "text-yellow-600"
                             )} />
@@ -157,12 +160,6 @@ export const WithdrawalHistory = () => {
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-semibold">{withdrawal.amount.toLocaleString()} CDF</span>
-                              {withdrawal.auto_approved && (
-                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                                  <Zap className="w-3 h-3 mr-1" />
-                                  Instantané
-                                </Badge>
-                              )}
                             </div>
                             <p className="text-sm text-muted-foreground">
                               {formatDistanceToNow(new Date(withdrawal.created_at), { 
@@ -188,7 +185,7 @@ export const WithdrawalHistory = () => {
                           >
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Phone className="w-4 h-4" />
-                              <span>{withdrawal.mobile_money_phone || 'N/A'}</span>
+                              <span>Paiement vers: {withdrawal.mobile_money_phone || 'N/A'}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Banknote className="w-4 h-4" />
@@ -196,9 +193,15 @@ export const WithdrawalHistory = () => {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Calendar className="w-4 h-4" />
-                              <span>{format(new Date(withdrawal.created_at), 'dd MMM yyyy à HH:mm', { locale: fr })}</span>
+                              <span>Demandé le {format(new Date(withdrawal.created_at), 'dd MMM yyyy à HH:mm', { locale: fr })}</span>
                             </div>
-                            {withdrawal.processed_at && (
+                            {withdrawal.paid_at && (
+                              <div className="flex items-center gap-2 text-sm text-green-600">
+                                <DollarSign className="w-4 h-4" />
+                                <span>Payé le {format(new Date(withdrawal.paid_at), 'dd MMM yyyy à HH:mm', { locale: fr })}</span>
+                              </div>
+                            )}
+                            {withdrawal.processed_at && !withdrawal.paid_at && (
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <CheckCircle className="w-4 h-4" />
                                 <span>Traité le {format(new Date(withdrawal.processed_at), 'dd MMM yyyy à HH:mm', { locale: fr })}</span>

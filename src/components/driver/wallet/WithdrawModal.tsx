@@ -1,5 +1,5 @@
 /**
- * 💸 Modal de retrait KwendaPay avec Stepper UX améliorée
+ * 💸 Modal de retrait KwendaPay avec Stepper UX (100% manuel)
  */
 
 import { useState } from 'react';
@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Loader2, Banknote, AlertCircle, Check, ArrowRight, 
-  ArrowLeft, Zap, Clock, Smartphone, CheckCircle2 
+  ArrowLeft, Clock, Smartphone, CheckCircle2 
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,7 +33,6 @@ const WITHDRAW_PROVIDERS = [
 
 const MIN_WITHDRAW = 5000;
 const MAX_WITHDRAW = 1000000;
-const AUTO_APPROVE_LIMIT = 50000;
 
 const QUICK_AMOUNTS = [10000, 25000, 50000, 100000];
 
@@ -47,20 +46,17 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
   const [provider, setProvider] = useState('airtel');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [success, setSuccess] = useState(false);
-  const [isAutoApproved, setIsAutoApproved] = useState(false);
 
   const selectedProvider = WITHDRAW_PROVIDERS.find(p => p.id === provider);
   const parsedAmount = parseInt(amount) || 0;
   const fee = Math.ceil(parsedAmount * (selectedProvider?.fee || 0) / 100);
   const total = parsedAmount + fee;
-  const willAutoApprove = parsedAmount <= AUTO_APPROVE_LIMIT;
 
   const resetForm = () => {
     setStep(1);
     setAmount('');
     setPhoneNumber('');
     setSuccess(false);
-    setIsAutoApproved(false);
   };
 
   const handleClose = () => {
@@ -99,11 +95,10 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
       if (error) throw error;
       if (!data?.success) throw new Error(data?.message || 'Erreur lors du retrait');
 
-      setIsAutoApproved(data.isAutoApproved);
       setSuccess(true);
 
       toast({
-        title: data.isAutoApproved ? "✅ Retrait instantané !" : "⏳ Demande envoyée",
+        title: "⏳ Demande envoyée",
         description: data.message,
       });
 
@@ -178,27 +173,18 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", delay: 0.2 }}
-                className={cn(
-                  "w-20 h-20 rounded-full mx-auto flex items-center justify-center",
-                  isAutoApproved ? "bg-green-100 dark:bg-green-900/30" : "bg-yellow-100 dark:bg-yellow-900/30"
-                )}
+                className="w-20 h-20 rounded-full mx-auto flex items-center justify-center bg-yellow-100 dark:bg-yellow-900/30"
               >
-                {isAutoApproved ? (
-                  <CheckCircle2 className="w-10 h-10 text-green-600" />
-                ) : (
-                  <Clock className="w-10 h-10 text-yellow-600" />
-                )}
+                <Clock className="w-10 h-10 text-yellow-600" />
               </motion.div>
               
               <div>
-                <h3 className="text-xl font-bold">
-                  {isAutoApproved ? "Retrait instantané !" : "Demande envoyée"}
-                </h3>
+                <h3 className="text-xl font-bold">Demande envoyée</h3>
                 <p className="text-muted-foreground mt-2">
-                  {isAutoApproved 
-                    ? `${parsedAmount.toLocaleString()} CDF envoyé vers +243${phoneNumber}`
-                    : "Votre demande sera traitée sous 1-24h"
-                  }
+                  Votre demande de retrait de {parsedAmount.toLocaleString()} CDF sera traitée sous 1-24h.
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Paiement vers: +243{phoneNumber}
                 </p>
               </div>
 
@@ -256,39 +242,20 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
                     </p>
                   </div>
 
-                  {/* Indicateur de temps de traitement */}
+                  {/* Info traitement manuel */}
                   {parsedAmount > 0 && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={cn(
-                        "flex items-center gap-3 p-3 rounded-lg",
-                        willAutoApprove 
-                          ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" 
-                          : "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
-                      )}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
                     >
-                      {willAutoApprove ? (
-                        <>
-                          <Zap className="w-5 h-5 text-green-600" />
-                          <div>
-                            <p className="font-medium text-green-700 dark:text-green-400">Retrait instantané</p>
-                            <p className="text-xs text-green-600 dark:text-green-500">
-                              Montant ≤ 50,000 CDF = Approbation automatique
-                            </p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <Clock className="w-5 h-5 text-yellow-600" />
-                          <div>
-                            <p className="font-medium text-yellow-700 dark:text-yellow-400">Validation requise</p>
-                            <p className="text-xs text-yellow-600 dark:text-yellow-500">
-                              Traitement en 1-24h par l'équipe Kwenda
-                            </p>
-                          </div>
-                        </>
-                      )}
+                      <Clock className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium text-blue-700 dark:text-blue-400">Traitement manuel</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-500">
+                          Votre demande sera traitée sous 1-24h par notre équipe
+                        </p>
+                      </div>
                     </motion.div>
                   )}
 
@@ -342,7 +309,7 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
                   </div>
 
                   <div className="space-y-3">
-                    <Label>Numéro de réception</Label>
+                    <Label>Numéro où recevoir le paiement</Label>
                     <div className="flex gap-2">
                       <span className="flex items-center px-3 border rounded-l-md bg-muted text-sm font-medium">
                         +243
@@ -356,6 +323,9 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
                         className="rounded-l-none text-lg"
                       />
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ce numéro recevra le paiement Mobile Money
+                    </p>
                   </div>
 
                   <div className="flex gap-3">
@@ -397,7 +367,7 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
                         <span className="font-medium">{selectedProvider?.name}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Numéro</span>
+                        <span className="text-muted-foreground">Numéro de réception</span>
                         <span className="font-medium">+243{phoneNumber}</span>
                       </div>
                       
@@ -409,46 +379,39 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
                       </div>
                     </div>
 
-                    {/* Temps estimé */}
-                    <div className={cn(
-                      "flex items-center justify-center gap-2 py-2 rounded-lg text-sm",
-                      willAutoApprove 
-                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" 
-                        : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
-                    )}>
-                      {willAutoApprove ? (
-                        <>
-                          <Zap className="w-4 h-4" />
-                          <span>Traitement instantané</span>
-                        </>
-                      ) : (
-                        <>
-                          <Clock className="w-4 h-4" />
-                          <span>Traitement en 1-24h</span>
-                        </>
-                      )}
+                    {/* Info traitement */}
+                    <div className="flex items-center justify-center gap-2 py-2 rounded-lg text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                      <Clock className="w-4 h-4" />
+                      <span>Traitement sous 1-24h</span>
                     </div>
                   </div>
+
+                  <Alert>
+                    <AlertCircle className="w-4 h-4" />
+                    <AlertDescription className="text-xs">
+                      Notre équipe effectuera le paiement vers le numéro indiqué après vérification. Vous recevrez une notification une fois le paiement effectué.
+                    </AlertDescription>
+                  </Alert>
 
                   <div className="flex gap-3">
                     <Button variant="outline" onClick={() => setStep(2)} disabled={loading} className="flex-1">
                       <ArrowLeft className="w-4 h-4 mr-2" />
                       Retour
                     </Button>
-                    <Button
-                      onClick={handleWithdraw}
-                      disabled={loading}
-                      className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600"
+                    <Button 
+                      onClick={handleWithdraw} 
+                      disabled={loading} 
+                      className="flex-1"
                     >
                       {loading ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Traitement...
+                          Envoi...
                         </>
                       ) : (
                         <>
-                          <Banknote className="w-4 h-4 mr-2" />
-                          Confirmer
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          Confirmer le retrait
                         </>
                       )}
                     </Button>

@@ -14192,6 +14192,8 @@ export type Database = {
       }
       withdrawal_requests: {
         Row: {
+          admin_notes: string | null
+          admin_reference: string | null
           amount: number
           auto_approved: boolean | null
           created_at: string
@@ -14201,6 +14203,7 @@ export type Database = {
           kwenda_pay_phone: string | null
           mobile_money_phone: string | null
           mobile_money_provider: string | null
+          paid_at: string | null
           processed_at: string | null
           status: string
           transaction_reference: string | null
@@ -14210,6 +14213,8 @@ export type Database = {
           withdrawal_method: string
         }
         Insert: {
+          admin_notes?: string | null
+          admin_reference?: string | null
           amount: number
           auto_approved?: boolean | null
           created_at?: string
@@ -14219,6 +14224,7 @@ export type Database = {
           kwenda_pay_phone?: string | null
           mobile_money_phone?: string | null
           mobile_money_provider?: string | null
+          paid_at?: string | null
           processed_at?: string | null
           status?: string
           transaction_reference?: string | null
@@ -14228,6 +14234,8 @@ export type Database = {
           withdrawal_method?: string
         }
         Update: {
+          admin_notes?: string | null
+          admin_reference?: string | null
           amount?: number
           auto_approved?: boolean | null
           created_at?: string
@@ -14237,6 +14245,7 @@ export type Database = {
           kwenda_pay_phone?: string | null
           mobile_money_phone?: string | null
           mobile_money_provider?: string | null
+          paid_at?: string | null
           processed_at?: string | null
           status?: string
           transaction_reference?: string | null

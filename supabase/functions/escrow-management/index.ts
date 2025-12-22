@@ -6,9 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Seuil d'auto-approbation en CDF
-const AUTO_APPROVE_LIMIT = 50000;
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -178,7 +175,7 @@ async function confirmDeliveryAndRelease(supabase: any, escrowId: string, confir
 async function processWithdrawal(supabase: any, withdrawalData: any) {
   const { userId, amount, withdrawalMethod, paymentDetails } = withdrawalData;
 
-  console.log('Processing withdrawal:', { userId, amount, withdrawalMethod });
+  console.log('Processing withdrawal (manual flow):', { userId, amount, withdrawalMethod });
 
   // Vérifier le solde du portefeuille
   const { data: wallet, error: walletError } = await supabase
@@ -192,12 +189,10 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
     throw new Error('Solde insuffisant');
   }
 
-  // Déterminer si auto-approbation (montant <= 50k CDF)
-  const isAutoApproved = amount <= AUTO_APPROVE_LIMIT;
-  const status = isAutoApproved ? 'approved' : 'pending';
-  const processedAt = isAutoApproved ? new Date().toISOString() : null;
+  // Toutes les demandes sont en attente (100% manuel)
+  const status = 'pending';
 
-  console.log(`Withdrawal ${isAutoApproved ? 'AUTO-APPROVED' : 'PENDING'}: ${amount} CDF`);
+  console.log(`Withdrawal PENDING (manual processing): ${amount} CDF`);
 
   // Créer la demande de retrait
   const { data: withdrawal, error: withdrawalError } = await supabase
@@ -212,8 +207,7 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
       mobile_money_provider: paymentDetails.mobileMoneyProvider,
       mobile_money_phone: paymentDetails.mobileMoneyPhone,
       status: status,
-      processed_at: processedAt,
-      auto_approved: isAutoApproved
+      auto_approved: false
     })
     .select()
     .single();
@@ -232,33 +226,18 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
     .eq('id', wallet.id);
 
   // Créer l'enregistrement de transaction
-  const transactionType = isAutoApproved ? 'withdrawal_completed' : 'withdrawal_pending';
-  const description = isAutoApproved 
-    ? `Retrait instantané - ${paymentDetails.mobileMoneyProvider}`
-    : `Retrait en attente - ${withdrawalMethod}`;
-
   await supabase
     .from('wallet_transactions')
     .insert({
       wallet_id: wallet.id,
       user_id: userId,
-      transaction_type: transactionType,
+      transaction_type: 'withdrawal_pending',
       amount: -amount,
       currency: 'CDF',
-      description: description,
+      description: `Retrait en attente - ${paymentDetails.mobileMoneyProvider || withdrawalMethod}`,
       reference_id: withdrawal.id,
       reference_type: 'withdrawal_request'
     });
-
-  // Si auto-approuvé, envoyer notification de succès
-  if (isAutoApproved) {
-    await supabase.from('delivery_notifications').insert({
-      user_id: userId,
-      notification_type: 'withdrawal_approved',
-      title: '✅ Retrait approuvé',
-      message: `Votre retrait de ${amount.toLocaleString()} CDF a été envoyé vers ${paymentDetails.mobileMoneyPhone}`
-    });
-  }
 
   console.log('Demande de retrait créée:', withdrawal.id, 'Status:', status);
 
@@ -266,18 +245,16 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
     JSON.stringify({ 
       success: true, 
       withdrawal,
-      isAutoApproved,
-      message: isAutoApproved 
-        ? `Retrait de ${amount.toLocaleString()} CDF approuvé et envoyé instantanément !`
-        : 'Demande de retrait soumise, en attente de validation (1-24h)'
+      isAutoApproved: false,
+      message: 'Demande de retrait soumise. Traitement sous 1-24h par notre équipe.'
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
 
-// Approuver une demande de retrait
-async function approveWithdrawal(supabase: any, withdrawalId: string) {
-  console.log('Approving withdrawal:', withdrawalId);
+// Marquer une demande comme payée (paiement effectué manuellement par l'admin)
+async function approveWithdrawal(supabase: any, withdrawalId: string, adminReference?: string, adminNotes?: string) {
+  console.log('Marking withdrawal as PAID:', withdrawalId);
 
   // Récupérer la demande
   const { data: withdrawal, error: fetchError } = await supabase
@@ -291,31 +268,34 @@ async function approveWithdrawal(supabase: any, withdrawalId: string) {
     throw new Error('Demande de retrait introuvable ou déjà traitée');
   }
 
-  // Mettre à jour le statut
+  // Mettre à jour le statut vers 'paid'
   const { error: updateError } = await supabase
     .from('withdrawal_requests')
     .update({
-      status: 'approved',
-      processed_at: new Date().toISOString()
+      status: 'paid',
+      processed_at: new Date().toISOString(),
+      paid_at: new Date().toISOString(),
+      admin_reference: adminReference || null,
+      admin_notes: adminNotes || null
     })
     .eq('id', withdrawalId);
 
   if (updateError) {
-    throw new Error('Erreur lors de l\'approbation: ' + updateError.message);
+    throw new Error('Erreur lors du marquage: ' + updateError.message);
   }
 
   // Envoyer notification de succès
   await supabase.from('delivery_notifications').insert({
     user_id: withdrawal.user_id,
-    notification_type: 'withdrawal_approved',
-    title: '✅ Retrait approuvé',
-    message: `Votre retrait de ${withdrawal.amount.toLocaleString()} CDF a été approuvé et envoyé`
+    notification_type: 'withdrawal_paid',
+    title: '💰 Paiement effectué',
+    message: `Votre retrait de ${withdrawal.amount.toLocaleString()} CDF a été envoyé vers ${withdrawal.mobile_money_phone}`
   });
 
-  console.log('Withdrawal approved:', withdrawalId);
+  console.log('Withdrawal marked as PAID:', withdrawalId);
 
   return new Response(
-    JSON.stringify({ success: true, message: 'Retrait approuvé avec succès' }),
+    JSON.stringify({ success: true, message: 'Retrait marqué comme payé' }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
@@ -397,16 +377,16 @@ async function rejectWithdrawal(supabase: any, withdrawalId: string, reason: str
   );
 }
 
-// Approbation en lot
+// Marquage en lot comme payé
 async function batchApproveWithdrawals(supabase: any, withdrawalIds: string[]) {
-  console.log('Batch approving withdrawals:', withdrawalIds.length);
+  console.log('Batch marking as PAID:', withdrawalIds.length);
 
   if (!withdrawalIds || withdrawalIds.length === 0) {
     throw new Error('Aucune demande sélectionnée');
   }
 
   const results = {
-    approved: 0,
+    paid: 0,
     failed: 0,
     errors: [] as string[]
   };
@@ -427,36 +407,37 @@ async function batchApproveWithdrawals(supabase: any, withdrawalIds: string[]) {
         continue;
       }
 
-      // Mettre à jour le statut
+      // Mettre à jour le statut vers 'paid'
       await supabase
         .from('withdrawal_requests')
         .update({
-          status: 'approved',
-          processed_at: new Date().toISOString()
+          status: 'paid',
+          processed_at: new Date().toISOString(),
+          paid_at: new Date().toISOString()
         })
         .eq('id', id);
 
       // Envoyer notification
       await supabase.from('delivery_notifications').insert({
         user_id: withdrawal.user_id,
-        notification_type: 'withdrawal_approved',
-        title: '✅ Retrait approuvé',
-        message: `Votre retrait de ${withdrawal.amount.toLocaleString()} CDF a été approuvé`
+        notification_type: 'withdrawal_paid',
+        title: '💰 Paiement effectué',
+        message: `Votre retrait de ${withdrawal.amount.toLocaleString()} CDF a été envoyé vers ${withdrawal.mobile_money_phone}`
       });
 
-      results.approved++;
+      results.paid++;
     } catch (error) {
       results.failed++;
       results.errors.push(`${id}: ${error instanceof Error ? error.message : 'Erreur'}`);
     }
   }
 
-  console.log('Batch approval complete:', results);
+  console.log('Batch marking complete:', results);
 
   return new Response(
     JSON.stringify({ 
       success: true, 
-      message: `${results.approved} retrait(s) approuvé(s), ${results.failed} échec(s)`,
+      message: `${results.paid} retrait(s) marqué(s) comme payé(s), ${results.failed} échec(s)`,
       results
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
