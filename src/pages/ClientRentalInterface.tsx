@@ -12,6 +12,7 @@ import { ModernRentalHeader } from '@/components/rental/ModernRentalHeader';
 import { ModernRentalNavigationV2 } from '@/components/rental/ModernRentalNavigationV2';
 import { PremiumPartnersCarousel } from '@/components/rental/PremiumPartnersCarousel';
 import { RentalFilterDrawer, RentalFilters, defaultRentalFilters } from '@/components/rental/RentalFilterDrawer';
+import { TruckCategorySelector } from '@/components/rental/TruckCategorySelector';
 
 import { ModernPartnerCard } from '@/components/rental/ModernPartnerCard';
 import { ModernVehicleCard } from '@/components/rental/ModernVehicleCard';
@@ -318,7 +319,19 @@ export const ClientRentalInterface = () => {
         premiumPartners={premiumPartners.filter(p => p.tier === 'gold' || p.tier === 'platinum')} 
       />
 
-      {/* Navigation unifiée moderne V2 avec animations */}
+      {/* Sélecteur de catégories camions */}
+      {viewMode === 'vehicles' && (
+        <TruckCategorySelector
+          selectedCategory={selectedCategory}
+          onCategoryChange={(catName) => {
+            const cat = categories.find(c => c.name === catName);
+            setSelectedCategory(cat?.id || null);
+          }}
+          vehicleCounts={Object.fromEntries(
+            categories.map(c => [c.name, vehicleCountsMap[c.id] || 0])
+          )}
+        />
+      )}
       <ModernRentalNavigationV2
         viewMode={viewMode}
         onViewModeChange={setViewMode}

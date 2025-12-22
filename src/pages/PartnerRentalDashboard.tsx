@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Car, Plus, Edit, Trash2, Eye, Calendar, DollarSign, Clock } from 'lucide-react';
+import { Car, Plus, Edit, Trash2, Eye, Calendar, DollarSign, Clock, CreditCard, Truck } from 'lucide-react';
 import { usePartnerRentals } from '@/hooks/usePartnerRentals';
 import { useToast } from '@/hooks/use-toast';
+import { PartnerSubscriptionsTab } from '@/components/rental/PartnerSubscriptionsTab';
+import { useRentalVehicleSubscription } from '@/hooks/useRentalVehicleSubscription';
 
 export const PartnerRentalDashboard = () => {
   const { toast } = useToast();
@@ -25,6 +27,7 @@ export const PartnerRentalDashboard = () => {
     updateBookingStatus
   } = usePartnerRentals();
 
+  const { expiringCount, subscriptions } = useRentalVehicleSubscription();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -334,9 +337,18 @@ export const PartnerRentalDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="vehicles" className="w-full">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="vehicles">
               Véhicules ({vehicles.length})
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" className="relative">
+              <CreditCard className="h-4 w-4 mr-1" />
+              Abonnements
+              {expiringCount > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {expiringCount}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="bookings">
               Réservations ({bookings.length})
@@ -399,6 +411,14 @@ export const PartnerRentalDashboard = () => {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* Onglet Abonnements */}
+          <TabsContent value="subscriptions" className="mt-6">
+            <PartnerSubscriptionsTab 
+              vehicles={vehicles} 
+              categories={categories}
+            />
           </TabsContent>
 
           <TabsContent value="bookings" className="mt-6">
