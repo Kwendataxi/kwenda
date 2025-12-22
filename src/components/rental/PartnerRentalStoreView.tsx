@@ -16,7 +16,7 @@ import { PartnerOpeningHoursDisplay } from './PartnerOpeningHoursDisplay';
 import { VehicleGallerySection } from './VehicleGallerySection';
 import { 
   Heart, Share2, Star, Users, Car, 
-  Award, MapPin, Search, Phone, Mail, Globe, ArrowLeft
+  Award, MapPin, Search, Phone, Mail, Globe, ArrowLeft, Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -25,6 +25,7 @@ import { useQuery } from '@tanstack/react-query';
 import confetti from 'canvas-confetti';
 import { getCategoryTheme } from '@/utils/categoryThemes';
 import { getVehicleImage, getVehicleGradient } from '@/utils/vehicleFallbackImages';
+import { supabaseCircuitBreaker } from '@/lib/circuitBreaker';
 
 export const PartnerRentalStoreView = () => {
   const { partnerId } = useParams<{ partnerId: string }>();
@@ -216,6 +217,20 @@ export const PartnerRentalStoreView = () => {
   }
 
   if (partnerError) {
+    // Si le circuit breaker est OPEN, ne pas afficher l'erreur 
+    // (l'alerte unifiée gère déjà ça)
+    const circuitState = supabaseCircuitBreaker.getStats().state;
+    if (circuitState === 'OPEN') {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="text-center space-y-4">
+            <Loader2 className="w-12 h-12 mx-auto text-muted-foreground animate-spin" />
+            <p className="text-muted-foreground">Connexion en cours...</p>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">

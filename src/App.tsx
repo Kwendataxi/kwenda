@@ -12,7 +12,7 @@ import { PushNotificationManager } from "@/components/notifications/PushNotifica
 import { NativePushProvider } from "@/components/notifications/NativePushProvider";
 import { ModernToastProvider } from "@/components/notifications/ModernToastProvider";
 import { PremiumNotificationContainer } from "@/components/notifications/PremiumNotificationContainer";
-import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
+import { UnifiedConnectionAlert } from "@/components/connection/UnifiedConnectionAlert";
 import { ABTestProvider } from "@/contexts/ABTestContext";
 import { ClickTracker } from "@/components/tracking/ClickTracker";
 import { FavoritesProvider } from "@/context/FavoritesContext";
@@ -49,8 +49,6 @@ import { useServiceRealtime } from "./hooks/useServiceRealtime";
 import { autoUpdateService } from "@/services/AutoUpdateService";
 import { initVersionDebug } from "@/utils/versionDebug";
 import { migrateToDefaultLightTheme } from "@/utils/themeMigration";
-import { CircuitBreakerReset } from "@/components/debug/CircuitBreakerReset";
-import { ConnectionStatus } from "@/components/layout/ConnectionStatus";
 import { PerformanceDashboard } from "@/components/debug/PerformanceDashboard";
 
 // Critical imports
@@ -184,10 +182,8 @@ const AppContent = () => {
                       </NavigationGuard>
                     </BrowserRouter>
                   </PerformanceOptimizer>
-                  <OfflineIndicator />
+                  <UnifiedConnectionAlert />
                   <ClickTracker />
-                  <CircuitBreakerReset />
-                  <ConnectionStatus />
                   <PerformanceDashboard />
                 </DynamicTheme>
               </AppReadyProvider>
