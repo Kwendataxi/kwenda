@@ -10,6 +10,16 @@ import {
   Sparkles,
   Dumbbell,
   FileCode,
+  BookOpen,
+  GraduationCap,
+  Palette,
+  Code,
+  Music,
+  Video,
+  Image,
+  FileText,
+  Sliders,
+  Package,
   type LucideIcon
 } from 'lucide-react';
 
@@ -93,6 +103,36 @@ export const MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
     subcategories: ['E-books', 'Cours en ligne', 'Logiciels', 'Templates', 'Musique', 'Photos', 'Vidéos', 'Documents']
   }
 ];
+
+// Catégories spécifiques pour les produits digitaux
+export interface DigitalCategory {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+  fields: string[];
+}
+
+export const DIGITAL_CATEGORIES: DigitalCategory[] = [
+  { id: 'ebook', name: 'E-book / PDF', icon: BookOpen, fields: ['pages', 'language', 'formats_included'] },
+  { id: 'course', name: 'Formation / Cours', icon: GraduationCap, fields: ['duration', 'level', 'modules', 'language', 'certificate'] },
+  { id: 'template', name: 'Template / Design', icon: Palette, fields: ['software', 'resolution', 'formats'] },
+  { id: 'software', name: 'Logiciel / App', icon: Code, fields: ['platform', 'version', 'license_type'] },
+  { id: 'audio', name: 'Audio / Musique', icon: Music, fields: ['duration', 'quality', 'format'] },
+  { id: 'video', name: 'Vidéo', icon: Video, fields: ['duration', 'resolution', 'format'] },
+  { id: 'photo', name: 'Photos / Images', icon: Image, fields: ['resolution', 'format', 'license'] },
+  { id: 'document', name: 'Document / Modèle', icon: FileText, fields: ['format', 'pages', 'language'] },
+  { id: 'preset', name: 'Preset / Plugin', icon: Sliders, fields: ['software', 'version', 'format'] },
+  { id: 'other_digital', name: 'Autre Digital', icon: Package, fields: ['format'] }
+];
+
+export const getDigitalCategoryById = (id: string): DigitalCategory | undefined => {
+  return DIGITAL_CATEGORIES.find(cat => cat.id === id);
+};
+
+export const getDigitalCategoryName = (id: string): string => {
+  const category = getDigitalCategoryById(id);
+  return category?.name || 'Produit digital';
+};
 
 export const PRODUCT_CONDITIONS = [
   { value: 'new', label: 'Neuf' },
