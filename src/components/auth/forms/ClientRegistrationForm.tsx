@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [phoneValid, setPhoneValid] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -39,6 +40,19 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
     referralCode: '',
     acceptTerms: false
   });
+
+  // Lire le code parrainage depuis l'URL au chargement
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      console.log('🎁 Referral code from URL:', refCode);
+      setFormData(prev => ({ ...prev, referralCode: refCode.toUpperCase() }));
+      toast({
+        title: '🎁 Code de parrainage détecté !',
+        description: `Code ${refCode.toUpperCase()} appliqué. Vous recevrez 500 CDF de bonus !`
+      });
+    }
+  }, [searchParams, toast]);
 
   const validatePhoneNumber = (phone: string): boolean => {
     const phoneRegex = /^(\+243|00243|0)[0-9]{9}$/;

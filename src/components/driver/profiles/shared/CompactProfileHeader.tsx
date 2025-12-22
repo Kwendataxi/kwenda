@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Star, Settings, MessageCircle, MapPin } from 'lucide-react';
+import { Star, Settings, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PhotoUploadModal } from './PhotoUploadModal';
 
@@ -18,7 +18,6 @@ interface CompactProfileHeaderProps {
   badgeIcon: string;
   serviceType: 'taxi' | 'delivery';
   isOnline?: boolean;
-  onSupportClick?: () => void;
   onSettingsClick?: () => void;
 }
 
@@ -30,7 +29,6 @@ export const CompactProfileHeader = ({
   badgeIcon,
   serviceType,
   isOnline = true,
-  onSupportClick,
   onSettingsClick
 }: CompactProfileHeaderProps) => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -83,25 +81,15 @@ export const CompactProfileHeader = ({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 rounded-full bg-muted/50 hover:bg-muted"
-            onClick={onSupportClick}
-          >
-            <MessageCircle className="w-5 h-5 text-muted-foreground" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 rounded-full bg-muted/50 hover:bg-muted"
-            onClick={onSettingsClick}
-          >
-            <Settings className="w-5 h-5 text-muted-foreground" />
-          </Button>
-        </div>
+        {/* Settings Button Only */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-full bg-muted/50 hover:bg-muted"
+          onClick={onSettingsClick}
+        >
+          <Settings className="w-5 h-5 text-muted-foreground" />
+        </Button>
       </div>
 
       <PhotoUploadModal 

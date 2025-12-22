@@ -32,22 +32,30 @@ export const useClientReferral = () => {
   };
 
   // Récupérer ou créer le code via RPC existant
-  const { data: referralCode, isLoading: loadingCode } = useQuery({
+  const { data: referralCode, isLoading: loadingCode, error: codeError, refetch } = useQuery({
     queryKey: ['client-referral-code', user?.id],
     queryFn: async () => {
       if (!user) return null;
+      
+      console.log('🎁 Fetching referral code for user:', user.id);
       
       const { data, error } = await supabase
         .rpc('get_or_create_referral_code', { p_user_id: user.id });
       
       if (error) {
-        console.error('Error getting referral code:', error);
-        return generateUniqueCode(user.id);
+        console.error('❌ Error getting referral code:', error);
+        // Fallback: générer un code local
+        const fallbackCode = generateUniqueCode(user.id);
+        console.log('🔄 Using fallback code:', fallbackCode);
+        return fallbackCode;
       }
       
+      console.log('✅ Got referral code:', data);
       return data as string;
     },
-    enabled: !!user
+    enabled: !!user,
+    retry: 2,
+    staleTime: 10 * 60 * 1000
   });
 
   // Récupérer les filleuls
@@ -77,10 +85,10 @@ export const useClientReferral = () => {
     enabled: !!user
   });
 
-  // Générer le lien de partage
+  // Générer le lien de partage - utiliser /client/register pour les clients
   const getShareLink = () => {
     if (!referralCode) return '';
-    return `${window.location.origin}/auth?ref=${referralCode}`;
+    return `${window.location.origin}/client/register?ref=${referralCode}`;
   };
 
   // Partager via l'API Web Share
