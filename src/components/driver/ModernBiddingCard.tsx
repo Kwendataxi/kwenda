@@ -15,7 +15,8 @@ interface ModernBiddingCardProps {
   offerCount: number;
   biddingClosesAt?: string;
   distanceToPickup?: number;
-  onAccept: () => void;
+  isBiddingMode?: boolean;
+  onAcceptKwendaPrice: () => void;
   onMakeOffer: () => void;
   onIgnore: () => void;
 }
@@ -30,7 +31,8 @@ export const ModernBiddingCard = ({
   offerCount,
   biddingClosesAt,
   distanceToPickup = 0,
-  onAccept,
+  isBiddingMode = false,
+  onAcceptKwendaPrice,
   onMakeOffer,
   onIgnore
 }: ModernBiddingCardProps) => {
@@ -83,35 +85,51 @@ export const ModernBiddingCard = ({
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     >
-      <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-amber-50/80 via-orange-50/50 to-background dark:from-amber-950/30 dark:via-orange-950/20 dark:to-background">
-        {/* Header avec badge enchères */}
+      <Card className={`overflow-hidden border-0 shadow-xl ${
+        isBiddingMode 
+          ? 'bg-gradient-to-br from-amber-50/80 via-orange-50/50 to-background dark:from-amber-950/30 dark:via-orange-950/20 dark:to-background'
+          : 'bg-gradient-to-br from-emerald-50/80 via-green-50/50 to-background dark:from-emerald-950/30 dark:via-green-950/20 dark:to-background'
+      }`}>
+        {/* Header avec badge selon le mode */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
+              animate={{ rotate: isBiddingMode ? [0, 10, -10, 0] : [0, 0, 0, 0] }}
               transition={{ repeat: Infinity, duration: 2 }}
             >
-              <Zap className="h-5 w-5 text-amber-500" />
+              {isBiddingMode ? (
+                <Zap className="h-5 w-5 text-amber-500" />
+              ) : (
+                <MapPin className="h-5 w-5 text-emerald-500" />
+              )}
             </motion.div>
-            <span className="font-bold text-base">Mode Enchères</span>
+            <span className="font-bold text-base">
+              {isBiddingMode ? 'Mode Enchères' : 'Course Disponible'}
+            </span>
           </div>
           
-          {/* Timer badge */}
-          <Badge 
-            variant="outline" 
-            className={`
-              flex items-center gap-1.5 font-mono text-sm px-3 py-1
-              ${urgencyLevel === 'critical' 
-                ? 'bg-destructive/10 border-destructive/30 text-destructive animate-pulse' 
-                : urgencyLevel === 'warning'
-                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
-                  : 'bg-muted border-border'
-              }
-            `}
-          >
-            <Timer className="h-3.5 w-3.5" />
-            {timeRemaining}
-          </Badge>
+          {/* Timer badge - only in bidding mode */}
+          {isBiddingMode && biddingClosesAt ? (
+            <Badge 
+              variant="outline" 
+              className={`
+                flex items-center gap-1.5 font-mono text-sm px-3 py-1
+                ${urgencyLevel === 'critical' 
+                  ? 'bg-destructive/10 border-destructive/30 text-destructive animate-pulse' 
+                  : urgencyLevel === 'warning'
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                    : 'bg-muted border-border'
+                }
+              `}
+            >
+              <Timer className="h-3.5 w-3.5" />
+              {timeRemaining}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+              Proposez votre tarif
+            </Badge>
+          )}
         </div>
 
         {/* Competition badge */}
@@ -200,29 +218,25 @@ export const ModernBiddingCard = ({
 
         {/* Action buttons */}
         <div className="px-4 pb-4 space-y-2">
-          {clientProposedPrice && (
-            <Button
-              onClick={onAccept}
-              disabled={isExpired}
-              className="w-full h-12 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold shadow-lg shadow-emerald-500/25"
-            >
-              <DollarSign className="h-4 w-4 mr-2" />
-              Accepter {clientProposedPrice.toLocaleString()} CDF
-            </Button>
-          )}
+          {/* Bouton accepter prix Kwenda - toujours visible */}
+          <Button
+            onClick={onAcceptKwendaPrice}
+            disabled={isExpired}
+            className="w-full h-12 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-semibold shadow-lg shadow-emerald-500/25"
+          >
+            <DollarSign className="h-4 w-4 mr-2" />
+            Accepter {clientProposedPrice ? clientProposedPrice.toLocaleString() : estimatedPrice.toLocaleString()} CDF
+          </Button>
           
+          {/* Bouton faire une offre */}
           <Button
             onClick={onMakeOffer}
             disabled={isExpired}
-            variant={clientProposedPrice ? 'outline' : 'default'}
-            className={`w-full h-12 font-semibold ${
-              !clientProposedPrice 
-                ? 'bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25' 
-                : ''
-            }`}
+            variant="outline"
+            className="w-full h-12 font-semibold border-2 border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
           >
             <Zap className="h-4 w-4 mr-2" />
-            {clientProposedPrice ? 'Contre-offre' : 'Faire une offre'}
+            {isBiddingMode ? 'Contre-offre' : 'Proposer mon tarif'}
           </Button>
 
           <Button

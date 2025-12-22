@@ -214,9 +214,11 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
     }
   }, []);
 
-  // 5. Écouter les offres en temps réel
+  // 5. Écouter les offres en temps réel - ALWAYS listen, not just when biddingActive
   useEffect(() => {
-    if (!biddingActive) return;
+    if (!bookingId) return;
+
+    console.log('🔔 [ClientBidding] Setting up realtime offers listener for booking:', bookingId);
 
     const channel = supabase
       .channel(`bidding-${bookingId}`)
@@ -233,18 +235,23 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
           
           // Récupérer le nom du chauffeur
           let driverName = 'Chauffeur';
+          let driverRating = 0;
+          let driverVehicleClass = '';
+          
           try {
             const { data: driverData } = await supabase
               .from('chauffeurs')
-              .select('display_name')
+              .select('display_name, rating_average, vehicle_class')
               .eq('user_id', payload.new.driver_id)
               .maybeSingle();
             
-            if (driverData?.display_name) {
-              driverName = driverData.display_name;
+            if (driverData) {
+              driverName = driverData.display_name || 'Chauffeur';
+              driverRating = driverData.rating_average || 0;
+              driverVehicleClass = driverData.vehicle_class || '';
             }
           } catch (e) {
-            console.warn('Could not fetch driver name:', e);
+            console.warn('Could not fetch driver info:', e);
           }
           
           const newOffer: DriverOffer = {
@@ -255,15 +262,17 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
             isCounterOffer: payload.new.is_counter_offer || false,
             message: payload.new.message || '',
             distanceToPickup: payload.new.distance_to_pickup,
+            estimatedArrival: payload.new.estimated_arrival_time,
+            driverRating,
+            driverVehicleClass,
             createdAt: payload.new.created_at || new Date().toISOString()
           };
 
           setOffers(prev => [...prev, newOffer]);
 
           toast.success('📨 Nouvelle offre reçue !', {
-            description: `Offre de ${newOffer.offeredPrice.toLocaleString()} CDF`
+            description: `${driverName} propose ${newOffer.offeredPrice.toLocaleString()} CDF`
           });
-
         }
       )
       .subscribe();
@@ -271,7 +280,7 @@ export const useClientBidding = ({ bookingId, estimatedPrice }: UseClientBidding
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [bookingId, biddingActive]);
+  }, [bookingId]);
 
   // 6. Timer countdown
   useEffect(() => {
