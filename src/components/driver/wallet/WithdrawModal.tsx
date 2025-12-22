@@ -1,5 +1,5 @@
 /**
- * 💸 Modal de retrait KwendaPay
+ * 💸 Modal de retrait KwendaPay avec Stepper UX améliorée
  */
 
 import { useState } from 'react';
@@ -10,9 +10,13 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Banknote, AlertCircle } from 'lucide-react';
+import { 
+  Loader2, Banknote, AlertCircle, Check, ArrowRight, 
+  ArrowLeft, Zap, Clock, Smartphone, CheckCircle2 
+} from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface WithdrawModalProps {
   open: boolean;
@@ -22,61 +26,60 @@ interface WithdrawModalProps {
 }
 
 const WITHDRAW_PROVIDERS = [
-  { id: 'airtel', name: 'Airtel Money', logo: '📱', fee: 2 },
-  { id: 'orange', name: 'Orange Money', logo: '🟠', fee: 2 },
-  { id: 'mpesa', name: 'M-Pesa', logo: '💚', fee: 2 }
+  { id: 'airtel', name: 'Airtel Money', color: 'bg-red-500', fee: 2 },
+  { id: 'orange', name: 'Orange Money', color: 'bg-orange-500', fee: 2 },
+  { id: 'mpesa', name: 'M-Pesa', color: 'bg-green-500', fee: 2 }
 ];
 
 const MIN_WITHDRAW = 5000;
 const MAX_WITHDRAW = 1000000;
+const AUTO_APPROVE_LIMIT = 50000;
+
+const QUICK_AMOUNTS = [10000, 25000, 50000, 100000];
+
+type Step = 1 | 2 | 3;
 
 export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }: WithdrawModalProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<Step>(1);
   const [amount, setAmount] = useState('');
   const [provider, setProvider] = useState('airtel');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [isAutoApproved, setIsAutoApproved] = useState(false);
 
   const selectedProvider = WITHDRAW_PROVIDERS.find(p => p.id === provider);
   const parsedAmount = parseInt(amount) || 0;
   const fee = Math.ceil(parsedAmount * (selectedProvider?.fee || 0) / 100);
   const total = parsedAmount + fee;
+  const willAutoApprove = parsedAmount <= AUTO_APPROVE_LIMIT;
+
+  const resetForm = () => {
+    setStep(1);
+    setAmount('');
+    setPhoneNumber('');
+    setSuccess(false);
+    setIsAutoApproved(false);
+  };
+
+  const handleClose = () => {
+    if (!loading) {
+      resetForm();
+      onOpenChange(false);
+    }
+  };
+
+  const canProceedStep1 = parsedAmount >= MIN_WITHDRAW && total <= currentBalance;
+  const canProceedStep2 = phoneNumber.length >= 9;
 
   const handleWithdraw = async () => {
-    if (parsedAmount < MIN_WITHDRAW) {
-      toast({
-        title: "Montant trop faible",
-        description: `Le montant minimum de retrait est de ${MIN_WITHDRAW.toLocaleString()} CDF`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (total > currentBalance) {
-      toast({
-        title: "Solde insuffisant",
-        description: "Votre solde est insuffisant pour ce retrait",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!phoneNumber || phoneNumber.length < 9) {
-      toast({
-        title: "Numéro invalide",
-        description: "Veuillez entrer un numéro de téléphone valide",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Utilisateur non connecté');
 
-      // Appeler l'Edge Function escrow-management pour créer la demande
       const { data, error } = await supabase.functions.invoke('escrow-management', {
         body: {
           action: 'process_withdrawal',
@@ -96,17 +99,15 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
       if (error) throw error;
       if (!data?.success) throw new Error(data?.message || 'Erreur lors du retrait');
 
+      setIsAutoApproved(data.isAutoApproved);
+      setSuccess(true);
+
       toast({
-        title: "Demande envoyée",
-        description: "Votre demande de retrait est en attente de validation par l'admin",
+        title: data.isAutoApproved ? "✅ Retrait instantané !" : "⏳ Demande envoyée",
+        description: data.message,
       });
 
       onSuccess();
-      onOpenChange(false);
-      
-      // Reset form
-      setAmount('');
-      setPhoneNumber('');
     } catch (error: any) {
       console.error('Withdraw error:', error);
       toast({
@@ -119,8 +120,14 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
     }
   };
 
+  const steps = [
+    { number: 1, label: 'Montant' },
+    { number: 2, label: 'Méthode' },
+    { number: 3, label: 'Confirmation' }
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -129,125 +136,328 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Solde disponible */}
-          <Alert>
-            <AlertCircle className="w-4 h-4" />
-            <AlertDescription>
-              Solde disponible: <strong>{currentBalance.toLocaleString()} CDF</strong>
-            </AlertDescription>
-          </Alert>
-
-          {/* Montant */}
-          <div className="space-y-3">
-            <Label>Montant à retirer (CDF)</Label>
-            <Input
-              type="number"
-              placeholder="10000"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min={MIN_WITHDRAW}
-              max={Math.min(currentBalance, MAX_WITHDRAW)}
-              step="1000"
-            />
-            <p className="text-xs text-muted-foreground">
-              Minimum: {MIN_WITHDRAW.toLocaleString()} CDF
-            </p>
+        {/* Stepper */}
+        {!success && (
+          <div className="flex items-center justify-between mb-6">
+            {steps.map((s, i) => (
+              <div key={s.number} className="flex items-center">
+                <div className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all",
+                  step >= s.number 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {step > s.number ? <Check className="w-4 h-4" /> : s.number}
+                </div>
+                <span className={cn(
+                  "ml-2 text-sm hidden sm:block",
+                  step >= s.number ? "text-foreground" : "text-muted-foreground"
+                )}>
+                  {s.label}
+                </span>
+                {i < steps.length - 1 && (
+                  <div className={cn(
+                    "w-8 h-0.5 mx-2",
+                    step > s.number ? "bg-primary" : "bg-muted"
+                  )} />
+                )}
+              </div>
+            ))}
           </div>
+        )}
 
-          {/* Provider */}
-          <div className="space-y-3">
-            <Label>Moyen de retrait</Label>
-            <RadioGroup value={provider} onValueChange={setProvider}>
-              {WITHDRAW_PROVIDERS.map((p) => (
-                <motion.div
-                  key={p.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-accent"
-                  onClick={() => setProvider(p.id)}
-                >
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value={p.id} id={p.id} />
-                    <Label htmlFor={p.id} className="flex items-center gap-2 cursor-pointer">
-                      <span className="text-2xl">{p.logo}</span>
-                      <span className="font-medium">{p.name}</span>
-                    </Label>
-                  </div>
-                  <span className="text-xs text-muted-foreground">Frais: {p.fee}%</span>
-                </motion.div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Numéro de téléphone */}
-          <div className="space-y-3">
-            <Label>Numéro de réception</Label>
-            <div className="flex gap-2">
-              <span className="flex items-center px-3 border rounded-l-md bg-muted text-sm">
-                +243
-              </span>
-              <Input
-                type="tel"
-                placeholder="812345678"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                maxLength={9}
-                className="rounded-l-none"
-              />
-            </div>
-          </div>
-
-          {/* Résumé */}
-          {parsedAmount >= MIN_WITHDRAW && (
+        <AnimatePresence mode="wait">
+          {success ? (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-muted/50 rounded-lg p-4 space-y-2 border"
+              key="success"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="py-8 text-center space-y-4"
             >
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Montant demandé</span>
-                <span className="font-medium">{parsedAmount.toLocaleString()} CDF</span>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", delay: 0.2 }}
+                className={cn(
+                  "w-20 h-20 rounded-full mx-auto flex items-center justify-center",
+                  isAutoApproved ? "bg-green-100 dark:bg-green-900/30" : "bg-yellow-100 dark:bg-yellow-900/30"
+                )}
+              >
+                {isAutoApproved ? (
+                  <CheckCircle2 className="w-10 h-10 text-green-600" />
+                ) : (
+                  <Clock className="w-10 h-10 text-yellow-600" />
+                )}
+              </motion.div>
+              
+              <div>
+                <h3 className="text-xl font-bold">
+                  {isAutoApproved ? "Retrait instantané !" : "Demande envoyée"}
+                </h3>
+                <p className="text-muted-foreground mt-2">
+                  {isAutoApproved 
+                    ? `${parsedAmount.toLocaleString()} CDF envoyé vers +243${phoneNumber}`
+                    : "Votre demande sera traitée sous 1-24h"
+                  }
+                </p>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Frais ({selectedProvider?.fee}%)</span>
-                <span className="font-medium">{fee.toLocaleString()} CDF</span>
-              </div>
-              <div className="flex justify-between text-sm pt-2 border-t">
-                <span className="font-semibold">Total débité</span>
-                <span className="font-bold text-primary">{total.toLocaleString()} CDF</span>
-              </div>
-            </motion.div>
-          )}
-        </div>
 
-        {/* Actions */}
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={loading}
-            className="flex-1"
-          >
-            Annuler
-          </Button>
-          <Button
-            onClick={handleWithdraw}
-            disabled={loading || total > currentBalance}
-            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Traitement...
-              </>
-            ) : (
-              <>
-                <Banknote className="w-4 h-4 mr-2" />
-                Retirer
-              </>
-            )}
-          </Button>
-        </div>
+              <Button onClick={handleClose} className="w-full">
+                Fermer
+              </Button>
+            </motion.div>
+          ) : (
+            <>
+              {/* Step 1: Montant */}
+              {step === 1 && (
+                <motion.div
+                  key="step1"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <Alert>
+                    <AlertCircle className="w-4 h-4" />
+                    <AlertDescription>
+                      Solde disponible: <strong>{currentBalance.toLocaleString()} CDF</strong>
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="space-y-3">
+                    <Label>Montant à retirer (CDF)</Label>
+                    <Input
+                      type="number"
+                      placeholder="10000"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      min={MIN_WITHDRAW}
+                      max={Math.min(currentBalance, MAX_WITHDRAW)}
+                      step="1000"
+                      className="text-lg h-12"
+                    />
+                    
+                    {/* Montants rapides */}
+                    <div className="flex flex-wrap gap-2">
+                      {QUICK_AMOUNTS.filter(a => a + (a * 0.02) <= currentBalance).map((quickAmount) => (
+                        <Button
+                          key={quickAmount}
+                          variant={parsedAmount === quickAmount ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setAmount(quickAmount.toString())}
+                        >
+                          {quickAmount.toLocaleString()}
+                        </Button>
+                      ))}
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      Minimum: {MIN_WITHDRAW.toLocaleString()} CDF
+                    </p>
+                  </div>
+
+                  {/* Indicateur de temps de traitement */}
+                  {parsedAmount > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg",
+                        willAutoApprove 
+                          ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" 
+                          : "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
+                      )}
+                    >
+                      {willAutoApprove ? (
+                        <>
+                          <Zap className="w-5 h-5 text-green-600" />
+                          <div>
+                            <p className="font-medium text-green-700 dark:text-green-400">Retrait instantané</p>
+                            <p className="text-xs text-green-600 dark:text-green-500">
+                              Montant ≤ 50,000 CDF = Approbation automatique
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="w-5 h-5 text-yellow-600" />
+                          <div>
+                            <p className="font-medium text-yellow-700 dark:text-yellow-400">Validation requise</p>
+                            <p className="text-xs text-yellow-600 dark:text-yellow-500">
+                              Traitement en 1-24h par l'équipe Kwenda
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+
+                  <Button
+                    onClick={() => setStep(2)}
+                    disabled={!canProceedStep1}
+                    className="w-full"
+                  >
+                    Continuer
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Step 2: Méthode & Téléphone */}
+              {step === 2 && (
+                <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="space-y-3">
+                    <Label>Moyen de retrait</Label>
+                    <RadioGroup value={provider} onValueChange={setProvider}>
+                      {WITHDRAW_PROVIDERS.map((p) => (
+                        <motion.div
+                          key={p.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className={cn(
+                            "flex items-center justify-between border rounded-lg p-4 cursor-pointer transition-colors",
+                            provider === p.id ? "border-primary bg-primary/5" : "hover:bg-accent"
+                          )}
+                          onClick={() => setProvider(p.id)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <RadioGroupItem value={p.id} id={p.id} />
+                            <Label htmlFor={p.id} className="flex items-center gap-3 cursor-pointer">
+                              <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", p.color)}>
+                                <Smartphone className="w-5 h-5 text-white" />
+                              </div>
+                              <span className="font-medium">{p.name}</span>
+                            </Label>
+                          </div>
+                          <span className="text-sm text-muted-foreground">Frais: {p.fee}%</span>
+                        </motion.div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Numéro de réception</Label>
+                    <div className="flex gap-2">
+                      <span className="flex items-center px-3 border rounded-l-md bg-muted text-sm font-medium">
+                        +243
+                      </span>
+                      <Input
+                        type="tel"
+                        placeholder="812345678"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                        maxLength={9}
+                        className="rounded-l-none text-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Retour
+                    </Button>
+                    <Button onClick={() => setStep(3)} disabled={!canProceedStep2} className="flex-1">
+                      Continuer
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 3: Confirmation */}
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-muted/50 rounded-xl p-5 space-y-4 border">
+                    <h4 className="font-semibold text-center">Récapitulatif du retrait</h4>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Montant demandé</span>
+                        <span className="font-medium">{parsedAmount.toLocaleString()} CDF</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Frais ({selectedProvider?.fee}%)</span>
+                        <span className="font-medium">{fee.toLocaleString()} CDF</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Opérateur</span>
+                        <span className="font-medium">{selectedProvider?.name}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Numéro</span>
+                        <span className="font-medium">+243{phoneNumber}</span>
+                      </div>
+                      
+                      <div className="border-t pt-3">
+                        <div className="flex justify-between">
+                          <span className="font-semibold">Total débité</span>
+                          <span className="font-bold text-lg text-primary">{total.toLocaleString()} CDF</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Temps estimé */}
+                    <div className={cn(
+                      "flex items-center justify-center gap-2 py-2 rounded-lg text-sm",
+                      willAutoApprove 
+                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" 
+                        : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
+                    )}>
+                      {willAutoApprove ? (
+                        <>
+                          <Zap className="w-4 h-4" />
+                          <span>Traitement instantané</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="w-4 h-4" />
+                          <span>Traitement en 1-24h</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button variant="outline" onClick={() => setStep(2)} disabled={loading} className="flex-1">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Retour
+                    </Button>
+                    <Button
+                      onClick={handleWithdraw}
+                      disabled={loading}
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Traitement...
+                        </>
+                      ) : (
+                        <>
+                          <Banknote className="w-4 h-4 mr-2" />
+                          Confirmer
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </>
+          )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

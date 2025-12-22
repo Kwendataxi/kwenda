@@ -1,5 +1,5 @@
 /**
- * 💰 Page Admin - Gestion des Demandes de Retrait
+ * 💰 Page Admin - Gestion des Demandes de Retrait avec Approbation en Lot
  */
 
 import { useState } from 'react';
@@ -7,12 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Loader2, CheckCircle, XCircle, Clock, Banknote, 
-  Phone, User, Calendar, AlertTriangle, RefreshCw 
+  Phone, User, Calendar, AlertTriangle, RefreshCw,
+  CheckCheck, Filter, Zap, TrendingUp
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -27,6 +30,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from '@/lib/utils';
 
 interface WithdrawalRequest {
   id: string;
@@ -42,6 +53,7 @@ interface WithdrawalRequest {
   created_at: string;
   processed_at: string | null;
   failure_reason: string | null;
+  auto_approved?: boolean | null;
 }
 
 const statusConfig = {
@@ -63,8 +75,17 @@ export const WithdrawalManagement = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('pending');
   const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
-  const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | 'batch' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  
+  // Sélection multiple pour approbation en lot
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBatchConfirm, setShowBatchConfirm] = useState(false);
+  
+  // Filtres
+  const [filterProvider, setFilterProvider] = useState<string>('all');
+  const [filterUserType, setFilterUserType] = useState<string>('all');
+  const [maxAmountFilter, setMaxAmountFilter] = useState<string>('');
 
   // Charger les demandes de retrait
   const { data: requests = [], isLoading, refetch } = useQuery({
@@ -83,6 +104,14 @@ export const WithdrawalManagement = () => {
       if (error) throw error;
       return data as WithdrawalRequest[];
     }
+  });
+
+  // Appliquer les filtres
+  const filteredRequests = requests.filter(r => {
+    if (filterProvider !== 'all' && r.mobile_money_provider !== filterProvider) return false;
+    if (filterUserType !== 'all' && r.user_type !== filterUserType) return false;
+    if (maxAmountFilter && r.amount > parseInt(maxAmountFilter)) return false;
+    return true;
   });
 
   // Mutation pour approuver
@@ -128,6 +157,30 @@ export const WithdrawalManagement = () => {
     }
   });
 
+  // Mutation pour approbation en lot
+  const batchApproveMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { data, error } = await supabase.functions.invoke('escrow-management', {
+        body: { action: 'batch_approve_withdrawals', withdrawalIds: ids }
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.message || 'Erreur');
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "Approbation en lot terminée", 
+        description: data.message 
+      });
+      queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
+      setSelectedIds(new Set());
+      setShowBatchConfirm(false);
+    },
+    onError: (error: any) => {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    }
+  });
+
   const handleAction = (request: WithdrawalRequest, action: 'approve' | 'reject') => {
     setSelectedRequest(request);
     setConfirmAction(action);
@@ -143,12 +196,53 @@ export const WithdrawalManagement = () => {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const selectAll = () => {
+    const pendingIds = filteredRequests
+      .filter(r => r.status === 'pending')
+      .map(r => r.id);
+    setSelectedIds(new Set(pendingIds));
+  };
+
+  const handleBatchApprove = () => {
+    if (selectedIds.size === 0) return;
+    setShowBatchConfirm(true);
+  };
+
+  const confirmBatchApprove = () => {
+    batchApproveMutation.mutate(Array.from(selectedIds));
+  };
+
+  // Quick batch actions
+  const selectUnder = (maxAmount: number) => {
+    const ids = filteredRequests
+      .filter(r => r.status === 'pending' && r.amount <= maxAmount)
+      .map(r => r.id);
+    setSelectedIds(new Set(ids));
+  };
+
   // Stats
   const pendingCount = requests.filter(r => r.status === 'pending').length;
   const approvedCount = requests.filter(r => r.status === 'approved').length;
   const rejectedCount = requests.filter(r => r.status === 'rejected').length;
   const totalPending = requests
     .filter(r => r.status === 'pending')
+    .reduce((sum, r) => sum + r.amount, 0);
+  const autoApprovedToday = requests
+    .filter(r => r.auto_approved && r.status === 'approved')
+    .length;
+
+  const selectedTotal = filteredRequests
+    .filter(r => selectedIds.has(r.id))
     .reduce((sum, r) => sum + r.amount, 0);
 
   return (
@@ -171,7 +265,7 @@ export const WithdrawalManagement = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
@@ -205,6 +299,17 @@ export const WithdrawalManagement = () => {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+              <Zap className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{autoApprovedToday}</p>
+              <p className="text-sm text-muted-foreground">Auto-approuvés</p>
+            </div>
+          </CardContent>
+        </Card>
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
@@ -217,6 +322,104 @@ export const WithdrawalManagement = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Batch Actions Bar */}
+      {activeTab === 'pending' && pendingCount > 0 && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <CheckCheck className="w-5 h-5 text-primary" />
+                <span className="font-medium">Approbation en lot</span>
+                {selectedIds.size > 0 && (
+                  <Badge variant="secondary">
+                    {selectedIds.size} sélectionné(s) • {selectedTotal.toLocaleString()} CDF
+                  </Badge>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => selectUnder(50000)}>
+                  ≤ 50k CDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => selectUnder(100000)}>
+                  ≤ 100k CDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={selectAll}>
+                  Tout sélectionner
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>
+                  Désélectionner
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={handleBatchApprove}
+                  disabled={selectedIds.size === 0 || batchApproveMutation.isPending}
+                >
+                  {batchApproveMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCheck className="w-4 h-4 mr-2" />
+                  )}
+                  Approuver ({selectedIds.size})
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <Select value={filterUserType} onValueChange={setFilterUserType}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Type utilisateur" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les types</SelectItem>
+                <SelectItem value="driver">Chauffeurs</SelectItem>
+                <SelectItem value="vendor">Marchands</SelectItem>
+                <SelectItem value="partner">Partenaires</SelectItem>
+                <SelectItem value="client">Clients</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterProvider} onValueChange={setFilterProvider}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Opérateur" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous</SelectItem>
+                <SelectItem value="airtel">Airtel Money</SelectItem>
+                <SelectItem value="orange">Orange Money</SelectItem>
+                <SelectItem value="mpesa">M-Pesa</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input 
+              placeholder="Montant max (CDF)" 
+              className="w-40"
+              type="number"
+              value={maxAmountFilter}
+              onChange={(e) => setMaxAmountFilter(e.target.value)}
+            />
+            {(filterProvider !== 'all' || filterUserType !== 'all' || maxAmountFilter) && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  setFilterProvider('all');
+                  setFilterUserType('all');
+                  setMaxAmountFilter('');
+                }}
+              >
+                Réinitialiser
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -241,7 +444,7 @@ export const WithdrawalManagement = () => {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : requests.length === 0 ? (
+          ) : filteredRequests.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Banknote className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -251,9 +454,10 @@ export const WithdrawalManagement = () => {
           ) : (
             <div className="space-y-4">
               <AnimatePresence>
-                {requests.map((request, index) => {
+                {filteredRequests.map((request, index) => {
                   const config = statusConfig[request.status as keyof typeof statusConfig] || statusConfig.pending;
                   const StatusIcon = config.icon;
+                  const isSelected = selectedIds.has(request.id);
 
                   return (
                     <motion.div
@@ -263,19 +467,37 @@ export const WithdrawalManagement = () => {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <Card className="hover:shadow-md transition-shadow">
+                      <Card className={cn(
+                        "hover:shadow-md transition-all",
+                        isSelected && "ring-2 ring-primary"
+                      )}>
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between gap-4">
+                            {/* Checkbox pour sélection */}
+                            {request.status === 'pending' && (
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleSelect(request.id)}
+                                className="mt-1"
+                              />
+                            )}
+
                             <div className="flex-1 space-y-3">
                               {/* Header */}
                               <div className="flex items-center gap-3">
-                                <Badge variant="outline" className={`${config.color} text-white`}>
+                                <Badge variant="outline" className={cn(config.color, "text-white")}>
                                   <StatusIcon className="w-3 h-3 mr-1" />
                                   {config.label}
                                 </Badge>
                                 <span className="text-sm text-muted-foreground">
                                   {userTypeLabels[request.user_type] || request.user_type}
                                 </span>
+                                {request.auto_approved && (
+                                  <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-200">
+                                    <Zap className="w-3 h-3 mr-1" />
+                                    Auto
+                                  </Badge>
+                                )}
                               </div>
 
                               {/* Amount */}
@@ -348,8 +570,8 @@ export const WithdrawalManagement = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Confirmation Dialog */}
-      <AlertDialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>
+      {/* Single Confirmation Dialog */}
+      <AlertDialog open={!!confirmAction && confirmAction !== 'batch'} onOpenChange={() => setConfirmAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -394,6 +616,34 @@ export const WithdrawalManagement = () => {
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
               {confirmAction === 'approve' ? 'Confirmer l\'approbation' : 'Confirmer le rejet'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Batch Confirmation Dialog */}
+      <AlertDialog open={showBatchConfirm} onOpenChange={setShowBatchConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approuver {selectedIds.size} retrait(s) ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous allez approuver <strong>{selectedIds.size}</strong> demandes de retrait 
+              pour un total de <strong>{selectedTotal.toLocaleString()} CDF</strong>.
+              <br /><br />
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBatchApprove}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={batchApproveMutation.isPending}
+            >
+              {batchApproveMutation.isPending && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
+              Confirmer l'approbation en lot
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -12,10 +12,11 @@ import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
 import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
 import { PointsConversionDialog } from '@/components/loyalty/PointsConversionDialog';
 import { TopUpModal } from '@/components/wallet/TopUpModal';
+import { WithdrawModal } from './wallet/WithdrawModal';
+import { WithdrawalHistory } from './wallet/WithdrawalHistory';
 import { EarningsChart } from './EarningsChart';
 import { CommissionBreakdown } from './CommissionBreakdown';
 import { Send, Gift, Zap, Download, FileText } from 'lucide-react';
-import { toast } from 'sonner';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
 
@@ -29,14 +30,7 @@ export const DriverWalletPanel: React.FC = () => {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showConversionDialog, setShowConversionDialog] = useState(false);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
-
-  const handleWithdraw = () => {
-    toast.info('Demande de retrait - Bientôt disponible');
-  };
-
-  const handleExportPDF = () => {
-    toast.info('Export PDF - Bientôt disponible');
-  };
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   if (loading) {
     return <WalletSkeleton />;
@@ -90,7 +84,7 @@ export const DriverWalletPanel: React.FC = () => {
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={handleWithdraw}
+            onClick={() => setShowWithdrawModal(true)}
           >
             <Download className="w-4 h-4" />
             Retirer
@@ -99,13 +93,15 @@ export const DriverWalletPanel: React.FC = () => {
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={handleExportPDF}
           >
             <FileText className="w-4 h-4" />
             Rapport PDF
           </Button>
         </div>
       </div>
+
+      {/* Historique des retraits */}
+      <WithdrawalHistory />
 
       {/* Graphique de gains */}
       <EarningsChart />
@@ -159,6 +155,13 @@ export const DriverWalletPanel: React.FC = () => {
         }}
         currency={wallet?.currency || 'CDF'}
         quickAmounts={QUICK_AMOUNTS}
+      />
+
+      <WithdrawModal
+        open={showWithdrawModal}
+        onOpenChange={setShowWithdrawModal}
+        currentBalance={wallet?.balance || 0}
+        onSuccess={() => {}}
       />
     </div>
   );
