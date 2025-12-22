@@ -1,5 +1,8 @@
 project_id = "wddlktajnhwhyquwcdgf"
 
+[functions.process-client-referral]
+verify_jwt = false
+
 # Configuration optimisée Kwenda - Fonctions actives uniquement
 
 [functions.driver-profile-photo-upload]
