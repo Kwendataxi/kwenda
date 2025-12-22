@@ -345,6 +345,10 @@ async function rejectWithdrawal(supabase: any, withdrawalId: string, reason: str
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
+
+async function getEscrowStatus(supabase: any, orderId: string) {
+  const { data: escrow, error } = await supabase
+    .from('escrow_transactions')
     .select('*')
     .eq('order_id', orderId)
     .single();
