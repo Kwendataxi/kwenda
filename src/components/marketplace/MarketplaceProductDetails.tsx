@@ -4,10 +4,11 @@ import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Star, ShoppingCart, Heart, Share2, ArrowLeft, MessageCircle, Package, Truck, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, ShoppingCart, Heart, Share2, ArrowLeft, MessageCircle, Package, Truck, ShieldCheck, ChevronLeft, ChevronRight, FileCode, Download, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import { formatCurrency } from '@/utils/formatCurrency';
+
 interface Product {
   id: string;
   name: string;
@@ -24,6 +25,11 @@ interface Product {
   stockCount: number;
   brand?: string;
   condition?: string;
+  // Champs digitaux
+  is_digital?: boolean;
+  digital_file_name?: string;
+  digital_file_size?: number;
+  digital_download_limit?: number;
 }
 
 interface MarketplaceProductDetailsProps {
@@ -302,9 +308,15 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
                     </h2>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    {product.is_digital && (
+                      <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-0">
+                        <FileCode className="h-3 w-3 mr-1" />
+                        Digital
+                      </Badge>
+                    )}
                     <Badge variant="secondary">{product.category}</Badge>
                     {product.brand && <Badge variant="outline">{product.brand}</Badge>}
-                    {product.condition && (
+                    {!product.is_digital && product.condition && (
                       <Badge variant={product.condition === 'new' ? 'default' : 'secondary'}>
                         {product.condition === 'new' ? 'Neuf' : 'Occasion'}
                       </Badge>
@@ -348,68 +360,104 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
 
                 <Separator />
 
-                {/* Stock Status */}
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Disponibilité</span>
+                {/* Stock Status / Digital Product Info */}
+                {product.is_digital ? (
+                  <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 rounded-xl border border-purple-200 dark:border-purple-800">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                        <Download className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-purple-900 dark:text-purple-100">Produit Digital</p>
+                        <p className="text-xs text-purple-700 dark:text-purple-300">Téléchargement instantané après achat</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Zap className="h-4 w-4 text-purple-600" />
+                        <span className="text-muted-foreground">Livraison immédiate</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Download className="h-4 w-4 text-purple-600" />
+                        <span className="text-muted-foreground">{product.digital_download_limit || 5} téléchargements</span>
+                      </div>
+                    </div>
                   </div>
-                  <Badge variant={product.inStock ? 'default' : 'destructive'}>
-                    {product.inStock 
-                      ? `${product.stockCount} en stock` 
-                      : 'Rupture de stock'}
-                  </Badge>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Disponibilité</span>
+                    </div>
+                    <Badge variant={product.inStock ? 'default' : 'destructive'}>
+                      {product.inStock 
+                        ? `${product.stockCount} en stock` 
+                        : 'Rupture de stock'}
+                    </Badge>
+                  </div>
+                )}
 
-                {/* Quantity Selector */}
-                {product.inStock && (
+                {/* Quantity Selector / Buy Button */}
+                {(product.inStock || product.is_digital) && (
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-3"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Quantité</span>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleQuantityChange(Math.max(1, quantity - 1))}
-                          disabled={quantity <= 1}
-                          className="h-8 w-8 p-0"
-                        >
-                          -
-                        </Button>
-                        <span className="font-semibold min-w-[2rem] text-center">{quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleQuantityChange(Math.min(product.stockCount, quantity + 1))}
-                          disabled={quantity >= product.stockCount}
-                          className="h-8 w-8 p-0"
-                        >
-                          +
-                        </Button>
+                    {/* Quantity selector only for physical products */}
+                    {!product.is_digital && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Quantité</span>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleQuantityChange(Math.max(1, quantity - 1))}
+                            disabled={quantity <= 1}
+                            className="h-8 w-8 p-0"
+                          >
+                            -
+                          </Button>
+                          <span className="font-semibold min-w-[2rem] text-center">{quantity}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleQuantityChange(Math.min(product.stockCount, quantity + 1))}
+                            disabled={quantity >= product.stockCount}
+                            className="h-8 w-8 p-0"
+                          >
+                            +
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="space-y-2">
                       <Button
-                        className="w-full hover-scale"
+                        className={`w-full hover-scale ${product.is_digital ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
                         onClick={handleCreateOrder}
                         size="lg"
                       >
-                        Commander maintenant
+                        {product.is_digital ? (
+                          <>
+                            <Download className="h-4 w-4 mr-2" />
+                            Acheter & Télécharger
+                          </>
+                        ) : (
+                          'Commander maintenant'
+                        )}
                       </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full hover-scale"
-                        onClick={handleAddToCart}
-                        size="lg"
-                      >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Ajouter au panier
-                      </Button>
+                      {!product.is_digital && (
+                        <Button
+                          variant="outline"
+                          className="w-full hover-scale"
+                          onClick={handleAddToCart}
+                          size="lg"
+                        >
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          Ajouter au panier
+                        </Button>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -422,10 +470,17 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
                     <ShieldCheck className="h-4 w-4 text-success" />
                     <span>Paiement sécurisé</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Truck className="h-4 w-4 text-primary" />
-                    <span>Livraison rapide disponible</span>
-                  </div>
+                  {product.is_digital ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Zap className="h-4 w-4 text-purple-600" />
+                      <span>Téléchargement instantané</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Truck className="h-4 w-4 text-primary" />
+                      <span>Livraison rapide disponible</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

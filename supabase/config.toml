@@ -256,3 +256,6 @@ verify_jwt = true  # ✅ Libération escrow food par le client après confirmati
 
 [functions.process-marketplace-escrow]
 verify_jwt = true  # ✅ Checkout marketplace avec création escrow atomique
+
+[functions.digital-download]
+verify_jwt = true  # ✅ Téléchargement sécurisé produits digitaux avec vérification token
