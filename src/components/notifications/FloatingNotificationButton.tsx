@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,9 +11,11 @@ import { useUnifiedNotifications, UserType } from '@/hooks/useUnifiedNotificatio
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 
 export const FloatingNotificationButton = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [userType, setUserType] = useState<UserType | null>(null);
   const [isVisible, setIsVisible] = useState(true);
@@ -181,7 +183,7 @@ export const FloatingNotificationButton = () => {
             </div>
           </SheetHeader>
 
-          <ScrollArea className="h-[calc(100vh-100px)]">
+          <ScrollArea className="h-[calc(100vh-160px)]">
             <div className="p-4 space-y-3">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -258,6 +260,21 @@ export const FloatingNotificationButton = () => {
               )}
             </div>
           </ScrollArea>
+
+          {/* Footer avec lien vers page notifications */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background/95 backdrop-blur-sm">
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => {
+                setIsOpen(false);
+                navigate('/notifications');
+              }}
+            >
+              <ExternalLink className="h-4 w-4" />
+              Voir toutes les notifications
+            </Button>
+          </div>
         </SheetContent>
       </Sheet>
     </>

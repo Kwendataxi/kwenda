@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Bell, Check, CheckCheck, AlertCircle, Info, AlertTriangle, Inbox, Sparkles } from 'lucide-react';
+import { Bell, Check, CheckCheck, AlertCircle, Info, AlertTriangle, Inbox, Sparkles, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserType, useUnifiedNotifications } from '@/hooks/useUnifiedNotifications';
 import {
@@ -15,6 +15,7 @@ import { formatDistanceToNow, isToday, isYesterday, isThisWeek, format } from 'd
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 export type { UserType };
 
@@ -49,6 +50,7 @@ export const UnifiedNotificationBell: React.FC<UnifiedNotificationBellProps> = (
   className 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   const { 
     notifications, 
     unreadCount, 
@@ -283,10 +285,14 @@ export const UnifiedNotificationBell: React.FC<UnifiedNotificationBellProps> = (
             <div className="p-2 border-t bg-muted/30">
               <Button 
                 variant="ghost" 
-                className="w-full text-sm h-9 hover:bg-primary/10" 
+                className="w-full text-sm h-9 hover:bg-primary/10 gap-2" 
                 size="sm"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/notifications');
+                }}
               >
+                <ExternalLink className="h-4 w-4" />
                 Voir toutes les notifications
               </Button>
             </div>
