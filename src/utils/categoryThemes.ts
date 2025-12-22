@@ -46,6 +46,37 @@ export const CATEGORY_THEMES: Record<string, {
     color: 'text-amber-600',
     icon: '🛺',
     description: 'Tricycles pour trajets rapides et petites livraisons'
+  },
+  // 🚛 Nouvelles catégories CAMIONS
+  'Camion Léger': {
+    gradient: 'from-orange-500 via-amber-500 to-orange-600',
+    color: 'text-orange-600',
+    icon: '🚚',
+    description: 'Camions 3.5T-7.5T pour livraisons urbaines'
+  },
+  'Camion Moyen': {
+    gradient: 'from-red-500 via-rose-500 to-red-600',
+    color: 'text-red-600',
+    icon: '🚛',
+    description: 'Camions 7.5T-16T pour transport régional'
+  },
+  'Camion Lourd': {
+    gradient: 'from-slate-600 via-gray-600 to-slate-700',
+    color: 'text-slate-700',
+    icon: '🚛',
+    description: 'Camions 16T+ pour transport longue distance'
+  },
+  'Semi-Remorque': {
+    gradient: 'from-zinc-600 via-neutral-600 to-zinc-700',
+    color: 'text-zinc-700',
+    icon: '🚚',
+    description: 'Semi-remorques pour marchandises lourdes'
+  },
+  'Camion Spécial': {
+    gradient: 'from-cyan-600 via-sky-600 to-cyan-700',
+    color: 'text-cyan-700',
+    icon: '❄️',
+    description: 'Camions frigorifiques, citernes, bennes'
   }
 };
 
