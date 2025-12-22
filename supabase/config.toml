@@ -77,6 +77,9 @@ verify_jwt = false  # ✅ Cron job pour retry automatique des transactions Orang
 [functions.push-notifications]
 verify_jwt = true
 
+[functions.push-notifications-broadcast]
+verify_jwt = true  # ✅ Broadcast admin sécurisé - vérifie aussi le rôle admin
+
 [functions.seed-drivers]
 verify_jwt = false
 
