@@ -16,10 +16,22 @@ import { useProductFormValidation } from '@/hooks/useProductFormValidation';
 import { CompactProductCard } from './CompactProductCard';
 import { DigitalFileUpload } from './DigitalFileUpload';
 import { MARKETPLACE_CATEGORIES, PRODUCT_CONDITIONS } from '@/config/marketplaceCategories';
+import {
+  DigitalCategorySelector,
+  DigitalCourseFields,
+  DigitalEbookFields,
+  DigitalTemplateFields,
+  DigitalSoftwareFields,
+  DigitalAudioVideoFields,
+  DigitalPhotoFields,
+  DigitalPresetFields,
+  DigitalDocumentFields,
+  DigitalOtherFields
+} from './digital-fields';
 import { cn } from '@/lib/utils';
 import { debounce } from '@/utils/performanceUtils';
 
-interface SellProductFormData {
+export interface SellProductFormData {
   title: string;
   description: string;
   price: string;
@@ -36,6 +48,8 @@ interface SellProductFormData {
   digital_file_size: number;
   digital_file_type: string;
   digital_download_limit: number;
+  digital_category: string;
+  digital_specs: Record<string, any>;
 }
 
 interface SellProductFormProps {
@@ -69,7 +83,9 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
     digital_file_name: '',
     digital_file_size: 0,
     digital_file_type: '',
-    digital_download_limit: 5
+    digital_download_limit: 5,
+    digital_category: '',
+    digital_specs: {}
   });
 
   const { 
@@ -537,95 +553,172 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
                   />
                 </div>
 
-                {/* Catégorie et Condition */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Catégorie *</Label>
-                    <Select 
-                      value={formData.category}
-                      onValueChange={(value) => handleInputChange('category', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MARKETPLACE_CATEGORIES.filter(cat => cat.id !== 'all').map(cat => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>État *</Label>
-                    <Select
-                      value={formData.condition}
-                      onValueChange={(value) => handleInputChange('condition', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="État" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PRODUCT_CONDITIONS.map(cond => (
-                          <SelectItem key={cond.value} value={cond.value}>
-                            {cond.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Stock + Brand */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Quantité en stock *</Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleInputChange('stock_count', String(Math.max(1, formData.stock_count - 1)))}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={formData.stock_count}
-                        onChange={(e) => handleInputChange('stock_count', e.target.value)}
-                        min={1}
-                        max={9999}
-                        className="text-center tabular-nums"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleInputChange('stock_count', String(Math.min(9999, formData.stock_count + 1)))}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      1-9999 unités
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label>Marque (optionnel)</Label>
-                    <Input
-                      value={formData.brand}
-                      onChange={(e) => handleInputChange('brand', e.target.value)}
-                      placeholder="Ex: Samsung, Nike..."
-                      maxLength={50}
+                {/* Affichage conditionnel selon is_digital */}
+                {formData.is_digital ? (
+                  <>
+                    {/* Sélecteur de catégorie digitale */}
+                    <DigitalCategorySelector
+                      value={formData.digital_category}
+                      onChange={(cat) => setFormData(prev => ({ ...prev, digital_category: cat, digital_specs: {} }))}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Si applicable
-                    </p>
-                  </div>
-                </div>
+
+                    {/* Champs spécifiques selon la catégorie digitale */}
+                    {formData.digital_category === 'course' && (
+                      <DigitalCourseFields
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'ebook' && (
+                      <DigitalEbookFields
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'template' && (
+                      <DigitalTemplateFields
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'software' && (
+                      <DigitalSoftwareFields
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'audio' && (
+                      <DigitalAudioVideoFields
+                        type="audio"
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'video' && (
+                      <DigitalAudioVideoFields
+                        type="video"
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'photo' && (
+                      <DigitalPhotoFields
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'preset' && (
+                      <DigitalPresetFields
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'document' && (
+                      <DigitalDocumentFields
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                    {formData.digital_category === 'other_digital' && (
+                      <DigitalOtherFields
+                        specs={formData.digital_specs}
+                        onChange={(specs) => setFormData(prev => ({ ...prev, digital_specs: specs }))}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* Champs pour produits physiques */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Catégorie *</Label>
+                        <Select 
+                          value={formData.category}
+                          onValueChange={(value) => handleInputChange('category', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choisir" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {MARKETPLACE_CATEGORIES.filter(cat => cat.id !== 'all' && cat.id !== 'digital').map(cat => (
+                              <SelectItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label>État *</Label>
+                        <Select
+                          value={formData.condition}
+                          onValueChange={(value) => handleInputChange('condition', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="État" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PRODUCT_CONDITIONS.map(cond => (
+                              <SelectItem key={cond.value} value={cond.value}>
+                                {cond.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Stock + Brand */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Quantité en stock *</Label>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleInputChange('stock_count', String(Math.max(1, formData.stock_count - 1)))}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <Input
+                            type="number"
+                            value={formData.stock_count}
+                            onChange={(e) => handleInputChange('stock_count', e.target.value)}
+                            min={1}
+                            max={9999}
+                            className="text-center tabular-nums"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleInputChange('stock_count', String(Math.min(9999, formData.stock_count + 1)))}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          1-9999 unités
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label>Marque (optionnel)</Label>
+                        <Input
+                          value={formData.brand}
+                          onChange={(e) => handleInputChange('brand', e.target.value)}
+                          placeholder="Ex: Samsung, Nike..."
+                          maxLength={50}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Si applicable
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* Specifications (optionnel) */}
                 <div>

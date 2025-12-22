@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SellProductForm } from '@/components/marketplace/SellProductForm';
+import { SellProductForm, SellProductFormData } from '@/components/marketplace/SellProductForm';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -51,7 +51,7 @@ export default function VendorAddProduct() {
     });
   };
 
-  const handleSubmit = async (formData: any): Promise<boolean> => {
+  const handleSubmit = async (formData: SellProductFormData): Promise<boolean> => {
     if (!user) {
       toast({
         title: "Erreur d'authentification",
@@ -173,6 +173,15 @@ export default function VendorAddProduct() {
       // ✅ PHASE 3: Progression finale
       setUploadProgress(100);
 
+      // Construire les specifications avec les données digitales si applicable
+      const finalSpecifications = formData.is_digital 
+        ? {
+            ...formData.specifications,
+            digital_category: formData.digital_category,
+            ...formData.digital_specs
+          }
+        : formData.specifications;
+
       // Insert product into database avec champs digitaux
       const { data: newProduct, error } = await supabase
         .from('marketplace_products')
@@ -181,12 +190,12 @@ export default function VendorAddProduct() {
           title: formData.title,
           description: formData.description,
           price: parseFloat(formData.price),
-          category: formData.category,
+          category: formData.is_digital ? 'digital' : formData.category,
           condition: formData.is_digital ? 'new' : formData.condition,
           images: imageUrls,
           stock_count: formData.is_digital ? 9999 : (formData.stock_count || 1),
           brand: formData.brand || null,
-          specifications: formData.specifications || {},
+          specifications: finalSpecifications || {},
           moderation_status: 'pending',
           status: 'active',
           // ✅ Champs digitaux
