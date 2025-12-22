@@ -30,9 +30,8 @@ export const FoodCart = ({
   onCheckout,
 }: FoodCartProps) => {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 2000; // Fixed delivery fee
   const serviceFee = subtotal * 0.05;
-  const total = subtotal + deliveryFee + serviceFee;
+  const total = subtotal + serviceFee; // Sans frais de livraison (calculé après validation)
   const canCheckout = subtotal >= (restaurant.minimum_order_amount || 0);
 
   const formatPrice = (price: number) => {
@@ -132,7 +131,7 @@ export const FoodCart = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Frais de livraison</span>
-                <span className="font-semibold">{formatPrice(deliveryFee)}</span>
+                <span className="text-sm text-amber-600 italic">Calculé après validation</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Frais de service (5%)</span>

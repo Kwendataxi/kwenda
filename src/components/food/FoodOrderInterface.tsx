@@ -209,9 +209,8 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack, onCartStateChange 
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 2000; // Fixed delivery fee for now
   const serviceFee = subtotal * 0.05; // 5% service fee
-  const total = subtotal + deliveryFee + serviceFee;
+  const total = subtotal + serviceFee; // Sans frais de livraison (calculé après validation)
 
   return (
     <motion.div 
@@ -326,7 +325,6 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack, onCartStateChange 
               cart={cart}
               restaurant={selectedRestaurant}
               subtotal={subtotal}
-              deliveryFee={deliveryFee}
               serviceFee={serviceFee}
               total={total}
               onPlaceOrder={handlePlaceOrder}

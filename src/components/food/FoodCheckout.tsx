@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Wallet, Banknote, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Wallet, Banknote, AlertCircle, CheckCircle2, Loader2, Info } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/hooks/useWallet';
@@ -18,7 +18,6 @@ interface FoodCheckoutProps {
   cart: FoodCartItem[];
   restaurant: Restaurant;
   subtotal: number;
-  deliveryFee: number;
   serviceFee: number;
   total: number;
   onPlaceOrder: (deliveryAddress: string, paymentMethod: 'kwenda_pay' | 'cash') => void;
@@ -29,7 +28,6 @@ export const FoodCheckout = ({
   cart,
   restaurant,
   subtotal,
-  deliveryFee,
   serviceFee,
   total,
   onPlaceOrder,
@@ -130,15 +128,23 @@ export const FoodCheckout = ({
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Livraison</span>
-            <span>{formatPrice(deliveryFee)}</span>
+            <span className="text-sm text-amber-600 italic">Calculé après validation</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Frais de service</span>
             <span>{formatPrice(serviceFee)}</span>
           </div>
+          
+          <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 py-2">
+            <Info className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800 dark:text-amber-200 text-xs">
+              Les frais de livraison seront calculés après validation par le restaurant.
+            </AlertDescription>
+          </Alert>
+          
           <Separator className="my-2" />
           <div className="flex justify-between text-lg font-bold">
-            <span>Total</span>
+            <span>Total (hors livraison)</span>
             <span className="text-orange-600">{formatPrice(total)}</span>
           </div>
         </div>
