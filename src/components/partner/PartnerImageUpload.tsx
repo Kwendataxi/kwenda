@@ -97,14 +97,26 @@ export const PartnerImageUpload: React.FC<PartnerImageUploadProps> = ({
       }
 
       // Upload to storage
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('partner-assets')
         .upload(filePath, compressedFile, { 
           upsert: true,
           contentType: 'image/jpeg'
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        // Message d'erreur explicite selon le type d'erreur
+        if (uploadError.message?.includes('row-level security') || uploadError.message?.includes('policy')) {
+          throw new Error('Permission refusée. Veuillez vous reconnecter et réessayer.');
+        } else if (uploadError.message?.includes('exceeded') || uploadError.message?.includes('size')) {
+          throw new Error(`Image trop volumineuse (max ${currentConfig.maxSize}MB)`);
+        } else if (uploadError.message?.includes('network') || uploadError.message?.includes('fetch')) {
+          throw new Error('Erreur réseau. Vérifiez votre connexion internet.');
+        } else {
+          throw new Error(`Échec de l'upload: ${uploadError.message}`);
+        }
+      }
 
       // Get public URL
       const { data: urlData } = supabase.storage
@@ -123,13 +135,17 @@ export const PartnerImageUpload: React.FC<PartnerImageUploadProps> = ({
         })
         .eq('user_id', userId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw new Error('Image uploadée mais échec de la mise à jour du profil. Réessayez.');
+      }
 
       onUploadComplete(publicUrl);
       toast.success(`${currentConfig.label} mis à jour avec succès`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading:', error);
-      toast.error(`Erreur lors de l'upload du ${currentConfig.label.toLowerCase()}`);
+      const errorMessage = error?.message || `Erreur lors de l'upload du ${currentConfig.label.toLowerCase()}`;
+      toast.error(errorMessage);
       setPreviewUrl(null);
     } finally {
       setUploading(false);

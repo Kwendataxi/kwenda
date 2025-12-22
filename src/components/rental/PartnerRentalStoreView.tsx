@@ -271,15 +271,26 @@ export const PartnerRentalStoreView = () => {
   }
 
   // Génère un logo fallback avec initiales si pas d'avatar - Thème vert
-  const generateLogoFallback = (name: string) => {
+  const generateLogoFallback = (name: string, size: 'sm' | 'lg' = 'lg') => {
     const initials = name.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase();
+    const textSize = size === 'lg' ? 'text-3xl sm:text-4xl' : 'text-xl';
     return (
       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 via-teal-500 to-green-600">
-        <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-lg">
+        <span className={`${textSize} font-bold text-white drop-shadow-lg`}>
           {initials}
         </span>
       </div>
     );
+  };
+
+  // Couleur du ring selon le tier
+  const getTierRingColor = (tier: string) => {
+    switch (tier) {
+      case 'platinum': return 'ring-slate-400';
+      case 'gold': return 'ring-amber-400';
+      case 'diamond': return 'ring-cyan-400';
+      default: return 'ring-emerald-500';
+    }
   };
 
   return (
@@ -328,24 +339,51 @@ export const PartnerRentalStoreView = () => {
         )}
       </div>
 
-      {/* Profile Section - Simplified */}
+      {/* Profile Section - Professional Design */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 -mt-10 sm:-mt-14 relative z-20">
-          {/* Avatar - No hover scale */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-3 sm:gap-4 -mt-12 sm:-mt-16 relative z-20">
+          {/* Avatar avec double ring professionnel */}
           <div className="relative shrink-0">
-            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-background shadow-lg overflow-hidden bg-muted dark:bg-slate-800">
+            {/* Outer glow ring */}
+            <div className={cn(
+              "absolute -inset-1 rounded-full opacity-60 blur-sm",
+              tier === 'platinum' ? 'bg-gradient-to-br from-slate-300 to-slate-500' :
+              tier === 'gold' ? 'bg-gradient-to-br from-amber-300 to-amber-500' :
+              tier === 'diamond' ? 'bg-gradient-to-br from-cyan-300 to-cyan-500' :
+              'bg-gradient-to-br from-emerald-400 to-teal-500'
+            )} />
+            
+            {/* Main avatar container */}
+            <div className={cn(
+              "relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden",
+              "border-4 border-background dark:border-slate-900",
+              "ring-2 ring-offset-2 ring-offset-background",
+              getTierRingColor(tier),
+              "shadow-xl"
+            )}>
               {partnerData.logo_url ? (
                 <img 
                   src={partnerData.logo_url}
                   alt={partnerData.company_name}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback si l'image ne charge pas
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
                 />
-              ) : (
-                generateLogoFallback(partnerData.company_name)
-              )}
+              ) : null}
+              <div className={cn(
+                "w-full h-full",
+                partnerData.logo_url ? 'hidden' : 'block'
+              )}>
+                {generateLogoFallback(partnerData.company_name, 'lg')}
+              </div>
             </div>
-            <div className="absolute -bottom-1 -right-1">
-              <PartnerTierBadge tier={tier} className="shadow-md" />
+            
+            {/* Badge tier positionné élégamment */}
+            <div className="absolute -bottom-1 -right-1 z-10">
+              <PartnerTierBadge tier={tier} className="shadow-lg ring-2 ring-background" />
             </div>
           </div>
           
