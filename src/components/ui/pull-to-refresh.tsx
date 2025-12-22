@@ -33,6 +33,9 @@ export const PullToRefresh = ({
   const scale = useTransform(pullDistance, [0, refreshThreshold], [0.6, 1]);
   const arrowRotation = useTransform(pullDistance, [0, refreshThreshold], [0, 180]);
   const progressStroke = useTransform(pullDistance, [0, refreshThreshold], [0, 283]); // 2 * PI * 45 (circle circumference)
+  
+  // ✅ Hook déplacé au niveau du composant (pas dans le JSX conditionnel)
+  const strokeDashoffset = useTransform(progressStroke, v => 283 - v);
 
   const getScrollTop = useCallback(() => {
     if (!containerRef.current) return 0;
@@ -170,7 +173,7 @@ export const PullToRefresh = ({
                       strokeWidth="4"
                       strokeLinecap="round"
                       strokeDasharray="283"
-                      style={{ strokeDashoffset: useTransform(progressStroke, v => 283 - v) }}
+                      style={{ strokeDashoffset }}
                       className="text-primary"
                     />
                   )}
