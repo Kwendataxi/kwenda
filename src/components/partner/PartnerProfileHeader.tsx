@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Building2, Mail, Phone, MapPin, Shield, Calendar, Camera, Edit2, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, Shield, Calendar, Edit2, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -11,15 +11,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { PartnerProfileEditForm } from './PartnerProfileEditForm';
+import { PartnerImageUpload } from './PartnerImageUpload';
 
 export const PartnerProfileHeader: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { data: partner, isLoading } = useQuery({
@@ -37,87 +35,20 @@ export const PartnerProfileHeader: React.FC = () => {
     enabled: !!user?.id,
   });
 
-  // Récupérer le profil pour l'avatar
-  const { data: profile } = useQuery({
-    queryKey: ['partner-profile-avatar', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('avatar_url, display_name')
-        .eq('user_id', user?.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user?.id) return;
-
-    // Validation
-    if (!file.type.startsWith('image/')) {
-      toast.error('Veuillez sélectionner une image');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('L\'image ne doit pas dépasser 5MB');
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `partner-${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      // Update profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          avatar_url: urlData.publicUrl,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-
-      if (updateError) throw updateError;
-
-      queryClient.invalidateQueries({ queryKey: ['partner-profile-avatar'] });
-      toast.success('Logo mis à jour avec succès');
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      toast.error('Erreur lors de l\'upload du logo');
-    } finally {
-      setUploading(false);
-    }
+  const handleImageUpdate = () => {
+    queryClient.invalidateQueries({ queryKey: ['partner-profile'] });
   };
 
   if (isLoading) {
     return (
       <Card className="relative overflow-hidden border-0 shadow-xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-teal-50/60 to-cyan-50/50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-cyan-950/20" />
-        <div className="relative p-6 animate-pulse">
-          <div className="flex gap-6">
-            <div className="h-28 w-28 rounded-full bg-muted" />
-            <div className="flex-1 space-y-3">
+        <div className="h-32 md:h-48 bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 animate-pulse" />
+        <div className="relative px-6 pb-6">
+          <div className="flex gap-6 -mt-14">
+            <div className="h-28 w-28 rounded-full bg-muted ring-4 ring-background" />
+            <div className="flex-1 space-y-3 pt-16">
               <div className="h-8 w-48 bg-muted rounded" />
               <div className="h-4 w-32 bg-muted rounded" />
-              <div className="h-4 w-64 bg-muted rounded" />
             </div>
           </div>
         </div>
@@ -171,63 +102,39 @@ export const PartnerProfileHeader: React.FC = () => {
       transition={{ duration: 0.4 }}
     >
       <Card className="relative overflow-hidden border-0 shadow-xl">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-teal-50/60 to-cyan-50/50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-cyan-950/20" />
-        
-        {/* Decorative circles */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-emerald-400/10 blur-3xl" />
-        <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-teal-400/10 blur-2xl" />
+        {/* Photo de couverture (Banner) */}
+        {user?.id && (
+          <PartnerImageUpload
+            type="banner"
+            currentUrl={partner?.banner_image}
+            userId={user.id}
+            onUploadComplete={handleImageUpdate}
+          />
+        )}
 
-        <div className="relative p-6 md:p-8">
-          <div className="flex flex-col md:flex-row gap-6 md:gap-8">
-            {/* Avatar avec bouton upload */}
-            <div className="flex flex-col items-center gap-3">
-              <motion.div 
-                className="relative group"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                <Avatar className="h-28 w-28 ring-4 ring-white/50 dark:ring-gray-800/50 shadow-2xl">
-                  <AvatarImage src={profile?.avatar_url || ''} />
+        {/* Contenu principal */}
+        <div className="relative px-6 pb-6">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 -mt-14">
+            {/* Logo avec upload */}
+            <div className="flex flex-col items-center md:items-start">
+              {user?.id ? (
+                <PartnerImageUpload
+                  type="logo"
+                  currentUrl={partner?.logo_url}
+                  userId={user.id}
+                  onUploadComplete={handleImageUpdate}
+                />
+              ) : (
+                <Avatar className="h-28 w-28 ring-4 ring-background shadow-2xl">
                   <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-2xl font-bold">
                     {partner?.company_name ? getInitials(partner.company_name) : 'P'}
                   </AvatarFallback>
                 </Avatar>
-                
-                {/* Overlay upload */}
-                <motion.button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className={cn(
-                    "absolute inset-0 flex items-center justify-center rounded-full",
-                    "bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer",
-                    uploading && "opacity-100"
-                  )}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {uploading ? (
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Camera className="h-6 w-6 text-white" />
-                  )}
-                </motion.button>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-              </motion.div>
-              
-              <p className="text-xs text-muted-foreground">
-                Cliquez pour modifier
-              </p>
+              )}
             </div>
 
             {/* Informations principales */}
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-4 pt-4 md:pt-16">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                 <div>
                   <motion.h2 
