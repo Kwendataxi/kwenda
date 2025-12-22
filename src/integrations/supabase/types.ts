@@ -6290,6 +6290,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           license_number: string | null
+          logo_url: string | null
           phone: string | null
           phone_number: string
           primary_vehicle_category: string | null
@@ -6330,6 +6331,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           license_number?: string | null
+          logo_url?: string | null
           phone?: string | null
           phone_number: string
           primary_vehicle_category?: string | null
@@ -6370,6 +6372,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           license_number?: string | null
+          logo_url?: string | null
           phone?: string | null
           phone_number?: string
           primary_vehicle_category?: string | null
