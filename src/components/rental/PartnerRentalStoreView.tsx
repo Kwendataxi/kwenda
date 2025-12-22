@@ -12,6 +12,8 @@ import { PartnerTierBadge } from './PartnerTierBadge';
 import { PartnerRentalRatingDialog } from './PartnerRentalRatingDialog';
 import { PartnerRentalShareSheet } from './PartnerRentalShareSheet';
 import { PartnerRentalReviewsSection } from './PartnerRentalReviewsSection';
+import { PartnerOpeningHoursDisplay } from './PartnerOpeningHoursDisplay';
+import { VehicleGallerySection } from './VehicleGallerySection';
 import { 
   Heart, Share2, Star, Users, Car, 
   Award, MapPin, Search, Phone, Mail, Globe, ArrowLeft
@@ -66,6 +68,7 @@ export const PartnerRentalStoreView = () => {
         phone: partner.phone,
         email: partner.email,
         website: partner.website,
+        opening_hours: partner.opening_hours as any,
         stats: stats || {
           total_vehicles: 0,
           available_vehicles: 0,
@@ -371,6 +374,10 @@ export const PartnerRentalStoreView = () => {
             <div className="text-lg font-bold text-foreground">{partnerData.stats.completed_bookings}</div>
             <div className="text-xs text-muted-foreground">Locations</div>
           </div>
+          {/* Opening status badge */}
+          <div className="hidden sm:block ml-2">
+            <PartnerOpeningHoursDisplay openingHours={partnerData.opening_hours} compact />
+          </div>
         </div>
 
         {/* Action Buttons - Horizontal Pills */}
@@ -472,6 +479,15 @@ export const PartnerRentalStoreView = () => {
             </Card>
           </motion.div>
         )}
+
+        {/* Opening Hours & Gallery Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Opening Hours */}
+          <PartnerOpeningHoursDisplay openingHours={partnerData.opening_hours} />
+          
+          {/* Gallery from vehicles */}
+          <VehicleGallerySection vehicles={vehicles} />
+        </div>
 
         {/* Filters & Search - Thème vert */}
         <div className="mb-6">

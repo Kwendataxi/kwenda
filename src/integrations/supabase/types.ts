@@ -6291,6 +6291,7 @@ export type Database = {
           is_active: boolean | null
           license_number: string | null
           logo_url: string | null
+          opening_hours: Json | null
           phone: string | null
           phone_number: string
           primary_vehicle_category: string | null
@@ -6332,6 +6333,7 @@ export type Database = {
           is_active?: boolean | null
           license_number?: string | null
           logo_url?: string | null
+          opening_hours?: Json | null
           phone?: string | null
           phone_number: string
           primary_vehicle_category?: string | null
@@ -6373,6 +6375,7 @@ export type Database = {
           is_active?: boolean | null
           license_number?: string | null
           logo_url?: string | null
+          opening_hours?: Json | null
           phone?: string | null
           phone_number?: string
           primary_vehicle_category?: string | null
