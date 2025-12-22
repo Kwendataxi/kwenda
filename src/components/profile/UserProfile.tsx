@@ -373,7 +373,8 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
       if (onClose) {
         onClose();
       }
-      window.location.href = '/referral';
+      setShowModal(false);
+      navigate('/referral');
     } else {
       console.log('🔀 [UserProfile] Autre action, redirection vers handleOptionClick');
       handleOptionClick(action);
