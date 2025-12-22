@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card';
-import { Star, Clock, Bike, ChevronRight, MapPin } from 'lucide-react';
+import { Star, Clock, ChevronRight, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -36,15 +36,15 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
       <Card 
         className={cn(
           "overflow-hidden cursor-pointer",
-          "bg-card rounded-2xl",
-          "border-0 shadow-md hover:shadow-xl",
+          "bg-card rounded-3xl",
+          "border border-border/50",
+          "shadow-sm hover:shadow-md",
           "transition-shadow duration-300"
         )}
         onClick={handleClick}
       >
-        {/* Image section - plus compacte */}
-        <div className="relative h-40 overflow-hidden">
-          {/* Skeleton loading */}
+        {/* Image section */}
+        <div className="relative h-36 overflow-hidden">
           {!imageLoaded && (
             <div className="absolute inset-0 bg-muted animate-pulse" />
           )}
@@ -65,12 +65,12 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
             )}
           />
           
-          {/* Overlay gradient subtil */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
           
-          {/* Logo en haut à gauche - petit et discret */}
+          {/* Logo */}
           {restaurant.logo_url && (
-            <div className="absolute top-3 left-3 w-12 h-12 rounded-xl border-2 border-white/90 shadow-lg overflow-hidden bg-white">
+            <div className="absolute top-3 left-3 w-10 h-10 rounded-xl border border-white/80 shadow-sm overflow-hidden bg-white">
               <img 
                 src={`${restaurant.logo_url}?t=${restaurant.updated_at || Date.now()}`}
                 alt={`${restaurant.restaurant_name} logo`}
@@ -80,51 +80,50 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
             </div>
           )}
           
-          {/* Badge livraison en haut à droite */}
+          {/* Delivery badge */}
           {restaurant.delivery_available && (
-            <Badge className="absolute top-3 right-3 bg-emerald-500/90 text-white text-xs border-0 font-medium px-2.5 py-1">
-              <Bike className="w-3 h-3 mr-1" />
+            <Badge className="absolute top-3 right-3 bg-primary/90 text-primary-foreground text-[10px] border-0 font-medium px-2 py-0.5">
               Livraison
             </Badge>
           )}
           
-          {/* Nom du restaurant sur l'image */}
+          {/* Restaurant name */}
           <div className="absolute bottom-3 left-3 right-3">
-            <h3 className="text-xl font-bold text-white line-clamp-1 drop-shadow-md">
+            <h3 className="text-lg font-semibold text-white line-clamp-1 drop-shadow-sm">
               {restaurant.restaurant_name}
             </h3>
           </div>
         </div>
         
-        {/* Informations */}
+        {/* Info section */}
         <div className="p-4 space-y-3">
-          {/* Stats: rating + temps */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-foreground">{rating.toFixed(1)}</span>
+          {/* Stats */}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 text-amber-500" />
+              <span className="font-medium text-foreground">{rating.toFixed(1)}</span>
             </span>
-            <span className="text-border">•</span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4" />
+            <span className="text-border/60">·</span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" />
               {prepTime}-{prepTime + 10} min
             </span>
             {restaurant.address && (
               <>
-                <span className="text-border">•</span>
-                <span className="flex items-center gap-1 truncate">
-                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="text-border/60">·</span>
+                <span className="flex items-center gap-1 truncate text-xs">
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
                   <span className="truncate">{restaurant.address.split(',')[0]}</span>
                 </span>
               </>
             )}
           </div>
           
-          {/* Footer: prix minimum + bouton */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/50">
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/30">
             <div>
-              <p className="text-xs text-muted-foreground">Minimum</p>
-              <p className="font-bold text-primary">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Min.</p>
+              <p className="font-semibold text-sm text-foreground">
                 {restaurant.minimum_order_amount 
                   ? formatPrice(restaurant.minimum_order_amount)
                   : formatCurrency(5000, 'CDF')
@@ -134,10 +133,11 @@ export const RestaurantCard = ({ restaurant, onClick }: RestaurantCardProps) => 
             
             <Button 
               size="sm" 
-              className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-4"
+              variant="ghost"
+              className="rounded-full text-primary hover:text-primary hover:bg-primary/10 font-medium px-3 h-8"
             >
               Voir menu
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <ChevronRight className="w-4 h-4 ml-0.5" />
             </Button>
           </div>
         </div>

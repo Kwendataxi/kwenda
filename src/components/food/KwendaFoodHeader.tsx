@@ -1,5 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ShoppingCart, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FoodSearchBar } from './FoodSearchBar';
 import { CityDropdown } from './CityDropdown';
@@ -26,121 +25,87 @@ export const KwendaFoodHeader = ({
   onBackToHome,
   onCartClick
 }: KwendaFoodHeaderProps) => {
-  const getBreadcrumb = () => {
+  const getTitle = () => {
     switch (step) {
       case 'menu':
         return selectedRestaurant?.restaurant_name || 'Menu';
       case 'checkout':
-        return 'Finaliser la commande';
+        return 'Commande';
       case 'all-dishes':
         return 'Tous les plats';
       case 'all-restaurants':
-        return 'Tous les restaurants';
+        return 'Restaurants';
       default:
-        return 'Vos restaurants préférés';
+        return null;
     }
   };
 
-  const breadcrumb = getBreadcrumb();
+  const title = getTitle();
+  const showBackButton = step !== 'restaurants' || onBackToHome;
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/5">
-      {/* Ligne principale - Design soft et épuré */}
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/10">
       <div className="h-14 px-4 flex items-center justify-between gap-3">
-        {/* Gauche : Navigation + Logo + Titre */}
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {step !== 'restaurants' ? (
+        {/* Left: Back + Title/Logo */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {showBackButton && (
             <Button
-              onClick={onBack} 
-              variant="ghost" 
+              onClick={step !== 'restaurants' ? onBack : onBackToHome}
+              variant="ghost"
               size="icon"
-              className="h-8 w-8 -ml-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          ) : onBackToHome && (
-            <Button 
-              onClick={onBackToHome} 
-              variant="ghost" 
-              size="icon"
-              className="h-8 w-8 -ml-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
-              title="Retour à l'accueil"
+              className="h-9 w-9 -ml-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          
-          {/* Logo soft */}
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-muted/50 flex items-center justify-center">
-              <UtensilsCrossed className="h-[18px] w-[18px] text-foreground/60" />
+
+          {step === 'restaurants' ? (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-semibold text-foreground">
+                Kwenda<span className="text-muted-foreground font-normal ml-0.5">Food</span>
+              </span>
+              <span className="text-muted-foreground/40">·</span>
+              <CityDropdown
+                selectedCity={selectedCity}
+                onCityChange={onCityChange}
+                className="text-sm"
+              />
             </div>
-            
-            {/* Title */}
-            <div className="flex flex-col">
-              <h1 className="text-base font-medium text-foreground tracking-tight">
-                Kwenda <span className="text-foreground/50">Food</span>
-              </h1>
-              <p className="text-[11px] text-muted-foreground/60 hidden sm:block">
-                {breadcrumb}
-              </p>
-            </div>
-          </div>
+          ) : (
+            <h1 className="text-base font-medium text-foreground truncate">
+              {title}
+            </h1>
+          )}
         </div>
 
-        {/* Centre : Recherche (desktop uniquement) */}
+        {/* Center: Search (desktop) */}
         {step === 'restaurants' && (
-          <div className="hidden md:block flex-1 max-w-xl">
+          <div className="hidden md:block flex-1 max-w-md">
             <FoodSearchBar city={selectedCity} />
           </div>
         )}
 
-        {/* Droite : Panier simplifié */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {step !== 'checkout' && (
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className={cn(
-                "h-10 w-10 relative rounded-xl transition-colors",
-                cartItemsCount > 0
-                  ? "bg-foreground/10 text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              onClick={onCartClick}
-            >
-              <ShoppingCart className="h-5 w-5" />
-              
-              {/* Badge simple */}
-              <span
-                className={cn(
-                  "absolute -top-1 -right-1",
-                  "rounded-full",
-                  "min-w-[18px] h-[18px] text-[10px] font-semibold",
-                  "flex items-center justify-center",
-                  cartItemsCount > 0
-                    ? "bg-foreground text-background"
-                    : "bg-muted text-muted-foreground"
-                )}
-              >
+        {/* Right: Cart */}
+        {step !== 'checkout' && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-10 w-10 relative rounded-xl transition-colors",
+              cartItemsCount > 0
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            )}
+            onClick={onCartClick}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {cartItemsCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
                 {cartItemsCount}
               </span>
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Ligne secondaire : Contexte simplifié */}
-      <div className="h-10 px-4 flex items-center gap-3 text-sm">
-        <CityDropdown 
-          selectedCity={selectedCity}
-          onCityChange={onCityChange}
-          className="flex-shrink-0"
-        />
-        <span className="text-muted-foreground/30 hidden sm:inline">•</span>
-        <span className="text-muted-foreground/60 truncate hidden sm:inline text-[13px]">
-          {breadcrumb}
-        </span>
+            )}
+          </Button>
+        )}
       </div>
     </header>
   );
