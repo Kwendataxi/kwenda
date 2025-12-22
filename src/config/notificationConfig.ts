@@ -37,12 +37,12 @@ export const NOTIFICATION_CONFIG = {
   RETRY_INTERVALS: [1000, 3000, 5000, 10000, 20000], // Escalade progressive
   MAX_RETRIES: 5,
   
-  // Types de priorité et leurs durées
+  // Types de priorité et leurs durées (étendues pour meilleure lisibilité)
   PRIORITY_DURATIONS: {
-    low: 2000,
-    normal: 2000,
-    high: 1500,  // Un peu plus court pour attirer l'attention
-    urgent: 1500
+    low: 3000,      // 3 secondes - notifications informatives
+    normal: 4000,   // 4 secondes - standard
+    high: 6000,     // 6 secondes - important, temps de lecture
+    urgent: 0       // Persistant - ne disparaît pas automatiquement
   },
   
   // Mapping événements → sons

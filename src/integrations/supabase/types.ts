@@ -12488,6 +12488,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notification_logs: {
+        Row: {
+          action_url: string | null
+          category: string | null
+          created_at: string | null
+          id: string
+          is_archived: boolean | null
+          is_read: boolean | null
+          message: string | null
+          metadata: Json | null
+          priority: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          priority?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          priority?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_notification_preferences: {
         Row: {
           chat_messages: boolean
