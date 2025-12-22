@@ -24,108 +24,93 @@ export const ProgressRoad: React.FC<ProgressRoadProps> = ({
     if (scrollRef.current) {
       const currentIndex = steps.findIndex(s => s.isCurrent);
       if (currentIndex > 2) {
-        const stepWidth = 56; // 14 * 4
+        const stepWidth = 48;
         scrollRef.current.scrollLeft = (currentIndex - 2) * stepWidth;
       }
     }
   }, [steps]);
 
   return (
-    <div className={cn("py-4", className)}>
+    <div className={cn("py-4 bg-card/50 rounded-2xl mx-4", className)}>
       {/* Scrollable progress road */}
       <div 
         ref={scrollRef}
-        className="overflow-x-auto no-scrollbar pb-2"
+        className="overflow-x-auto no-scrollbar"
       >
-        <div className="flex items-center gap-1 px-4 min-w-max">
+        <div className="flex items-center px-6 min-w-max py-2">
           {steps.map((step, index) => {
             const isLast = index === steps.length - 1;
             const hasReward = step.reward;
             
             return (
               <React.Fragment key={step.position}>
+                {/* Connector line BEFORE step (except first) */}
+                {index > 0 && (
+                  <div 
+                    className={cn(
+                      "w-6 h-0.5 flex-shrink-0 transition-colors duration-300",
+                      step.completed ? "bg-primary/60" : "bg-muted"
+                    )}
+                  />
+                )}
+
                 {/* Step circle */}
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="relative"
+                  transition={{ delay: index * 0.03 }}
+                  className="relative flex-shrink-0"
                 >
-                  {/* Connector line */}
-                  {index > 0 && (
-                    <div 
-                      className={cn(
-                        "absolute right-full top-1/2 -translate-y-1/2 w-3 h-1 -mr-0.5",
-                        step.completed ? "bg-primary" : "bg-muted"
-                      )}
-                    />
-                  )}
-
                   {/* Circle/Icon */}
                   <div
                     className={cn(
                       "relative flex items-center justify-center rounded-full transition-all duration-300",
-                      hasReward ? "w-12 h-12" : "w-10 h-10",
+                      hasReward ? "w-11 h-11" : "w-9 h-9",
                       step.completed 
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                        ? "bg-primary text-primary-foreground shadow-md"
                         : step.isCurrent
-                        ? "bg-primary/20 border-2 border-primary text-primary"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-white border-2 border-primary text-primary shadow-lg"
+                        : "bg-white border border-border text-muted-foreground"
                     )}
                   >
                     {step.completed ? (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <Check className="h-5 w-5" />
-                      </motion.div>
+                      <Check className="h-4 w-4" />
                     ) : hasReward ? (
                       <motion.div
                         animate={step.isCurrent ? { 
-                          scale: [1, 1.1, 1],
-                          rotate: [0, 5, -5, 0]
+                          scale: [1, 1.1, 1]
                         } : {}}
                         transition={{ duration: 2, repeat: Infinity }}
                       >
                         {step.reward === 'card' ? (
-                          <Ticket className={cn(
-                            "h-5 w-5",
-                            step.isCurrent ? "text-primary" : "text-muted-foreground"
-                          )} />
+                          <Ticket className="h-4 w-4" />
                         ) : (
-                          <Gift className={cn(
-                            "h-5 w-5",
-                            step.isCurrent ? "text-primary" : "text-muted-foreground"
-                          )} />
+                          <Gift className="h-4 w-4" />
                         )}
                       </motion.div>
                     ) : (
-                      <span className="text-xs font-medium">
+                      <span className="text-[10px] font-medium">
                         {(index + 1) * 10}
                       </span>
                     )}
 
-                    {/* Current position indicator */}
+                    {/* Current position glow */}
                     {step.isCurrent && (
                       <motion.div
-                        animate={{ scale: [1, 1.3, 1] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className="absolute -bottom-1 left-1/2 -translate-x-1/2"
-                      >
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                      </motion.div>
+                        animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="absolute inset-0 rounded-full bg-primary/30"
+                      />
                     )}
                   </div>
 
                   {/* Reward label */}
                   {hasReward && (
                     <span className={cn(
-                      "absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-medium whitespace-nowrap",
+                      "absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium whitespace-nowrap",
                       step.completed ? "text-primary" : "text-muted-foreground"
                     )}>
-                      {step.reward === 'card' ? '🎫 Carte' : '🎁'}
+                      {step.reward === 'card' ? 'Carte' : '🎁'}
                     </span>
                   )}
                 </motion.div>
@@ -135,11 +120,11 @@ export const ProgressRoad: React.FC<ProgressRoadProps> = ({
                   <motion.div
                     initial={{ x: 10, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    className="ml-2 flex-shrink-0"
+                    className="ml-4 flex-shrink-0"
                   >
-                    <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full">
-                      <span className="text-lg font-bold">{actionsRemaining}</span>
-                      <span className="text-xs">actions</span>
+                    <div className="flex items-center gap-1 bg-white shadow-sm border border-border px-3 py-1.5 rounded-full">
+                      <span className="text-base font-bold text-foreground">{actionsRemaining}</span>
+                      <span className="text-[10px] text-muted-foreground">restantes</span>
                     </div>
                   </motion.div>
                 )}
@@ -149,20 +134,20 @@ export const ProgressRoad: React.FC<ProgressRoadProps> = ({
         </div>
       </div>
 
-      {/* Progress bar underneath */}
-      <div className="mx-4 mt-4">
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+      {/* Progress bar */}
+      <div className="mx-6 mt-4">
+        <div className="h-2 bg-muted/50 rounded-full overflow-hidden shadow-inner">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-primary via-primary to-yellow-500 rounded-full"
+            className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
           />
         </div>
-        <div className="flex justify-between mt-1.5 text-xs text-muted-foreground">
-          <span>0</span>
-          <span className="text-primary font-medium">{Math.round(percentage)}%</span>
-          <span>100</span>
+        <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+          <span>0%</span>
+          <span className="text-primary font-semibold text-xs">{Math.round(percentage)}%</span>
+          <span>100%</span>
         </div>
       </div>
     </div>

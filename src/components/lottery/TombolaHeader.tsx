@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { HelpCircle, Gift } from 'lucide-react';
+import { HelpCircle, Gift, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -26,107 +26,88 @@ export const TombolaHeader: React.FC<TombolaHeaderProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         "relative overflow-hidden rounded-2xl",
-        "bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600",
-        "p-6 pb-8",
+        "bg-white shadow-sm border border-border",
+        "p-5",
         className
       )}
     >
-      {/* Clouds decoration */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <motion.div
-          animate={{ x: [0, 20, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-2 left-4 w-16 h-8 bg-white/30 rounded-full blur-sm"
-        />
-        <motion.div
-          animate={{ x: [0, -15, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-6 right-8 w-20 h-10 bg-white/25 rounded-full blur-sm"
-        />
-        <motion.div
-          animate={{ x: [0, 10, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-4 left-1/4 w-12 h-6 bg-white/20 rounded-full blur-sm"
-        />
-      </div>
-
       {/* Help button */}
       <Popover>
         <PopoverTrigger asChild>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute top-3 right-3 h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 text-white"
+            className="absolute top-3 right-3 h-7 w-7 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50"
           >
             <HelpCircle className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72">
+        <PopoverContent className="w-72" align="end">
           <div className="space-y-2">
             <h4 className="font-semibold text-sm flex items-center gap-2">
-              <Gift className="h-4 w-4" />
+              <Gift className="h-4 w-4 text-primary" />
               Comment ça marche ?
             </h4>
             <ul className="text-xs space-y-1.5 text-muted-foreground">
-              <li>🚗 Commandez des courses pour gagner des points</li>
-              <li>📦 Faites des livraisons pour avancer</li>
-              <li>🎁 À 100 points, débloquez une carte à gratter</li>
-              <li>💰 Grattez pour découvrir votre gain !</li>
+              <li className="flex items-start gap-2">
+                <span>🚗</span>
+                <span>Commandez des courses pour gagner des points</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span>📦</span>
+                <span>Faites des livraisons pour avancer</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span>🎁</span>
+                <span>À 100 points, débloquez une carte à gratter</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span>💰</span>
+                <span>Grattez pour découvrir votre gain !</span>
+              </li>
             </ul>
           </div>
         </PopoverContent>
       </Popover>
 
+      {/* Trophy icon */}
+      <div className="flex justify-center mb-3">
+        <motion.div
+          animate={{ y: [0, -3, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center"
+        >
+          <Trophy className="h-6 w-6 text-amber-500" />
+        </motion.div>
+      </div>
+
       {/* Title */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="text-white/90 text-sm font-medium text-center uppercase tracking-wide"
-      >
+      <p className="text-muted-foreground text-xs font-medium text-center uppercase tracking-wider">
         Gains déjà versés
-      </motion.p>
+      </p>
 
       {/* Amount */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-        className="text-center mt-2"
+        transition={{ delay: 0.1 }}
+        className="text-center mt-1"
       >
-        <span className="text-4xl font-bold text-white drop-shadow-lg">
+        <span className="text-3xl font-bold text-foreground">
           {formatAmount(totalWinnings)}
         </span>
-        <span className="text-xl font-medium text-white/90 ml-1">
+        <span className="text-lg font-medium text-muted-foreground ml-1">
           {currency === 'XP' ? 'XP' : 'F'}
         </span>
       </motion.div>
 
-      {/* Floating gift icons */}
-      <motion.div
-        animate={{ 
-          y: [0, -5, 0],
-          rotate: [0, 5, -5, 0]
-        }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-2 left-6"
-      >
-        <span className="text-2xl opacity-80">🎁</span>
-      </motion.div>
-      <motion.div
-        animate={{ 
-          y: [0, -8, 0],
-          rotate: [0, -5, 5, 0]
-        }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-        className="absolute bottom-4 right-6"
-      >
-        <span className="text-xl opacity-70">🎀</span>
-      </motion.div>
+      {/* Subtle decoration */}
+      <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-primary/5" />
+      <div className="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-amber-500/5" />
     </motion.div>
   );
 };
