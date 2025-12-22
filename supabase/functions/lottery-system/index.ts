@@ -6,12 +6,105 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Configuration des types de cartes Kwenda Gratta
-const CARD_TYPE_REWARDS = {
-  standard: { maxXP: 50, boostChance: 0.1 },
-  active: { maxXP: 200, boostChance: 0.3 },
-  rare: { maxXP: 500, boostChance: 0.5 },
-  mega: { maxXP: 1000, boostChance: 0.8 }
+// ========== PROBABILITÉS TRÈS DÉFAVORABLES ==========
+// Le système est conçu pour être défavorable aux utilisateurs
+// tout en gardant une motivation via les petits gains fréquents
+
+const REWARD_PROBABILITIES = {
+  nothing: 0.60,           // 60% - RIEN (perdu)
+  xp_small: 0.25,          // 25% - 5-20 XP
+  xp_medium: 0.10,         // 10% - 50-100 XP
+  discount_5: 0.03,        // 3% - Remise 5%
+  xp_large: 0.015,         // 1.5% - 200+ XP
+  physical_gift: 0.005,    // 0.5% - Cadeau nature (admin)
+} as const;
+
+// Configuration des types de cartes
+const CARD_TYPE_MULTIPLIERS = {
+  standard: 1,
+  active: 1.5,
+  rare: 2,
+  mega: 3
+};
+
+// Fonction pour déterminer la récompense basée sur les probabilités
+const determineReward = (cardType: string = 'standard') => {
+  const roll = Math.random();
+  const multiplier = CARD_TYPE_MULTIPLIERS[cardType as keyof typeof CARD_TYPE_MULTIPLIERS] || 1;
+  
+  let cumulative = 0;
+  
+  // 60% - RIEN
+  cumulative += REWARD_PROBABILITIES.nothing / multiplier;
+  if (roll < cumulative) {
+    return {
+      rewardType: 'nothing',
+      prizeName: 'Dommage !',
+      prizeValue: 0,
+      rarity: 'common' as const,
+      boostDetails: {}
+    };
+  }
+  
+  // 25% - XP petit (5-20)
+  cumulative += REWARD_PROBABILITIES.xp_small;
+  if (roll < cumulative) {
+    const value = Math.floor(Math.random() * 16) + 5; // 5-20
+    return {
+      rewardType: 'xp_points',
+      prizeName: `+${value} XP`,
+      prizeValue: value,
+      rarity: 'common' as const,
+      boostDetails: {}
+    };
+  }
+  
+  // 10% - XP moyen (50-100)
+  cumulative += REWARD_PROBABILITIES.xp_medium;
+  if (roll < cumulative) {
+    const value = Math.floor(Math.random() * 51) + 50; // 50-100
+    return {
+      rewardType: 'xp_points',
+      prizeName: `+${value} XP`,
+      prizeValue: value,
+      rarity: 'rare' as const,
+      boostDetails: {}
+    };
+  }
+  
+  // 3% - Remise 5%
+  cumulative += REWARD_PROBABILITIES.discount_5;
+  if (roll < cumulative) {
+    return {
+      rewardType: 'discount_5',
+      prizeName: 'Remise 5%',
+      prizeValue: 5,
+      rarity: 'rare' as const,
+      boostDetails: { discountPercent: 5, validForDays: 7 }
+    };
+  }
+  
+  // 1.5% - XP gros (200-500)
+  cumulative += REWARD_PROBABILITIES.xp_large;
+  if (roll < cumulative) {
+    const value = Math.floor(Math.random() * 301) + 200; // 200-500
+    return {
+      rewardType: 'xp_points',
+      prizeName: `+${value} XP`,
+      prizeValue: value,
+      rarity: 'epic' as const,
+      boostDetails: {}
+    };
+  }
+  
+  // 0.5% - Cadeau physique (défini par admin)
+  return {
+    rewardType: 'physical_gift',
+    prizeName: 'Cadeau Surprise !',
+    prizeValue: 0,
+    rarity: 'legendary' as const,
+    boostDetails: { requiresAdminApproval: true }
+  };
 };
 
 serve(async (req) => {
@@ -39,7 +132,7 @@ serve(async (req) => {
         );
       }
 
-      // Vérifier si carte du jour déjà reçue (minuit local - on utilise UTC pour simplifier)
+      // Vérifier si carte du jour déjà reçue
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const todayISO = today.toISOString();
@@ -60,49 +153,27 @@ serve(async (req) => {
         );
       }
 
-      // Déterminer le type de carte
+      // Déterminer la récompense avec les nouvelles probabilités défavorables
       const selectedCardType = cardType || 'standard';
-      const config = CARD_TYPE_REWARDS[selectedCardType as keyof typeof CARD_TYPE_REWARDS] || CARD_TYPE_REWARDS.standard;
+      const reward = determineReward(selectedCardType);
 
-      // Générer la récompense
-      const isBoost = Math.random() < config.boostChance;
-      let rewardCategory = 'xp_points';
-      let prizeValue = Math.floor(Math.random() * config.maxXP) + 10;
-      let prizeName = `+${prizeValue} XP`;
-      let boostDetails = {};
-
-      if (isBoost) {
-        const boostTypes = ['boost_2x', 'discount_5', 'internal_credit'];
-        rewardCategory = boostTypes[Math.floor(Math.random() * boostTypes.length)];
-        
-        if (rewardCategory === 'boost_2x') {
-          prizeName = 'Boost 2x Points';
-          boostDetails = { multiplier: 2, expiresInHours: 24 };
-        } else if (rewardCategory === 'discount_5') {
-          prizeName = 'Remise 5%';
-          prizeValue = 5;
-          boostDetails = { discountPercent: 5 };
-        } else {
-          prizeName = '+50 Crédit';
-          prizeValue = 50;
-        }
-      }
+      console.log(`🎲 Récompense générée: ${reward.rewardType} - ${reward.prizeName} (${reward.rarity})`);
 
       // Créer la carte
       const { data: card, error } = await supabase
         .from('lottery_wins')
         .insert({
           user_id: userId,
-          prize_details: { name: prizeName, value: prizeValue, currency: 'XP' },
-          prize_value: prizeValue,
+          prize_details: { name: reward.prizeName, value: reward.prizeValue, currency: 'XP' },
+          prize_value: reward.prizeValue,
           currency: 'XP',
           status: 'pending',
-          rarity: selectedCardType === 'mega' ? 'legendary' : selectedCardType === 'rare' ? 'epic' : 'common',
-          reward_type: rewardCategory,
+          rarity: reward.rarity,
+          reward_type: reward.rewardType,
           scratch_percentage: 0,
           daily_card: true,
           card_type: selectedCardType,
-          boost_details: boostDetails,
+          boost_details: reward.boostDetails,
           expires_in_hours: 24
         })
         .select()
@@ -116,10 +187,55 @@ serve(async (req) => {
         );
       }
 
-      console.log(`✅ Carte quotidienne ${selectedCardType} créée pour ${userId}: ${prizeName}`);
+      console.log(`✅ Carte quotidienne créée: ${reward.prizeName} (${reward.rarity})`);
 
       return new Response(
         JSON.stringify({ success: true, card }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // =========== ACTION: Générer une carte à gratter (via progression) ===========
+    if (action === 'generate_scratch_card') {
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'userId requis' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const selectedType = cardType || 'standard';
+      const reward = determineReward(selectedType);
+
+      const { data: scratchCard, error } = await supabase
+        .from('lottery_wins')
+        .insert({
+          user_id: userId,
+          prize_details: { name: reward.prizeName, value: reward.prizeValue, currency: 'XP' },
+          prize_value: reward.prizeValue,
+          currency: 'XP',
+          status: 'pending',
+          rarity: reward.rarity,
+          reward_type: reward.rewardType,
+          scratch_percentage: 0,
+          card_type: selectedType,
+          boost_details: reward.boostDetails,
+          daily_card: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`✅ Carte ${selectedType} créée: ${reward.prizeName}`);
+
+      return new Response(
+        JSON.stringify({ success: true, scratchCard }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -131,7 +247,6 @@ serve(async (req) => {
       const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
       const monthName = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
-      // Chercher un tirage existant pour ce mois
       const { data: existingDraw } = await supabase
         .from('super_lottery_draws')
         .select('*')
@@ -140,13 +255,10 @@ serve(async (req) => {
         .maybeSingle();
 
       if (existingDraw) {
-        // Compter les entrées
         const { count: entriesCount } = await supabase
           .from('super_lottery_entries')
           .select('*', { count: 'exact', head: true })
           .eq('draw_id', existingDraw.id);
-
-        console.log(`📊 Tirage existant trouvé: ${existingDraw.id}, ${entriesCount} entrées`);
 
         return new Response(
           JSON.stringify({ 
@@ -158,7 +270,6 @@ serve(async (req) => {
         );
       }
 
-      // Créer un nouveau tirage
       const { data: newDraw, error } = await supabase
         .from('super_lottery_draws')
         .insert({
@@ -174,14 +285,11 @@ serve(async (req) => {
         .single();
 
       if (error) {
-        console.error('❌ Erreur création tirage:', error);
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      console.log(`✅ Nouveau tirage créé: ${newDraw.id}`);
 
       return new Response(
         JSON.stringify({ 
@@ -202,7 +310,6 @@ serve(async (req) => {
         );
       }
 
-      // Vérifier les points de l'utilisateur
       const { data: wallet } = await supabase
         .from('user_wallets')
         .select('kwenda_points')
@@ -217,10 +324,8 @@ serve(async (req) => {
         );
       }
 
-      // Générer numéro d'entrée
       const entryNumber = `SL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-      // Créer l'entrée
       const { data: entry, error: entryError } = await supabase
         .from('super_lottery_entries')
         .insert({
@@ -233,30 +338,24 @@ serve(async (req) => {
         .single();
 
       if (entryError) {
-        console.error('❌ Erreur création entrée:', entryError);
         return new Response(
           JSON.stringify({ error: entryError.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Déduire les points
       const { error: updateError } = await supabase
         .from('user_wallets')
         .update({ kwenda_points: currentPoints - pointsCost })
         .eq('user_id', userId);
 
       if (updateError) {
-        console.error('❌ Erreur déduction points:', updateError);
-        // Rollback entry
         await supabase.from('super_lottery_entries').delete().eq('id', entry.id);
         return new Response(
           JSON.stringify({ error: 'Erreur déduction points' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      console.log(`✅ Entrée super loterie créée: ${entryNumber} pour ${userId}`);
 
       return new Response(
         JSON.stringify({ success: true, entry, entryNumber }),
@@ -303,50 +402,6 @@ serve(async (req) => {
       );
     }
 
-    // =========== ACTION: Générer une carte à gratter ===========
-    if (action === 'generate_scratch_card') {
-      if (!userId) {
-        return new Response(
-          JSON.stringify({ error: 'userId requis' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const selectedType = cardType || 'standard';
-      const config = CARD_TYPE_REWARDS[selectedType as keyof typeof CARD_TYPE_REWARDS] || CARD_TYPE_REWARDS.standard;
-      const prizeValue = Math.floor(Math.random() * config.maxXP) + 10;
-
-      const { data: scratchCard, error } = await supabase
-        .from('lottery_wins')
-        .insert({
-          user_id: userId,
-          prize_details: { name: `+${prizeValue} XP`, value: prizeValue, currency: 'XP' },
-          prize_value: prizeValue,
-          currency: 'XP',
-          status: 'pending',
-          rarity: selectedType === 'mega' ? 'legendary' : selectedType === 'rare' ? 'epic' : 'common',
-          reward_type: 'xp_points',
-          scratch_percentage: 0,
-          card_type: selectedType
-        })
-        .select()
-        .single();
-
-      if (error) {
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      console.log(`✅ Carte ${selectedType} créée: ${prizeValue} XP`);
-
-      return new Response(
-        JSON.stringify({ success: true, scratchCard }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // =========== ACTION: Stats admin ===========
     if (action === 'admin_stats') {
       const { data: allWins } = await supabase.from('lottery_wins').select('*');
@@ -355,6 +410,14 @@ serve(async (req) => {
 
       const today = new Date().toISOString().split('T')[0];
       
+      // Calculer les stats par type de récompense
+      const rewardStats = {
+        nothing: allWins?.filter(w => w.reward_type === 'nothing').length || 0,
+        xp_points: allWins?.filter(w => w.reward_type === 'xp_points').length || 0,
+        discount_5: allWins?.filter(w => w.reward_type === 'discount_5').length || 0,
+        physical_gift: allWins?.filter(w => w.reward_type === 'physical_gift').length || 0,
+      };
+
       const stats = {
         gratta: {
           total_cards: allWins?.length || 0,
@@ -362,7 +425,9 @@ serve(async (req) => {
           revealed: allWins?.filter(w => w.scratch_revealed_at).length || 0,
           today_generated: allWins?.filter(w => w.created_at?.startsWith(today)).length || 0,
           today_scratched: allWins?.filter(w => w.scratch_revealed_at?.startsWith(today)).length || 0,
-          total_xp_distributed: allWins?.reduce((sum, w) => sum + (w.prize_value || 0), 0) || 0
+          total_xp_distributed: allWins?.reduce((sum, w) => sum + (w.prize_value || 0), 0) || 0,
+          reward_distribution: rewardStats,
+          win_rate: allWins ? ((allWins.filter(w => w.reward_type !== 'nothing').length / allWins.length) * 100).toFixed(1) + '%' : '0%'
         },
         superLottery: {
           total_draws: allDraws?.length || 0,

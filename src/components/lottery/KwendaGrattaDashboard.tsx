@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Info, Ticket, Gift, Flame, Star, Clock, ChevronRight, Loader2 } from 'lucide-react';
+import { Sparkles, Gift, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScratchCardPopup } from './ScratchCardPopup';
+import { TombolaHeader } from './TombolaHeader';
+import { ProgressRoad } from './ProgressRoad';
+import { WinsGalleryGrid } from './WinsGalleryGrid';
 import { useKwendaGratta, KwendaGrattaWin as DBKwendaGrattaWin } from '@/hooks/useKwendaGratta';
+import { useScratchProgress } from '@/hooks/useScratchProgress';
 import { KwendaGrattaWin, CardType, RewardCategory } from '@/types/kwenda-gratta';
 import { cn } from '@/lib/utils';
 
@@ -34,10 +37,8 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
 }) => {
   const {
     cards,
-    loading,
+    loading: cardsLoading,
     canClaimDailyCard,
-    nextCardTime,
-    streak,
     isFirstTime,
     claimDailyCard,
     scratchCard,
@@ -47,6 +48,8 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
     openScratchPopup,
     closeScratchPopup
   } = useKwendaGratta();
+
+  const { progress, loading: progressLoading } = useScratchProgress();
 
   const [claiming, setClaiming] = useState(false);
 
@@ -63,31 +66,17 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
   useEffect(() => {
     const hasVisited = localStorage.getItem('kwenda_gratta_visited');
     
-    if (!hasVisited && !loading && isFirstTime && canClaimDailyCard) {
+    if (!hasVisited && !cardsLoading && isFirstTime && canClaimDailyCard) {
       localStorage.setItem('kwenda_gratta_visited', 'true');
       handleClaimAndScratch();
     }
-  }, [loading, isFirstTime, canClaimDailyCard]);
-
-  // Auto-open popup quand carte disponible après claim
-  useEffect(() => {
-    if (unscratched.length > 0 && !showScratchPopup && !currentCardToScratch) {
-      const hasVisited = localStorage.getItem('kwenda_gratta_visited');
-      if (!hasVisited) {
-        const timer = setTimeout(() => {
-          openScratchPopup(unscratched[0]);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [unscratched, showScratchPopup, currentCardToScratch]);
+  }, [cardsLoading, isFirstTime, canClaimDailyCard]);
 
   const handleClaimAndScratch = async () => {
     setClaiming(true);
     try {
       const card = await claimDailyCard();
       if (card) {
-        // Ouvrir le popup automatiquement après claim
         setTimeout(() => {
           openScratchPopup(card);
         }, 300);
@@ -109,17 +98,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
     }
   };
 
-  // Calculate time remaining
-  const getTimeRemaining = () => {
-    if (!nextCardTime) return null;
-    const now = new Date();
-    const diff = nextCardTime.getTime() - now.getTime();
-    if (diff <= 0) return null;
-    
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  };
+  const loading = cardsLoading || progressLoading;
 
   if (loading) {
     return (
@@ -135,148 +114,88 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
   }
 
   return (
-    <div className="min-h-[60vh] bg-gradient-to-b from-background to-muted/30 flex flex-col">
-      {/* Minimal Header */}
+    <div className="min-h-screen bg-background flex flex-col pb-20">
+      {/* Header avec total des gains */}
       {!hideHeader && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="px-4 pt-4 pb-2 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-2">
-            <motion.span
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-2xl"
-            >
-              🎰
-            </motion.span>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-yellow-500 to-red-500 bg-clip-text text-transparent">
-              Kwenda Gratta
-            </h1>
-          </div>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                <Info className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72">
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm">Comment jouer ?</h4>
-                <ul className="text-xs space-y-1.5 text-muted-foreground">
-                  <li>🎁 Récupère ta carte gratuite chaque jour</li>
-                  <li>👆 Gratte pour découvrir ton bonus</li>
-                  <li>🔥 Enchaîne les jours pour des récompenses</li>
-                </ul>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </motion.div>
+        <div className="px-4 pt-4">
+          <TombolaHeader 
+            totalWinnings={progress.totalWinnings}
+            currency={progress.currency}
+          />
+        </div>
       )}
 
-      {/* Main Content - Central CTA */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      {/* Progress Road */}
+      <ProgressRoad
+        steps={progress.steps}
+        actionsRemaining={progress.actionsRemaining}
+        percentage={progress.percentage}
+        className="mt-4"
+      />
+
+      {/* CTA Zone */}
+      <div className="px-4 py-6">
         <AnimatePresence mode="wait">
           {unscratched.length > 0 ? (
-            // Cards available to scratch
             <motion.div
               key="cards-available"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="text-center w-full max-w-sm"
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="text-center"
             >
-              {/* Animated card preview */}
               <motion.div
-                className="relative mx-auto mb-6"
-                animate={{ y: [0, -8, 0] }}
+                animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                className="text-5xl mb-4"
               >
-                <div className="relative w-48 h-32 mx-auto">
-                  {/* Glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-500 to-red-500 rounded-xl blur-xl opacity-40" />
-                  
-                  {/* Card stack effect */}
-                  {unscratched.length > 1 && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-400 to-slate-600 rounded-xl transform rotate-3 translate-y-2 opacity-50" />
-                  )}
-                  
-                  {/* Main card */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-300 via-slate-200 to-slate-400 rounded-xl shadow-xl flex items-center justify-center">
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      <Ticket className="h-12 w-12 text-slate-500" />
-                    </motion.div>
-                  </div>
-                  
-                  {/* Sparkles */}
-                  <motion.div
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute -top-2 -right-2"
-                  >
-                    <Sparkles className="h-6 w-6 text-yellow-500" />
-                  </motion.div>
-                </div>
+                🎫
               </motion.div>
-
-              <h2 className="text-lg font-semibold mb-2">
+              
+              <h2 className="text-lg font-bold mb-2">
                 {unscratched.length === 1 
                   ? 'Tu as 1 carte à gratter !' 
                   : `Tu as ${unscratched.length} cartes à gratter !`}
               </h2>
               
-              <p className="text-sm text-muted-foreground mb-6">
+              <p className="text-sm text-muted-foreground mb-4">
                 Découvre ton bonus en grattant
               </p>
 
               <Button
                 size="lg"
                 onClick={() => openScratchPopup(unscratched[0])}
-                className="bg-gradient-to-r from-primary via-yellow-500 to-red-500 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+                className={cn(
+                  "bg-gradient-to-r from-primary via-yellow-500 to-orange-500",
+                  "text-white font-semibold px-8 py-6 text-lg rounded-xl",
+                  "shadow-lg hover:shadow-xl transition-shadow"
+                )}
               >
                 <Gift className="h-5 w-5 mr-2" />
                 Gratter maintenant
               </Button>
-
-              {/* Other cards indicator */}
-              {unscratched.length > 1 && (
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-4 text-sm text-muted-foreground flex items-center justify-center gap-1 mx-auto hover:text-foreground transition-colors"
-                >
-                  +{unscratched.length - 1} autre{unscratched.length > 2 ? 's' : ''} carte{unscratched.length > 2 ? 's' : ''}
-                  <ChevronRight className="h-4 w-4" />
-                </motion.button>
-              )}
             </motion.div>
           ) : canClaimDailyCard ? (
-            // Daily card available
             <motion.div
               key="daily-available"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="text-center w-full max-w-sm"
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="text-center"
             >
               <motion.div
                 animate={{ scale: [1, 1.05, 1], rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="text-6xl mb-4"
+                className="text-5xl mb-4"
               >
                 🎁
               </motion.div>
               
-              <h2 className="text-lg font-semibold mb-2">
-                {isFirstTime ? 'Bienvenue ! Ta première carte t\'attend !' : 'Ta carte du jour t\'attend !'}
+              <h2 className="text-lg font-bold mb-2">
+                {isFirstTime ? 'Bienvenue ! Ta première carte t\'attend !' : 'Ta carte du jour est prête !'}
               </h2>
               
-              <p className="text-sm text-muted-foreground mb-6">
+              <p className="text-sm text-muted-foreground mb-4">
                 Récupère ta carte gratuite
               </p>
 
@@ -295,70 +214,30 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
               </Button>
             </motion.div>
           ) : (
-            // No cards, waiting for next
             <motion.div
-              key="waiting"
-              initial={{ opacity: 0, scale: 0.9 }}
+              key="keep-playing"
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="text-center w-full max-w-sm"
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="text-center bg-muted/30 rounded-2xl p-6"
             >
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
-                <Clock className="h-10 w-10 text-muted-foreground" />
-              </div>
-              
-              <h2 className="text-lg font-semibold mb-2">
-                Prochaine carte
+              <div className="text-4xl mb-3">🚗</div>
+              <h2 className="text-lg font-bold mb-1">
+                Continue d'utiliser Kwenda !
               </h2>
-              
-              <p className="text-2xl font-bold text-primary mb-2">
-                {getTimeRemaining() || 'Bientôt !'}
-              </p>
-              
               <p className="text-sm text-muted-foreground">
-                Reviens demain pour une nouvelle carte
+                Plus que <span className="text-primary font-bold">{progress.actionsRemaining}</span> actions pour ta prochaine carte
               </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Bottom Stats Bar - Minimal */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="px-4 pb-4"
-      >
-        <div className="flex items-center justify-center gap-6 py-3 px-4 rounded-xl bg-muted/50 backdrop-blur-sm">
-          {/* Streak */}
-          <div className="flex items-center gap-2">
-            <Flame className={cn(
-              "h-5 w-5",
-              streak > 0 ? "text-orange-500" : "text-muted-foreground"
-            )} />
-            <span className="font-semibold">{streak}</span>
-            <span className="text-xs text-muted-foreground">jours</span>
-          </div>
-
-          <div className="w-px h-6 bg-border" />
-
-          {/* Total revealed */}
-          <div className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500" />
-            <span className="font-semibold">{revealed.length}</span>
-            <span className="text-xs text-muted-foreground">révélées</span>
-          </div>
-
-          <div className="w-px h-6 bg-border" />
-
-          {/* Total cards */}
-          <div className="flex items-center gap-2">
-            <Ticket className="h-5 w-5 text-primary" />
-            <span className="font-semibold">{cards.length}</span>
-            <span className="text-xs text-muted-foreground">total</span>
-          </div>
-        </div>
-      </motion.div>
+      {/* Wins Gallery Grid */}
+      <WinsGalleryGrid 
+        wins={revealed as any[]}
+        className="mt-4"
+      />
 
       {/* Scratch Card Popup */}
       <ScratchCardPopup

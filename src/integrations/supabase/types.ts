@@ -13048,6 +13048,7 @@ export type Database = {
           id: string
           is_active: boolean
           kwenda_points: number | null
+          scratch_points: number | null
           updated_at: string
           user_id: string
         }
@@ -13060,6 +13061,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           kwenda_points?: number | null
+          scratch_points?: number | null
           updated_at?: string
           user_id: string
         }
@@ -13072,6 +13074,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           kwenda_points?: number | null
+          scratch_points?: number | null
           updated_at?: string
           user_id?: string
         }
