@@ -242,7 +242,7 @@ export const UniversalChatInterface = ({
     : "w-full h-full";
 
   return (
-    <Card className={cn("flex flex-col", containerClass)}>
+    <Card className={cn("flex flex-col bg-background", containerClass)}>
       {!hideHeader && (
         <div className="flex items-center justify-between p-4 border-b bg-card/60 backdrop-blur sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -285,7 +285,7 @@ export const UniversalChatInterface = ({
           <ConversationsList conversations={conversations} onSelectConversation={(id) => { setSelectedConversation(id); fetchMessages(id); }} loading={loading} />
         ) : (
           <>
-            <div ref={scrollAreaRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4">
+            <div ref={scrollAreaRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 bg-background">
               {isLoadingMore && <div className="flex justify-center py-2"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>}
               {hasMoreMessages && !isLoadingMore && <div className="text-center py-2"><span className="text-xs text-muted-foreground">↑ Défiler pour charger plus</span></div>}
               <div className="space-y-3">
@@ -324,7 +324,7 @@ export const UniversalChatInterface = ({
               )}
             </AnimatePresence>
 
-            <div className="p-3 border-t border-border/50 bg-background pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="p-3 border-t border-border bg-card shadow-[0_-2px_10px_rgba(0,0,0,0.03)] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <div className="flex items-center gap-2">
                 <ImageAttachment onImageSelect={handleImageSelect} disabled={uploadingImage} />
                 <Button 
@@ -342,7 +342,7 @@ export const UniversalChatInterface = ({
                     onChange={handleInputChange} 
                     onKeyPress={handleKeyPress} 
                     placeholder="Votre message..." 
-                    className="h-11 rounded-full border border-border/60 bg-muted/30 focus:bg-background focus:border-primary/50 pr-12 text-sm placeholder:text-muted-foreground/60 transition-all" 
+                    className="h-11 rounded-full border border-border bg-card shadow-sm focus:bg-card focus:border-primary/60 focus:ring-2 focus:ring-primary/10 pr-12 text-sm placeholder:text-muted-foreground/70 transition-all" 
                     disabled={uploadingImage} 
                   />
                   <Button 
@@ -380,7 +380,7 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
 
   if (conversations.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-background">
         <motion.div 
           initial={{ scale: 0, opacity: 0 }} 
           animate={{ scale: 1, opacity: 1 }} 
@@ -388,16 +388,16 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
           className="mb-6"
         >
           <div className="relative">
-            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-              <MessageCircle className="h-10 w-10 text-primary/60" />
+            <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-primary/15 to-orange-100 dark:to-primary/10 flex items-center justify-center shadow-sm border border-primary/10">
+              <MessageCircle className="h-12 w-12 text-primary" />
             </div>
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.3, type: "spring" }}
-              className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-muted flex items-center justify-center border-2 border-background"
+              className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-card flex items-center justify-center border-2 border-background shadow-sm"
             >
-              <span className="text-xs">💬</span>
+              <span className="text-sm">💬</span>
             </motion.div>
           </div>
         </motion.div>
@@ -406,10 +406,10 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.2 }}
-          className="space-y-2 mb-6"
+          className="space-y-3 mb-6"
         >
-          <h3 className="text-lg font-semibold text-foreground">Aucune conversation</h3>
-          <p className="text-sm text-muted-foreground max-w-[240px] leading-relaxed">
+          <h3 className="text-xl font-semibold text-foreground">Aucune conversation</h3>
+          <p className="text-sm text-muted-foreground max-w-[260px] leading-relaxed">
             Négociez directement avec les vendeurs pour obtenir les meilleurs prix
           </p>
         </motion.div>
@@ -421,7 +421,7 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
         >
           <Button 
             onClick={() => window.location.href = '/marketplace'} 
-            className="rounded-full px-6"
+            className="rounded-full px-6 shadow-md hover:shadow-lg transition-shadow"
           >
             Parcourir les produits
           </Button>
@@ -431,8 +431,8 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
   }
 
   return (
-    <ScrollArea className="flex-1">
-      <div className="p-2 space-y-1">
+    <ScrollArea className="flex-1 bg-background">
+      <div className="p-3 space-y-2">
         {conversations.map((conversation, index) => (
           <motion.div 
             key={conversation.id} 
@@ -440,10 +440,10 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => onSelectConversation(conversation.id)} 
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 cursor-pointer transition-all active:scale-[0.98] group"
+            className="flex items-center gap-3 p-3 rounded-xl bg-card hover:bg-muted/60 cursor-pointer transition-all active:scale-[0.98] group border border-border/40 hover:border-border/60 shadow-sm hover:shadow"
           >
             <div className="relative">
-              <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
+              <Avatar className="h-12 w-12 border-2 border-background shadow-md">
                 <AvatarImage src={conversation.other_participant?.shop_logo_url || conversation.other_participant?.avatar_url} />
                 <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-primary-foreground font-medium">
                   {conversation.other_participant?.shop_name?.[0] || conversation.other_participant?.display_name?.charAt(0) || 'V'}
@@ -453,10 +453,10 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
-                <p className="font-medium text-foreground truncate text-sm">
+                <p className="font-semibold text-foreground truncate text-sm">
                   {conversation.other_participant?.shop_name || conversation.other_participant?.display_name || 'Vendeur'}
                 </p>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[11px] text-muted-foreground font-medium">
                   {conversation.last_message_at && new Date(conversation.last_message_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
                 </span>
               </div>
@@ -465,7 +465,7 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
                   <LastMessagePreview message={conversation.last_message} isRead={!conversation.unread_count} />
                 </div>
                 {conversation.unread_count && conversation.unread_count > 0 && (
-                  <Badge className="h-5 min-w-5 rounded-full px-1.5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground font-medium">
+                  <Badge className="h-5 min-w-5 rounded-full px-1.5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground font-semibold shadow-sm">
                     {conversation.unread_count}
                   </Badge>
                 )}
