@@ -15,13 +15,15 @@ interface PhotoUploadModalProps {
   onOpenChange: (open: boolean) => void;
   currentPhoto?: string;
   onUploadSuccess: (url: string) => void;
+  profileType?: 'taxi' | 'delivery';
 }
 
 export const PhotoUploadModal = ({ 
   open, 
   onOpenChange, 
   currentPhoto,
-  onUploadSuccess 
+  onUploadSuccess,
+  profileType = 'taxi'
 }: PhotoUploadModalProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -69,39 +71,45 @@ export const PhotoUploadModal = ({
     setUploading(true);
 
     try {
-      // 1. Upload vers Supabase Storage
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `profile-${Date.now()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Session expirée. Veuillez vous reconnecter.');
+      }
 
-      const { error: uploadError } = await supabase.storage
-        .from('profile-pictures')
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: true
-        });
+      // Préparer le FormData
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('profileType', profileType);
 
-      if (uploadError) throw uploadError;
+      console.log('[PhotoUpload] Uploading via Edge Function...');
 
-      // 2. Obtenir URL publique
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-pictures')
-        .getPublicUrl(filePath);
+      // Appel à l'Edge Function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/driver-profile-photo-upload`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: formData,
+        }
+      );
 
-      // 3. Mettre à jour le profil chauffeur
-      const { error: updateError } = await supabase
-        .from('driver_profiles')
-        .update({ photo_url: publicUrl } as any)
-        .eq('user_id', user.id);
+      const result = await response.json();
 
-      if (updateError) throw updateError;
+      if (!response.ok) {
+        throw new Error(result.error || 'Échec de l\'upload');
+      }
+
+      console.log('[PhotoUpload] Success:', result);
 
       toast({
         title: "✅ Photo mise à jour",
         description: "Votre photo de profil a été changée avec succès"
       });
 
-      onUploadSuccess(publicUrl);
+      onUploadSuccess(result.publicUrl);
       onOpenChange(false);
       
       // Reset
@@ -109,7 +117,7 @@ export const PhotoUploadModal = ({
       setSelectedFile(null);
 
     } catch (error: any) {
-      console.error('Upload error:', error);
+      console.error('[PhotoUpload] Error:', error);
       toast({
         title: "❌ Erreur d'upload",
         description: error.message || "Impossible de télécharger la photo",
