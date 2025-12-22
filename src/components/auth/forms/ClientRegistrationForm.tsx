@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Phone, CheckCircle2, Info, Gift, ArrowLeft, User, Mail, Lock, Calendar, MapPin } from 'lucide-react';
+import { Loader2, Phone, CheckCircle2, Info, Gift, ArrowLeft, User, Mail, Lock, Calendar, MapPin, XCircle, AlertTriangle } from 'lucide-react';
 import { logger } from '@/utils/logger';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -19,12 +19,26 @@ interface ClientRegistrationFormProps {
   onBack: () => void;
 }
 
+interface ReferralValidation {
+  valid: boolean;
+  message?: string;
+  referrer_name?: string;
+  remaining_slots?: number;
+  reward_amount?: number;
+  limit_reached?: boolean;
+}
+
 export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistrationFormProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [phoneValid, setPhoneValid] = useState(false);
+  
+  // État pour la validation du code de parrainage
+  const [referralValidation, setReferralValidation] = useState<ReferralValidation | null>(null);
+  const [validatingCode, setValidatingCode] = useState(false);
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -41,18 +55,62 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
     acceptTerms: false
   });
 
+  // Fonction pour valider le code de parrainage
+  const validateReferralCode = useCallback(async (code: string) => {
+    if (!code || code.trim().length < 4) {
+      setReferralValidation(null);
+      return;
+    }
+
+    setValidatingCode(true);
+    try {
+      const { data, error } = await supabase.rpc('validate_referral_code', {
+        p_referral_code: code.trim().toUpperCase()
+      });
+
+      if (error) {
+        console.error('❌ Error validating code:', error);
+        setReferralValidation({ valid: false, message: 'Erreur de validation' });
+      } else {
+        const result = data as unknown as ReferralValidation;
+        setReferralValidation({
+          valid: result.valid === true,
+          message: result.message,
+          referrer_name: result.referrer_name,
+          remaining_slots: result.remaining_slots,
+          reward_amount: result.reward_amount,
+          limit_reached: result.limit_reached
+        });
+      }
+    } catch (err) {
+      console.error('❌ Exception validating code:', err);
+      setReferralValidation({ valid: false, message: 'Erreur de connexion' });
+    } finally {
+      setValidatingCode(false);
+    }
+  }, []);
+
+  // Debounce pour la validation du code
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formData.referralCode.length >= 4) {
+        validateReferralCode(formData.referralCode);
+      } else {
+        setReferralValidation(null);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [formData.referralCode, validateReferralCode]);
+
   // Lire le code parrainage depuis l'URL au chargement
   useEffect(() => {
     const refCode = searchParams.get('ref');
     if (refCode) {
       console.log('🎁 Referral code from URL:', refCode);
       setFormData(prev => ({ ...prev, referralCode: refCode.toUpperCase() }));
-      toast({
-        title: '🎁 Code de parrainage détecté !',
-        description: `Code ${refCode.toUpperCase()} appliqué. Vous recevrez 500 CDF de bonus !`
-      });
     }
-  }, [searchParams, toast]);
+  }, [searchParams]);
 
   const validatePhoneNumber = (phone: string): boolean => {
     const phoneRegex = /^(\+243|00243|0)[0-9]{9}$/;
@@ -342,24 +400,73 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
                 </div>
               </div>
 
-              {/* Section: Code parrainage */}
-              <div className="space-y-2 p-4 bg-rose-50/50 dark:bg-rose-900/10 rounded-xl border border-rose-100 dark:border-rose-800/30">
+              {/* Section: Code parrainage avec validation temps réel */}
+              <div className={cn(
+                "space-y-3 p-4 rounded-xl border transition-all",
+                referralValidation?.valid 
+                  ? "bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/30"
+                  : referralValidation?.valid === false
+                    ? "bg-red-50/50 dark:bg-red-900/10 border-red-200 dark:border-red-800/30"
+                    : "bg-rose-50/50 dark:bg-rose-900/10 border-rose-100 dark:border-rose-800/30"
+              )}>
                 <Label htmlFor="referralCode" className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   <Gift className="w-4 h-4 text-rose-500" />
                   Code de parrainage (optionnel)
                 </Label>
-                <Input
-                  id="referralCode"
-                  type="text"
-                  placeholder="Ex: KWENDA2024"
-                  value={formData.referralCode}
-                  onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
-                  className="h-11 uppercase bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-500/20"
-                />
-                <p className="text-xs text-gray-500 flex items-center gap-1">
-                  <Info className="w-3 h-3" />
-                  Entrez le code d'un ami pour recevoir 500 CDF de bonus !
-                </p>
+                <div className="relative">
+                  <Input
+                    id="referralCode"
+                    type="text"
+                    placeholder="Ex: KWENDA2024"
+                    value={formData.referralCode}
+                    onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
+                    className={cn(
+                      "h-11 uppercase bg-white dark:bg-gray-800 rounded-xl pr-10",
+                      referralValidation?.valid 
+                        ? "border-emerald-400 focus:border-emerald-400 focus:ring-emerald-500/20"
+                        : referralValidation?.valid === false
+                          ? "border-red-400 focus:border-red-400 focus:ring-red-500/20"
+                          : "border-gray-200 dark:border-gray-700 focus:border-rose-400 focus:ring-rose-500/20"
+                    )}
+                  />
+                  {validatingCode && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+                  )}
+                  {!validatingCode && referralValidation?.valid && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                  )}
+                  {!validatingCode && referralValidation?.valid === false && (
+                    <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-red-500" />
+                  )}
+                </div>
+                
+                {/* Feedback de validation */}
+                {referralValidation?.valid && (
+                  <div className="flex items-center gap-2 p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <span className="text-sm text-emerald-700 dark:text-emerald-300">
+                      Code de <strong>{referralValidation.referrer_name}</strong> valide ! Vous recevrez {referralValidation.reward_amount || 500} CDF 🎁
+                    </span>
+                  </div>
+                )}
+                {referralValidation?.valid === false && (
+                  <div className="flex items-center gap-2 p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                    {referralValidation.limit_reached ? (
+                      <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    )}
+                    <span className="text-sm text-red-700 dark:text-red-300">
+                      {referralValidation.message || 'Code invalide'}
+                    </span>
+                  </div>
+                )}
+                {!referralValidation && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    Entrez le code d'un ami pour recevoir 500 CDF de bonus !
+                  </p>
+                )}
               </div>
 
               {/* Terms */}
