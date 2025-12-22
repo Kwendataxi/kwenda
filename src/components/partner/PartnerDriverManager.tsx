@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, Users, Edit, Trash2, Phone, User, Car } from 'lucide-react';
+import { UserPlus, Users, Trash2, Phone, User, Car, Percent, Settings } from 'lucide-react';
 import { usePartnerDrivers } from '@/hooks/usePartnerDrivers';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { DriverCommissionRateDialog } from './DriverCommissionRateDialog';
 
 export const PartnerDriverManager = () => {
   const { t } = useLanguage();
@@ -18,13 +19,19 @@ export const PartnerDriverManager = () => {
     drivers, 
     addingDriver, 
     addDriverByCode, 
-    removeDriver 
+    removeDriver,
+    fetchPartnerDrivers
   } = usePartnerDrivers();
 
   const [newDriverCode, setNewDriverCode] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [editingDriver, setEditingDriver] = useState<string | null>(null);
   const [assignedVehicles, setAssignedVehicles] = useState<Record<string, any>>({});
+  const [commissionDialogDriver, setCommissionDialogDriver] = useState<{
+    id: string;
+    driver_id: string;
+    driver_name: string;
+    commission_rate?: number;
+  } | null>(null);
 
   // Charger les véhicules assignés
   useEffect(() => {
@@ -244,6 +251,22 @@ export const PartnerDriverManager = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                    {/* Commission badge */}
+                    <button 
+                      onClick={() => setCommissionDialogDriver({
+                        id: driver.id,
+                        driver_id: driver.driver_id,
+                        driver_name: driver.driver_name || 'Chauffeur',
+                        commission_rate: driver.commission_rate
+                      })}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors cursor-pointer"
+                    >
+                      <Percent className="h-3 w-3 text-green-600 dark:text-green-400" />
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        {driver.commission_rate ?? 2.5}%
+                      </span>
+                      <Settings className="h-3 w-3 text-green-600/50 dark:text-green-400/50" />
+                    </button>
                     
                     <div className="flex items-center justify-between sm:justify-end gap-3">
                       <Badge 
@@ -271,6 +294,14 @@ export const PartnerDriverManager = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog de configuration du taux de commission */}
+      <DriverCommissionRateDialog
+        open={!!commissionDialogDriver}
+        onOpenChange={(open) => !open && setCommissionDialogDriver(null)}
+        driver={commissionDialogDriver}
+        onSuccess={fetchPartnerDrivers}
+      />
     </div>
   );
 };
