@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Gift, Loader2 } from 'lucide-react';
+import { Sparkles, Gift, Loader2, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScratchCardPopup } from './ScratchCardPopup';
 import { TombolaHeader } from './TombolaHeader';
@@ -114,7 +114,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-20">
+    <div className="min-h-screen bg-muted/30 flex flex-col pb-20">
       {/* Header avec total des gains */}
       {!hideHeader && (
         <div className="px-4 pt-4">
@@ -126,12 +126,13 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
       )}
 
       {/* Progress Road */}
-      <ProgressRoad
-        steps={progress.steps}
-        actionsRemaining={progress.actionsRemaining}
-        percentage={progress.percentage}
-        className="mt-4"
-      />
+      <div className="mt-4">
+        <ProgressRoad
+          steps={progress.steps}
+          actionsRemaining={progress.actionsRemaining}
+          percentage={progress.percentage}
+        />
+      </div>
 
       {/* CTA Zone */}
       <div className="px-4 py-6">
@@ -142,36 +143,32 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="text-center"
+              className="bg-white rounded-2xl shadow-sm border border-border p-6 text-center"
             >
               <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                className="text-5xl mb-4"
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center"
               >
-                🎫
+                <span className="text-3xl">🎫</span>
               </motion.div>
               
-              <h2 className="text-lg font-bold mb-2">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 {unscratched.length === 1 
                   ? 'Tu as 1 carte à gratter !' 
                   : `Tu as ${unscratched.length} cartes à gratter !`}
               </h2>
               
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-5">
                 Découvre ton bonus en grattant
               </p>
 
               <Button
                 size="lg"
                 onClick={() => openScratchPopup(unscratched[0])}
-                className={cn(
-                  "bg-gradient-to-r from-primary via-yellow-500 to-orange-500",
-                  "text-white font-semibold px-8 py-6 text-lg rounded-xl",
-                  "shadow-lg hover:shadow-xl transition-shadow"
-                )}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 rounded-xl shadow-md"
               >
-                <Gift className="h-5 w-5 mr-2" />
+                <Gift className="h-4 w-4 mr-2" />
                 Gratter maintenant
               </Button>
             </motion.div>
@@ -181,21 +178,21 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="text-center"
+              className="bg-white rounded-2xl shadow-sm border border-border p-6 text-center"
             >
               <motion.div
-                animate={{ scale: [1, 1.05, 1], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="text-5xl mb-4"
+                animate={{ scale: [1, 1.03, 1] }}
+                transition={{ duration: 2.5, repeat: Infinity }}
+                className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-50 flex items-center justify-center"
               >
-                🎁
+                <span className="text-3xl">🎁</span>
               </motion.div>
               
-              <h2 className="text-lg font-bold mb-2">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 {isFirstTime ? 'Bienvenue ! Ta première carte t\'attend !' : 'Ta carte du jour est prête !'}
               </h2>
               
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-5">
                 Récupère ta carte gratuite
               </p>
 
@@ -203,12 +200,12 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
                 size="lg"
                 onClick={handleClaimAndScratch}
                 disabled={claiming}
-                className="bg-gradient-to-r from-primary to-yellow-500 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 rounded-xl shadow-md"
               >
                 {claiming ? (
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <Sparkles className="h-5 w-5 mr-2" />
+                  <Sparkles className="h-4 w-4 mr-2" />
                 )}
                 {claiming ? 'Chargement...' : 'Récupérer ma carte'}
               </Button>
@@ -219,15 +216,21 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="text-center bg-muted/30 rounded-2xl p-6"
+              className="bg-white rounded-2xl shadow-sm border border-border p-6"
             >
-              <div className="text-4xl mb-3">🚗</div>
-              <h2 className="text-lg font-bold mb-1">
-                Continue d'utiliser Kwenda !
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Plus que <span className="text-primary font-bold">{progress.actionsRemaining}</span> actions pour ta prochaine carte
-              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
+                  <Car className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-base font-semibold text-foreground">
+                    Continue d'utiliser Kwenda !
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Plus que <span className="text-primary font-semibold">{progress.actionsRemaining}</span> actions pour ta prochaine carte
+                  </p>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -236,7 +239,7 @@ export const KwendaGrattaDashboard: React.FC<KwendaGrattaDashboardProps> = ({
       {/* Wins Gallery Grid */}
       <WinsGalleryGrid 
         wins={revealed as any[]}
-        className="mt-4"
+        className="mt-2"
       />
 
       {/* Scratch Card Popup */}
