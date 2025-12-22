@@ -17,7 +17,7 @@ interface TopVehicle {
 interface ModernPartnerCardProps {
   partnerId: string;
   partnerName: string;
-  partnerAvatar: string | null;
+  partnerLogo: string | null;
   tier: string;
   vehicleCount: number;
   avgRating: number;
@@ -30,7 +30,7 @@ interface ModernPartnerCardProps {
 export const ModernPartnerCard: React.FC<ModernPartnerCardProps> = ({
   partnerId,
   partnerName,
-  partnerAvatar,
+  partnerLogo,
   tier,
   vehicleCount,
   avgRating,
@@ -50,7 +50,7 @@ export const ModernPartnerCard: React.FC<ModernPartnerCardProps> = ({
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             <img 
-              src={partnerAvatar || '/placeholder.svg'}
+              src={partnerLogo || '/placeholder.svg'}
               alt={partnerName}
               className="w-16 h-16 rounded-xl object-cover border-2 border-background shadow-sm"
             />
