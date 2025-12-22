@@ -46,7 +46,7 @@ const ModernFooter = () => {
         { name: "Kinshasa", href: "/locations/kinshasa", icon: <MapPin className="w-4 h-4" /> },
         { name: "Lubumbashi", href: "/locations/lubumbashi", icon: <MapPin className="w-4 h-4" /> },
         { name: "Kolwezi", href: "/locations/kolwezi", icon: <MapPin className="w-4 h-4" /> },
-        { name: "Abidjan (Zone Test)", href: "/locations/abidjan", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Abidjan", href: "/locations/abidjan", icon: <MapPin className="w-4 h-4" /> },
         { name: "Carte de couverture", href: "/locations/coverage-map", icon: <ExternalLink className="w-4 h-4" /> }
       ]
     }
