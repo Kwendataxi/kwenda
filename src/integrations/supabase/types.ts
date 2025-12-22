@@ -9429,12 +9429,15 @@ export type Database = {
           equipment: Json | null
           features: Json | null
           fuel_type: string
+          has_hydraulic_lift: boolean | null
+          has_refrigeration: boolean | null
           hourly_rate: number
           id: string
           images: Json | null
           is_active: boolean
           is_available: boolean
           license_plate: string
+          loading_capacity_m3: number | null
           location_address: string | null
           location_coordinates: Json | null
           model: string
@@ -9447,7 +9450,10 @@ export type Database = {
           rejection_reason: string | null
           seats: number
           security_deposit: number
+          tonnage_max: number | null
+          tonnage_min: number | null
           transmission: string
+          truck_type: string | null
           updated_at: string
           vehicle_equipment: Json | null
           vehicle_type: string
@@ -9475,12 +9481,15 @@ export type Database = {
           equipment?: Json | null
           features?: Json | null
           fuel_type?: string
+          has_hydraulic_lift?: boolean | null
+          has_refrigeration?: boolean | null
           hourly_rate?: number
           id?: string
           images?: Json | null
           is_active?: boolean
           is_available?: boolean
           license_plate: string
+          loading_capacity_m3?: number | null
           location_address?: string | null
           location_coordinates?: Json | null
           model: string
@@ -9493,7 +9502,10 @@ export type Database = {
           rejection_reason?: string | null
           seats?: number
           security_deposit?: number
+          tonnage_max?: number | null
+          tonnage_min?: number | null
           transmission?: string
+          truck_type?: string | null
           updated_at?: string
           vehicle_equipment?: Json | null
           vehicle_type: string
@@ -9521,12 +9533,15 @@ export type Database = {
           equipment?: Json | null
           features?: Json | null
           fuel_type?: string
+          has_hydraulic_lift?: boolean | null
+          has_refrigeration?: boolean | null
           hourly_rate?: number
           id?: string
           images?: Json | null
           is_active?: boolean
           is_available?: boolean
           license_plate?: string
+          loading_capacity_m3?: number | null
           location_address?: string | null
           location_coordinates?: Json | null
           model?: string
@@ -9539,7 +9554,10 @@ export type Database = {
           rejection_reason?: string | null
           seats?: number
           security_deposit?: number
+          tonnage_max?: number | null
+          tonnage_min?: number | null
           transmission?: string
+          truck_type?: string | null
           updated_at?: string
           vehicle_equipment?: Json | null
           vehicle_type?: string
@@ -15006,6 +15024,10 @@ export type Database = {
           p_start_date: string
           p_vehicle_id: string
         }
+        Returns: boolean
+      }
+      check_vehicle_has_active_subscription: {
+        Args: { p_vehicle_id: string }
         Returns: boolean
       }
       cleanup_expired_location_cache: { Args: never; Returns: number }
