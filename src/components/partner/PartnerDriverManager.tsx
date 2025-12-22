@@ -63,8 +63,8 @@ export const PartnerDriverManager = () => {
     }
   };
 
-  const handleRemoveDriver = async (driverId: string) => {
-    await removeDriver(driverId);
+  const handleRemoveDriver = async (assignmentId: string, driverId: string) => {
+    await removeDriver(assignmentId, driverId);
   };
 
   return (
@@ -257,7 +257,7 @@ export const PartnerDriverManager = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleRemoveDriver(driver.id)}
+                          onClick={() => handleRemoveDriver(driver.id, driver.driver_id)}
                           className="h-8 w-8 p-0"
                         >
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />

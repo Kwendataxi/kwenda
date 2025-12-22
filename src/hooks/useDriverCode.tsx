@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -10,6 +10,8 @@ interface DriverCode {
   is_active: boolean;
   expires_at: string | null;
   created_at: string;
+  partner_id: string | null;
+  service_type: string | null;
 }
 
 interface PartnerAssignment {
@@ -21,6 +23,16 @@ interface PartnerAssignment {
   status: string;
   added_at: string;
   partner_name?: string;
+  partner_company?: string;
+  partner_phone?: string;
+}
+
+interface PartnerHistory {
+  id: string;
+  partner_name: string;
+  joined_at: string;
+  left_at: string | null;
+  status: string;
 }
 
 export const useDriverCode = () => {
@@ -28,8 +40,10 @@ export const useDriverCode = () => {
   const [loading, setLoading] = useState(false);
   const [driverCode, setDriverCode] = useState<DriverCode | null>(null);
   const [partnerAssignment, setPartnerAssignment] = useState<PartnerAssignment | null>(null);
+  const [partnerHistory, setPartnerHistory] = useState<PartnerHistory[]>([]);
+  const [leavingFleet, setLeavingFleet] = useState(false);
 
-  const fetchDriverCode = async () => {
+  const fetchDriverCode = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -52,9 +66,9 @@ export const useDriverCode = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const fetchPartnerAssignment = async () => {
+  const fetchPartnerAssignment = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -74,25 +88,84 @@ export const useDriverCode = () => {
         // Fetch partner profile separately
         const { data: partnerData } = await supabase
           .from('partenaires')
-          .select('company_name')
+          .select('company_name, phone_number')
+          .eq('user_id', data.partner_id)
+          .maybeSingle();
+
+        // Also fetch from profiles for display name
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('display_name')
           .eq('user_id', data.partner_id)
           .maybeSingle();
 
         setPartnerAssignment({
           ...data,
-          partner_name: partnerData?.company_name || 'Partenaire'
+          partner_name: partnerData?.company_name || profileData?.display_name || 'Partenaire',
+          partner_company: partnerData?.company_name || '',
+          partner_phone: partnerData?.phone_number || ''
         });
+      } else {
+        setPartnerAssignment(null);
       }
     } catch (error) {
       console.error('Error fetching partner assignment:', error);
     }
-  };
+  }, [user]);
+
+  const fetchPartnerHistory = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('partner_drivers')
+        .select('id, partner_id, added_at, status')
+        .eq('driver_id', user.id)
+        .order('added_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching partner history:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        // Fetch partner names for history
+        const historyWithNames = await Promise.all(
+          data.map(async (item) => {
+            const { data: partnerData } = await supabase
+              .from('partenaires')
+              .select('company_name')
+              .eq('user_id', item.partner_id)
+              .maybeSingle();
+
+            return {
+              id: item.id,
+              partner_name: partnerData?.company_name || 'Partenaire',
+              joined_at: item.added_at,
+              left_at: item.status === 'inactive' ? item.added_at : null,
+              status: item.status
+            };
+          })
+        );
+
+        setPartnerHistory(historyWithNames);
+      }
+    } catch (error) {
+      console.error('Error fetching partner history:', error);
+    }
+  }, [user]);
 
   const generateCode = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
+
+      // Check if already has an active code
+      if (driverCode) {
+        toast.info('Vous avez déjà un code actif');
+        return;
+      }
 
       // First generate a unique code
       const { data: newCode, error: codeError } = await supabase
@@ -128,6 +201,109 @@ export const useDriverCode = () => {
       toast.error('Erreur lors de la génération du code');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const regenerateCode = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      // Deactivate old codes
+      await supabase
+        .from('driver_codes')
+        .update({ is_active: false })
+        .eq('driver_id', user.id);
+
+      // Generate new code
+      const { data: newCode, error: codeError } = await supabase
+        .rpc('generate_driver_code');
+
+      if (codeError) {
+        console.error('Error generating code:', codeError);
+        toast.error('Erreur lors de la génération du code');
+        return;
+      }
+
+      // Create new driver code record
+      const { data, error } = await supabase
+        .from('driver_codes')
+        .insert({
+          code: newCode,
+          driver_id: user.id,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating driver code:', error);
+        toast.error('Erreur lors de la création du code');
+        return;
+      }
+
+      setDriverCode(data);
+      toast.success('Nouveau code généré!');
+    } catch (error) {
+      console.error('Error regenerating driver code:', error);
+      toast.error('Erreur lors de la régénération du code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const leaveFleet = async () => {
+    if (!user || !partnerAssignment) {
+      toast.error('Aucun partenaire assigné');
+      return false;
+    }
+
+    try {
+      setLeavingFleet(true);
+
+      // Update partner_drivers status to inactive
+      const { error: pdError } = await supabase
+        .from('partner_drivers')
+        .update({ status: 'inactive' })
+        .eq('id', partnerAssignment.id);
+
+      if (pdError) {
+        console.error('Error leaving fleet:', pdError);
+        toast.error('Erreur lors du retrait de la flotte');
+        return false;
+      }
+
+      // Update driver_codes partner_id to null
+      if (driverCode) {
+        await supabase
+          .from('driver_codes')
+          .update({ partner_id: null })
+          .eq('id', driverCode.id);
+      }
+
+      // Create notification for partner
+      await supabase
+        .from('push_notifications')
+        .insert({
+          user_id: partnerAssignment.partner_id,
+          title: 'Chauffeur a quitté votre flotte',
+          message: `Un chauffeur a quitté votre flotte.`,
+          notification_type: 'fleet_leave',
+          is_sent: false
+        });
+
+      setPartnerAssignment(null);
+      await fetchPartnerHistory();
+      
+      toast.success('Vous avez quitté la flotte');
+      return true;
+    } catch (error) {
+      console.error('Error leaving fleet:', error);
+      toast.error('Erreur lors du retrait de la flotte');
+      return false;
+    } finally {
+      setLeavingFleet(false);
     }
   };
 
@@ -172,21 +348,72 @@ export const useDriverCode = () => {
     }
   };
 
+  // Setup real-time subscription for partner assignment changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`driver-fleet-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'partner_drivers',
+          filter: `driver_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔔 Partner assignment change:', payload);
+          
+          if (payload.eventType === 'INSERT' && (payload.new as any).status === 'active') {
+            toast.success('🎉 Vous avez été ajouté à une flotte!', {
+              duration: 5000
+            });
+            fetchPartnerAssignment();
+          } else if (payload.eventType === 'UPDATE') {
+            const newStatus = (payload.new as any).status;
+            if (newStatus === 'inactive') {
+              toast.info('Vous avez été retiré de la flotte', {
+                duration: 5000
+              });
+              setPartnerAssignment(null);
+            }
+            fetchPartnerAssignment();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchPartnerAssignment]);
+
   useEffect(() => {
     if (user) {
       fetchDriverCode();
       fetchPartnerAssignment();
+      fetchPartnerHistory();
     }
-  }, [user]);
+  }, [user, fetchDriverCode, fetchPartnerAssignment, fetchPartnerHistory]);
 
   return {
     loading,
     driverCode,
     partnerAssignment,
+    partnerHistory,
+    leavingFleet,
     generateCode,
+    regenerateCode,
+    leaveFleet,
     shareCode,
     copyCode,
     fetchDriverCode,
-    fetchPartnerAssignment
+    fetchPartnerAssignment,
+    refetch: () => {
+      fetchDriverCode();
+      fetchPartnerAssignment();
+      fetchPartnerHistory();
+    }
   };
 };
