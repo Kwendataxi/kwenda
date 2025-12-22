@@ -12,11 +12,13 @@ import {
   MapPin, 
   X,
   ArrowLeft,
+  ArrowRight,
   Check,
   CheckCheck,
   AlertCircle,
   Loader2,
-  Reply as ReplyIcon
+  Reply as ReplyIcon,
+  ShoppingBag
 } from 'lucide-react';
 import { useUniversalChat, type UniversalConversation, type UniversalMessage } from '@/hooks/useUniversalChat';
 import { useChatPresence } from '@/hooks/useChatPresence';
@@ -381,49 +383,79 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
   if (conversations.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-background">
+        {/* Illustration Moderne Animée */}
         <motion.div 
           initial={{ scale: 0, opacity: 0 }} 
           animate={{ scale: 1, opacity: 1 }} 
           transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-          className="mb-6"
+          className="mb-8 relative"
         >
-          <div className="relative">
-            <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-primary/15 to-orange-100 dark:to-primary/10 flex items-center justify-center shadow-sm border border-primary/10">
+          {/* Cercle principal avec dégradé */}
+          <div className="relative w-32 h-32">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 via-orange-100 to-purple-100 dark:from-primary/10 dark:via-orange-900/20 dark:to-purple-900/20 animate-pulse" />
+            
+            {/* Icône principale */}
+            <div className="absolute inset-4 rounded-full bg-card shadow-xl flex items-center justify-center border border-border/50">
               <MessageCircle className="h-12 w-12 text-primary" />
             </div>
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.3, type: "spring" }}
-              className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-card flex items-center justify-center border-2 border-background shadow-sm"
+            
+            {/* Badges flottants animés */}
+            <motion.div 
+              animate={{ y: [0, -6, 0] }} 
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shadow-lg border-2 border-background"
             >
-              <span className="text-sm">💬</span>
+              <span className="text-lg">💰</span>
+            </motion.div>
+            
+            <motion.div 
+              animate={{ y: [0, 6, 0] }} 
+              transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut", delay: 0.5 }}
+              className="absolute -bottom-2 -left-2 w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shadow-lg border-2 border-background"
+            >
+              <span className="text-base">🛍️</span>
+            </motion.div>
+            
+            <motion.div 
+              animate={{ y: [0, -4, 0] }} 
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut", delay: 1 }}
+              className="absolute top-0 -left-3 w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shadow-lg border-2 border-background"
+            >
+              <span className="text-sm">✨</span>
             </motion.div>
           </div>
         </motion.div>
         
+        {/* Message d'accueil engageant */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.2 }}
-          className="space-y-3 mb-6"
+          className="space-y-3 mb-8"
         >
-          <h3 className="text-xl font-semibold text-foreground">Aucune conversation</h3>
-          <p className="text-sm text-muted-foreground max-w-[260px] leading-relaxed">
-            Négociez directement avec les vendeurs pour obtenir les meilleurs prix
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text">
+            Commencez à négocier !
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-[280px] leading-relaxed">
+            Discutez directement avec les vendeurs, négociez les prix et obtenez des offres exclusives sur Kwenda Shop
           </p>
         </motion.div>
         
+        {/* Bouton CTA Amélioré */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Button 
             onClick={() => window.location.href = '/marketplace'} 
-            className="rounded-full px-6 shadow-md hover:shadow-lg transition-shadow"
+            className="rounded-full px-8 py-6 h-auto bg-gradient-to-r from-primary to-orange-500 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all group"
           >
+            <ShoppingBag className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
             Parcourir les produits
+            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </motion.div>
       </div>
@@ -486,43 +518,46 @@ const MessageBubble = ({ message, onReply, onRetry, allMessages, onImagePreview 
   const getStatusIcon = () => {
     if (!isOwnMessage) return null;
     switch (message.status) {
-      case 'sending': return <Loader2 className="h-3 w-3 animate-spin" />;
+      case 'sending': return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
       case 'error': return <button onClick={() => onRetry(message.id)} className="flex items-center gap-1 text-destructive hover:underline"><AlertCircle className="h-3 w-3" /><span className="text-[10px]">Réessayer</span></button>;
-      case 'read': return <CheckCheck className="h-3 w-3 text-blue-500" />;
-      default: return <Check className="h-3 w-3" />;
+      case 'read': return <CheckCheck className="h-3.5 w-3.5 text-blue-500" />; // Plus visible
+      case 'sent': return <Check className="h-3 w-3 text-muted-foreground" />;
+      default: return <Check className="h-3 w-3 text-muted-foreground" />;
     }
   };
 
   return (
     <motion.div 
-      layout 
-      initial={{ opacity: 0, y: 8 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      exit={{ opacity: 0, y: -8 }} 
-      transition={{ duration: 0.15 }} 
+      layout="position"
+      initial={{ opacity: 0, scale: 0.95, y: 10 }} 
+      animate={{ opacity: 1, scale: 1, y: 0 }} 
+      exit={{ opacity: 0, scale: 0.95 }} 
+      transition={{ type: "spring", stiffness: 300, damping: 25 }} 
       className={cn("flex gap-2 max-w-[80%] group", isOwnMessage ? "ml-auto flex-row-reverse" : "mr-auto")}
     >
       {!isOwnMessage && (
-        <Avatar className="h-7 w-7 flex-shrink-0 shadow-sm">
+        <Avatar className="h-7 w-7 flex-shrink-0 shadow-sm ring-2 ring-background">
           <AvatarImage src={message.sender?.avatar_url} />
-          <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
+          <AvatarFallback className="bg-gradient-to-br from-muted to-muted/80 text-muted-foreground text-xs font-medium">
             {message.sender?.display_name?.charAt(0) || 'V'}
           </AvatarFallback>
         </Avatar>
       )}
-      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+      <div className="flex flex-col gap-1 flex-1 min-w-0">
         {!isOwnMessage && (
-          <span className="text-[11px] text-muted-foreground font-medium px-1 mb-0.5">
+          <span className="text-[11px] text-muted-foreground font-medium px-1">
             {(message.sender as any)?.shop_name || message.sender?.display_name || 'Vendeur'}
           </span>
         )}
         {replyToMessage && <MessageReplyPreview replyTo={replyToMessage} isOwnMessage={isOwnMessage} />}
+        
+        {/* Bulle de message avec design moderne */}
         <div 
           className={cn(
-            "rounded-2xl px-3.5 py-2 max-w-full relative",
+            "rounded-3xl px-4 py-2.5 max-w-full relative",
             isOwnMessage 
-              ? "bg-primary text-primary-foreground rounded-br-md" 
-              : "bg-muted text-foreground rounded-bl-md",
+              ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-lg shadow-md shadow-primary/20" 
+              : "bg-card text-foreground rounded-bl-lg shadow-sm border border-border/40",
             message.status === 'error' && "opacity-70"
           )}
         >
@@ -540,22 +575,28 @@ const MessageBubble = ({ message, onReply, onRetry, allMessages, onImagePreview 
           ) : message.content && message.content !== '📷 Image' && (
             <p className="text-sm leading-relaxed break-words">{message.content}</p>
           )}
-          <div className={cn(
-            "text-[10px] mt-1 flex items-center gap-1",
-            isOwnMessage ? "text-primary-foreground/60 justify-end" : "text-muted-foreground"
-          )}>
-            {new Date(message.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-            {getStatusIcon()}
-          </div>
+          
+          {/* Bouton reply sur la bulle */}
           <button 
             onClick={() => onReply(message)} 
             className={cn(
-              "absolute top-1/2 -translate-y-1/2 p-1 rounded-full bg-background shadow-sm border border-border/50 opacity-0 group-hover:opacity-100 transition-opacity",
-              isOwnMessage ? "-left-7" : "-right-7"
+              "absolute top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background shadow-md border border-border/60 opacity-0 group-hover:opacity-100 transition-all hover:scale-110",
+              isOwnMessage ? "-left-8" : "-right-8"
             )}
           >
             <ReplyIcon className="h-3 w-3 text-muted-foreground" />
           </button>
+        </div>
+        
+        {/* Timestamp externe discret + indicateurs de lecture */}
+        <div className={cn(
+          "flex items-center gap-1.5 px-2",
+          isOwnMessage ? "justify-end" : "justify-start"
+        )}>
+          <span className="text-[10px] text-muted-foreground/70 font-medium">
+            {new Date(message.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+          {getStatusIcon()}
         </div>
       </div>
     </motion.div>

@@ -103,49 +103,57 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
             </div>
           </div>
           
-          {/* Boutons */}
+          {/* Boutons - Hero CTA Mobile */}
           {canAfford ? (
             isDigital ? (
               // Bouton unique pleine largeur pour les produits digitaux
-              <Button 
-                size="lg" 
-                className="w-full h-12 bg-primary"
-                onClick={() => onBuyNow(1)}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Acheter & Télécharger
-              </Button>
+              <motion.div whileTap={{ scale: 0.98 }}>
+                <Button 
+                  size="lg" 
+                  className="w-full h-14 text-base font-bold bg-gradient-to-r from-primary to-orange-500 shadow-lg shadow-primary/30"
+                  onClick={() => onBuyNow(1)}
+                >
+                  <Download className="h-5 w-5 mr-2" />
+                  Acheter & Télécharger
+                </Button>
+              </motion.div>
             ) : (
-              // Grille de boutons pour les produits physiques
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="h-12"
-                  onClick={() => onAddToCart(quantity)}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Panier
-                </Button>
-                <Button 
-                  size="lg" 
-                  className="h-12 bg-primary"
-                  onClick={() => onBuyNow(quantity)}
-                >
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  Acheter
-                </Button>
+              // Grille de boutons Hero pour les produits physiques
+              <div className="grid grid-cols-5 gap-2">
+                <motion.div whileTap={{ scale: 0.95 }} className="col-span-2">
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="w-full h-12 border-2 border-primary/30"
+                    onClick={() => onAddToCart(quantity)}
+                  >
+                    <ShoppingCart className="h-5 w-5 mr-1" />
+                    Panier
+                  </Button>
+                </motion.div>
+                <motion.div whileTap={{ scale: 0.98 }} className="col-span-3">
+                  <Button 
+                    size="lg" 
+                    className="w-full h-12 font-bold bg-gradient-to-r from-primary to-orange-500 shadow-lg shadow-primary/30"
+                    onClick={() => onBuyNow(quantity)}
+                  >
+                    <ShoppingBag className="h-5 w-5 mr-1" />
+                    Commander
+                  </Button>
+                </motion.div>
               </div>
             )
           ) : (
-            <Button 
-              size="lg" 
-              className="w-full h-12 bg-orange-500 hover:bg-orange-600"
-              onClick={onTopUp}
-            >
-              <Wallet className="h-5 w-5 mr-2" />
-              Recharger ({formatPrice(walletBalance)})
-            </Button>
+            <motion.div whileTap={{ scale: 0.98 }}>
+              <Button 
+                size="lg" 
+                className="w-full h-14 text-base font-bold bg-gradient-to-r from-orange-500 to-amber-500 shadow-lg shadow-orange-500/30"
+                onClick={onTopUp}
+              >
+                <Wallet className="h-5 w-5 mr-2" />
+                Recharger mon wallet
+              </Button>
+            </motion.div>
           )}
         </div>
       </motion.div>

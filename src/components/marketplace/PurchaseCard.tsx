@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -150,34 +151,48 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
           </div>
         </div>
         
-        {/* Boutons */}
-        <div className="space-y-2">
+        {/* Boutons - Hero CTA */}
+        <div className="space-y-3">
           {canAfford ? (
             <>
-              <Button 
-                size="lg" 
-                className="w-full bg-primary hover:bg-primary/90 h-12"
-                onClick={() => onBuyNow(effectiveQuantity)}
+              {/* Bouton Principal Hero avec Gradient */}
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {isDigital ? (
-                  <>
-                    <Download className="h-5 w-5 mr-2" />
-                    Acheter & Télécharger
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag className="h-5 w-5 mr-2" />
-                    Acheter maintenant
-                  </>
-                )}
-              </Button>
+                <Button 
+                  size="lg" 
+                  className="w-full h-14 text-lg font-bold bg-gradient-to-r from-primary via-primary to-orange-500 hover:from-primary/90 hover:via-primary/90 hover:to-orange-500/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
+                  onClick={() => onBuyNow(effectiveQuantity)}
+                >
+                  {isDigital ? (
+                    <>
+                      <Download className="h-5 w-5 mr-2" />
+                      Acheter & Télécharger
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag className="h-5 w-5 mr-2" />
+                      Commander maintenant • {formatPrice(totalPrice)}
+                    </>
+                  )}
+                </Button>
+              </motion.div>
               
-              {/* Panier masqué pour les produits digitaux */}
+              {/* Badge Livraison */}
+              {!isDigital && (
+                <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                  <Truck className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700 dark:text-green-400">Livraison rapide disponible</span>
+                </div>
+              )}
+              
+              {/* Panier - masqué pour les produits digitaux */}
               {!isDigital && (
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="w-full h-12"
+                  className="w-full h-12 border-2 border-primary/30 hover:bg-primary/5 hover:border-primary/50 transition-all"
                   onClick={() => onAddToCart(quantity)}
                 >
                   <ShoppingCart className="h-5 w-5 mr-2" />
@@ -188,8 +203,8 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
               {onContactSeller && (
                 <Button 
                   size="lg" 
-                  variant="outline" 
-                  className="w-full h-12 border-primary/30 hover:bg-primary/5"
+                  variant="ghost" 
+                  className="w-full h-12 text-primary hover:bg-primary/10"
                   onClick={onContactSeller}
                 >
                   <MessageCircle className="h-5 w-5 mr-2" />
@@ -198,14 +213,19 @@ export const PurchaseCard: React.FC<PurchaseCardProps> = ({
               )}
             </>
           ) : (
-            <Button 
-              size="lg" 
-              className="w-full h-12 bg-orange-500 hover:bg-orange-600"
-              onClick={onTopUp}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <Wallet className="h-5 w-5 mr-2" />
-              Recharger mon wallet ({formatPrice(walletBalance)})
-            </Button>
+              <Button 
+                size="lg" 
+                className="w-full h-14 text-lg font-bold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg shadow-orange-500/30"
+                onClick={onTopUp}
+              >
+                <Wallet className="h-5 w-5 mr-2" />
+                Recharger mon wallet
+              </Button>
+            </motion.div>
           )}
         </div>
         

@@ -55,29 +55,42 @@ export const MarketplaceImageGallery: React.FC<MarketplaceImageGalleryProps> = (
 
   return (
     <div className="space-y-3">
-      {/* Main Gallery */}
+      {/* Main Gallery - Images Plus Grandes */}
       <div className="relative group">
-        <div className="overflow-hidden rounded-2xl bg-muted" ref={emblaRef}>
+        <div className="overflow-hidden rounded-2xl bg-muted shadow-lg" ref={emblaRef}>
           <div className="flex touch-pan-y">
             {safeImages.map((image, index) => (
               <div key={index} className="flex-[0_0_100%] min-w-0">
-                <div className="relative aspect-[4/3] sm:aspect-square">
-                  <img
+                <div className="relative aspect-[3/4] sm:aspect-[4/3] lg:aspect-[16/10]">
+                  <motion.img
                     src={image}
                     alt={`${productTitle} - Image ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover cursor-zoom-in"
                     loading={index === 0 ? 'eager' : 'lazy'}
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => setIsFullscreen(true)}
                   />
+                  
+                  {/* Gradient overlay for better UI */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
                   
                   {/* Fullscreen button */}
                   <Button
                     size="icon"
                     variant="secondary"
-                    className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg"
                     onClick={() => setIsFullscreen(true)}
                   >
                     <Maximize2 className="h-4 w-4" />
                   </Button>
+                  
+                  {/* Photos badge */}
+                  {safeImages.length > 1 && (
+                    <Badge className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm text-foreground shadow-md">
+                      📷 {safeImages.length} photos
+                    </Badge>
+                  )}
                 </div>
               </div>
             ))}
@@ -130,16 +143,19 @@ export const MarketplaceImageGallery: React.FC<MarketplaceImageGalleryProps> = (
       </div>
 
       {/* Thumbnails - Desktop */}
+      {/* Thumbnails Plus Grands - Desktop */}
       {safeImages.length > 1 && (
         <div className="hidden sm:block overflow-hidden" ref={emblaThumbsRef}>
           <div className="flex gap-2">
             {safeImages.map((image, index) => (
-              <button
+              <motion.button
                 key={index}
-                className={`flex-[0_0_20%] sm:flex-[0_0_15%] lg:flex-[0_0_12%] min-w-0 rounded-lg overflow-hidden transition-all ${
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`flex-[0_0_18%] sm:flex-[0_0_16%] lg:flex-[0_0_14%] min-w-0 rounded-xl overflow-hidden transition-all shadow-sm ${
                   index === selectedIndex 
-                    ? 'ring-2 ring-primary opacity-100' 
-                    : 'opacity-60 hover:opacity-100'
+                    ? 'ring-2 ring-primary ring-offset-2 ring-offset-background opacity-100 shadow-md' 
+                    : 'opacity-70 hover:opacity-100 hover:shadow-md'
                 }`}
                 onClick={() => onThumbClick(index)}
               >
@@ -151,7 +167,7 @@ export const MarketplaceImageGallery: React.FC<MarketplaceImageGalleryProps> = (
                     loading="lazy"
                   />
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
