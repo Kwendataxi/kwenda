@@ -22,6 +22,7 @@ import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
 import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
 import { PointsConversionDialog } from '@/components/loyalty/PointsConversionDialog';
 import { TopUpModal } from '@/components/wallet/TopUpModal';
+import { WithdrawRequestDialog } from '@/components/wallet/WithdrawRequestDialog';
 import { SessionStatusIndicator } from '@/components/SessionStatusIndicator';
 import { Send, Gift, Zap } from 'lucide-react';
 
@@ -51,6 +52,7 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showConversionDialog, setShowConversionDialog] = useState(false);
   const [showTopUpModal, setShowTopUpModal] = useState(initialTopUpOpen);
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
   // Ouvrir le modal si demandé depuis l'extérieur
   React.useEffect(() => {
@@ -134,6 +136,7 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
         onRecharge={() => handleTopUpModalChange(true)}
         onTransfer={() => setShowTransferDialog(true)}
         onConvert={() => setShowConversionDialog(true)}
+        onWithdraw={() => setShowWithdrawDialog(true)}
       />
 
       {/* Transaction History - Design moderne et groupé */}
@@ -227,6 +230,15 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
         onSuccess={() => setShowConfetti(true)}
         currency={wallet?.currency || 'CDF'}
         quickAmounts={QUICK_AMOUNTS}
+      />
+
+      <WithdrawRequestDialog
+        open={showWithdrawDialog}
+        onOpenChange={setShowWithdrawDialog}
+        currentBalance={wallet?.balance || 0}
+        currency={wallet?.currency || 'CDF'}
+        userType="client"
+        onSuccess={() => {}}
       />
     </div>
   );

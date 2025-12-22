@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGuard';
 import { ServiceManagementPanel } from '@/components/admin/services/ServiceManagementPanel';
 import { PricingManagementPanel } from '@/components/admin/PricingManagementPanel';
@@ -6,6 +6,8 @@ import { UnifiedSubscriptionManager } from '@/components/admin/subscriptions/Uni
 import { SubscriptionPlansConfig } from '@/components/admin/subscriptions/SubscriptionPlansConfig';
 import { AdminPromoCodeManager } from '@/components/admin/AdminPromoCodeManager';
 import { Loader2 } from 'lucide-react';
+
+const WithdrawalManagement = lazy(() => import('@/pages/admin/WithdrawalManagement'));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center p-8">
@@ -56,6 +58,15 @@ export const AdminConfigRoutes = ({ activeTab }: { activeTab: string }) => {
         <Suspense fallback={<LoadingFallback />}>
           <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
             <AdminPromoCodeManager />
+          </FlexiblePermissionGuard>
+        </Suspense>
+      );
+
+    case 'withdrawals':
+      return (
+        <Suspense fallback={<LoadingFallback />}>
+          <FlexiblePermissionGuard requiredPermissions={['finance_admin']}>
+            <WithdrawalManagement />
           </FlexiblePermissionGuard>
         </Suspense>
       );

@@ -1,5 +1,5 @@
 /**
- * 💸 Modal de retrait KwendaPay
+ * 💸 Dialog de demande de retrait pour clients
  */
 
 import { useState } from 'react';
@@ -10,49 +10,59 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Banknote, AlertCircle } from 'lucide-react';
+import { Loader2, Banknote, AlertCircle, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { motion } from 'framer-motion';
 
-interface WithdrawModalProps {
+interface WithdrawRequestDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentBalance: number;
-  onSuccess: () => void;
+  currency?: string;
+  userType?: 'client' | 'driver' | 'vendor' | 'partner';
+  onSuccess?: () => void;
 }
 
 const WITHDRAW_PROVIDERS = [
-  { id: 'airtel', name: 'Airtel Money', logo: '📱', fee: 2 },
-  { id: 'orange', name: 'Orange Money', logo: '🟠', fee: 2 },
-  { id: 'mpesa', name: 'M-Pesa', logo: '💚', fee: 2 }
+  { id: 'airtel_money', name: 'Airtel Money', logo: '📱', fee: 2 },
+  { id: 'orange_money', name: 'Orange Money', logo: '🟠', fee: 2 },
+  { id: 'm_pesa', name: 'M-Pesa', logo: '💚', fee: 2 }
 ];
 
 const MIN_WITHDRAW = 5000;
 const MAX_WITHDRAW = 1000000;
 
-export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }: WithdrawModalProps) => {
+export const WithdrawRequestDialog = ({ 
+  open, 
+  onOpenChange, 
+  currentBalance, 
+  currency = 'CDF',
+  userType = 'client',
+  onSuccess 
+}: WithdrawRequestDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [amount, setAmount] = useState('');
-  const [provider, setProvider] = useState('airtel');
+  const [provider, setProvider] = useState('airtel_money');
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const selectedProvider = WITHDRAW_PROVIDERS.find(p => p.id === provider);
   const parsedAmount = parseInt(amount) || 0;
   const fee = Math.ceil(parsedAmount * (selectedProvider?.fee || 0) / 100);
-  const total = parsedAmount + fee;
+  const netAmount = parsedAmount - fee;
 
   const handleWithdraw = async () => {
     if (parsedAmount < MIN_WITHDRAW) {
       toast({
         title: "Montant trop faible",
-        description: `Le montant minimum de retrait est de ${MIN_WITHDRAW.toLocaleString()} CDF`,
+        description: `Le montant minimum de retrait est de ${MIN_WITHDRAW.toLocaleString()} ${currency}`,
         variant: "destructive"
       });
       return;
     }
 
-    if (total > currentBalance) {
+    if (parsedAmount > currentBalance) {
       toast({
         title: "Solde insuffisant",
         description: "Votre solde est insuffisant pour ce retrait",
@@ -76,16 +86,16 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Utilisateur non connecté');
 
-      // Appeler l'Edge Function escrow-management pour créer la demande
+      // Appeler l'Edge Function escrow-management
       const { data, error } = await supabase.functions.invoke('escrow-management', {
         body: {
           action: 'process_withdrawal',
           confirmationData: {
             userId: user.id,
-            amount: total,
+            amount: parsedAmount,
             withdrawalMethod: 'mobile_money',
             paymentDetails: {
-              userType: 'driver',
+              userType,
               mobileMoneyProvider: provider,
               mobileMoneyPhone: `+243${phoneNumber}`
             }
@@ -96,17 +106,22 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
       if (error) throw error;
       if (!data?.success) throw new Error(data?.message || 'Erreur lors du retrait');
 
+      setSuccess(true);
+      
       toast({
         title: "Demande envoyée",
-        description: "Votre demande de retrait est en attente de validation par l'admin",
+        description: "Votre demande de retrait est en attente de validation",
       });
 
-      onSuccess();
-      onOpenChange(false);
-      
-      // Reset form
-      setAmount('');
-      setPhoneNumber('');
+      // Attendre un peu avant de fermer pour montrer l'animation
+      setTimeout(() => {
+        onSuccess?.();
+        onOpenChange(false);
+        setSuccess(false);
+        setAmount('');
+        setPhoneNumber('');
+      }, 2000);
+
     } catch (error: any) {
       console.error('Withdraw error:', error);
       toast({
@@ -119,13 +134,40 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
     }
   };
 
+  if (success) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex flex-col items-center justify-center py-8 space-y-4"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', delay: 0.2 }}
+              className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+            >
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </motion.div>
+            <h3 className="text-xl font-semibold text-center">Demande envoyée !</h3>
+            <p className="text-muted-foreground text-center">
+              Votre demande de retrait de {parsedAmount.toLocaleString()} {currency} est en cours de traitement.
+            </p>
+          </motion.div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Banknote className="w-5 h-5 text-primary" />
-            Retirer mes fonds
+            Demander un retrait
           </DialogTitle>
         </DialogHeader>
 
@@ -134,13 +176,13 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
           <Alert>
             <AlertCircle className="w-4 h-4" />
             <AlertDescription>
-              Solde disponible: <strong>{currentBalance.toLocaleString()} CDF</strong>
+              Solde disponible: <strong>{currentBalance.toLocaleString()} {currency}</strong>
             </AlertDescription>
           </Alert>
 
           {/* Montant */}
           <div className="space-y-3">
-            <Label>Montant à retirer (CDF)</Label>
+            <Label>Montant à retirer ({currency})</Label>
             <Input
               type="number"
               placeholder="10000"
@@ -151,13 +193,13 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
               step="1000"
             />
             <p className="text-xs text-muted-foreground">
-              Minimum: {MIN_WITHDRAW.toLocaleString()} CDF
+              Minimum: {MIN_WITHDRAW.toLocaleString()} {currency}
             </p>
           </div>
 
           {/* Provider */}
           <div className="space-y-3">
-            <Label>Moyen de retrait</Label>
+            <Label>Moyen de réception</Label>
             <RadioGroup value={provider} onValueChange={setProvider}>
               {WITHDRAW_PROVIDERS.map((p) => (
                 <motion.div
@@ -206,18 +248,23 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
             >
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Montant demandé</span>
-                <span className="font-medium">{parsedAmount.toLocaleString()} CDF</span>
+                <span className="font-medium">{parsedAmount.toLocaleString()} {currency}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Frais ({selectedProvider?.fee}%)</span>
-                <span className="font-medium">{fee.toLocaleString()} CDF</span>
+                <span className="font-medium">-{fee.toLocaleString()} {currency}</span>
               </div>
               <div className="flex justify-between text-sm pt-2 border-t">
-                <span className="font-semibold">Total débité</span>
-                <span className="font-bold text-primary">{total.toLocaleString()} CDF</span>
+                <span className="font-semibold">Vous recevrez</span>
+                <span className="font-bold text-green-600">{netAmount.toLocaleString()} {currency}</span>
               </div>
             </motion.div>
           )}
+
+          {/* Note */}
+          <p className="text-xs text-muted-foreground text-center">
+            ⏳ Les demandes de retrait sont traitées sous 24-48h
+          </p>
         </div>
 
         {/* Actions */}
@@ -232,8 +279,8 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
           </Button>
           <Button
             onClick={handleWithdraw}
-            disabled={loading || total > currentBalance}
-            className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600"
+            disabled={loading || parsedAmount > currentBalance || parsedAmount < MIN_WITHDRAW}
+            className="flex-1 bg-gradient-to-r from-red-500 to-red-600"
           >
             {loading ? (
               <>
@@ -243,7 +290,7 @@ export const WithdrawModal = ({ open, onOpenChange, currentBalance, onSuccess }:
             ) : (
               <>
                 <Banknote className="w-4 h-4 mr-2" />
-                Retirer
+                Demander
               </>
             )}
           </Button>

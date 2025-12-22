@@ -17,9 +17,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { action, orderId, escrowId, confirmationData } = await req.json();
+    const { action, orderId, escrowId, confirmationData, withdrawalId, rejectionReason } = await req.json();
 
-    console.log(`Escrow action: ${action}`, { orderId, escrowId });
+    console.log(`Escrow action: ${action}`, { orderId, escrowId, withdrawalId });
 
     switch (action) {
       case 'create_escrow':
@@ -33,6 +33,12 @@ serve(async (req) => {
       
       case 'get_escrow_status':
         return await getEscrowStatus(supabaseClient, orderId);
+
+      case 'approve_withdrawal':
+        return await approveWithdrawal(supabaseClient, withdrawalId);
+
+      case 'reject_withdrawal':
+        return await rejectWithdrawal(supabaseClient, withdrawalId, rejectionReason);
         
       default:
         throw new Error('Action invalide');
@@ -234,9 +240,111 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
   );
 }
 
-async function getEscrowStatus(supabase: any, orderId: string) {
-  const { data: escrow, error } = await supabase
-    .from('escrow_transactions')
+// Approuver une demande de retrait
+async function approveWithdrawal(supabase: any, withdrawalId: string) {
+  console.log('Approving withdrawal:', withdrawalId);
+
+  // Récupérer la demande
+  const { data: withdrawal, error: fetchError } = await supabase
+    .from('withdrawal_requests')
+    .select('*')
+    .eq('id', withdrawalId)
+    .eq('status', 'pending')
+    .single();
+
+  if (fetchError || !withdrawal) {
+    throw new Error('Demande de retrait introuvable ou déjà traitée');
+  }
+
+  // Mettre à jour le statut
+  const { error: updateError } = await supabase
+    .from('withdrawal_requests')
+    .update({
+      status: 'approved',
+      processed_at: new Date().toISOString()
+    })
+    .eq('id', withdrawalId);
+
+  if (updateError) {
+    throw new Error('Erreur lors de l\'approbation: ' + updateError.message);
+  }
+
+  console.log('Withdrawal approved:', withdrawalId);
+
+  return new Response(
+    JSON.stringify({ success: true, message: 'Retrait approuvé avec succès' }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+// Rejeter une demande de retrait et rembourser
+async function rejectWithdrawal(supabase: any, withdrawalId: string, reason: string) {
+  console.log('Rejecting withdrawal:', withdrawalId, reason);
+
+  // Récupérer la demande
+  const { data: withdrawal, error: fetchError } = await supabase
+    .from('withdrawal_requests')
+    .select('*')
+    .eq('id', withdrawalId)
+    .eq('status', 'pending')
+    .single();
+
+  if (fetchError || !withdrawal) {
+    throw new Error('Demande de retrait introuvable ou déjà traitée');
+  }
+
+  // Rembourser le wallet
+  const { data: wallet, error: walletError } = await supabase
+    .from('user_wallets')
+    .select('*')
+    .eq('user_id', withdrawal.user_id)
+    .eq('currency', withdrawal.currency)
+    .single();
+
+  if (walletError || !wallet) {
+    throw new Error('Wallet introuvable');
+  }
+
+  // Mettre à jour le solde
+  await supabase
+    .from('user_wallets')
+    .update({ 
+      balance: wallet.balance + withdrawal.amount,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', wallet.id);
+
+  // Créer la transaction de remboursement
+  await supabase
+    .from('wallet_transactions')
+    .insert({
+      wallet_id: wallet.id,
+      user_id: withdrawal.user_id,
+      transaction_type: 'withdrawal_refund',
+      amount: withdrawal.amount,
+      currency: withdrawal.currency,
+      description: `Remboursement retrait rejeté: ${reason || 'Non spécifié'}`,
+      reference_id: withdrawalId,
+      reference_type: 'withdrawal_request'
+    });
+
+  // Mettre à jour le statut de la demande
+  await supabase
+    .from('withdrawal_requests')
+    .update({
+      status: 'rejected',
+      failure_reason: reason || 'Rejeté par l\'administrateur',
+      processed_at: new Date().toISOString()
+    })
+    .eq('id', withdrawalId);
+
+  console.log('Withdrawal rejected and refunded:', withdrawalId);
+
+  return new Response(
+    JSON.stringify({ success: true, message: 'Retrait rejeté et montant remboursé' }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
     .select('*')
     .eq('order_id', orderId)
     .single();
