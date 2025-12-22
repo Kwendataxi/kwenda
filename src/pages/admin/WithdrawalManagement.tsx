@@ -1,5 +1,5 @@
 /**
- * 💰 Page Admin - Gestion des Demandes de Retrait avec Approbation en Lot
+ * 💰 Page Admin - Gestion des Demandes de Retrait (100% Manuel avec statut 'paid')
  */
 
 import { useState } from 'react';
@@ -9,13 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Loader2, CheckCircle, XCircle, Clock, Banknote, 
   Phone, User, Calendar, AlertTriangle, RefreshCw,
-  CheckCheck, Filter, Zap, TrendingUp
+  CheckCheck, Filter, DollarSign, Copy, ExternalLink
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -52,12 +53,15 @@ interface WithdrawalRequest {
   status: string;
   created_at: string;
   processed_at: string | null;
+  paid_at: string | null;
+  admin_reference: string | null;
+  admin_notes: string | null;
   failure_reason: string | null;
-  auto_approved?: boolean | null;
 }
 
 const statusConfig = {
   pending: { label: 'En attente', color: 'bg-yellow-500', icon: Clock },
+  paid: { label: 'Payé', color: 'bg-green-500', icon: DollarSign },
   approved: { label: 'Approuvé', color: 'bg-green-500', icon: CheckCircle },
   rejected: { label: 'Rejeté', color: 'bg-red-500', icon: XCircle },
   processing: { label: 'En cours', color: 'bg-blue-500', icon: Loader2 }
@@ -70,15 +74,23 @@ const userTypeLabels: Record<string, string> = {
   partner: '🤝 Partenaire'
 };
 
+const providerColors: Record<string, string> = {
+  airtel: 'bg-red-500',
+  orange: 'bg-orange-500',
+  mpesa: 'bg-green-500'
+};
+
 export const WithdrawalManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('pending');
   const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
-  const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | 'batch' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'pay' | 'reject' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [adminReference, setAdminReference] = useState('');
+  const [adminNotes, setAdminNotes] = useState('');
   
-  // Sélection multiple pour approbation en lot
+  // Sélection multiple pour paiement en lot
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBatchConfirm, setShowBatchConfirm] = useState(false);
   
@@ -114,8 +126,8 @@ export const WithdrawalManagement = () => {
     return true;
   });
 
-  // Mutation pour approuver
-  const approveMutation = useMutation({
+  // Mutation pour marquer comme payé
+  const payMutation = useMutation({
     mutationFn: async (requestId: string) => {
       const { data, error } = await supabase.functions.invoke('escrow-management', {
         body: { action: 'approve_withdrawal', withdrawalId: requestId }
@@ -125,10 +137,12 @@ export const WithdrawalManagement = () => {
       return data;
     },
     onSuccess: () => {
-      toast({ title: "Retrait approuvé", description: "Le paiement a été envoyé" });
+      toast({ title: "✅ Retrait marqué comme payé", description: "L'utilisateur a été notifié" });
       queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
       setSelectedRequest(null);
       setConfirmAction(null);
+      setAdminReference('');
+      setAdminNotes('');
     },
     onError: (error: any) => {
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -157,8 +171,8 @@ export const WithdrawalManagement = () => {
     }
   });
 
-  // Mutation pour approbation en lot
-  const batchApproveMutation = useMutation({
+  // Mutation pour paiement en lot
+  const batchPayMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       const { data, error } = await supabase.functions.invoke('escrow-management', {
         body: { action: 'batch_approve_withdrawals', withdrawalIds: ids }
@@ -169,7 +183,7 @@ export const WithdrawalManagement = () => {
     },
     onSuccess: (data) => {
       toast({ 
-        title: "Approbation en lot terminée", 
+        title: "Paiements en lot terminés", 
         description: data.message 
       });
       queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
@@ -181,7 +195,7 @@ export const WithdrawalManagement = () => {
     }
   });
 
-  const handleAction = (request: WithdrawalRequest, action: 'approve' | 'reject') => {
+  const handleAction = (request: WithdrawalRequest, action: 'pay' | 'reject') => {
     setSelectedRequest(request);
     setConfirmAction(action);
   };
@@ -189,8 +203,8 @@ export const WithdrawalManagement = () => {
   const confirmHandler = () => {
     if (!selectedRequest) return;
     
-    if (confirmAction === 'approve') {
-      approveMutation.mutate(selectedRequest.id);
+    if (confirmAction === 'pay') {
+      payMutation.mutate(selectedRequest.id);
     } else if (confirmAction === 'reject') {
       rejectMutation.mutate({ requestId: selectedRequest.id, reason: rejectionReason });
     }
@@ -213,13 +227,13 @@ export const WithdrawalManagement = () => {
     setSelectedIds(new Set(pendingIds));
   };
 
-  const handleBatchApprove = () => {
+  const handleBatchPay = () => {
     if (selectedIds.size === 0) return;
     setShowBatchConfirm(true);
   };
 
-  const confirmBatchApprove = () => {
-    batchApproveMutation.mutate(Array.from(selectedIds));
+  const confirmBatchPay = () => {
+    batchPayMutation.mutate(Array.from(selectedIds));
   };
 
   // Quick batch actions
@@ -230,16 +244,18 @@ export const WithdrawalManagement = () => {
     setSelectedIds(new Set(ids));
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copié!", description: text });
+  };
+
   // Stats
   const pendingCount = requests.filter(r => r.status === 'pending').length;
-  const approvedCount = requests.filter(r => r.status === 'approved').length;
+  const paidCount = requests.filter(r => r.status === 'paid' || r.status === 'approved').length;
   const rejectedCount = requests.filter(r => r.status === 'rejected').length;
   const totalPending = requests
     .filter(r => r.status === 'pending')
     .reduce((sum, r) => sum + r.amount, 0);
-  const autoApprovedToday = requests
-    .filter(r => r.auto_approved && r.status === 'approved')
-    .length;
 
   const selectedTotal = filteredRequests
     .filter(r => selectedIds.has(r.id))
@@ -255,7 +271,7 @@ export const WithdrawalManagement = () => {
             Gestion des Retraits
           </h2>
           <p className="text-muted-foreground">
-            Approuvez ou rejetez les demandes de retrait
+            Effectuez les paiements manuellement puis marquez-les comme payés
           </p>
         </div>
         <Button variant="outline" onClick={() => refetch()}>
@@ -265,7 +281,7 @@ export const WithdrawalManagement = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
@@ -273,18 +289,18 @@ export const WithdrawalManagement = () => {
             </div>
             <div>
               <p className="text-2xl font-bold">{pendingCount}</p>
-              <p className="text-sm text-muted-foreground">En attente</p>
+              <p className="text-sm text-muted-foreground">À payer</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
+              <DollarSign className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{approvedCount}</p>
-              <p className="text-sm text-muted-foreground">Approuvés</p>
+              <p className="text-2xl font-bold">{paidCount}</p>
+              <p className="text-sm text-muted-foreground">Payés</p>
             </div>
           </CardContent>
         </Card>
@@ -299,17 +315,6 @@ export const WithdrawalManagement = () => {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-              <Zap className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{autoApprovedToday}</p>
-              <p className="text-sm text-muted-foreground">Auto-approuvés</p>
-            </div>
-          </CardContent>
-        </Card>
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
@@ -317,11 +322,28 @@ export const WithdrawalManagement = () => {
             </div>
             <div>
               <p className="text-2xl font-bold">{totalPending.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">CDF en attente</p>
+              <p className="text-sm text-muted-foreground">CDF à payer</p>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Instructions */}
+      <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-blue-800 dark:text-blue-300">Comment traiter les retraits:</p>
+              <ol className="list-decimal ml-4 mt-2 space-y-1 text-blue-700 dark:text-blue-400">
+                <li>Copiez le numéro de téléphone affiché</li>
+                <li>Effectuez le paiement Mobile Money manuellement</li>
+                <li>Cliquez sur "Marquer comme payé" une fois le transfert effectué</li>
+              </ol>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Batch Actions Bar */}
       {activeTab === 'pending' && pendingCount > 0 && (
@@ -330,7 +352,7 @@ export const WithdrawalManagement = () => {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <CheckCheck className="w-5 h-5 text-primary" />
-                <span className="font-medium">Approbation en lot</span>
+                <span className="font-medium">Actions en lot</span>
                 {selectedIds.size > 0 && (
                   <Badge variant="secondary">
                     {selectedIds.size} sélectionné(s) • {selectedTotal.toLocaleString()} CDF
@@ -353,15 +375,15 @@ export const WithdrawalManagement = () => {
                 <Button 
                   size="sm" 
                   className="bg-green-600 hover:bg-green-700"
-                  onClick={handleBatchApprove}
-                  disabled={selectedIds.size === 0 || batchApproveMutation.isPending}
+                  onClick={handleBatchPay}
+                  disabled={selectedIds.size === 0 || batchPayMutation.isPending}
                 >
-                  {batchApproveMutation.isPending ? (
+                  {batchPayMutation.isPending ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <CheckCheck className="w-4 h-4 mr-2" />
+                    <DollarSign className="w-4 h-4 mr-2" />
                   )}
-                  Approuver ({selectedIds.size})
+                  Marquer payés ({selectedIds.size})
                 </Button>
               </div>
             </div>
@@ -426,11 +448,11 @@ export const WithdrawalManagement = () => {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pending" className="flex gap-2">
             <Clock className="w-4 h-4" />
-            En attente ({pendingCount})
+            À payer ({pendingCount})
           </TabsTrigger>
-          <TabsTrigger value="approved" className="flex gap-2">
-            <CheckCircle className="w-4 h-4" />
-            Approuvés
+          <TabsTrigger value="paid" className="flex gap-2">
+            <DollarSign className="w-4 h-4" />
+            Payés
           </TabsTrigger>
           <TabsTrigger value="rejected" className="flex gap-2">
             <XCircle className="w-4 h-4" />
@@ -458,6 +480,7 @@ export const WithdrawalManagement = () => {
                   const config = statusConfig[request.status as keyof typeof statusConfig] || statusConfig.pending;
                   const StatusIcon = config.icon;
                   const isSelected = selectedIds.has(request.id);
+                  const providerColor = providerColors[request.mobile_money_provider || ''] || 'bg-gray-500';
 
                   return (
                     <motion.div
@@ -492,12 +515,6 @@ export const WithdrawalManagement = () => {
                                 <span className="text-sm text-muted-foreground">
                                   {userTypeLabels[request.user_type] || request.user_type}
                                 </span>
-                                {request.auto_approved && (
-                                  <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-200">
-                                    <Zap className="w-3 h-3 mr-1" />
-                                    Auto
-                                  </Badge>
-                                )}
                               </div>
 
                               {/* Amount */}
@@ -508,16 +525,36 @@ export const WithdrawalManagement = () => {
                                 <span className="text-muted-foreground">{request.currency}</span>
                               </div>
 
+                              {/* Payment Info - PROMINENTLY DISPLAYED */}
+                              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <div className={cn("w-3 h-3 rounded-full", providerColor)} />
+                                    <span className="font-medium">
+                                      {request.mobile_money_provider?.toUpperCase() || 'Mobile Money'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Phone className="w-5 h-5 text-primary" />
+                                  <span className="text-lg font-mono font-bold">
+                                    {request.mobile_money_phone || 'N/A'}
+                                  </span>
+                                  {request.mobile_money_phone && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-8 px-2"
+                                      onClick={() => copyToClipboard(request.mobile_money_phone!)}
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+
                               {/* Details */}
                               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-1">
-                                  <Phone className="w-4 h-4" />
-                                  {request.mobile_money_phone || 'N/A'}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Banknote className="w-4 h-4" />
-                                  {request.mobile_money_provider || request.withdrawal_method}
-                                </div>
                                 <div className="flex items-center gap-1">
                                   <Calendar className="w-4 h-4" />
                                   {formatDistanceToNow(new Date(request.created_at), { 
@@ -525,6 +562,12 @@ export const WithdrawalManagement = () => {
                                     locale: fr 
                                   })}
                                 </div>
+                                {request.paid_at && (
+                                  <div className="flex items-center gap-1 text-green-600">
+                                    <DollarSign className="w-4 h-4" />
+                                    Payé le {format(new Date(request.paid_at), 'dd/MM/yyyy HH:mm')}
+                                  </div>
+                                )}
                               </div>
 
                               {/* Rejection reason */}
@@ -538,7 +581,15 @@ export const WithdrawalManagement = () => {
 
                             {/* Actions */}
                             {request.status === 'pending' && (
-                              <div className="flex gap-2">
+                              <div className="flex flex-col gap-2">
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleAction(request, 'pay')}
+                                >
+                                  <DollarSign className="w-4 h-4 mr-1" />
+                                  Marquer payé
+                                </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -547,14 +598,6 @@ export const WithdrawalManagement = () => {
                                 >
                                   <XCircle className="w-4 h-4 mr-1" />
                                   Rejeter
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700"
-                                  onClick={() => handleAction(request, 'approve')}
-                                >
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  Approuver
                                 </Button>
                               </div>
                             )}
@@ -571,51 +614,67 @@ export const WithdrawalManagement = () => {
       </Tabs>
 
       {/* Single Confirmation Dialog */}
-      <AlertDialog open={!!confirmAction && confirmAction !== 'batch'} onOpenChange={() => setConfirmAction(null)}>
+      <AlertDialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmAction === 'approve' ? 'Approuver le retrait ?' : 'Rejeter le retrait ?'}
+              {confirmAction === 'pay' ? 'Marquer comme payé ?' : 'Rejeter le retrait ?'}
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirmAction === 'approve' ? (
-                <>
-                  Vous allez approuver un retrait de{' '}
-                  <strong>{selectedRequest?.amount.toLocaleString()} {selectedRequest?.currency}</strong>{' '}
-                  vers {selectedRequest?.mobile_money_phone}.
-                </>
-              ) : (
-                <div className="space-y-4">
-                  <p>
-                    Le montant de{' '}
-                    <strong>{selectedRequest?.amount.toLocaleString()} {selectedRequest?.currency}</strong>{' '}
-                    sera remboursé au wallet de l'utilisateur.
-                  </p>
-                  <div>
-                    <label className="text-sm font-medium">Raison du rejet :</label>
-                    <textarea
-                      className="w-full mt-2 p-2 border rounded-md text-sm"
-                      placeholder="Ex: Informations incomplètes, numéro invalide..."
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      rows={3}
-                    />
+            <AlertDialogDescription asChild>
+              <div>
+                {confirmAction === 'pay' ? (
+                  <div className="space-y-4">
+                    <p>
+                      Confirmez que vous avez effectué le paiement de{' '}
+                      <strong>{selectedRequest?.amount.toLocaleString()} {selectedRequest?.currency}</strong>{' '}
+                      vers:
+                    </p>
+                    <div className="bg-muted rounded-lg p-3 text-center">
+                      <p className="text-lg font-mono font-bold">{selectedRequest?.mobile_money_phone}</p>
+                      <p className="text-sm text-muted-foreground">{selectedRequest?.mobile_money_provider?.toUpperCase()}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Référence transaction (optionnel):</label>
+                      <Input
+                        placeholder="Ex: TXN123456789"
+                        value={adminReference}
+                        onChange={(e) => setAdminReference(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-4">
+                    <p>
+                      Le montant de{' '}
+                      <strong>{selectedRequest?.amount.toLocaleString()} {selectedRequest?.currency}</strong>{' '}
+                      sera remboursé au wallet de l'utilisateur.
+                    </p>
+                    <div>
+                      <label className="text-sm font-medium">Raison du rejet :</label>
+                      <Textarea
+                        className="mt-2"
+                        placeholder="Ex: Numéro invalide, informations incorrectes..."
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmHandler}
-              className={confirmAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-              disabled={approveMutation.isPending || rejectMutation.isPending}
+              className={confirmAction === 'pay' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+              disabled={payMutation.isPending || rejectMutation.isPending}
             >
-              {(approveMutation.isPending || rejectMutation.isPending) && (
+              {(payMutation.isPending || rejectMutation.isPending) && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
-              {confirmAction === 'approve' ? 'Confirmer l\'approbation' : 'Confirmer le rejet'}
+              {confirmAction === 'pay' ? 'Confirmer le paiement' : 'Confirmer le rejet'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -625,10 +684,10 @@ export const WithdrawalManagement = () => {
       <AlertDialog open={showBatchConfirm} onOpenChange={setShowBatchConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Approuver {selectedIds.size} retrait(s) ?</AlertDialogTitle>
+            <AlertDialogTitle>Marquer {selectedIds.size} retrait(s) comme payé(s) ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Vous allez approuver <strong>{selectedIds.size}</strong> demandes de retrait 
-              pour un total de <strong>{selectedTotal.toLocaleString()} CDF</strong>.
+              Vous confirmez avoir effectué les paiements pour <strong>{selectedIds.size}</strong> demandes 
+              totalisant <strong>{selectedTotal.toLocaleString()} CDF</strong>.
               <br /><br />
               Cette action est irréversible.
             </AlertDialogDescription>
@@ -636,14 +695,14 @@ export const WithdrawalManagement = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              onClick={confirmBatchApprove}
+              onClick={confirmBatchPay}
               className="bg-green-600 hover:bg-green-700"
-              disabled={batchApproveMutation.isPending}
+              disabled={batchPayMutation.isPending}
             >
-              {batchApproveMutation.isPending && (
+              {batchPayMutation.isPending && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
-              Confirmer l'approbation en lot
+              Confirmer les paiements
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
