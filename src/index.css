@@ -766,6 +766,47 @@ All colors MUST be HSL.
     box-shadow: 0 -4px 30px hsl(var(--background) / 0.5);
   }
 
+  /* ===== FLOATING BOTTOM NAV - Modern Island Design ===== */
+  .bottom-nav-floating {
+    position: fixed;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    right: 16px;
+    z-index: 110;
+    height: auto;
+    padding: 8px 4px;
+    will-change: transform;
+    isolation: isolate;
+    
+    /* Glassmorphism premium */
+    background: hsl(var(--background) / 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    
+    /* Coins arrondis - effet île flottante */
+    border-radius: 28px;
+    
+    /* Bordure subtile avec glow */
+    border: 1px solid hsl(var(--border) / 0.3);
+    
+    /* Ombre prononcée avec effet de flottement */
+    box-shadow: 
+      0 8px 40px hsl(var(--foreground) / 0.12),
+      0 4px 20px hsl(var(--foreground) / 0.08),
+      0 2px 8px hsl(var(--foreground) / 0.04),
+      inset 0 1px 0 hsl(var(--background) / 0.5);
+  }
+  
+  .dark .bottom-nav-floating {
+    background: hsl(var(--background) / 0.75);
+    border: 1px solid hsl(var(--border) / 0.2);
+    box-shadow: 
+      0 8px 40px hsl(0 0% 0% / 0.4),
+      0 4px 20px hsl(0 0% 0% / 0.3),
+      0 0 60px hsl(var(--primary) / 0.1),
+      inset 0 1px 0 hsl(var(--foreground) / 0.05);
+  }
+
   /* Variante avec safe area intégrée */
   .bottom-nav-safe {
     height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
@@ -778,6 +819,11 @@ All colors MUST be HSL.
 
   .pb-bottom-nav {
     padding-bottom: var(--bottom-nav-height-safe);
+  }
+
+  /* Padding pour contenu avec nav flottante */
+  .pb-floating-nav {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Layout avec header fixe */
