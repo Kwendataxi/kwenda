@@ -135,11 +135,7 @@ export const DeliveryDriverProfile = () => {
       </Card>
 
       {/* Abonnement */}
-      <SubscriptionCard
-        plan={profile?.driver_subscriptions?.[0]?.tier || 'free'}
-        expiresAt={profile?.driver_subscriptions?.[0]?.valid_until}
-        serviceType="delivery"
-      />
+      <SubscriptionCard serviceType="delivery" />
 
       {/* Code Partenaire */}
       <Card className="p-6">
