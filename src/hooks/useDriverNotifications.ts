@@ -3,7 +3,7 @@
  * Utilise Supabase Realtime pour des notifications instantanées
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -24,32 +24,38 @@ export const useDriverNotifications = () => {
   const [notifications, setNotifications] = useState<DriverNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const loadPendingNotifications = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('push_notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .in('notification_type', [
+        'ride_assignment', 
+        'delivery_assignment',
+        'fleet_join',
+        'fleet_leave'
+      ])
+      .eq('is_sent', false)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Erreur chargement notifications:', error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      console.log(`✅ ${data.length} notifications en attente`);
+      setNotifications(data);
+      setUnreadCount(data.length);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
 
     console.log('🔔 Initialisation notifications driver:', user.id);
-
-    // Charger les notifications non lues
-    const loadPendingNotifications = async () => {
-      const { data, error } = await supabase
-        .from('push_notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .in('notification_type', ['ride_assignment', 'delivery_assignment'])
-        .eq('is_sent', false)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Erreur chargement notifications:', error);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        console.log(`✅ ${data.length} notifications en attente`);
-        setNotifications(data);
-        setUnreadCount(data.length);
-      }
-    };
 
     loadPendingNotifications();
 
@@ -69,28 +75,28 @@ export const useDriverNotifications = () => {
           
           console.log('🔔 NOUVELLE NOTIFICATION:', newNotif);
 
-          // Vérifier si c'est une notification de course/livraison
+          // Handle different notification types
+          const notificationType = newNotif.notification_type;
+
           if (
-            newNotif.notification_type === 'ride_assignment' ||
-            newNotif.notification_type === 'delivery_assignment'
+            notificationType === 'ride_assignment' ||
+            notificationType === 'delivery_assignment'
           ) {
             setNotifications(prev => [newNotif, ...prev]);
             setUnreadCount(prev => prev + 1);
 
-            // Afficher toast avec son
-            const isDelivery = newNotif.notification_type === 'delivery_assignment';
+            const isDelivery = notificationType === 'delivery_assignment';
             toast.success(newNotif.title, {
               description: newNotif.message,
-              duration: 120000, // 2 minutes
+              duration: 120000,
               icon: isDelivery ? '📦' : '🚗'
             });
 
-            // Jouer un son + vibration
             notificationSoundService.playNotificationSound(
               isDelivery ? 'deliveryPicked' : 'driverAssigned'
             );
 
-            // Notification native si permission accordée
+            // Native notification
             if ('Notification' in window && Notification.permission === 'granted') {
               new Notification(newNotif.title, {
                 body: newNotif.message,
@@ -98,6 +104,46 @@ export const useDriverNotifications = () => {
                 badge: '/logo.png',
                 tag: `notification-${newNotif.id}`,
                 requireInteraction: true
+              });
+            }
+          } else if (notificationType === 'fleet_join') {
+            // Driver was added to a fleet
+            setNotifications(prev => [newNotif, ...prev]);
+            setUnreadCount(prev => prev + 1);
+
+            toast.success(newNotif.title, {
+              description: newNotif.message,
+              duration: 8000,
+              icon: '🎉'
+            });
+
+            notificationSoundService.playNotificationSound('success');
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(newNotif.title, {
+                body: newNotif.message,
+                icon: '/logo.png',
+                badge: '/logo.png',
+                tag: `fleet-join-${newNotif.id}`
+              });
+            }
+          } else if (notificationType === 'fleet_leave') {
+            // Driver was removed from a fleet or left
+            setNotifications(prev => [newNotif, ...prev]);
+            setUnreadCount(prev => prev + 1);
+
+            toast.info(newNotif.title, {
+              description: newNotif.message,
+              duration: 5000,
+              icon: '👋'
+            });
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(newNotif.title, {
+                body: newNotif.message,
+                icon: '/logo.png',
+                badge: '/logo.png',
+                tag: `fleet-leave-${newNotif.id}`
               });
             }
           }
@@ -111,7 +157,7 @@ export const useDriverNotifications = () => {
       console.log('🔌 Déconnexion notifications realtime');
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, loadPendingNotifications]);
 
 
   // Marquer une notification comme lue
@@ -150,6 +196,7 @@ export const useDriverNotifications = () => {
     notifications,
     unreadCount,
     markAsRead,
-    clearAll
+    clearAll,
+    refresh: loadPendingNotifications
   };
 };
