@@ -32,6 +32,7 @@ interface UniversalBottomNavigationProps {
   className?: string;
   variant?: 'default' | 'enhanced';
   showLabels?: boolean;
+  floating?: boolean;
 }
 
 const navigationConfigs = {
@@ -80,7 +81,8 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
   badges = {},
   className,
   variant = 'default',
-  showLabels = true
+  showLabels = true,
+  floating = false
 }) => {
   const config = navigationConfigs[userType];
   
@@ -114,27 +116,31 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
 
   return (
     <nav className={cn(
-      'bottom-nav-standard',
-      variant === 'enhanced' && 'pb-6',
+      floating ? 'bottom-nav-floating' : 'bottom-nav-standard',
+      !floating && variant === 'enhanced' && 'pb-6',
       className
     )}>
       <div className={cn(
-        'mx-auto max-w-screen-sm px-4 pb-[env(safe-area-inset-bottom)]',
-        variant === 'enhanced' && 'px-6'
+        'mx-auto max-w-screen-sm',
+        !floating && 'px-4 pb-[env(safe-area-inset-bottom)]',
+        !floating && variant === 'enhanced' && 'px-6',
+        floating && 'px-2'
       )}>
         <motion.div 
           className={cn(
             'grid transition-all duration-300',
-            variant === 'default' && 'bg-background/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lg',
-            variant === 'enhanced' && 'bg-background/98 backdrop-blur-2xl border-2 border-primary/20 rounded-3xl shadow-2xl p-1'
+            // Pas de background/border supplémentaire si floating (déjà géré par la nav)
+            !floating && variant === 'default' && 'bg-background/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lg',
+            !floating && variant === 'enhanced' && 'bg-background/98 backdrop-blur-2xl border-2 border-primary/20 rounded-3xl shadow-2xl p-1',
+            floating && 'bg-transparent'
           )}
           style={{ gridTemplateColumns: `repeat(${config.length}, minmax(0, 1fr))` }}
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ 
             type: 'spring', 
-            stiffness: variant === 'enhanced' ? 260 : 300, 
-            damping: variant === 'enhanced' ? 20 : 25 
+            stiffness: floating ? 200 : (variant === 'enhanced' ? 260 : 300), 
+            damping: floating ? 25 : (variant === 'enhanced' ? 20 : 25)
           }}
         >
           {config.map((item, index) => {
