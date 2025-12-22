@@ -28,6 +28,27 @@ export interface MarketplaceProduct {
   created_at?: string;
   moderation_status: string;
   status?: string;
+  // Champs produits digitaux
+  is_digital?: boolean;
+  digital_file_url?: string;
+  digital_file_name?: string;
+  digital_file_size?: number;
+  digital_download_limit?: number;
+  digital_file_type?: string;
+}
+
+// Interface pour les téléchargements digitaux
+export interface DigitalDownload {
+  id: string;
+  order_id: string;
+  product_id: string;
+  buyer_id: string;
+  download_count: number;
+  max_downloads: number;
+  download_token: string;
+  expires_at: string;
+  last_downloaded_at?: string;
+  created_at: string;
 }
 
 export interface CartItem {

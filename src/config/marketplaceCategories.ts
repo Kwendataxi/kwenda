@@ -9,6 +9,7 @@ import {
   Apple,
   Sparkles,
   Dumbbell,
+  FileCode,
   type LucideIcon
 } from 'lucide-react';
 
@@ -84,6 +85,12 @@ export const MARKETPLACE_CATEGORIES: MarketplaceCategory[] = [
     name: 'Jeux Vidéo',
     icon: Gamepad2,
     subcategories: ['Consoles', 'Jeux', 'Accessoires gaming', 'PC Gaming']
+  },
+  {
+    id: 'digital',
+    name: 'Produits Digitaux',
+    icon: FileCode,
+    subcategories: ['E-books', 'Cours en ligne', 'Logiciels', 'Templates', 'Musique', 'Photos', 'Vidéos', 'Documents']
   }
 ];
 
