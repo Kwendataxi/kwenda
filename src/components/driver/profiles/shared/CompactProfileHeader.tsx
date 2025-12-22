@@ -4,9 +4,8 @@
 
 import { useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Star, Settings, MessageCircle, MapPin, CheckCircle } from 'lucide-react';
+import { Star, Settings, MessageCircle, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PhotoUploadModal } from './PhotoUploadModal';
 
@@ -28,7 +27,6 @@ export const CompactProfileHeader = ({
   photo,
   rating,
   city = 'Kinshasa',
-  badge,
   badgeIcon,
   serviceType,
   isOnline = true,
@@ -40,19 +38,18 @@ export const CompactProfileHeader = ({
 
   const themeColor = serviceType === 'taxi' ? 'text-primary' : 'text-green-500';
   const themeBg = serviceType === 'taxi' ? 'bg-primary/10' : 'bg-green-500/10';
-  const themeBorder = serviceType === 'taxi' ? 'border-primary/20' : 'border-green-500/20';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative rounded-2xl p-4 bg-card/80 backdrop-blur-sm border ${themeBorder}`}
+      className="rounded-2xl p-4 bg-card border border-border/50"
     >
       <div className="flex items-center gap-4">
-        {/* Avatar compact */}
+        {/* Avatar */}
         <div className="relative">
           <Avatar 
-            className="h-14 w-14 ring-2 ring-offset-2 ring-offset-background ring-primary/20 cursor-pointer"
+            className="h-14 w-14 ring-2 ring-offset-2 ring-offset-background ring-border cursor-pointer"
             onClick={() => setShowPhotoModal(true)}
           >
             <AvatarImage src={currentPhoto || undefined} alt={name} />
@@ -61,13 +58,13 @@ export const CompactProfileHeader = ({
             </AvatarFallback>
           </Avatar>
           
-          {/* Status indicator */}
+          {/* Online indicator */}
           {isOnline && (
             <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-green-500 border-2 border-background" />
           )}
         </div>
 
-        {/* Info principale */}
+        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-foreground truncate">{name}</h2>
@@ -77,51 +74,33 @@ export const CompactProfileHeader = ({
             </div>
           </div>
           
-          <div className="flex items-center gap-2 mt-0.5">
-            <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">{city}</span>
-            <span className="text-muted-foreground">•</span>
-            <Badge variant="secondary" className={`${themeBg} ${themeColor} border-0 text-xs py-0 h-5`}>
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Vérifié
-            </Badge>
+          <div className="flex items-center gap-2 mt-0.5 text-sm text-muted-foreground">
+            <MapPin className="w-3.5 h-3.5" />
+            <span>{city}</span>
+            <span>•</span>
+            <span>{badgeIcon}</span>
+            <span>{serviceType === 'taxi' ? 'Taxi' : 'Livraison'}</span>
           </div>
         </div>
 
-        {/* Actions rapides */}
-        <div className="flex items-center gap-1.5">
+        {/* Actions */}
+        <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-full"
+            className="h-10 w-10 rounded-full bg-muted/50 hover:bg-muted"
             onClick={onSupportClick}
           >
-            <MessageCircle className="w-4.5 h-4.5 text-muted-foreground" />
+            <MessageCircle className="w-5 h-5 text-muted-foreground" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-full"
+            className="h-10 w-10 rounded-full bg-muted/50 hover:bg-muted"
             onClick={onSettingsClick}
           >
-            <Settings className="w-4.5 h-4.5 text-muted-foreground" />
+            <Settings className="w-5 h-5 text-muted-foreground" />
           </Button>
-        </div>
-      </div>
-
-      {/* Badge service discret en bas */}
-      <div className="mt-3 pt-3 border-t border-border/50">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <span>{badgeIcon}</span>
-            <span>{badge}</span>
-          </span>
-          {isOnline && (
-            <span className="text-xs text-green-500 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              En ligne
-            </span>
-          )}
         </div>
       </div>
 

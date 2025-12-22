@@ -118,7 +118,7 @@ export const ModernDriverProfile = ({ serviceType }: ModernDriverProfileProps) =
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-24">
       <motion.div 
         className="p-4 space-y-4 max-w-lg mx-auto"
         initial={{ opacity: 0 }}
@@ -159,14 +159,14 @@ export const ModernDriverProfile = ({ serviceType }: ModernDriverProfileProps) =
           serviceType={serviceType}
           vehicleInfo={getVehicleInfo()}
         />
-      </motion.div>
 
-      {/* Actions Flottantes */}
-      <FloatingActions
-        onReferralClick={() => setShowReferralDialog(true)}
-        onSupportClick={() => setShowSupportModal(true)}
-        serviceType={serviceType}
-      />
+        {/* Barre d'Actions intégrée */}
+        <FloatingActions
+          onReferralClick={() => setShowReferralDialog(true)}
+          onSupportClick={() => setShowSupportModal(true)}
+          serviceType={serviceType}
+        />
+      </motion.div>
 
       {/* Dialogs */}
       <Dialog open={showReferralDialog} onOpenChange={setShowReferralDialog}>
