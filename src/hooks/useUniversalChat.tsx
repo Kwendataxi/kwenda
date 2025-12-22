@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -22,6 +22,12 @@ export interface UniversalConversation {
     shop_logo_url?: string;
   };
   unread_count?: number;
+  last_message?: {
+    content: string;
+    message_type: 'text' | 'location' | 'image' | 'file' | 'quick_action';
+    sender_id: string;
+    is_read: boolean;
+  };
 }
 
 export interface UniversalMessage {
@@ -34,6 +40,7 @@ export interface UniversalMessage {
   attachments: any[];
   is_read: boolean;
   reply_to_id?: string;
+  reply_to?: UniversalMessage;
   created_at: string;
   updated_at: string;
   sender?: {
@@ -43,81 +50,130 @@ export interface UniversalMessage {
     shop_name?: string;
     shop_logo_url?: string;
   };
+  // Optimistic UI states
+  status?: 'sending' | 'sent' | 'read' | 'error';
+  tempId?: string;
 }
+
+const MESSAGES_PER_PAGE = 50;
 
 export const useUniversalChat = () => {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<UniversalConversation[]>([]);
   const [messages, setMessages] = useState<{ [conversationId: string]: UniversalMessage[] }>({});
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState<{ [conversationId: string]: boolean }>({});
+  const [hasMore, setHasMore] = useState<{ [conversationId: string]: boolean }>({});
+  const [sendingMessages, setSendingMessages] = useState<Set<string>>(new Set());
+  const profilesCacheRef = useRef<{ [userId: string]: any }>({});
+
+  // Fetch profiles with caching
+  const fetchProfiles = useCallback(async (userIds: string[]) => {
+    const uncachedIds = userIds.filter(id => !profilesCacheRef.current[id]);
+    
+    if (uncachedIds.length > 0) {
+      const [{ data: profiles }, { data: vendorProfiles }] = await Promise.all([
+        supabase.from('profiles').select('user_id, display_name, avatar_url').in('user_id', uncachedIds),
+        supabase.from('vendor_profiles').select('user_id, shop_name, shop_logo_url').in('user_id', uncachedIds)
+      ]);
+
+      profiles?.forEach(p => {
+        profilesCacheRef.current[p.user_id] = { ...profilesCacheRef.current[p.user_id], ...p };
+      });
+      vendorProfiles?.forEach(vp => {
+        profilesCacheRef.current[vp.user_id] = { ...profilesCacheRef.current[vp.user_id], ...vp };
+      });
+    }
+
+    return userIds.reduce((acc, id) => {
+      acc[id] = profilesCacheRef.current[id] || {};
+      return acc;
+    }, {} as any);
+  }, []);
 
   const fetchConversations = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
     try {
+      // Fetch conversations with last message
       const { data: conversationsData, error } = await supabase
         .from('unified_conversations')
-        .select(`
-          *,
-          unified_messages!inner(id, is_read, created_at, sender_id)
-        `)
+        .select('*')
         .or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`)
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (error) throw error;
+
+      // Fetch unread counts and last messages for each conversation
+      const conversationIds = conversationsData?.map(c => c.id) || [];
+      
+      const [{ data: unreadData }, { data: lastMessagesData }] = await Promise.all([
+        supabase
+          .from('unified_messages')
+          .select('conversation_id, id')
+          .in('conversation_id', conversationIds)
+          .eq('is_read', false)
+          .neq('sender_id', user.id),
+        supabase
+          .from('unified_messages')
+          .select('conversation_id, content, message_type, sender_id, is_read, created_at')
+          .in('conversation_id', conversationIds)
+          .order('created_at', { ascending: false })
+      ]);
+
+      // Count unread per conversation
+      const unreadCounts: { [key: string]: number } = {};
+      unreadData?.forEach(msg => {
+        unreadCounts[msg.conversation_id] = (unreadCounts[msg.conversation_id] || 0) + 1;
+      });
+
+      // Get last message per conversation
+      const lastMessages: { [key: string]: any } = {};
+      lastMessagesData?.forEach(msg => {
+        if (!lastMessages[msg.conversation_id]) {
+          lastMessages[msg.conversation_id] = msg;
+        }
+      });
 
       // Fetch participant profiles
       const participantIds = [...new Set(
         conversationsData?.flatMap(conv => [conv.participant_1, conv.participant_2]) || []
       )].filter(id => id !== user.id);
 
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, display_name, avatar_url')
-        .in('user_id', participantIds);
-
-      const { data: vendorProfiles } = await supabase
-        .from('vendor_profiles')
-        .select('user_id, shop_name, shop_logo_url')
-        .in('user_id', participantIds);
-
-      const profilesMap = profiles?.reduce((acc, profile) => {
-        acc[profile.user_id] = profile;
-        return acc;
-      }, {} as any) || {};
-
-      const vendorProfilesMap = vendorProfiles?.reduce((acc, vp) => {
-        acc[vp.user_id] = vp;
-        return acc;
-      }, {} as any) || {};
+      const profiles = await fetchProfiles(participantIds);
 
       const enrichedConversations = conversationsData?.map(conv => {
         const otherParticipantId = conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
-        const unreadCount = conv.unified_messages?.filter((msg: any) => !msg.is_read && msg.sender_id !== user.id).length || 0;
-        const profile = profilesMap[otherParticipantId];
-        const vendorProfile = vendorProfilesMap[otherParticipantId];
+        const profile = profiles[otherParticipantId] || {};
+        const lastMsg = lastMessages[conv.id];
         
         return {
           id: conv.id,
-          context_type: conv.context_type as 'transport' | 'delivery' | 'marketplace' | 'rental' | 'support',
+          context_type: conv.context_type as UniversalConversation['context_type'],
           context_id: conv.context_id,
           participant_1: conv.participant_1,
           participant_2: conv.participant_2,
           title: conv.title,
-          status: conv.status as 'active' | 'archived' | 'closed',
+          status: conv.status as UniversalConversation['status'],
           metadata: conv.metadata,
           created_at: conv.created_at,
           updated_at: conv.updated_at,
           last_message_at: conv.last_message_at,
           other_participant: {
             id: otherParticipantId,
-            display_name: profile?.display_name || 'Utilisateur',
-            avatar_url: profile?.avatar_url,
-            shop_name: vendorProfile?.shop_name,
-            shop_logo_url: vendorProfile?.shop_logo_url,
+            display_name: profile.display_name || 'Utilisateur',
+            avatar_url: profile.avatar_url,
+            shop_name: profile.shop_name,
+            shop_logo_url: profile.shop_logo_url,
           },
-          unread_count: unreadCount,
+          unread_count: unreadCounts[conv.id] || 0,
+          last_message: lastMsg ? {
+            content: lastMsg.content,
+            message_type: lastMsg.message_type,
+            sender_id: lastMsg.sender_id,
+            is_read: lastMsg.is_read,
+          } : undefined,
         } as UniversalConversation;
       }) || [];
 
@@ -127,79 +183,123 @@ export const useUniversalChat = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, fetchProfiles]);
 
-  const fetchMessages = useCallback(async (conversationId: string) => {
+  const fetchMessages = useCallback(async (conversationId: string, loadMore = false) => {
     if (!user) return;
+
+    const currentMessages = messages[conversationId] || [];
+    const offset = loadMore ? currentMessages.filter(m => !m.tempId).length : 0;
+
+    if (loadMore) {
+      setLoadingMore(prev => ({ ...prev, [conversationId]: true }));
+    }
 
     try {
       const { data: messagesData, error } = await supabase
         .from('unified_messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .range(offset, offset + MESSAGES_PER_PAGE - 1);
 
       if (error) throw error;
 
+      // Reverse to get chronological order
+      const chronologicalMessages = [...(messagesData || [])].reverse();
+
+      // Check if there are more messages
+      setHasMore(prev => ({
+        ...prev,
+        [conversationId]: (messagesData?.length || 0) === MESSAGES_PER_PAGE
+      }));
+
       // Fetch sender profiles
-      const senderIds = [...new Set(messagesData?.map(msg => msg.sender_id) || [])];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, display_name, avatar_url')
-        .in('user_id', senderIds);
+      const senderIds = [...new Set(chronologicalMessages.map(msg => msg.sender_id))];
+      const profiles = await fetchProfiles(senderIds);
 
-      const { data: vendorProfiles } = await supabase
-        .from('vendor_profiles')
-        .select('user_id, shop_name, shop_logo_url')
-        .in('user_id', senderIds);
+      // Fetch reply_to messages if any
+      const replyToIds = chronologicalMessages
+        .filter(msg => msg.reply_to_id)
+        .map(msg => msg.reply_to_id);
+      
+      let replyToMessages: { [id: string]: any } = {};
+      if (replyToIds.length > 0) {
+        const { data: replyData } = await supabase
+          .from('unified_messages')
+          .select('*')
+          .in('id', replyToIds);
+        
+        replyData?.forEach(msg => {
+          replyToMessages[msg.id] = msg;
+        });
+      }
 
-      const profilesMap = profiles?.reduce((acc, profile) => {
-        acc[profile.user_id] = profile;
-        return acc;
-      }, {} as any) || {};
-
-      const vendorProfilesMap = vendorProfiles?.reduce((acc, vp) => {
-        acc[vp.user_id] = vp;
-        return acc;
-      }, {} as any) || {};
-
-      const enrichedMessages = messagesData?.map(msg => {
-        const profile = profilesMap[msg.sender_id];
-        const vendorProfile = vendorProfilesMap[msg.sender_id];
+      const enrichedMessages: UniversalMessage[] = chronologicalMessages.map(msg => {
+        const profile = profiles[msg.sender_id] || {};
+        const replyTo = msg.reply_to_id ? replyToMessages[msg.reply_to_id] : undefined;
         
         return {
           id: msg.id,
           conversation_id: msg.conversation_id,
           sender_id: msg.sender_id,
           content: msg.content,
-          message_type: msg.message_type as 'text' | 'location' | 'image' | 'file' | 'quick_action',
+          message_type: msg.message_type as UniversalMessage['message_type'],
           metadata: msg.metadata,
-          attachments: msg.attachments || [],
+          attachments: Array.isArray(msg.attachments) ? msg.attachments : [],
           is_read: msg.is_read,
           reply_to_id: msg.reply_to_id,
+          reply_to: replyTo ? {
+            ...replyTo,
+            message_type: replyTo.message_type as UniversalMessage['message_type'],
+            attachments: Array.isArray(replyTo.attachments) ? replyTo.attachments : [],
+            sender: profiles[replyTo.sender_id] || {}
+          } as UniversalMessage : undefined,
           created_at: msg.created_at,
           updated_at: msg.updated_at,
           sender: {
             id: msg.sender_id,
-            display_name: profile?.display_name || 'Utilisateur',
-            avatar_url: profile?.avatar_url,
-            shop_name: vendorProfile?.shop_name,
-            shop_logo_url: vendorProfile?.shop_logo_url,
-          } as any,
-        } as UniversalMessage;
-      }) || [];
+            display_name: profile.display_name || 'Utilisateur',
+            avatar_url: profile.avatar_url,
+            shop_name: profile.shop_name,
+            shop_logo_url: profile.shop_logo_url,
+          },
+          status: (msg.is_read ? 'read' : 'sent') as UniversalMessage['status'],
+        };
+      });
 
-      setMessages(prev => ({
-        ...prev,
-        [conversationId]: enrichedMessages,
-      }));
+      setMessages(prev => {
+        if (loadMore) {
+          // Prepend older messages
+          const existingMessages = prev[conversationId] || [];
+          return {
+            ...prev,
+            [conversationId]: [...enrichedMessages, ...existingMessages.filter(m => !enrichedMessages.find(e => e.id === m.id))],
+          };
+        }
+        return {
+          ...prev,
+          [conversationId]: enrichedMessages,
+        };
+      });
 
       // Mark messages as read
-      await markMessagesAsRead(conversationId);
+      if (!loadMore) {
+        await markMessagesAsRead(conversationId);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
+    } finally {
+      if (loadMore) {
+        setLoadingMore(prev => ({ ...prev, [conversationId]: false }));
+      }
     }
-  }, [user]);
+  }, [user, messages, fetchProfiles]);
+
+  const loadMoreMessages = useCallback((conversationId: string) => {
+    if (loadingMore[conversationId] || !hasMore[conversationId]) return;
+    fetchMessages(conversationId, true);
+  }, [fetchMessages, loadingMore, hasMore]);
 
   const markMessagesAsRead = useCallback(async (conversationId: string) => {
     if (!user) return;
@@ -210,19 +310,62 @@ export const useUniversalChat = () => {
         .update({ is_read: true })
         .eq('conversation_id', conversationId)
         .neq('sender_id', user.id);
+      
+      // Update local state
+      setMessages(prev => ({
+        ...prev,
+        [conversationId]: (prev[conversationId] || []).map(msg => ({
+          ...msg,
+          is_read: true,
+          status: 'read' as const
+        }))
+      }));
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }
   }, [user]);
 
+  // Optimistic send message
   const sendMessage = useCallback(async (
     conversationId: string,
     content: string,
     messageType: 'text' | 'location' | 'image' | 'file' | 'quick_action' = 'text',
     metadata: any = {},
-    attachments: any[] = []
+    attachments: any[] = [],
+    replyToId?: string
   ) => {
     if (!user || !content.trim()) return;
+
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    
+    // Optimistic message
+    const optimisticMessage: UniversalMessage = {
+      id: tempId,
+      tempId,
+      conversation_id: conversationId,
+      sender_id: user.id,
+      content: content.trim(),
+      message_type: messageType,
+      metadata,
+      attachments,
+      is_read: false,
+      reply_to_id: replyToId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      sender: {
+        id: user.id,
+        display_name: 'Moi',
+      },
+      status: 'sending',
+    };
+
+    // Add optimistic message immediately
+    setMessages(prev => ({
+      ...prev,
+      [conversationId]: [...(prev[conversationId] || []), optimisticMessage],
+    }));
+
+    setSendingMessages(prev => new Set([...prev, tempId]));
 
     try {
       const { data, error } = await supabase
@@ -234,11 +377,29 @@ export const useUniversalChat = () => {
           message_type: messageType,
           metadata,
           attachments,
+          reply_to_id: replyToId,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Replace optimistic message with real one
+      setMessages(prev => ({
+        ...prev,
+        [conversationId]: (prev[conversationId] || []).map(msg =>
+          msg.tempId === tempId
+            ? { 
+                ...msg, 
+                id: data.id,
+                created_at: data.created_at,
+                updated_at: data.updated_at,
+                status: 'sent' as const, 
+                tempId: undefined 
+              }
+            : msg
+        ),
+      }));
 
       // Update conversation's last_message_at
       await supabase
@@ -249,9 +410,48 @@ export const useUniversalChat = () => {
       return data;
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Mark message as error
+      setMessages(prev => ({
+        ...prev,
+        [conversationId]: (prev[conversationId] || []).map(msg =>
+          msg.tempId === tempId
+            ? { ...msg, status: 'error' as const }
+            : msg
+        ),
+      }));
+      
       throw error;
+    } finally {
+      setSendingMessages(prev => {
+        const next = new Set(prev);
+        next.delete(tempId);
+        return next;
+      });
     }
   }, [user]);
+
+  // Retry failed message
+  const retryMessage = useCallback(async (conversationId: string, tempId: string) => {
+    const failedMessage = messages[conversationId]?.find(m => m.tempId === tempId);
+    if (!failedMessage) return;
+
+    // Remove failed message
+    setMessages(prev => ({
+      ...prev,
+      [conversationId]: (prev[conversationId] || []).filter(m => m.tempId !== tempId),
+    }));
+
+    // Resend
+    await sendMessage(
+      conversationId,
+      failedMessage.content,
+      failedMessage.message_type,
+      failedMessage.metadata,
+      failedMessage.attachments,
+      failedMessage.reply_to_id
+    );
+  }, [messages, sendMessage]);
 
   const createOrFindConversation = useCallback(async (
     contextType: 'transport' | 'delivery' | 'marketplace' | 'rental' | 'support',
@@ -262,14 +462,12 @@ export const useUniversalChat = () => {
   ) => {
     if (!user) return null;
 
-    // ⚠️ Empêcher les conversations avec soi-même
     if (participantId === user.id) {
       console.error('Cannot create conversation with yourself');
       throw new Error('Impossible de créer une conversation avec vous-même');
     }
 
     try {
-      // First try to find existing conversation
       let query = supabase
         .from('unified_conversations')
         .select('*')
@@ -282,7 +480,6 @@ export const useUniversalChat = () => {
         return existing;
       }
 
-      // Create new conversation
       const { data, error } = await supabase
         .from('unified_conversations')
         .insert({
@@ -331,12 +528,26 @@ export const useUniversalChat = () => {
             reject(error);
           }
         },
-        (error) => {
+        () => {
           reject(new Error('Impossible d\'obtenir la position'));
         },
         { enableHighAccuracy: true, timeout: 10000 }
       );
     });
+  }, [sendMessage]);
+
+  const sendImageMessage = useCallback(async (
+    conversationId: string,
+    imageUrl: string,
+    caption?: string
+  ) => {
+    return sendMessage(
+      conversationId,
+      caption || '📷 Photo',
+      'image',
+      { imageUrl },
+      [{ type: 'image', url: imageUrl }]
+    );
   }, [sendMessage]);
 
   // Real-time subscriptions
@@ -358,20 +569,66 @@ export const useUniversalChat = () => {
       .channel('unified_messages_changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'unified_messages' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newMessage = payload.new as any;
-            setMessages(prev => ({
-              ...prev,
-              [newMessage.conversation_id]: [
-                ...(prev[newMessage.conversation_id] || []),
-                { ...newMessage },
-              ],
-            }));
-            // Refresh conversations to update unread counts and ordering
-            fetchConversations();
+        { event: 'INSERT', schema: 'public', table: 'unified_messages' },
+        async (payload) => {
+          const newMessage = payload.new as any;
+          
+          // Don't add if it's our own optimistic message
+          if (newMessage.sender_id === user.id) {
+            return;
           }
+
+          // Fetch sender profile
+          const profiles = await fetchProfiles([newMessage.sender_id]);
+          const profile = profiles[newMessage.sender_id] || {};
+
+          const enrichedMessage: UniversalMessage = {
+            id: newMessage.id,
+            conversation_id: newMessage.conversation_id,
+            sender_id: newMessage.sender_id,
+            content: newMessage.content,
+            message_type: newMessage.message_type,
+            metadata: newMessage.metadata,
+            attachments: newMessage.attachments || [],
+            is_read: newMessage.is_read,
+            reply_to_id: newMessage.reply_to_id,
+            created_at: newMessage.created_at,
+            updated_at: newMessage.updated_at,
+            sender: {
+              id: newMessage.sender_id,
+              display_name: profile.display_name || 'Utilisateur',
+              avatar_url: profile.avatar_url,
+              shop_name: profile.shop_name,
+              shop_logo_url: profile.shop_logo_url,
+            },
+            status: 'sent',
+          };
+
+          setMessages(prev => ({
+            ...prev,
+            [newMessage.conversation_id]: [
+              ...(prev[newMessage.conversation_id] || []),
+              enrichedMessage,
+            ],
+          }));
+          
+          fetchConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'unified_messages' },
+        (payload) => {
+          const updatedMessage = payload.new as any;
+          
+          setMessages(prev => ({
+            ...prev,
+            [updatedMessage.conversation_id]: (prev[updatedMessage.conversation_id] || []).map(msg =>
+              msg.id === updatedMessage.id
+                ? { ...msg, is_read: updatedMessage.is_read, status: updatedMessage.is_read ? 'read' : 'sent' }
+                : msg
+            ),
+          }));
         }
       )
       .subscribe();
@@ -380,14 +637,13 @@ export const useUniversalChat = () => {
       supabase.removeChannel(conversationsChannel);
       supabase.removeChannel(messagesChannel);
     };
-  }, [user, fetchConversations]);
+  }, [user, fetchConversations, fetchProfiles]);
 
   // Initial fetch
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
 
-  // Créer une conversation depuis un booking
   const createConversationFromBooking = useCallback(async (
     bookingId: string,
     bookingType: 'transport' | 'delivery'
@@ -398,7 +654,6 @@ export const useUniversalChat = () => {
     }
 
     try {
-      // Récupérer les infos du booking
       const tableName = bookingType === 'transport' ? 'transport_bookings' : 'delivery_orders';
       const { data: booking, error: bookingError } = await supabase
         .from(tableName)
@@ -411,7 +666,6 @@ export const useUniversalChat = () => {
         return null;
       }
 
-      // Déterminer l'autre participant
       const otherParticipantId = user.id === booking.user_id 
         ? booking.driver_id 
         : booking.user_id;
@@ -421,7 +675,6 @@ export const useUniversalChat = () => {
         return null;
       }
 
-      // Créer ou récupérer la conversation
       return await createOrFindConversation(
         bookingType,
         otherParticipantId,
@@ -438,10 +691,16 @@ export const useUniversalChat = () => {
     conversations,
     messages,
     loading,
+    loadingMore,
+    hasMore,
+    sendingMessages,
     fetchConversations,
     fetchMessages,
+    loadMoreMessages,
     sendMessage,
     sendLocationMessage,
+    sendImageMessage,
+    retryMessage,
     createOrFindConversation,
     createConversationFromBooking,
     markMessagesAsRead,
