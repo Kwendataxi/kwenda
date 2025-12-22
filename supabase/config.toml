@@ -250,3 +250,9 @@ verify_jwt = true  # ✅ CASHOUT: Retrait automatique vendeurs via Orange Money 
 
 [functions.vendor-wallet-manager]
 verify_jwt = true  # ✅ Gestion wallet vendeur (get_or_create, credit, get_balance)
+
+[functions.release-food-escrow]
+verify_jwt = true  # ✅ Libération escrow food par le client après confirmation
+
+[functions.process-marketplace-escrow]
+verify_jwt = true  # ✅ Checkout marketplace avec création escrow atomique

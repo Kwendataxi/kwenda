@@ -12,140 +12,288 @@ serve(async (req) => {
   }
 
   try {
-    // Utiliser la clé de service pour les opérations automatiques
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    console.log('Starting auto-release escrow job...');
+    console.log('🔄 Starting auto-release escrow job...');
 
-    // Trouver les commandes livrées depuis plus de 7 jours sans confirmation client
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const { data: ordersToRelease, error: fetchError } = await supabaseClient
+    const results = {
+      marketplace: [] as any[],
+      food: [] as any[],
+      escrowDirect: [] as any[]
+    };
+
+    // ========== 1. MARKETPLACE ORDERS ==========
+    console.log('📦 Checking marketplace orders...');
+    
+    const { data: marketplaceOrders, error: mpError } = await supabaseClient
       .from('marketplace_orders')
-      .select('id, buyer_id, seller_id, total_amount, delivered_at')
+      .select('id, buyer_id, seller_id, total_amount, delivered_at, status')
       .eq('status', 'delivered')
       .lt('delivered_at', sevenDaysAgo.toISOString())
       .is('completed_at', null);
 
-    if (fetchError) throw fetchError;
+    if (mpError) {
+      console.error('Marketplace query error:', mpError);
+    } else if (marketplaceOrders && marketplaceOrders.length > 0) {
+      console.log(`Found ${marketplaceOrders.length} marketplace orders to auto-release`);
 
-    if (!ordersToRelease || ordersToRelease.length === 0) {
-      console.log('No orders to auto-release');
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'No orders to release',
-          count: 0 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+      for (const order of marketplaceOrders) {
+        try {
+          // Marquer comme complétée
+          await supabaseClient
+            .from('marketplace_orders')
+            .update({
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+              customer_feedback: 'Auto-complété après 7 jours',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', order.id);
 
-    console.log(`Found ${ordersToRelease.length} orders to auto-release`);
+          // Libérer l'escrow via la fonction existante
+          const { data: releaseData, error: releaseError } = await supabaseClient.functions.invoke('release-escrow-payment', {
+            body: { orderId: order.id }
+          });
 
-    const results = [];
-    
-    for (const order of ordersToRelease) {
-      try {
-        console.log(`Processing order ${order.id}...`);
-
-        // Marquer la commande comme complétée
-        const { error: updateError } = await supabaseClient
-          .from('marketplace_orders')
-          .update({
-            status: 'completed',
-            completed_at: new Date().toISOString(),
-            customer_feedback: 'Auto-complété après 7 jours',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', order.id);
-
-        if (updateError) {
-          console.error(`Error updating order ${order.id}:`, updateError);
-          results.push({ orderId: order.id, success: false, error: updateError.message });
-          continue;
-        }
-
-        // Libérer les fonds via la fonction release-escrow-payment
-        const { data: releaseData, error: releaseError } = await supabaseClient.functions.invoke('release-escrow-payment', {
-          body: { orderId: order.id }
-        });
-
-        if (releaseError) {
-          console.error(`Error releasing escrow for order ${order.id}:`, releaseError);
-          results.push({ orderId: order.id, success: false, error: releaseError.message });
-          continue;
-        }
-
-        // Notifier l'acheteur
-        await supabaseClient.from('push_notifications').insert({
-          user_id: order.buyer_id,
-          title: '✅ Commande automatiquement confirmée',
-          message: `Votre commande a été automatiquement confirmée après 7 jours de livraison.`,
-          notification_type: 'marketplace_order',
-          metadata: { order_id: order.id, auto_released: true }
-        });
-
-        // Notifier le vendeur
-        await supabaseClient.from('push_notifications').insert({
-          user_id: order.seller_id,
-          title: '💰 Paiement auto-libéré',
-          message: `Les fonds de votre commande ont été automatiquement libérés après 7 jours.`,
-          notification_type: 'marketplace_payment',
-          metadata: { 
-            order_id: order.id, 
-            auto_released: true,
-            amount: releaseData?.sellerAmount || 0
+          if (releaseError) {
+            console.error(`Error releasing marketplace escrow ${order.id}:`, releaseError);
+            results.marketplace.push({ id: order.id, success: false, error: releaseError.message });
+            continue;
           }
-        });
 
-        // Logger l'activité
-        await supabaseClient.from('activity_logs').insert({
-          activity_type: 'escrow_auto_released',
-          description: `Paiement auto-libéré après 7 jours de livraison`,
-          reference_id: order.id,
-          reference_type: 'marketplace_order',
-          metadata: {
-            delivered_at: order.delivered_at,
-            released_at: new Date().toISOString(),
-            seller_amount: releaseData?.sellerAmount
-          }
-        });
+          // Notifier le vendeur
+          await supabaseClient.from('system_notifications').insert({
+            user_id: order.seller_id,
+            title: '💰 Paiement auto-libéré',
+            message: `Les fonds de votre commande ont été automatiquement libérés après 7 jours de livraison.`,
+            notification_type: 'escrow_auto_released',
+            data: { order_id: order.id, amount: releaseData?.sellerAmount }
+          });
 
-        results.push({ orderId: order.id, success: true, amount: releaseData?.sellerAmount });
-        console.log(`Successfully auto-released order ${order.id}`);
+          // Notifier l'acheteur
+          await supabaseClient.from('system_notifications').insert({
+            user_id: order.buyer_id,
+            title: '✅ Commande auto-confirmée',
+            message: `Votre commande a été automatiquement confirmée après 7 jours.`,
+            notification_type: 'escrow_auto_released',
+            data: { order_id: order.id }
+          });
 
-      } catch (orderError: any) {
-        console.error(`Error processing order ${order.id}:`, orderError);
-        results.push({ orderId: order.id, success: false, error: orderError.message });
+          results.marketplace.push({ id: order.id, success: true, amount: releaseData?.sellerAmount });
+          console.log(`✅ Auto-released marketplace order: ${order.id}`);
+
+        } catch (err: any) {
+          console.error(`Error processing marketplace order ${order.id}:`, err);
+          results.marketplace.push({ id: order.id, success: false, error: err.message });
+        }
       }
     }
 
-    const successCount = results.filter(r => r.success).length;
-    const failureCount = results.filter(r => !r.success).length;
+    // ========== 2. FOOD ORDERS ==========
+    console.log('🍽️ Checking food orders...');
 
-    console.log(`Auto-release job completed: ${successCount} succeeded, ${failureCount} failed`);
+    const { data: foodOrders, error: foodError } = await supabaseClient
+      .from('food_orders')
+      .select(`
+        id, 
+        order_number,
+        user_id, 
+        restaurant_id,
+        total_amount, 
+        delivered_at, 
+        status,
+        restaurant_profiles (
+          user_id,
+          restaurant_name
+        )
+      `)
+      .eq('status', 'delivered')
+      .lt('delivered_at', sevenDaysAgo.toISOString())
+      .is('completed_at', null);
+
+    if (foodError) {
+      console.error('Food query error:', foodError);
+    } else if (foodOrders && foodOrders.length > 0) {
+      console.log(`Found ${foodOrders.length} food orders to auto-release`);
+
+      for (const order of foodOrders) {
+        try {
+          const restaurantUserId = (order as any).restaurant_profiles?.user_id;
+          const restaurantAmount = order.total_amount * 0.95; // 95% au restaurant
+
+          // Marquer comme complétée
+          await supabaseClient
+            .from('food_orders')
+            .update({
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+              customer_feedback: 'Auto-complété après 7 jours',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', order.id);
+
+          // Créditer le wallet restaurant
+          const { data: wallet } = await supabaseClient
+            .from('restaurant_wallets')
+            .select('*')
+            .eq('restaurant_id', order.restaurant_id)
+            .single();
+
+          if (wallet) {
+            await supabaseClient
+              .from('restaurant_wallets')
+              .update({
+                balance: (wallet.balance || 0) + restaurantAmount,
+                total_earned: (wallet.total_earned || 0) + restaurantAmount,
+                updated_at: new Date().toISOString()
+              })
+              .eq('restaurant_id', order.restaurant_id);
+          }
+
+          // Notifier le restaurant
+          if (restaurantUserId) {
+            await supabaseClient.from('system_notifications').insert({
+              user_id: restaurantUserId,
+              title: '💰 Paiement auto-libéré',
+              message: `Commande #${order.order_number} - ${restaurantAmount.toLocaleString()} CDF crédités après 7 jours.`,
+              notification_type: 'food_escrow_auto_released',
+              data: { order_id: order.id, amount: restaurantAmount }
+            });
+          }
+
+          // Notifier le client
+          await supabaseClient.from('system_notifications').insert({
+            user_id: order.user_id,
+            title: '✅ Commande auto-confirmée',
+            message: `Votre commande #${order.order_number} a été automatiquement confirmée.`,
+            notification_type: 'food_escrow_auto_released',
+            data: { order_id: order.id }
+          });
+
+          results.food.push({ id: order.id, success: true, amount: restaurantAmount });
+          console.log(`✅ Auto-released food order: ${order.id}`);
+
+        } catch (err: any) {
+          console.error(`Error processing food order ${order.id}:`, err);
+          results.food.push({ id: order.id, success: false, error: err.message });
+        }
+      }
+    }
+
+    // ========== 3. ESCROW TRANSACTIONS DIRECTES (timeout_at) ==========
+    console.log('💳 Checking escrow transactions with timeout...');
+
+    const now = new Date().toISOString();
+    const { data: timedOutEscrows, error: escrowError } = await supabaseClient
+      .from('escrow_transactions')
+      .select('*')
+      .eq('status', 'held')
+      .lt('timeout_at', now);
+
+    if (escrowError) {
+      console.error('Escrow timeout query error:', escrowError);
+    } else if (timedOutEscrows && timedOutEscrows.length > 0) {
+      console.log(`Found ${timedOutEscrows.length} timed out escrows`);
+
+      for (const escrow of timedOutEscrows) {
+        try {
+          // Mettre à jour l'escrow
+          await supabaseClient
+            .from('escrow_transactions')
+            .update({
+              status: 'released',
+              released_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', escrow.id);
+
+          // Créditer le vendeur
+          const { data: vendorWallet } = await supabaseClient
+            .from('vendor_wallets')
+            .select('*')
+            .eq('vendor_id', escrow.seller_id)
+            .eq('currency', 'CDF')
+            .single();
+
+          if (vendorWallet) {
+            await supabaseClient
+              .from('vendor_wallets')
+              .update({
+                balance: (vendorWallet.balance || 0) + escrow.seller_amount,
+                total_earned: (vendorWallet.total_earned || 0) + escrow.seller_amount,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', vendorWallet.id);
+          }
+
+          // Notifier
+          await supabaseClient.from('system_notifications').insert({
+            user_id: escrow.seller_id,
+            title: '💰 Paiement libéré (timeout)',
+            message: `${escrow.seller_amount?.toLocaleString()} CDF ont été libérés automatiquement.`,
+            notification_type: 'escrow_timeout_released',
+            data: { escrow_id: escrow.id, order_id: escrow.order_id, amount: escrow.seller_amount }
+          });
+
+          results.escrowDirect.push({ id: escrow.id, success: true, amount: escrow.seller_amount });
+          console.log(`✅ Auto-released escrow (timeout): ${escrow.id}`);
+
+        } catch (err: any) {
+          console.error(`Error processing escrow ${escrow.id}:`, err);
+          results.escrowDirect.push({ id: escrow.id, success: false, error: err.message });
+        }
+      }
+    }
+
+    // ========== SUMMARY ==========
+    const summary = {
+      marketplace: {
+        total: results.marketplace.length,
+        success: results.marketplace.filter(r => r.success).length,
+        failed: results.marketplace.filter(r => !r.success).length
+      },
+      food: {
+        total: results.food.length,
+        success: results.food.filter(r => r.success).length,
+        failed: results.food.filter(r => !r.success).length
+      },
+      escrowDirect: {
+        total: results.escrowDirect.length,
+        success: results.escrowDirect.filter(r => r.success).length,
+        failed: results.escrowDirect.filter(r => !r.success).length
+      }
+    };
+
+    const totalProcessed = summary.marketplace.total + summary.food.total + summary.escrowDirect.total;
+    const totalSuccess = summary.marketplace.success + summary.food.success + summary.escrowDirect.success;
+
+    console.log('📊 Auto-release job completed:', summary);
+
+    // Logger l'activité
+    await supabaseClient.from('activity_logs').insert({
+      activity_type: 'escrow_auto_release_job',
+      description: `Job auto-release: ${totalSuccess}/${totalProcessed} traités avec succès`,
+      metadata: summary
+    });
 
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        message: `Auto-released ${successCount} orders`,
-        results,
-        summary: {
-          total: ordersToRelease.length,
-          succeeded: successCount,
-          failed: failureCount
-        }
+        success: true,
+        message: `Processed ${totalProcessed} items (${totalSuccess} success)`,
+        summary,
+        results
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error: any) {
-    console.error('Error in auto-release job:', error);
+    console.error('❌ Auto-release job error:', error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { 
