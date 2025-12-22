@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Clock, Package, Truck, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, Clock, Package, Truck, CheckCircle2, XCircle, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency } from '@/lib/utils';
 import { DownloadReceiptButton } from './DownloadReceiptButton';
+import { FoodDeliveryConfirmation } from './FoodDeliveryConfirmation';
 
 interface FoodOrderTrackingProps {
   orderId: string;
@@ -39,6 +40,30 @@ const STATUS_CONFIG = {
 export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) => {
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const refetchOrder = async () => {
+    const { data, error } = await supabase
+      .from('food_orders')
+      .select(`
+        id,
+        order_number,
+        status,
+        total_amount,
+        created_at,
+        estimated_delivery_time,
+        restaurant_profiles (
+          restaurant_name,
+          phone_number
+        )
+      `)
+      .eq('id', orderId)
+      .single();
+
+    if (!error && data) {
+      setOrder(data as any);
+    }
+  };
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -196,6 +221,32 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
           </CardContent>
         </Card>
 
+        {/* Escrow Info + Confirm Button */}
+        {order.status === 'delivered' && (
+          <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                <div>
+                  <p className="font-medium text-green-800 dark:text-green-200">
+                    Commande livrée - Confirmation requise
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    Confirmez la réception pour libérer le paiement au restaurant
+                  </p>
+                </div>
+              </div>
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700"
+                onClick={() => setShowConfirmation(true)}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Confirmer la réception
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Download Receipt */}
         <Card>
           <CardContent className="pt-6">
@@ -246,6 +297,20 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <FoodDeliveryConfirmation
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        orderId={orderId}
+        orderNumber={order.order_number}
+        restaurantName={order.restaurant_profiles.restaurant_name}
+        totalAmount={order.total_amount}
+        onConfirmed={() => {
+          refetchOrder();
+          setShowConfirmation(false);
+        }}
+      />
     </div>
   );
 };
