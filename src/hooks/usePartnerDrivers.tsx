@@ -10,6 +10,7 @@ interface PartnerDriver {
   driver_code: string;
   status: string;
   added_at: string;
+  commission_rate: number;
   driver_name?: string;
   driver_phone?: string;
   driver_email?: string;
@@ -46,7 +47,7 @@ export const usePartnerDrivers = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('partner_drivers')
-        .select('*')
+        .select('id, partner_id, driver_id, driver_code, status, added_at, commission_rate')
         .eq('partner_id', user.id)
         .eq('status', 'active')
         .order('added_at', { ascending: false });
@@ -75,6 +76,7 @@ export const usePartnerDrivers = () => {
 
           return {
             ...driver,
+            commission_rate: driver.commission_rate ?? 2.5,
             driver_name: profile?.display_name || 'Chauffeur',
             driver_phone: profile?.phone_number || '',
             driver_email: chauffeur?.email || '',

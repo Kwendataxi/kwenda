@@ -10313,6 +10313,60 @@ export type Database = {
           },
         ]
       }
+      ride_commissions: {
+        Row: {
+          created_at: string | null
+          driver_id: string
+          driver_net_amount: number
+          id: string
+          kwenda_commission: number
+          kwenda_rate: number
+          paid_at: string | null
+          partner_commission: number | null
+          partner_id: string | null
+          partner_rate: number | null
+          payment_status: string | null
+          ride_amount: number
+          ride_id: string
+          ride_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id: string
+          driver_net_amount?: number
+          id?: string
+          kwenda_commission?: number
+          kwenda_rate?: number
+          paid_at?: string | null
+          partner_commission?: number | null
+          partner_id?: string | null
+          partner_rate?: number | null
+          payment_status?: string | null
+          ride_amount?: number
+          ride_id: string
+          ride_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string
+          driver_net_amount?: number
+          id?: string
+          kwenda_commission?: number
+          kwenda_rate?: number
+          paid_at?: string | null
+          partner_commission?: number | null
+          partner_id?: string | null
+          partner_rate?: number | null
+          payment_status?: string | null
+          ride_amount?: number
+          ride_id?: string
+          ride_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       ride_offers: {
         Row: {
           accepted_at: string | null
