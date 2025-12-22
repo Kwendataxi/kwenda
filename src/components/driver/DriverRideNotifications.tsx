@@ -307,8 +307,9 @@ export default function DriverRideNotifications() {
       {notifications.map((notification) => {
         const isAccepted = acceptedRides.get(notification.id);
         
-        // Use ModernBiddingCard for bidding notifications
-        if (notification.biddingMode && !isAccepted) {
+        // Use ModernBiddingCard for ALL notifications (bidding mode or not)
+        // Drivers can always propose their own price
+        if (!isAccepted) {
           return (
             <ModernBiddingCard
               key={notification.id}
@@ -321,7 +322,8 @@ export default function DriverRideNotifications() {
               offerCount={notification.offerCount || 0}
               biddingClosesAt={notification.biddingClosesAt}
               distanceToPickup={notification.distanceToPickup}
-              onAccept={() => handleAccept(notification.id)}
+              isBiddingMode={notification.biddingMode || false}
+              onAcceptKwendaPrice={() => handleAccept(notification.id)}
               onMakeOffer={() => handleMakeOffer(notification)}
               onIgnore={() => handleReject(notification.id)}
             />
