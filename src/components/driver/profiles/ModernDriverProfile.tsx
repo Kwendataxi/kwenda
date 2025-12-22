@@ -16,9 +16,10 @@ import { FloatingActions } from './shared/FloatingActions';
 import { CityManagementPanel } from '../CityManagementPanel';
 import { ReferralDashboard } from '../referral/ReferralDashboard';
 import { SupportModal } from '../support/SupportModal';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useDriverPerformanceStats } from '@/hooks/useDriverPerformanceStats';
 import { DeliveryServiceToggle } from '../delivery/DeliveryServiceToggle';
+import { DriverSettingsPanel } from '../settings/DriverSettingsPanel';
 
 interface ModernDriverProfileProps {
   serviceType: 'taxi' | 'delivery';
@@ -28,6 +29,7 @@ export const ModernDriverProfile = ({ serviceType }: ModernDriverProfileProps) =
   const { user } = useAuth();
   const [showReferralDialog, setShowReferralDialog] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
   // Charger le profil chauffeur depuis la table chauffeurs
   const { data: chauffeurProfile, isLoading: loadingChauffeur } = useQuery({
@@ -89,12 +91,10 @@ export const ModernDriverProfile = ({ serviceType }: ModernDriverProfileProps) =
     if (serviceType === 'taxi') {
       return chauffeurProfile?.display_name || user?.email?.split('@')[0] || 'Chauffeur';
     }
-    // Pour delivery, utiliser le nom de chauffeur car driver_profiles n'a pas full_name
     return chauffeurProfile?.display_name || user?.email?.split('@')[0] || 'Livreur';
   };
 
   const getPhoto = () => {
-    // Les deux tables utilisent profile_photo_url dans chauffeurs
     return chauffeurProfile?.profile_photo_url;
   };
 
@@ -133,7 +133,7 @@ export const ModernDriverProfile = ({ serviceType }: ModernDriverProfileProps) =
           badge={serviceType === 'taxi' ? 'Chauffeur Taxi Vérifié' : 'Livreur Express Vérifié'}
           badgeIcon={serviceType === 'taxi' ? '🚗' : '📦'}
           serviceType={serviceType}
-          onSupportClick={() => setShowSupportModal(true)}
+          onSettingsClick={() => setShowSettingsDialog(true)}
         />
 
         {/* Sélection Ville - Compact */}
@@ -172,6 +172,15 @@ export const ModernDriverProfile = ({ serviceType }: ModernDriverProfileProps) =
       <Dialog open={showReferralDialog} onOpenChange={setShowReferralDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <ReferralDashboard />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Réglages</DialogTitle>
+          </DialogHeader>
+          <DriverSettingsPanel onClose={() => setShowSettingsDialog(false)} />
         </DialogContent>
       </Dialog>
 
