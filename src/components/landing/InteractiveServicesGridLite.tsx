@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Car, Package, Store, Truck, 
-  ArrowRight, Bike, UtensilsCrossed
+  ArrowRight, Bike, UtensilsCrossed, Gift, Gavel
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +18,8 @@ const InteractiveServicesGridLite = () => {
       food: '/restaurant/auth',
       delivery: '/app/auth?service=delivery',
       marketplace: '/marketplace',
-      rental: '/app/auth?service=rental'
+      rental: '/app/auth?service=rental',
+      lottery: '/app/auth?service=lottery'
     };
     navigate(routes[serviceId] || '/app/auth');
   };
@@ -28,28 +29,13 @@ const InteractiveServicesGridLite = () => {
       id: "transport",
       icon: <Car className="w-8 h-8" />,
       title: "Transport VTC",
-      description: "Moto-taxi, Éco, Confort, Premium",
+      description: "Moto-taxi, Éco, Confort, Premium + Enchères",
       price: "Dès 1500 CDF",
       popular: true,
       gradient: "from-primary to-primary-glow",
       features: [
-        { icon: <Bike className="w-4 h-4" />, text: "Moto-taxi rapide" },
-        { icon: <Car className="w-4 h-4" />, text: "VTC confortable" }
-      ]
-    },
-    {
-      id: "food",
-      icon: <UtensilsCrossed className="w-8 h-8" />,
-      title: "Kwenda Food",
-      description: "Rejoignez notre réseau de restaurants",
-      price: "Commission 5%",
-      new: true,
-      gradient: "from-orange-500 to-amber-500",
-      cta: "Devenir Restaurant",
-      ctaLink: "/restaurant/auth",
-      features: [
-        { icon: <UtensilsCrossed className="w-4 h-4" />, text: "50+ restaurants" },
-        { icon: <Car className="w-4 h-4" />, text: "Livraison 30-45min" }
+        { icon: <Gavel className="w-4 h-4" />, text: "Chauffeur propose son tarif" },
+        { icon: <Car className="w-4 h-4" />, text: "4 classes de véhicules" }
       ]
     },
     {
@@ -57,22 +43,37 @@ const InteractiveServicesGridLite = () => {
       icon: <Package className="w-8 h-8" />,
       title: "Livraison Express",
       description: "Flash 30min, Flex et MaxiCharge",
-      price: "Dès 7000 CDF",
+      price: "Dès 5000 CDF",
       gradient: "from-secondary to-accent",
       features: [
-        { icon: <Package className="w-4 h-4" />, text: "Flash 30min" },
-        { icon: <Truck className="w-4 h-4" />, text: "Gros colis" }
+        { icon: <Package className="w-4 h-4" />, text: "Flash 30min garanti" },
+        { icon: <Truck className="w-4 h-4" />, text: "Gros colis jusqu'à 500kg" }
+      ]
+    },
+    {
+      id: "food",
+      icon: <UtensilsCrossed className="w-8 h-8" />,
+      title: "Kwenda Food",
+      description: "Restaurants locaux, livraison rapide",
+      price: "Commission 5%",
+      new: true,
+      gradient: "from-orange-500 to-amber-500",
+      cta: "Commander",
+      ctaLink: "/food",
+      features: [
+        { icon: <UtensilsCrossed className="w-4 h-4" />, text: "50+ restaurants" },
+        { icon: <Car className="w-4 h-4" />, text: "Livraison 30-45min" }
       ]
     },
     {
       id: "marketplace",
       icon: <Store className="w-8 h-8" />,
       title: "Marketplace",
-      description: "E-commerce local avec livraison",
+      description: "E-commerce local + livraison intégrée",
       price: "Commission 3%",
       gradient: "from-primary via-accent to-secondary",
       features: [
-        { icon: <Store className="w-4 h-4" />, text: "1K+ produits" },
+        { icon: <Store className="w-4 h-4" />, text: "1K+ produits locaux" },
         { icon: <Package className="w-4 h-4" />, text: "Livraison intégrée" }
       ]
     },
@@ -80,12 +81,24 @@ const InteractiveServicesGridLite = () => {
       id: "rental",
       icon: <Truck className="w-8 h-8" />,
       title: "Location Véhicules",
-      description: "Voitures et utilitaires vérifiés",
+      description: "Voitures et utilitaires avec/sans chauffeur",
       price: "Dès 25K CDF/jour",
       gradient: "from-accent to-secondary",
       features: [
-        { icon: <Car className="w-4 h-4" />, text: "200+ véhicules" },
-        { icon: <Truck className="w-4 h-4" />, text: "Assurés" }
+        { icon: <Car className="w-4 h-4" />, text: "200+ véhicules vérifiés" },
+        { icon: <Truck className="w-4 h-4" />, text: "Tous assurés" }
+      ]
+    },
+    {
+      id: "lottery",
+      icon: <Gift className="w-8 h-8" />,
+      title: "Kwenda Tombola",
+      description: "Tickets gratuits, tirages quotidiens",
+      price: "100% Gratuit",
+      gradient: "from-yellow-500 to-orange-500",
+      features: [
+        { icon: <Gift className="w-4 h-4" />, text: "Tirages tous les jours" },
+        { icon: <Car className="w-4 h-4" />, text: "Crédits KwendaPay à gagner" }
       ]
     }
   ];
@@ -101,7 +114,7 @@ const InteractiveServicesGridLite = () => {
             Tout en un seul endroit
           </h2>
           <p className="text-body-lg text-muted-foreground max-w-3xl mx-auto">
-            Transport, food, livraison, marketplace et location. Disponible à Kinshasa, Lubumbashi et Kolwezi.
+            Transport avec enchères, food, livraison, marketplace, location et loterie. Disponible à Kinshasa, Lubumbashi, Kolwezi et Abidjan.
           </p>
         </div>
 

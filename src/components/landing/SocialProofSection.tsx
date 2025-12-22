@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Users, MapPin, Clock, Zap, Shield, CreditCard } from "lucide-react";
+import { Star, Users, MapPin, Shield, CreditCard, Gavel, Headphones, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const SocialProofSection = () => {
@@ -11,21 +11,28 @@ const SocialProofSection = () => {
       name: "Marie K.",
       role: "Cliente régulière",
       city: "Kinshasa",
-      text: "Service rapide et fiable. J'utilise Kwenda tous les jours pour mes déplacements.",
+      text: "Avec le système d'enchères, je choisis le chauffeur qui me propose le meilleur tarif. Service transparent et fiable!",
       rating: 5
     },
     {
       name: "Jean-Paul M.",
       role: "Restaurant partenaire",
       city: "Lubumbashi",
-      text: "Kwenda Food a boosté nos ventes de 40%. Excellente plateforme!",
+      text: "Kwenda Food a boosté nos ventes de 40%. Le portefeuille KwendaPay facilite les paiements.",
       rating: 5
     },
     {
       name: "Sarah L.",
       role: "Entreprise",
       city: "Kolwezi",
-      text: "La livraison express est parfaite pour nos besoins professionnels.",
+      text: "La livraison express est parfaite. Le support 24/7 répond toujours rapidement à nos besoins.",
+      rating: 5
+    },
+    {
+      name: "Oumar D.",
+      role: "Chauffeur partenaire",
+      city: "Abidjan",
+      text: "Je propose mes tarifs et gagne plus grâce aux défis quotidiens. Kwenda valorise les chauffeurs!",
       rating: 5
     }
   ];
@@ -39,21 +46,21 @@ const SocialProofSection = () => {
 
   const features = [
     {
-      icon: <MapPin className="w-6 h-6" />,
-      title: "Géolocalisation précise",
-      description: "GPS temps réel pour suivre votre course",
+      icon: <Gavel className="w-6 h-6" />,
+      title: "Bidding Transparent",
+      description: "Les chauffeurs proposent leur tarif, vous choisissez",
       gradient: "from-primary to-primary-glow"
     },
     {
-      icon: <CreditCard className="w-6 h-6" />,
-      title: "Paiement Mobile Money",
-      description: "Orange Money, M-Pesa, Airtel Money",
+      icon: <Wallet className="w-6 h-6" />,
+      title: "KwendaPay Wallet",
+      description: "Mobile Money + portefeuille intégré sécurisé",
       gradient: "from-secondary to-accent"
     },
     {
-      icon: <Shield className="w-6 h-6" />,
+      icon: <Headphones className="w-6 h-6" />,
       title: "Support 24/7",
-      description: "Assistance disponible à tout moment",
+      description: "Assistance disponible à tout moment par chat",
       gradient: "from-accent to-primary"
     }
   ];
@@ -64,22 +71,22 @@ const SocialProofSection = () => {
         {/* Stats rapides */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-up">
           <div className="text-center space-y-2">
-            <div className="text-display-sm text-primary font-bold">10K+</div>
+            <div className="text-display-sm text-primary font-bold">12K+</div>
             <div className="text-body-sm text-muted-foreground">Utilisateurs</div>
           </div>
           <div className="text-center space-y-2">
             <div className="text-display-sm text-primary font-bold flex items-center justify-center gap-1">
-              4.9 <Star className="w-6 h-6 fill-current text-yellow-500" />
+              4.8 <Star className="w-6 h-6 fill-current text-yellow-500" />
             </div>
             <div className="text-body-sm text-muted-foreground">Note moyenne</div>
           </div>
           <div className="text-center space-y-2">
-            <div className="text-display-sm text-primary font-bold">3</div>
-            <div className="text-body-sm text-muted-foreground">Villes</div>
+            <div className="text-display-sm text-primary font-bold">4</div>
+            <div className="text-body-sm text-muted-foreground">Villes actives</div>
           </div>
           <div className="text-center space-y-2">
-            <div className="text-display-sm text-primary font-bold">24/7</div>
-            <div className="text-body-sm text-muted-foreground">Support</div>
+            <div className="text-display-sm text-primary font-bold">500+</div>
+            <div className="text-body-sm text-muted-foreground">Chauffeurs</div>
           </div>
         </div>
 

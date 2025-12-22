@@ -60,14 +60,14 @@ const ModernHeroSimplified = () => {
               {/* Slogan avec gradient */}
               <div className="space-y-3">
                 <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Transport • Livraison • Marketplace
+                  Transport • Livraison • Marketplace • Loterie
                 </h1>
                 
                 {/* Badge animé avec point vert */}
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
                   <span className="text-xs font-medium text-foreground">
-                    Kinshasa • Lubumbashi • Kolwezi
+                    Kinshasa • Lubumbashi • Kolwezi • Abidjan
                   </span>
                 </div>
               </div>
