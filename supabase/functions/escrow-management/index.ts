@@ -6,6 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Seuil d'auto-approbation en CDF
+const AUTO_APPROVE_LIMIT = 50000;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,9 +20,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { action, orderId, escrowId, confirmationData, withdrawalId, rejectionReason } = await req.json();
+    const { action, orderId, escrowId, confirmationData, withdrawalId, rejectionReason, withdrawalIds } = await req.json();
 
-    console.log(`Escrow action: ${action}`, { orderId, escrowId, withdrawalId });
+    console.log(`Escrow action: ${action}`, { orderId, escrowId, withdrawalId, withdrawalIds });
 
     switch (action) {
       case 'create_escrow':
@@ -39,6 +42,9 @@ serve(async (req) => {
 
       case 'reject_withdrawal':
         return await rejectWithdrawal(supabaseClient, withdrawalId, rejectionReason);
+
+      case 'batch_approve_withdrawals':
+        return await batchApproveWithdrawals(supabaseClient, withdrawalIds);
         
       default:
         throw new Error('Action invalide');
@@ -172,6 +178,8 @@ async function confirmDeliveryAndRelease(supabase: any, escrowId: string, confir
 async function processWithdrawal(supabase: any, withdrawalData: any) {
   const { userId, amount, withdrawalMethod, paymentDetails } = withdrawalData;
 
+  console.log('Processing withdrawal:', { userId, amount, withdrawalMethod });
+
   // Vérifier le solde du portefeuille
   const { data: wallet, error: walletError } = await supabase
     .from('user_wallets')
@@ -183,6 +191,13 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
   if (walletError || !wallet || wallet.balance < amount) {
     throw new Error('Solde insuffisant');
   }
+
+  // Déterminer si auto-approbation (montant <= 50k CDF)
+  const isAutoApproved = amount <= AUTO_APPROVE_LIMIT;
+  const status = isAutoApproved ? 'approved' : 'pending';
+  const processedAt = isAutoApproved ? new Date().toISOString() : null;
+
+  console.log(`Withdrawal ${isAutoApproved ? 'AUTO-APPROVED' : 'PENDING'}: ${amount} CDF`);
 
   // Créer la demande de retrait
   const { data: withdrawal, error: withdrawalError } = await supabase
@@ -196,7 +211,9 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
       kwenda_pay_phone: paymentDetails.kwendaPayPhone,
       mobile_money_provider: paymentDetails.mobileMoneyProvider,
       mobile_money_phone: paymentDetails.mobileMoneyPhone,
-      status: 'pending'
+      status: status,
+      processed_at: processedAt,
+      auto_approved: isAutoApproved
     })
     .select()
     .single();
@@ -205,7 +222,7 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
     throw new Error('Erreur création demande retrait: ' + withdrawalError.message);
   }
 
-  // Débiter temporairement le portefeuille (en attente de traitement)
+  // Débiter le portefeuille
   await supabase
     .from('user_wallets')
     .update({ 
@@ -215,26 +232,44 @@ async function processWithdrawal(supabase: any, withdrawalData: any) {
     .eq('id', wallet.id);
 
   // Créer l'enregistrement de transaction
+  const transactionType = isAutoApproved ? 'withdrawal_completed' : 'withdrawal_pending';
+  const description = isAutoApproved 
+    ? `Retrait instantané - ${paymentDetails.mobileMoneyProvider}`
+    : `Retrait en attente - ${withdrawalMethod}`;
+
   await supabase
     .from('wallet_transactions')
     .insert({
       wallet_id: wallet.id,
       user_id: userId,
-      transaction_type: 'withdrawal_pending',
+      transaction_type: transactionType,
       amount: -amount,
       currency: 'CDF',
-      description: `Retrait en cours - ${withdrawalMethod}`,
+      description: description,
       reference_id: withdrawal.id,
       reference_type: 'withdrawal_request'
     });
 
-  console.log('Demande de retrait créée:', withdrawal.id);
+  // Si auto-approuvé, envoyer notification de succès
+  if (isAutoApproved) {
+    await supabase.from('delivery_notifications').insert({
+      user_id: userId,
+      notification_type: 'withdrawal_approved',
+      title: '✅ Retrait approuvé',
+      message: `Votre retrait de ${amount.toLocaleString()} CDF a été envoyé vers ${paymentDetails.mobileMoneyPhone}`
+    });
+  }
+
+  console.log('Demande de retrait créée:', withdrawal.id, 'Status:', status);
 
   return new Response(
     JSON.stringify({ 
       success: true, 
       withdrawal,
-      message: 'Demande de retrait soumise, traitement en cours' 
+      isAutoApproved,
+      message: isAutoApproved 
+        ? `Retrait de ${amount.toLocaleString()} CDF approuvé et envoyé instantanément !`
+        : 'Demande de retrait soumise, en attente de validation (1-24h)'
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
@@ -268,6 +303,14 @@ async function approveWithdrawal(supabase: any, withdrawalId: string) {
   if (updateError) {
     throw new Error('Erreur lors de l\'approbation: ' + updateError.message);
   }
+
+  // Envoyer notification de succès
+  await supabase.from('delivery_notifications').insert({
+    user_id: withdrawal.user_id,
+    notification_type: 'withdrawal_approved',
+    title: '✅ Retrait approuvé',
+    message: `Votre retrait de ${withdrawal.amount.toLocaleString()} CDF a été approuvé et envoyé`
+  });
 
   console.log('Withdrawal approved:', withdrawalId);
 
@@ -338,10 +381,84 @@ async function rejectWithdrawal(supabase: any, withdrawalId: string, reason: str
     })
     .eq('id', withdrawalId);
 
+  // Envoyer notification
+  await supabase.from('delivery_notifications').insert({
+    user_id: withdrawal.user_id,
+    notification_type: 'withdrawal_rejected',
+    title: '❌ Retrait rejeté',
+    message: `Votre retrait a été rejeté: ${reason || 'Non spécifié'}. Le montant a été remboursé.`
+  });
+
   console.log('Withdrawal rejected and refunded:', withdrawalId);
 
   return new Response(
     JSON.stringify({ success: true, message: 'Retrait rejeté et montant remboursé' }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+// Approbation en lot
+async function batchApproveWithdrawals(supabase: any, withdrawalIds: string[]) {
+  console.log('Batch approving withdrawals:', withdrawalIds.length);
+
+  if (!withdrawalIds || withdrawalIds.length === 0) {
+    throw new Error('Aucune demande sélectionnée');
+  }
+
+  const results = {
+    approved: 0,
+    failed: 0,
+    errors: [] as string[]
+  };
+
+  for (const id of withdrawalIds) {
+    try {
+      // Récupérer la demande
+      const { data: withdrawal, error: fetchError } = await supabase
+        .from('withdrawal_requests')
+        .select('*')
+        .eq('id', id)
+        .eq('status', 'pending')
+        .single();
+
+      if (fetchError || !withdrawal) {
+        results.failed++;
+        results.errors.push(`${id}: Introuvable ou déjà traitée`);
+        continue;
+      }
+
+      // Mettre à jour le statut
+      await supabase
+        .from('withdrawal_requests')
+        .update({
+          status: 'approved',
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      // Envoyer notification
+      await supabase.from('delivery_notifications').insert({
+        user_id: withdrawal.user_id,
+        notification_type: 'withdrawal_approved',
+        title: '✅ Retrait approuvé',
+        message: `Votre retrait de ${withdrawal.amount.toLocaleString()} CDF a été approuvé`
+      });
+
+      results.approved++;
+    } catch (error) {
+      results.failed++;
+      results.errors.push(`${id}: ${error instanceof Error ? error.message : 'Erreur'}`);
+    }
+  }
+
+  console.log('Batch approval complete:', results);
+
+  return new Response(
+    JSON.stringify({ 
+      success: true, 
+      message: `${results.approved} retrait(s) approuvé(s), ${results.failed} échec(s)`,
+      results
+    }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }

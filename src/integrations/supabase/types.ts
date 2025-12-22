@@ -14193,6 +14193,7 @@ export type Database = {
       withdrawal_requests: {
         Row: {
           amount: number
+          auto_approved: boolean | null
           created_at: string
           currency: string
           failure_reason: string | null
@@ -14210,6 +14211,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          auto_approved?: boolean | null
           created_at?: string
           currency?: string
           failure_reason?: string | null
@@ -14227,6 +14229,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          auto_approved?: boolean | null
           created_at?: string
           currency?: string
           failure_reason?: string | null
