@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ShoppingCart, Minus, Plus, Wallet, MessageCircle } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Minus, Plus, Wallet, MessageCircle, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface MobileBottomCTAProps {
@@ -11,6 +11,8 @@ interface MobileBottomCTAProps {
   onBuyNow: (quantity: number) => void;
   onTopUp: () => void;
   onContactSeller?: () => void;
+  // Champs produits digitaux
+  isDigital?: boolean;
 }
 
 export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
@@ -20,7 +22,8 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
   onAddToCart,
   onBuyNow,
   onTopUp,
-  onContactSeller
+  onContactSeller,
+  isDigital = false
 }) => {
   const [quantity, setQuantity] = useState(1);
 
@@ -33,7 +36,9 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
     }).format(amount);
   };
 
-  const totalPrice = productPrice * quantity;
+  // Pour les produits digitaux, quantité = 1 toujours
+  const effectiveQuantity = isDigital ? 1 : quantity;
+  const totalPrice = productPrice * effectiveQuantity;
   const canAfford = walletBalance >= totalPrice;
 
   const handleIncrement = () => {
@@ -59,30 +64,37 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
         <div className="bg-background/95 backdrop-blur-lg border-t shadow-2xl p-4 space-y-3">
           {/* Prix & Quantité inline */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* Quantité compacte */}
-              <div className="flex items-center gap-2 bg-muted rounded-lg px-2 py-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-7 w-7"
-                  onClick={handleDecrement}
-                  disabled={quantity <= 1}
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                <span className="font-bold min-w-[1.5rem] text-center">{quantity}</span>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-7 w-7"
-                  onClick={handleIncrement}
-                  disabled={quantity >= stockCount}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
+            {/* Quantité compacte - masquée pour les produits digitaux */}
+            {!isDigital ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-muted rounded-lg px-2 py-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-7 w-7"
+                    onClick={handleDecrement}
+                    disabled={quantity <= 1}
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="font-bold min-w-[1.5rem] text-center">{quantity}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-7 w-7"
+                    onClick={handleIncrement}
+                    disabled={quantity >= stockCount}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-blue-600">
+                <Download className="h-4 w-4" />
+                <span className="font-medium">Produit digital</span>
+              </div>
+            )}
             
             {/* Prix total */}
             <div className="text-right">
@@ -91,27 +103,40 @@ export const MobileBottomCTA: React.FC<MobileBottomCTAProps> = ({
             </div>
           </div>
           
-          {/* Bouton principal */}
+          {/* Boutons */}
           {canAfford ? (
-            <div className="grid grid-cols-2 gap-2">
+            isDigital ? (
+              // Bouton unique pleine largeur pour les produits digitaux
               <Button 
                 size="lg" 
-                variant="outline"
-                className="h-12"
-                onClick={() => onAddToCart(quantity)}
+                className="w-full h-12 bg-primary"
+                onClick={() => onBuyNow(1)}
               >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Panier
+                <Download className="h-4 w-4 mr-2" />
+                Acheter & Télécharger
               </Button>
-              <Button 
-                size="lg" 
-                className="h-12 bg-primary"
-                onClick={() => onBuyNow(quantity)}
-              >
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Acheter
-              </Button>
-            </div>
+            ) : (
+              // Grille de boutons pour les produits physiques
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="h-12"
+                  onClick={() => onAddToCart(quantity)}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Panier
+                </Button>
+                <Button 
+                  size="lg" 
+                  className="h-12 bg-primary"
+                  onClick={() => onBuyNow(quantity)}
+                >
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Acheter
+                </Button>
+              </div>
+            )
           ) : (
             <Button 
               size="lg" 
