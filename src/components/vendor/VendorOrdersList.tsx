@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,16 +12,22 @@ import { VendorOrderManagementInterface } from '@/components/marketplace/VendorO
 import { VendorEscrowSummary } from '@/components/vendor/VendorEscrowSummary';
 import { Package, CheckCircle, Clock, Truck, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StaggerContainer, StaggerItem } from './animations';
 
 interface VendorOrdersListProps {
   onRefresh?: () => void;
 }
 
+const tabContentVariants = {
+  initial: { opacity: 0, x: -10 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 10 }
+};
+
 export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // ✅ PHASE 1: Utiliser le hook dédié pour les commandes en attente
   const { 
     pendingOrders, 
     loading: pendingLoading, 
@@ -29,19 +36,17 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     loadPendingOrders 
   } = useVendorOrders();
 
-  // ✅ PHASE 3: État séparé pour les commandes actives et terminées
   const [activeOrders, setActiveOrders] = useState<any[]>([]);
   const [completedOrders, setCompletedOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTabKey, setActiveTabKey] = useState('pending');
 
-  // ✅ PHASE 3: Fonction pour charger les commandes actives et terminées
   const loadActiveAndCompletedOrders = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
       
-      // ✅ ÉTAPE 1 : Récupérer d'abord les produits du vendeur
       const { data: vendorProducts, error: productsError } = await supabase
         .from('marketplace_products')
         .select('id, title, images, price')
@@ -57,7 +62,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
       const vendorProductIds = vendorProducts.map(p => p.id);
 
-      // ✅ ÉTAPE 2 : Récupérer les commandes actives
       const { data: active, error: activeError } = await supabase
         .from('marketplace_orders')
         .select('*')
@@ -67,7 +71,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
       if (activeError) throw activeError;
 
-      // ✅ ÉTAPE 3 : Récupérer les commandes terminées
       const { data: completed, error: completedError } = await supabase
         .from('marketplace_orders')
         .select('*')
@@ -78,7 +81,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
       if (completedError) throw completedError;
 
-      // ✅ ÉTAPE 4 : Récupérer les infos acheteurs depuis la table clients
       const allOrders = [...(active || []), ...(completed || [])];
       const buyerIds = [...new Set(allOrders.map(o => o.buyer_id).filter(Boolean))];
       
@@ -97,7 +99,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
         }
       }
 
-      // ✅ ÉTAPE 5 : Enrichir avec les données produits ET acheteurs
       const enrichOrders = (orders: any[]) => 
         orders.map(order => ({
           ...order,
@@ -109,13 +110,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
       setCompletedOrders(enrichOrders(completed || []));
     } catch (error: any) {
       console.error('Error loading orders:', error);
-      console.error('Error details:', {
-        message: error.message,
-        hint: error.hint,
-        details: error.details
-      });
       
-      // Message d'erreur plus spécifique
       const errorMessage = error.message?.includes('permission')
         ? "Vous n'avez pas les permissions nécessaires"
         : error.message?.includes('network')
@@ -132,7 +127,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     }
   };
 
-  // ✅ Charger toutes les catégories au montage
   useEffect(() => {
     if (user) {
       loadPendingOrders();
@@ -140,7 +134,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     }
   }, [user]);
 
-  // ✅ PHASE 4: Subscription en temps réel améliorée
   useEffect(() => {
     if (!user) return;
 
@@ -157,12 +150,10 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
         (payload) => {
           console.log('Order updated:', payload);
           
-          // ✅ Recharger toutes les catégories
           loadPendingOrders();
           loadActiveAndCompletedOrders();
           onRefresh?.();
           
-          // Toast selon l'événement
           if (payload.eventType === 'INSERT') {
             toast({
               title: "🎉 Nouvelle commande !",
@@ -188,7 +179,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
   const handleOrderComplete = async (orderId: string) => {
     try {
-      // Mettre à jour le statut
       const { error: updateError } = await supabase
         .from('marketplace_orders')
         .update({ 
@@ -199,7 +189,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
       if (updateError) throw updateError;
 
-      // Libérer le paiement escrow
       const { error: releaseError } = await supabase.functions.invoke('release-escrow-payment', {
         body: { orderId }
       });
@@ -217,7 +206,6 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
         });
       }
 
-      // ✅ Recharger toutes les catégories
       loadPendingOrders();
       loadActiveAndCompletedOrders();
       onRefresh?.();
@@ -293,40 +281,50 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     );
   };
 
-  // ✅ Les commandes sont déjà filtrées par catégorie via le hook et les fonctions de chargement
-
   if (loading || pendingLoading) {
     return (
       <div className="space-y-4">
-        {/* Tabs Skeleton */}
-        <div className="flex gap-2 border-b pb-2">
+        {/* Tabs Skeleton avec animation */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex gap-2 border-b pb-2"
+        >
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-10 w-32 bg-muted/60 rounded animate-pulse" />
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="h-10 w-32 bg-gradient-to-r from-muted via-muted/50 to-muted rounded animate-pulse" 
+            />
           ))}
-        </div>
+        </motion.div>
         
         {/* Orders Grid Skeleton */}
-        <div className="space-y-4">
+        <StaggerContainer className="space-y-4" staggerDelay={0.08}>
           {[1, 2, 3].map(i => (
-            <Card key={i} className="overflow-hidden">
-              <CardHeader>
-                <div className="flex justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="h-5 w-3/4 bg-muted/60 rounded animate-pulse" />
-                    <div className="h-4 w-1/2 bg-muted/60 rounded animate-pulse" />
+            <StaggerItem key={i}>
+              <Card className="overflow-hidden">
+                <CardHeader>
+                  <div className="flex justify-between">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-5 w-3/4 bg-muted/60 rounded animate-pulse" />
+                      <div className="h-4 w-1/2 bg-muted/60 rounded animate-pulse" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-6 w-20 bg-muted/60 rounded animate-pulse" />
+                      <div className="h-3 w-16 bg-muted/60 rounded animate-pulse" />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="h-6 w-20 bg-muted/60 rounded animate-pulse" />
-                    <div className="h-3 w-16 bg-muted/60 rounded animate-pulse" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-10 w-full bg-muted/60 rounded animate-pulse" />
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-10 w-full bg-muted/60 rounded animate-pulse" />
+                </CardContent>
+              </Card>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     );
   }
@@ -335,116 +333,186 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Résumé financier escrow */}
-      {totalOrders > 0 && <VendorEscrowSummary />}
-      
-      {/* Export Button */}
+      {/* Résumé financier escrow avec animation */}
       {totalOrders > 0 && (
-        <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={exportToCSV}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <VendorEscrowSummary />
+        </motion.div>
+      )}
+      
+      {/* Export Button avec animation */}
+      {totalOrders > 0 && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="flex justify-end"
+        >
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={exportToCSV}
+            className="transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          >
             <Download className="h-4 w-4 mr-2" />
             Exporter CSV
           </Button>
-        </div>
+        </motion.div>
       )}
       
-      <Tabs defaultValue="pending" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-3">
-        {/* ✅ PHASE 6: Badge amélioré avec animation */}
-        <TabsTrigger value="pending" className="relative">
-          À traiter
-          {pendingOrders.length > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="ml-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center animate-pulse"
-            >
-              {pendingOrders.length > 99 ? '99+' : pendingOrders.length}
-            </Badge>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value="active">
-          En cours ({activeOrders.length})
-        </TabsTrigger>
-        <TabsTrigger value="completed">
-          Terminées ({completedOrders.length})
-        </TabsTrigger>
-      </TabsList>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Tabs 
+          defaultValue="pending" 
+          className="space-y-4"
+          onValueChange={setActiveTabKey}
+        >
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="pending" className="relative">
+              À traiter
+              {pendingOrders.length > 0 && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500 }}
+                >
+                  <Badge 
+                    variant="destructive" 
+                    className="ml-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center animate-pulse"
+                  >
+                    {pendingOrders.length > 99 ? '99+' : pendingOrders.length}
+                  </Badge>
+                </motion.div>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="active">
+              En cours ({activeOrders.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Terminées ({completedOrders.length})
+            </TabsTrigger>
+          </TabsList>
 
-      {/* ✅ PHASE 5: TabsContent corrigé avec les bonnes fonctions */}
-      <TabsContent value="pending">
-        <VendorOrderValidationPanel 
-          orders={pendingOrders} 
-          onRefresh={() => {
-            loadPendingOrders();
-            loadActiveAndCompletedOrders();
-            onRefresh?.();
-          }} 
-        />
-      </TabsContent>
+          <AnimatePresence mode="wait">
+            <TabsContent value="pending" key="pending">
+              <motion.div
+                variants={tabContentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.25 }}
+              >
+                <VendorOrderValidationPanel 
+                  orders={pendingOrders} 
+                  onRefresh={() => {
+                    loadPendingOrders();
+                    loadActiveAndCompletedOrders();
+                    onRefresh?.();
+                  }} 
+                />
+              </motion.div>
+            </TabsContent>
 
-      <TabsContent value="active">
-        <div className="space-y-4">
-          {activeOrders.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Aucune commande en cours</p>
-              </CardContent>
-            </Card>
-          ) : (
-            activeOrders.map((order) => (
-              <VendorOrderManagementInterface 
-                key={order.id}
-                order={order}
-                onStatusUpdate={() => {
-                  loadPendingOrders();
-                  loadActiveAndCompletedOrders();
-                  onRefresh?.();
-                }}
-              />
-            ))
-          )}
-        </div>
-      </TabsContent>
+            <TabsContent value="active" key="active">
+              <motion.div
+                variants={tabContentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.25 }}
+              >
+                <StaggerContainer className="space-y-4" staggerDelay={0.06}>
+                  {activeOrders.length === 0 ? (
+                    <StaggerItem>
+                      <Card>
+                        <CardContent className="py-12 text-center text-muted-foreground">
+                          <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>Aucune commande en cours</p>
+                        </CardContent>
+                      </Card>
+                    </StaggerItem>
+                  ) : (
+                    activeOrders.map((order) => (
+                      <StaggerItem key={order.id}>
+                        <VendorOrderManagementInterface 
+                          order={order}
+                          onStatusUpdate={() => {
+                            loadPendingOrders();
+                            loadActiveAndCompletedOrders();
+                            onRefresh?.();
+                          }}
+                        />
+                      </StaggerItem>
+                    ))
+                  )}
+                </StaggerContainer>
+              </motion.div>
+            </TabsContent>
 
-      <TabsContent value="completed">
-        <div className="space-y-4">
-          {completedOrders.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Aucune commande terminée</p>
-              </CardContent>
-            </Card>
-          ) : (
-            completedOrders.map((order) => (
-              <Card key={order.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        {order.product?.title || 'Produit'}
-                        {getStatusBadge(order.status)}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Client: {order.buyer?.display_name || 'Non renseigné'}
-                        {order.buyer_phone && ` • ${order.buyer_phone}`} • Qté: {order.quantity}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-green-600">{order.total_amount.toLocaleString()} CDF</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))
-          )}
-        </div>
-      </TabsContent>
-      </Tabs>
+            <TabsContent value="completed" key="completed">
+              <motion.div
+                variants={tabContentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.25 }}
+              >
+                <StaggerContainer className="space-y-4" staggerDelay={0.06}>
+                  {completedOrders.length === 0 ? (
+                    <StaggerItem>
+                      <Card>
+                        <CardContent className="py-12 text-center text-muted-foreground">
+                          <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>Aucune commande terminée</p>
+                        </CardContent>
+                      </Card>
+                    </StaggerItem>
+                  ) : (
+                    completedOrders.map((order) => (
+                      <StaggerItem key={order.id}>
+                        <motion.div 
+                          whileHover={{ scale: 1.01 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <Card>
+                            <CardHeader>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <CardTitle className="text-base flex items-center gap-2">
+                                    {order.product?.title || 'Produit'}
+                                    {getStatusBadge(order.status)}
+                                  </CardTitle>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    Client: {order.buyer?.display_name || 'Non renseigné'}
+                                    {order.buyer_phone && ` • ${order.buyer_phone}`} • Qté: {order.quantity}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-semibold text-green-600">{order.total_amount.toLocaleString()} CDF</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(order.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardHeader>
+                          </Card>
+                        </motion.div>
+                      </StaggerItem>
+                    ))
+                  )}
+                </StaggerContainer>
+              </motion.div>
+            </TabsContent>
+          </AnimatePresence>
+        </Tabs>
+      </motion.div>
     </div>
   );
 };

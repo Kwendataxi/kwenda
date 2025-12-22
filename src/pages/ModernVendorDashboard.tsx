@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { ResponsiveVendorLayout } from '@/components/vendor/ResponsiveVendorLayout';
 import { ChatVendorModal } from '@/components/vendor/modern/ChatVendorModal';
@@ -12,6 +13,20 @@ import { useVendorStats } from '@/hooks/useVendorStats';
 import { useVendorChat } from '@/hooks/useVendorChat';
 import { useTabScrollReset } from '@/hooks/useTabScrollReset';
 
+const pageTransitionVariants = {
+  initial: { opacity: 0, y: 16 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -8,
+    transition: { duration: 0.2, ease: "easeOut" }
+  }
+};
+
 export default function ModernVendorDashboard() {
   const { user } = useAuth();
   const { stats } = useVendorStats();
@@ -24,6 +39,23 @@ export default function ModernVendorDashboard() {
   // Scroll automatique vers le haut quand on change d'onglet
   useTabScrollReset(activeTab);
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <VendorDashboardOverview onTabChange={setActiveTab} />;
+      case 'shop':
+        return <VendorProductManager onTabChange={setActiveTab} />;
+      case 'orders':
+        return <VendorOrdersList />;
+      case 'profile':
+        return <VendorProfilePage onTabChange={setActiveTab} />;
+      case 'subscription':
+        return <VendorSubscriptionManager />;
+      default:
+        return <VendorDashboardOverview onTabChange={setActiveTab} />;
+    }
+  };
+
   return (
     <ResponsiveVendorLayout
       activeTab={activeTab}
@@ -33,12 +65,18 @@ export default function ModernVendorDashboard() {
       onOpenNotifications={() => setNotifCenterOpen(true)}
       unreadChatCount={totalUnread}
     >
-      {/* Contenu dynamique selon activeTab */}
-      {activeTab === 'dashboard' && <VendorDashboardOverview onTabChange={setActiveTab} />}
-      {activeTab === 'shop' && <VendorProductManager onTabChange={setActiveTab} />}
-      {activeTab === 'orders' && <VendorOrdersList />}
-      {activeTab === 'profile' && <VendorProfilePage onTabChange={setActiveTab} />}
-      {activeTab === 'subscription' && <VendorSubscriptionManager />}
+      {/* Contenu dynamique avec AnimatePresence */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          variants={pageTransitionVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+        >
+          {renderContent()}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Modales */}
       <ChatVendorModal open={chatModalOpen} onClose={() => setChatModalOpen(false)} />
