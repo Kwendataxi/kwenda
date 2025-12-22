@@ -13,20 +13,6 @@ import { useVendorStats } from '@/hooks/useVendorStats';
 import { useVendorChat } from '@/hooks/useVendorChat';
 import { useTabScrollReset } from '@/hooks/useTabScrollReset';
 
-const pageTransitionVariants = {
-  initial: { opacity: 0, y: 16 },
-  animate: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.3, ease: "easeOut" }
-  },
-  exit: { 
-    opacity: 0, 
-    y: -8,
-    transition: { duration: 0.2, ease: "easeOut" }
-  }
-};
-
 export default function ModernVendorDashboard() {
   const { user } = useAuth();
   const { stats } = useVendorStats();
@@ -69,10 +55,10 @@ export default function ModernVendorDashboard() {
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
-          variants={pageTransitionVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
         >
           {renderContent()}
         </motion.div>
