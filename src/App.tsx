@@ -11,6 +11,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { PushNotificationManager } from "@/components/notifications/PushNotificationManager";
 import { NativePushProvider } from "@/components/notifications/NativePushProvider";
 import { ModernToastProvider } from "@/components/notifications/ModernToastProvider";
+import { PremiumNotificationContainer } from "@/components/notifications/PremiumNotificationContainer";
 import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 import { ABTestProvider } from "@/contexts/ABTestContext";
 import { ClickTracker } from "@/components/tracking/ClickTracker";
@@ -204,19 +205,21 @@ const App = () => (
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <NativePushProvider>
-            <CartProvider>
-              <FavoritesProvider>
-                <LanguageProvider>
-                <ABTestProvider>
-                  <TooltipProvider>
-                    <ChatProvider>
-                      <AppContent />
-                    </ChatProvider>
-                  </TooltipProvider>
-                </ABTestProvider>
-              </LanguageProvider>
-            </FavoritesProvider>
-            </CartProvider>
+            <PremiumNotificationContainer>
+              <CartProvider>
+                <FavoritesProvider>
+                  <LanguageProvider>
+                    <ABTestProvider>
+                      <TooltipProvider>
+                        <ChatProvider>
+                          <AppContent />
+                        </ChatProvider>
+                      </TooltipProvider>
+                    </ABTestProvider>
+                  </LanguageProvider>
+                </FavoritesProvider>
+              </CartProvider>
+            </PremiumNotificationContainer>
           </NativePushProvider>
         </AuthProvider>
       </QueryClientProvider>

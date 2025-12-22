@@ -164,13 +164,14 @@ export const ModernToastProvider: React.FC<ModernToastProviderProps> = ({ childr
     <ModernToastContext.Provider value={{ showToast, dismissToast, dismissAll, toasts }}>
       {children}
       
-      {/* Toast container - positioned below header */}
+      {/* Toast container - positioned ABOVE header with z-[9999] */}
       <div 
-        className="fixed top-20 left-0 right-0 z-[100] pointer-events-none px-4"
+        className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none"
+        style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)' }}
         aria-live="polite"
         aria-label="Notifications"
       >
-        <div className="max-w-md mx-auto space-y-2">
+        <div className="max-w-md mx-auto px-4 space-y-2">
           <AnimatePresence mode="popLayout">
             {visibleToasts.map((toast, index) => (
               <div 
