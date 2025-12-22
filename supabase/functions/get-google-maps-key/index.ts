@@ -9,7 +9,19 @@ const corsHeaders = {
 const RATE_LIMIT_ENDPOINT = 'google_maps_key_requests'
 const MAX_REQUESTS_PER_HOUR = 100
 
-async function checkRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number }> {
+// Générer un hash simple pour les IPs (compatible Deno)
+async function hashIp(ip: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(ip + '_kwenda_salt_2024');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  // Prendre les 32 premiers caractères du hash pour créer un UUID-like
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // Formater en UUID v4-like: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+  return `${hashHex.slice(0, 8)}-${hashHex.slice(8, 12)}-4${hashHex.slice(13, 16)}-a${hashHex.slice(17, 20)}-${hashHex.slice(20, 32)}`;
+}
+
+async function checkRateLimit(rateLimitId: string, isIpBased: boolean): Promise<{ allowed: boolean; remaining: number }> {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const supabase = createClient(supabaseUrl, supabaseKey)
@@ -17,38 +29,61 @@ async function checkRateLimit(userId: string): Promise<{ allowed: boolean; remai
   const now = new Date()
   const resetTime = new Date(now.getTime() + 3600000) // +1 hour
 
-  // Get or create rate limit record
-  const { data: existingLimit } = await supabase
-    .from('api_rate_limits')
-    .select('request_count, reset_at')
-    .eq('user_id', userId)
-    .eq('endpoint', RATE_LIMIT_ENDPOINT)
-    .maybeSingle()
-
-  // Reset if expired or first request
-  if (!existingLimit || new Date(existingLimit.reset_at) < now) {
-    await supabase.from('api_rate_limits').upsert({
-      user_id: userId,
-      endpoint: RATE_LIMIT_ENDPOINT,
-      request_count: 1,
-      reset_at: resetTime.toISOString()
-    })
-    return { allowed: true, remaining: MAX_REQUESTS_PER_HOUR - 1 }
+  // Pour les IP, générer un UUID valide à partir du hash
+  let userId = rateLimitId;
+  if (isIpBased) {
+    userId = await hashIp(rateLimitId);
+    console.log(`🔐 IP hash generated: ${userId.slice(0, 8)}...`);
   }
 
-  // Check if limit exceeded
-  if (existingLimit.request_count >= MAX_REQUESTS_PER_HOUR) {
-    return { allowed: false, remaining: 0 }
+  try {
+    // Get or create rate limit record
+    const { data: existingLimit, error: selectError } = await supabase
+      .from('api_rate_limits')
+      .select('request_count, reset_at')
+      .eq('user_id', userId)
+      .eq('endpoint', RATE_LIMIT_ENDPOINT)
+      .maybeSingle()
+
+    if (selectError) {
+      console.error('Rate limit select error:', selectError);
+      // En cas d'erreur, permettre la requête
+      return { allowed: true, remaining: MAX_REQUESTS_PER_HOUR }
+    }
+
+    // Reset if expired or first request
+    if (!existingLimit || new Date(existingLimit.reset_at) < now) {
+      const { error: upsertError } = await supabase.from('api_rate_limits').upsert({
+        user_id: userId,
+        endpoint: RATE_LIMIT_ENDPOINT,
+        request_count: 1,
+        reset_at: resetTime.toISOString()
+      })
+      
+      if (upsertError) {
+        console.error('Rate limit upsert error:', upsertError);
+      }
+      return { allowed: true, remaining: MAX_REQUESTS_PER_HOUR - 1 }
+    }
+
+    // Check if limit exceeded
+    if (existingLimit.request_count >= MAX_REQUESTS_PER_HOUR) {
+      return { allowed: false, remaining: 0 }
+    }
+
+    // Increment counter
+    await supabase
+      .from('api_rate_limits')
+      .update({ request_count: existingLimit.request_count + 1 })
+      .eq('user_id', userId)
+      .eq('endpoint', RATE_LIMIT_ENDPOINT)
+
+    return { allowed: true, remaining: MAX_REQUESTS_PER_HOUR - existingLimit.request_count - 1 }
+  } catch (error) {
+    console.error('Rate limit check error:', error);
+    // En cas d'erreur, permettre la requête mais logger
+    return { allowed: true, remaining: MAX_REQUESTS_PER_HOUR }
   }
-
-  // Increment counter
-  await supabase
-    .from('api_rate_limits')
-    .update({ request_count: existingLimit.request_count + 1 })
-    .eq('user_id', userId)
-    .eq('endpoint', RATE_LIMIT_ENDPOINT)
-
-  return { allowed: true, remaining: MAX_REQUESTS_PER_HOUR - existingLimit.request_count - 1 }
 }
 
 serve(async (req) => {
@@ -90,8 +125,9 @@ serve(async (req) => {
     }
 
     // Rate limiting: par utilisateur si authentifié, par IP sinon
-    const rateLimitId = userId || `ip:${clientIp}`
-    const rateLimitCheck = await checkRateLimit(rateLimitId)
+    const isIpBased = !userId;
+    const rateLimitId = userId || clientIp;
+    const rateLimitCheck = await checkRateLimit(rateLimitId, isIpBased)
     
     if (!rateLimitCheck.allowed) {
       console.warn(`⚠️ Rate limit exceeded for ${rateLimitId}`)
