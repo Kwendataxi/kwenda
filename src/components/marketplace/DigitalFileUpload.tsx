@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,10 +50,15 @@ export const DigitalFileUpload: React.FC<DigitalFileUploadProps> = ({
   currentFile
 }) => {
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFile, setUploadedFile] = useState<typeof currentFile>(currentFile);
+
+  const triggerFileSelect = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -153,10 +158,17 @@ export const DigitalFileUpload: React.FC<DigitalFileUploadProps> = ({
     if (file) handleUpload(file);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
     const file = e.target.files?.[0];
-    if (file) handleUpload(file);
-  };
+    if (file) {
+      handleUpload(file);
+    }
+    // Reset l'input pour permettre de re-sélectionner le même fichier
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [handleUpload]);
 
   const removeFile = async () => {
     if (uploadedFile?.url) {
@@ -172,6 +184,15 @@ export const DigitalFileUpload: React.FC<DigitalFileUploadProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Input file TOUJOURS présent et accessible (en dehors de AnimatePresence) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".pdf,.zip,.mp3,.mp4,.docx,.xlsx,.png,.jpg,.jpeg"
+        onChange={handleFileSelect}
+      />
+
       {/* Zone d'upload */}
       <Card className={cn(
         "border-2 border-dashed transition-all",
@@ -184,6 +205,7 @@ export const DigitalFileUpload: React.FC<DigitalFileUploadProps> = ({
             {uploadedFile?.url ? (
               // Fichier uploadé
               <motion.div
+                key="uploaded"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -219,6 +241,7 @@ export const DigitalFileUpload: React.FC<DigitalFileUploadProps> = ({
             ) : isUploading ? (
               // Upload en cours
               <motion.div
+                key="uploading"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -236,14 +259,14 @@ export const DigitalFileUpload: React.FC<DigitalFileUploadProps> = ({
             ) : (
               // Zone de drop
               <motion.div
+                key="dropzone"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-center cursor-pointer"
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
+                className="text-center"
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
+                onDragLeave={(e) => { e.stopPropagation(); setIsDragging(false); }}
                 onDrop={handleDrop}
-                onClick={() => document.getElementById('digital-file-input')?.click()}
               >
                 <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
                   <FileCode className="h-8 w-8 text-purple-600" />
@@ -259,20 +282,22 @@ export const DigitalFileUpload: React.FC<DigitalFileUploadProps> = ({
                     </Badge>
                   ))}
                 </div>
-                <Button variant="outline" className="gap-2">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  className="gap-2"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerFileSelect();
+                  }}
+                >
                   <Upload className="h-4 w-4" />
                   Sélectionner le fichier
                 </Button>
                 <p className="text-xs text-muted-foreground mt-3">
                   Maximum 100 MB
                 </p>
-                <input
-                  id="digital-file-input"
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.zip,.mp3,.mp4,.docx,.xlsx,.png,.jpg,.jpeg"
-                  onChange={handleFileSelect}
-                />
               </motion.div>
             )}
           </AnimatePresence>
