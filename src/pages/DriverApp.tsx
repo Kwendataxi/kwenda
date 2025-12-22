@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDriverServiceInfo } from '@/hooks/useDriverServiceInfo';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
@@ -18,15 +18,30 @@ import { ServiceTypeValidator } from '@/components/driver/ServiceTypeValidator';
 import { DriverServiceProvider } from '@/contexts/DriverServiceContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
-// Header géré dans chaque dashboard (TaxiDriverDashboard/DeliveryDriverDashboard)
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+type TabType = 'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile' | 'food';
+
 const DriverApp = () => {
   const { loading, serviceType, serviceSpecialization } = useDriverServiceInfo();
-  const [tab, setTab] = useState<'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile' | 'food'>('orders');
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Lire le paramètre tab de l'URL ou utiliser 'orders' par défaut
+  const urlTab = searchParams.get('tab') as TabType | null;
+  const validTabs: TabType[] = ['orders', 'earnings', 'challenges', 'subscription', 'profile', 'food'];
+  const initialTab = urlTab && validTabs.includes(urlTab) ? urlTab : 'orders';
+  
+  const [tab, setTab] = useState<TabType>(initialTab);
+  
+  // Synchroniser l'onglet avec l'URL quand il change
+  useEffect(() => {
+    if (urlTab && validTabs.includes(urlTab) && urlTab !== tab) {
+      setTab(urlTab);
+    }
+  }, [urlTab]);
   
   // Scroll automatique vers le haut quand on change d'onglet
   useTabScrollReset(tab);
