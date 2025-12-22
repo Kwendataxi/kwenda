@@ -3,10 +3,10 @@ project_id = "wddlktajnhwhyquwcdgf"
 # Configuration optimisée Kwenda - Fonctions actives uniquement
 
 [functions.unified-dispatcher]
-verify_jwt = true  # ✅ PHASE 4: Dispatcher unifié (remplace ride/delivery/smart-ride)
+verify_jwt = true
 
 [functions.google-maps-proxy]
-verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: Proxy sécurisé pour API Google Maps
+verify_jwt = true
 
 [functions.admin-operations]
 verify_jwt = true
@@ -24,7 +24,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.lottery-system]
-verify_jwt = true  # ✅ PHASE 2 CRITIQUE: JWT requis pour loterie
+verify_jwt = true
 
 [functions.partner-validation-notification]
 verify_jwt = true
@@ -45,19 +45,19 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.geocode-proxy]
-verify_jwt = true  # ✅ PHASE 2: JWT requis pour géocodage
+verify_jwt = true
 
 [functions.get-google-maps-key]
-verify_jwt = true  # ✅ SÉCURISÉ: JWT obligatoire pour protéger la clé Google Maps
+verify_jwt = true
 
 [functions.google-maps-security-monitor]
 verify_jwt = true
 
 [functions.google-places-autocomplete]
-verify_jwt = true  # ✅ PHASE 2: JWT requis pour autocomplete
+verify_jwt = true
 
 [functions.google-place-details]
-verify_jwt = true  # ✅ SÉCURITÉ: JWT requis pour détails de lieux Google
+verify_jwt = true
 
 [functions.wallet-topup]
 verify_jwt = true
@@ -69,22 +69,25 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.orange-money-cashout-webhook]
-verify_jwt = false  # ✅ Webhook serveur-à-serveur pour confirmations CASHOUT Orange Money
+verify_jwt = false
 
 [functions.orange-money-retry]
-verify_jwt = false  # ✅ Cron job pour retry automatique des transactions Orange Money
+verify_jwt = false
 
 [functions.push-notifications]
 verify_jwt = true
 
+[functions.push-notifications-v2]
+verify_jwt = true
+
 [functions.push-notifications-broadcast]
-verify_jwt = true  # ✅ Broadcast admin sécurisé - vérifie aussi le rôle admin
+verify_jwt = true
 
 [functions.seed-drivers]
 verify_jwt = false
 
 [functions.intelligent-driver-matching]
-verify_jwt = true  # ✅ SÉCURITÉ: JWT requis pour matching intelligent de chauffeurs
+verify_jwt = true
 
 [functions.smart-notification-dispatcher]
 verify_jwt = true
@@ -96,16 +99,16 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.delivery-dispatcher]
-verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: JWT requis pour empêcher abus
+verify_jwt = true
 
 [functions.ride-dispatcher]
-verify_jwt = true  # ✅ PHASE 2: JWT requis pour dispatcher
+verify_jwt = true
 
 [functions.smart-ride-dispatcher]
-verify_jwt = true  # ✅ SÉCURITÉ: JWT requis pour dispatch intelligent de courses
+verify_jwt = true
 
 [functions.auto-renew-subscriptions]
-verify_jwt = false  # Sera appelé par CRON, pas par les utilisateurs
+verify_jwt = false
 
 [functions.subscription-manager]
 verify_jwt = true
@@ -123,7 +126,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.driver-arrival-confirmation]
-verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: Confirmation arrivée avec vérification GPS
+verify_jwt = true
 
 [functions.moderate-product]
 verify_jwt = true
@@ -147,7 +150,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.admin-subscription-commission]
-verify_jwt = false  # ✅ PHASE 2: Commission admin 10% sur abonnements chauffeurs
+verify_jwt = false
 
 [functions.vendor-subscription-manager]
 verify_jwt = true
@@ -156,106 +159,106 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.auto-retry-assignment]
-verify_jwt = false  # ✅ NOUVEAU: Système de retry automatique
+verify_jwt = false
 
 [functions.refresh-admin-cache]
-verify_jwt = false  # Appelé automatiquement par CRON toutes les 5 minutes
+verify_jwt = false
 
 [functions.notify-admin-new-product]
-verify_jwt = true  # ✅ PHASE 2: JWT requis pour création produit
+verify_jwt = true
 
 [functions.vendor-verify-request]
-verify_jwt = true  # ✅ PHASE 2: JWT requis pour vérification vendeur
+verify_jwt = true
 
 [functions.food-order-processor]
-verify_jwt = true  # ✅ JWT requis pour création de commandes food
+verify_jwt = true
 
 [functions.validate-promo-and-referral]
-verify_jwt = true  # ✅ Validation sécurisée codes promo et parrainage
+verify_jwt = true
 
 [functions.validate-transfer-recipient]
-verify_jwt = true  # ✅ Validation temps réel du destinataire de transfert
+verify_jwt = true
 
 [functions.wallet-transfer]
-verify_jwt = true  # ✅ Transfert atomique entre wallets
+verify_jwt = true
 
 [functions.process-marketplace-sale]
-verify_jwt = false  # ✅ PHASE 4: Traitement automatique des commissions marketplace (appelé par trigger)
+verify_jwt = false
 
 [functions.smart-driver-dispatch]
-verify_jwt = true  # ✅ PHASE 4: Dispatch intelligent de chauffeurs avec scoring
+verify_jwt = true
 
 [functions.accept-delivery-fee]
-verify_jwt = true  # ✅ JWT requis pour acceptation frais de livraison marketplace
+verify_jwt = true
 
 [functions.assign-food-delivery]
-verify_jwt = true  # ✅ JWT requis pour assignation de livreur aux commandes food
+verify_jwt = true
 
 [functions.admin-approve-all-rentals]
-verify_jwt = true  # ✅ Approbation en masse véhicules location par admin
+verify_jwt = true
 
 [functions.partner-vehicle-notification]
-verify_jwt = false  # ✅ Notifications automatiques pour nouveaux véhicules
+verify_jwt = false
 
 [functions.admin-approve-vehicle]
-verify_jwt = true  # ✅ Approbation individuelle véhicule par admin
+verify_jwt = true
 
 [functions.admin-reject-vehicle]
-verify_jwt = true  # ✅ Rejet individuel véhicule par admin avec raison
+verify_jwt = true
 
 [functions.validate-driver-service-type]
-verify_jwt = true  # ✅ PHASE 1: Validation stricte du type de service chauffeur
+verify_jwt = true
 
 [functions.driver-notification-router]
-verify_jwt = false  # ✅ PHASE 2: Routage intelligent des notifications par type de service (appelé par triggers)
+verify_jwt = false
 
 [functions.complete-ride-with-commission]
-verify_jwt = true  # ✅ PHASE 2: Finalisation course avec prélèvement commission automatique
+verify_jwt = true
 
 [functions.detect-cancellation-fraud]
-verify_jwt = false  # ✅ PHASE 2: Détection annulations frauduleuses (appelé automatiquement)
+verify_jwt = false
 
 [functions.notify-drivers-bidding]
-verify_jwt = true  # ✅ JWT requis pour notifications mode enchères
+verify_jwt = true
 
 [functions.process-marketplace-payment]
-verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: Traitement atomique paiements marketplace avec validation server-side
+verify_jwt = true
 
 [functions.complete-marketplace-order]
-verify_jwt = true  # ✅ PHASE 2: Finalisation commande marketplace avec libération automatique des fonds
+verify_jwt = true
 
 [functions.auto-release-escrow]
-verify_jwt = false  # ✅ PHASE 4: Libération automatique après 7 jours (appelé par CRON)
+verify_jwt = false
 
 [functions.wallet-restaurant-topup]
-verify_jwt = true  # ✅ JWT requis pour recharge wallet restaurant
+verify_jwt = true
 
 [functions.mobile-money-webhook]
-verify_jwt = false  # ✅ Webhook appelé par providers Mobile Money
+verify_jwt = false
 
 [functions.process-marketplace-checkout]
-verify_jwt = true  # ✅ PHASE 5: Checkout sécurisé avec paiement wallet et création escrow atomique
+verify_jwt = true
 
 [functions.approve-delivery-fee]
-verify_jwt = true  # ✅ PHASE 5: Approbation/refus frais de livraison par le client avec gestion escrow
+verify_jwt = true
 
 [functions.orange-money-webpay-callback]
-verify_jwt = false  # ✅ CASHIN: Callback publique après paiement WebPay client
+verify_jwt = false
 
 [functions.orange-money-webpay-webhook]
-verify_jwt = false  # ✅ CASHIN: Webhook serveur-à-serveur Orange Money WebPay
+verify_jwt = false
 
 [functions.vendor-withdrawal]
-verify_jwt = true  # ✅ CASHOUT: Retrait automatique vendeurs via Orange Money B2B
+verify_jwt = true
 
 [functions.vendor-wallet-manager]
-verify_jwt = true  # ✅ Gestion wallet vendeur (get_or_create, credit, get_balance)
+verify_jwt = true
 
 [functions.release-food-escrow]
-verify_jwt = true  # ✅ Libération escrow food par le client après confirmation
+verify_jwt = true
 
 [functions.process-marketplace-escrow]
-verify_jwt = true  # ✅ Checkout marketplace avec création escrow atomique
+verify_jwt = true
 
 [functions.digital-download]
-verify_jwt = true  # ✅ Téléchargement sécurisé produits digitaux avec vérification token
+verify_jwt = true

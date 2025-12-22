@@ -31,6 +31,7 @@ const RestaurantProfile = lazy(() => import('@/pages/restaurant/RestaurantProfil
 const RestaurantWalletPage = lazy(() => import('@/pages/restaurant/RestaurantWalletPage'));
 const TestSoundsPage = lazy(() => import('@/pages/TestSoundsPage').then(m => ({ default: m.TestSoundsPage })));
 const TestLotteryPage = lazy(() => import('@/pages/TestLotteryPage').then(m => ({ default: m.TestLotteryPage })));
+const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
 
 export const SharedRoutes = () => {
   return (
@@ -97,6 +98,9 @@ export const SharedRoutes = () => {
       {/* Dev/Test routes */}
       <Route path="/test-sounds" element={<TestSoundsPage />} />
       <Route path="/test-lottery" element={<TestLotteryPage />} />
+      
+      {/* Notifications page */}
+      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
       
       <Route path="/admin/marketplace" element={<Navigate to="/admin?tab=marketplace-management" replace />} />
     </>
