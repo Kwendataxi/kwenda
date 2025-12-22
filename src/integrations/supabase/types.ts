@@ -16755,6 +16755,10 @@ export type Database = {
         }
         Returns: Json
       }
+      validate_referral_code: {
+        Args: { p_referral_code: string }
+        Returns: Json
+      }
       validate_service_requirements: {
         Args: { p_requirements: Json; p_service_type: string }
         Returns: Json

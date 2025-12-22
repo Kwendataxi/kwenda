@@ -1,6 +1,7 @@
 /**
- * 🎁 Hook système de parrainage client
- * - Utilise la table referral_system existante
+ * 🎁 Hook système de parrainage client optimisé
+ * - Limite de 20 filleuls maximum
+ * - Validation en temps réel
  * - Tracking filleuls et calcul bonus
  */
 
@@ -18,7 +19,17 @@ export interface ClientReferral {
   referee_name?: string;
 }
 
+export interface ReferralValidation {
+  valid: boolean;
+  message?: string;
+  referrer_name?: string;
+  remaining_slots?: number;
+  reward_amount?: number;
+  limit_reached?: boolean;
+}
+
 const REWARD_PER_REFERRAL = 500;
+const MAX_REFERRALS = 20;
 
 export const useClientReferral = () => {
   const { user } = useAuth();
@@ -32,7 +43,7 @@ export const useClientReferral = () => {
   };
 
   // Récupérer ou créer le code via RPC existant
-  const { data: referralCode, isLoading: loadingCode, error: codeError, refetch } = useQuery({
+  const { data: referralCode, isLoading: loadingCode, refetch: refetchCode } = useQuery({
     queryKey: ['client-referral-code', user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -44,7 +55,6 @@ export const useClientReferral = () => {
       
       if (error) {
         console.error('❌ Error getting referral code:', error);
-        // Fallback: générer un code local
         const fallbackCode = generateUniqueCode(user.id);
         console.log('🔄 Using fallback code:', fallbackCode);
         return fallbackCode;
@@ -59,7 +69,7 @@ export const useClientReferral = () => {
   });
 
   // Récupérer les filleuls
-  const { data: referrals, isLoading: loadingReferrals } = useQuery({
+  const { data: referrals, isLoading: loadingReferrals, refetch: refetchReferrals } = useQuery({
     queryKey: ['client-referrals', user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -71,7 +81,10 @@ export const useClientReferral = () => {
         .neq('referee_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) return [];
+      if (error) {
+        console.error('❌ Error fetching referrals:', error);
+        return [];
+      }
 
       return (data || []).map((ref) => ({
         id: ref.id,
@@ -85,15 +98,55 @@ export const useClientReferral = () => {
     enabled: !!user
   });
 
-  // Générer le lien de partage - utiliser /client/register pour les clients
+  // Générer le lien de partage
   const getShareLink = () => {
     if (!referralCode) return '';
     return `${window.location.origin}/client/register?ref=${referralCode}`;
   };
 
+  // Valider un code de parrainage (avant inscription)
+  const validateCode = async (code: string): Promise<ReferralValidation> => {
+    if (!code || code.trim().length < 4) {
+      return { valid: false, message: 'Code trop court' };
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('validate_referral_code', {
+        p_referral_code: code.trim().toUpperCase()
+      });
+
+      if (error) {
+        console.error('❌ Error validating code:', error);
+        return { valid: false, message: 'Erreur de validation' };
+      }
+
+      const result = data as unknown as ReferralValidation;
+      return {
+        valid: result.valid === true,
+        message: result.message,
+        referrer_name: result.referrer_name,
+        remaining_slots: result.remaining_slots,
+        reward_amount: result.reward_amount,
+        limit_reached: result.limit_reached
+      };
+    } catch (err) {
+      console.error('❌ Exception validating code:', err);
+      return { valid: false, message: 'Erreur de connexion' };
+    }
+  };
+
   // Partager via l'API Web Share
   const shareReferralCode = async () => {
-    if (!referralCode) return;
+    if (!referralCode) {
+      toast.error('Code non disponible');
+      return;
+    }
+
+    // Vérifier la limite avant de partager
+    if (stats.totalReferrals >= MAX_REFERRALS) {
+      toast.error('Vous avez atteint la limite de 20 amis parrainés');
+      return;
+    }
 
     const shareData = {
       title: 'Rejoignez Kwenda !',
@@ -104,6 +157,7 @@ export const useClientReferral = () => {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        toast.success('Merci de partager !');
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
           await copyToClipboard();
@@ -116,10 +170,35 @@ export const useClientReferral = () => {
 
   // Copier le code
   const copyToClipboard = async () => {
-    if (!referralCode) return;
+    if (!referralCode) {
+      toast.error('Code non disponible');
+      return;
+    }
     try {
       await navigator.clipboard.writeText(referralCode);
-      toast.success('Code copié !');
+      toast.success('Code copié ! 📋');
+    } catch {
+      // Fallback pour navigateurs anciens
+      const textArea = document.createElement('textarea');
+      textArea.value = referralCode;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast.success('Code copié ! 📋');
+    }
+  };
+
+  // Copier le lien complet
+  const copyShareLink = async () => {
+    const link = getShareLink();
+    if (!link) {
+      toast.error('Lien non disponible');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success('Lien copié ! 🔗');
     } catch {
       toast.error('Impossible de copier');
     }
@@ -131,7 +210,11 @@ export const useClientReferral = () => {
     pendingReferrals: referrals?.filter(r => r.status === 'pending').length || 0,
     completedReferrals: referrals?.filter(r => r.status === 'completed').length || 0,
     totalEarnings: referrals?.filter(r => r.status === 'completed').reduce((sum, r) => sum + r.reward_amount, 0) || 0,
-    pendingEarnings: (referrals?.filter(r => r.status === 'pending').length || 0) * REWARD_PER_REFERRAL
+    pendingEarnings: (referrals?.filter(r => r.status === 'pending').length || 0) * REWARD_PER_REFERRAL,
+    remainingSlots: MAX_REFERRALS - (referrals?.length || 0),
+    maxReferrals: MAX_REFERRALS,
+    limitReached: (referrals?.length || 0) >= MAX_REFERRALS,
+    progressPercent: Math.min(((referrals?.length || 0) / MAX_REFERRALS) * 100, 100)
   };
 
   return {
@@ -141,7 +224,12 @@ export const useClientReferral = () => {
     loading: loadingCode || loadingReferrals,
     shareReferralCode,
     copyToClipboard,
+    copyShareLink,
     getShareLink,
-    REWARD_PER_REFERRAL
+    validateCode,
+    refetchCode,
+    refetchReferrals,
+    REWARD_PER_REFERRAL,
+    MAX_REFERRALS
   };
 };
