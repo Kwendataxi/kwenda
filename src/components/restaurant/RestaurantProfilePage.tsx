@@ -1,46 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { LogOut, Settings, DollarSign, CreditCard, Users, TrendingUp, FileText, HelpCircle, Shield, Clock, Bell, ChefHat, Camera } from 'lucide-react';
+import { 
+  LogOut, Settings, ChefHat, ShoppingBag, Wallet, 
+  HelpCircle, ChevronRight, Phone, Mail, MapPin,
+  TrendingUp, FileText
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useToast } from '@/hooks/use-toast';
 import { RestaurantProfileHeader } from './RestaurantProfileHeader';
-import { RestaurantInfoCard } from './RestaurantInfoCard';
 import { RestaurantStats } from './RestaurantStats';
-import { RestaurantDocuments } from './RestaurantDocuments';
 import { RestaurantSettings } from './RestaurantSettings';
-import { ImageOnboardingBanner } from './ImageOnboardingBanner';
+import { RestaurantSubscriptionBanner } from './RestaurantSubscriptionBanner';
 import { useAuth } from '@/hooks/useAuth';
-import { useEffect, useState as useStateForProfile } from 'react';
 
+interface ProfileDetails {
+  phone_number: string;
+  email: string;
+  city: string;
+  address: string;
+}
 
 export function RestaurantProfilePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [showDocuments, setShowDocuments] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [profile, setProfile] = useStateForProfile<{ logo_url: string | null; banner_url: string | null } | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [profileDetails, setProfileDetails] = useState<ProfileDetails | null>(null);
 
   useEffect(() => {
     if (user) {
-      loadProfileImages();
+      loadProfileDetails();
     }
   }, [user]);
 
-  const loadProfileImages = async () => {
+  const loadProfileDetails = async () => {
     if (!user) return;
     try {
       const { data } = await supabase
         .from('restaurant_profiles')
-        .select('logo_url, banner_url')
+        .select('phone_number, email, city, address')
         .eq('user_id', user.id)
         .single();
-      if (data) setProfile(data);
+      if (data) setProfileDetails(data);
     } catch (error) {
-      console.error('Error loading profile images:', error);
+      console.error('Error loading profile details:', error);
     }
   };
 
@@ -57,103 +69,86 @@ export function RestaurantProfilePage() {
     }
   };
 
-  const quickActions = [
+  const menuItems = [
     { 
-      icon: Camera, 
-      label: 'Modifier mes images', 
-      description: 'Logo et bannière',
-      onClick: () => setShowSettings(true)
+      icon: ChefHat, 
+      label: 'Mon menu', 
+      description: 'Gérer mes plats',
+      onClick: () => navigate('/restaurant?tab=menu')
     },
     { 
-      icon: DollarSign, 
-      label: 'Revenus & Finances', 
-      description: 'Voir mes gains',
+      icon: ShoppingBag, 
+      label: 'Mes commandes', 
+      description: 'Voir les commandes',
+      onClick: () => navigate('/restaurant?tab=orders')
+    },
+    { 
+      icon: Wallet, 
+      label: 'Mon portefeuille', 
+      description: 'Finances & paiements',
       onClick: () => navigate('/restaurant?tab=analytics')
     },
     { 
-      icon: CreditCard, 
-      label: 'Abonnement', 
-      description: 'Gérer mon plan',
-      onClick: () => navigate('/restaurant/subscription')
+      icon: TrendingUp, 
+      label: 'Statistiques', 
+      description: 'Performances détaillées',
+      onClick: () => navigate('/restaurant?tab=analytics')
     },
     { 
-      icon: Users, 
-      label: 'Mon Équipe', 
-      description: 'Gérer le personnel',
-      onClick: () => toast({ title: 'Bientôt disponible' })
+      icon: Settings, 
+      label: 'Paramètres', 
+      description: 'Images & configuration',
+      onClick: () => setShowSettings(true)
     },
-  ];
-
-  const menuSections = [
-    {
-      title: 'Business',
-      items: [
-        { icon: TrendingUp, label: 'Statistiques détaillées', onClick: () => navigate('/restaurant?tab=analytics') },
-        { icon: ChefHat, label: 'Gérer mon menu', onClick: () => navigate('/restaurant?tab=menu') },
-        { icon: Clock, label: 'Horaires d\'ouverture', onClick: () => setShowSettings(true) },
-        { icon: Bell, label: 'Mes commandes', onClick: () => navigate('/restaurant?tab=orders') },
-      ]
+    { 
+      icon: HelpCircle, 
+      label: 'Aide', 
+      description: 'Centre de support',
+      onClick: () => navigate('/help')
     },
-    {
-      title: 'Finance',
-      items: [
-        { icon: DollarSign, label: 'Historique des revenus', onClick: () => navigate('/restaurant?tab=analytics') },
-        { icon: CreditCard, label: 'Mon abonnement', onClick: () => navigate('/restaurant/subscription') },
-      ]
-    },
-    {
-      title: 'Paramètres',
-      items: [
-        { icon: Settings, label: 'Images & Paramètres', onClick: () => setShowSettings(true) },
-        { icon: Shield, label: 'Sécurité et confidentialité', onClick: () => setShowSettings(true) },
-      ]
-    },
-    {
-      title: 'Support',
-      items: [
-        { icon: HelpCircle, label: 'Centre d\'aide', onClick: () => navigate('/help') },
-        { icon: FileText, label: 'Conditions générales', onClick: () => navigate('/terms') },
-      ]
+    { 
+      icon: FileText, 
+      label: 'Conditions', 
+      description: 'Mentions légales',
+      onClick: () => navigate('/terms')
     },
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-lg mx-auto space-y-5 pb-8">
+      {/* En-tête profil centré */}
       <RestaurantProfileHeader />
       
-      {/* Banner d'onboarding pour les nouveaux restaurants */}
-      {profile && (
-        <ImageOnboardingBanner
-          hasLogo={!!profile.logo_url}
-          hasBanner={!!profile.banner_url}
-          onAddImages={() => setShowSettings(true)}
-        />
-      )}
-      
-      <RestaurantStats />
+      {/* Stats compactes */}
+      <div className="px-4">
+        <RestaurantStats />
+      </div>
 
-      {/* Actions rapides */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions rapides</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
+      {/* Banner abonnement */}
+      <div className="px-4">
+        <RestaurantSubscriptionBanner isSubscribed={false} />
+      </div>
+
+      {/* Menu navigation épuré */}
+      <Card className="mx-4 border-0 shadow-sm">
+        <CardContent className="p-2">
+          <div className="space-y-0.5">
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
               return (
                 <button
                   key={index}
-                  onClick={action.onClick}
-                  className="flex flex-col items-center gap-3 p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary transition-colors"
+                  onClick={item.onClick}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors text-left group"
                 >
-                  <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900/20">
-                    <Icon className="h-6 w-6 text-orange-600 dark:text-orange-500" />
+                  <div className="p-2 rounded-lg bg-muted/50 group-hover:bg-muted transition-colors">
+                    <Icon className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <div className="text-center">
-                    <p className="font-medium text-sm">{action.label}</p>
-                    <p className="text-xs text-muted-foreground">{action.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{item.label}</p>
+                    <p className="text-xs text-muted-foreground truncate">{item.description}</p>
                   </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                 </button>
               );
             })}
@@ -161,57 +156,49 @@ export function RestaurantProfilePage() {
         </CardContent>
       </Card>
 
-      <RestaurantInfoCard />
-
-      {/* Menu de navigation */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Menu</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {menuSections.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="space-y-2">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                {section.title}
-              </h3>
-              <div className="space-y-1">
-                {section.items.map((item, itemIndex) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={itemIndex}
-                      onClick={item.onClick}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"
-                    >
-                      <Icon className="h-5 w-5 text-muted-foreground" />
-                      <span className="flex-1 font-medium">{item.label}</span>
-                    </button>
-                  );
-                })}
+      {/* Détails du restaurant (dépliable) */}
+      {profileDetails && (
+        <div className="px-4">
+          <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <CollapsibleTrigger className="w-full flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+              <span className="text-sm font-medium text-muted-foreground">
+                Informations détaillées
+              </span>
+              <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${detailsOpen ? 'rotate-90' : ''}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="space-y-3 p-4 rounded-xl bg-muted/20">
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{profileDetails.phone_number}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="truncate">{profileDetails.email}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{profileDetails.address || profileDetails.city}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      )}
 
-      {/* Déconnexion */}
-      <Button 
-        variant="destructive" 
-        className="w-full" 
-        onClick={handleLogout}
-        size="lg"
-      >
-        <LogOut className="h-5 w-5 mr-2" />
-        Se déconnecter
-      </Button>
+      {/* Bouton de déconnexion */}
+      <div className="px-4 pt-4">
+        <Button 
+          variant="outline" 
+          className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20" 
+          onClick={handleLogout}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Se déconnecter
+        </Button>
+      </div>
 
-      {/* Dialogs */}
-      <Dialog open={showDocuments} onOpenChange={setShowDocuments}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <RestaurantDocuments />
-        </DialogContent>
-      </Dialog>
-
+      {/* Dialog Paramètres */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <RestaurantSettings />
