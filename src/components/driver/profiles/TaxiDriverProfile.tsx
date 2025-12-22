@@ -1,10 +1,11 @@
 /**
- * 🚗 Profil Chauffeur Taxi - Structuré et complet
+ * 🚗 Profil Chauffeur Taxi - Structuré et complet avec vraies données
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { ProfileHeader } from './shared/ProfileHeader';
 import { VehicleCard } from './shared/VehicleCard';
 import { PerformanceStats } from './shared/PerformanceStats';
@@ -21,43 +22,48 @@ import { ServiceZonesDisplay } from '../zones/ServiceZonesDisplay';
 import { ServiceZoneSelector } from '../zones/ServiceZoneSelector';
 import { CityManagementPanel } from '../CityManagementPanel';
 import { DriverCodeManager } from '../DriverCodeManager';
+import { useDriverPerformanceStats } from '@/hooks/useDriverPerformanceStats';
 
 export const TaxiDriverProfile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [showReferralDialog, setShowReferralDialog] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showZonesModal, setShowZonesModal] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, [user]);
+  // Charger le profil chauffeur avec les vraies données
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['taxi-driver-profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
 
-  const loadProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data: driverProfile } = await supabase
-        .from('driver_profiles')
+      const { data: chauffeur, error } = await supabase
+        .from('chauffeurs')
         .select(`
           *,
-          chauffeurs(*),
-          driver_subscriptions(*)
+          driver_subscriptions(
+            *,
+            subscription_plans(*)
+          )
         `)
         .eq('user_id', user.id)
         .single();
 
-      setProfile(driverProfile);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (error) {
+        console.error('Error loading chauffeur profile:', error);
+        return null;
+      }
 
-  if (loading) {
+      return chauffeur;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Stats de performance réelles
+  const { stats: performanceStats, loading: statsLoading } = useDriverPerformanceStats('taxi');
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -65,20 +71,13 @@ export const TaxiDriverProfile = () => {
     );
   }
 
-  const stats = {
-    ridesCompleted: profile?.chauffeurs?.total_rides || 0,
-    rating: profile?.chauffeurs?.rating || 0,
-    acceptanceRate: 95,
-    avgResponseTime: '2 min'
-  };
-
   return (
     <div className="min-h-screen bg-background p-4 pb-24 space-y-6">
       {/* Header */}
       <ProfileHeader
-        name={profile?.full_name || 'Chauffeur'}
-        photo={profile?.photo_url}
-        rating={stats.rating}
+        name={profile?.display_name || user?.email?.split('@')[0] || 'Chauffeur'}
+        photo={profile?.profile_photo_url}
+        rating={profile?.rating_average || 0}
         badge="Chauffeur Taxi Vérifié"
         badgeIcon="🚗"
         serviceType="taxi"
@@ -89,23 +88,19 @@ export const TaxiDriverProfile = () => {
 
       {/* Véhicule actif */}
       <VehicleCard
-        make={profile?.chauffeurs?.vehicle_make || 'Toyota'}
-        model={profile?.chauffeurs?.vehicle_model || 'Corolla'}
-        plate={profile?.chauffeurs?.license_plate || 'KIN-123-ABC'}
-        color={profile?.chauffeurs?.vehicle_color || 'Blanc'}
-        photo={profile?.chauffeurs?.vehicle_photo_url}
+        make={profile?.vehicle_make || undefined}
+        model={profile?.vehicle_model || undefined}
+        plate={profile?.vehicle_plate || undefined}
+        color={profile?.vehicle_color || undefined}
+        photo={profile?.vehicle_photo_url}
         serviceType="taxi"
       />
 
-      {/* Stats de performance */}
+      {/* Stats de performance réelles */}
       <PerformanceStats
-        stats={[
-          { label: 'Courses complétées', value: stats.ridesCompleted, icon: '🚗' },
-          { label: 'Note moyenne', value: `${stats.rating}/5`, icon: '⭐' },
-          { label: "Taux d'acceptation", value: `${stats.acceptanceRate}%`, icon: '✅' },
-          { label: 'Temps de réponse', value: stats.avgResponseTime, icon: '⚡' }
-        ]}
+        stats={performanceStats}
         serviceType="taxi"
+        loading={statsLoading}
       />
 
       {/* Documents */}
@@ -115,7 +110,7 @@ export const TaxiDriverProfile = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-blue-500" />
+            <MapPin className="w-5 h-5 text-primary" />
             <h3 className="font-semibold text-foreground">Zones de service</h3>
           </div>
           <Button 
@@ -129,12 +124,8 @@ export const TaxiDriverProfile = () => {
         <ServiceZonesDisplay />
       </Card>
 
-      {/* Abonnement */}
-      <SubscriptionCard
-        plan={profile?.driver_subscriptions?.[0]?.tier || 'free'}
-        expiresAt={profile?.driver_subscriptions?.[0]?.valid_until}
-        serviceType="taxi"
-      />
+      {/* Abonnement - maintenant connecté aux vraies données */}
+      <SubscriptionCard serviceType="taxi" />
 
       {/* Code Partenaire */}
       <Card className="p-6">
@@ -176,7 +167,6 @@ export const TaxiDriverProfile = () => {
           className="w-full justify-start gap-3"
           onClick={async () => {
             await signOut();
-            // 🛡️ signOut gère la redirection via ProtectedRoute
           }}
         >
           <LogOut className="w-5 h-5" />

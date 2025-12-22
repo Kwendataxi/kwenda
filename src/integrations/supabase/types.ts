@@ -1016,6 +1016,7 @@ export type Database = {
       chauffeurs: {
         Row: {
           bank_account_number: string | null
+          city: string | null
           created_at: string | null
           delivery_capacity: string | null
           display_name: string | null
@@ -1057,6 +1058,7 @@ export type Database = {
         }
         Insert: {
           bank_account_number?: string | null
+          city?: string | null
           created_at?: string | null
           delivery_capacity?: string | null
           display_name?: string | null
@@ -1098,6 +1100,7 @@ export type Database = {
         }
         Update: {
           bank_account_number?: string | null
+          city?: string | null
           created_at?: string | null
           delivery_capacity?: string | null
           display_name?: string | null
