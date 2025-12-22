@@ -41,12 +41,12 @@ const ModernFooter = () => {
       ]
     },
     {
-      title: "Congo RDC",
+      title: "Zones de Service",
       links: [
         { name: "Kinshasa", href: "/locations/kinshasa", icon: <MapPin className="w-4 h-4" /> },
         { name: "Lubumbashi", href: "/locations/lubumbashi", icon: <MapPin className="w-4 h-4" /> },
         { name: "Kolwezi", href: "/locations/kolwezi", icon: <MapPin className="w-4 h-4" /> },
-        { name: "Expansion", href: "/locations/expansion", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Abidjan (Zone Test)", href: "/locations/abidjan", icon: <MapPin className="w-4 h-4" /> },
         { name: "Carte de couverture", href: "/locations/coverage-map", icon: <ExternalLink className="w-4 h-4" /> }
       ]
     }
@@ -107,8 +107,8 @@ const ModernFooter = () => {
             </div>
             
             <p className="text-sm text-muted-foreground leading-relaxed">
-              L'application de transport intelligent qui révolutionne la mobilité à Kinshasa. 
-              Transport, livraison, marketplace et tombola en une seule plateforme.
+              L'application de transport intelligent qui révolutionne la mobilité en Afrique. 
+              Transport avec enchères, livraison, marketplace et tombola en une seule plateforme.
             </p>
 
             {/* Contact Info */}
@@ -175,7 +175,7 @@ const ModernFooter = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <p className="text-sm text-muted-foreground">
-              © 2024 Kwenda Taxi. Tous droits réservés.
+              © 2025 Kwenda Taxi. Tous droits réservés.
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Conçu avec ❤️ pour la République Démocratique du Congo
