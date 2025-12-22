@@ -5286,6 +5286,63 @@ export type Database = {
           },
         ]
       }
+      marketplace_digital_downloads: {
+        Row: {
+          buyer_id: string | null
+          created_at: string | null
+          download_count: number | null
+          download_token: string
+          expires_at: string
+          id: string
+          last_downloaded_at: string | null
+          max_downloads: number | null
+          order_id: string | null
+          product_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          buyer_id?: string | null
+          created_at?: string | null
+          download_count?: number | null
+          download_token: string
+          expires_at?: string
+          id?: string
+          last_downloaded_at?: string | null
+          max_downloads?: number | null
+          order_id?: string | null
+          product_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          buyer_id?: string | null
+          created_at?: string | null
+          download_count?: number | null
+          download_token?: string
+          expires_at?: string
+          id?: string
+          last_downloaded_at?: string | null
+          max_downloads?: number | null
+          order_id?: string | null
+          product_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_digital_downloads_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_digital_downloads_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_messages: {
         Row: {
           chat_id: string
@@ -5493,9 +5550,15 @@ export type Database = {
           coordinates: Json | null
           created_at: string
           description: string | null
+          digital_download_limit: number | null
+          digital_file_name: string | null
+          digital_file_size: number | null
+          digital_file_type: string | null
+          digital_file_url: string | null
           featured: boolean | null
           id: string
           images: Json | null
+          is_digital: boolean | null
           location: string | null
           moderated_at: string | null
           moderation_notified_at: string | null
@@ -5524,9 +5587,15 @@ export type Database = {
           coordinates?: Json | null
           created_at?: string
           description?: string | null
+          digital_download_limit?: number | null
+          digital_file_name?: string | null
+          digital_file_size?: number | null
+          digital_file_type?: string | null
+          digital_file_url?: string | null
           featured?: boolean | null
           id?: string
           images?: Json | null
+          is_digital?: boolean | null
           location?: string | null
           moderated_at?: string | null
           moderation_notified_at?: string | null
@@ -5555,9 +5624,15 @@ export type Database = {
           coordinates?: Json | null
           created_at?: string
           description?: string | null
+          digital_download_limit?: number | null
+          digital_file_name?: string | null
+          digital_file_size?: number | null
+          digital_file_type?: string | null
+          digital_file_url?: string | null
           featured?: boolean | null
           id?: string
           images?: Json | null
+          is_digital?: boolean | null
           location?: string | null
           moderated_at?: string | null
           moderation_notified_at?: string | null
