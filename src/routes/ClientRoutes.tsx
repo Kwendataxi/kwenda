@@ -3,7 +3,7 @@ import { Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { ServiceGuard } from '@/components/guards/ServiceGuard';
 import { VendorGuard } from '@/components/guards/VendorGuard';
-import { isSpecificBuild, isClientApp } from '@/config/appConfig';
+
 
 // Lazy imports
 const ClientApp = lazy(() => import('@/pages/ClientApp'));
@@ -32,9 +32,6 @@ const MesAdresses = lazy(() => import('@/pages/address/MesAdresses'));
 const ClientVerifyEmail = lazy(() => import('@/pages/ClientVerifyEmail'));
 
 export const ClientRoutes = () => {
-  if (isSpecificBuild() && !isClientApp()) {
-    return null;
-  }
 
   return (
     <>

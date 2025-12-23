@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { isSpecificBuild } from '@/config/appConfig';
+
 
 const AdminApp = lazy(() => import('@/pages/AdminApp'));
 const TaxiDashboard = lazy(() => import('@/pages/admin/TaxiDashboard'));
@@ -14,9 +14,6 @@ const AdminNotificationTestPage = lazy(() => import('@/pages/admin/AdminNotifica
 const VendorShopTestPage = lazy(() => import('@/pages/admin/VendorShopTestPage'));
 
 export const AdminRoutes = () => {
-  if (isSpecificBuild()) {
-    return null;
-  }
 
   return (
     <>

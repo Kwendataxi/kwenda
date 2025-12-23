@@ -26,7 +26,7 @@ import { RecoveryDialog } from "@/components/RecoveryDialog";
 import { DegradedModeProvider } from "@/contexts/DegradedModeContext";
 import { healthOrchestrator } from "@/services/HealthOrchestrator";
 import { sessionRecovery } from "@/services/SessionRecovery";
-import { isSpecificBuild } from "@/config/appConfig";
+import { APP_CONFIG } from "@/config/appConfig";
 import { isMobileApp, isPWA } from "@/services/platformDetection";
 import { PWASplashScreen } from "@/components/PWASplashScreen";
 import { useState } from "react";
@@ -160,13 +160,13 @@ const AppContent = () => {
                               {/* Landing page - Mobile apps go direct to app, web shows marketing */}
                               {isMobileApp() ? (
                                 <Route path="/" element={<MobileAppEntry />} />
-                              ) : !isSpecificBuild() ? (
+                              ) : (
                                 <>
                                   <Route path="/" element={<PublicHome />} />
                                   <Route path="/landing" element={<Index />} />
                                   <Route path="/app" element={<SmartHome />} />
                                 </>
-                              ) : null}
+                              )}
                               
                               {/* Shared routes */}
                               {SharedRoutes()}

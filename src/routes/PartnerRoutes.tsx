@@ -2,7 +2,7 @@ import { lazy } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { PartnerGuard } from '@/components/guards/PartnerGuard';
-import { isSpecificBuild, isPartnerApp } from '@/config/appConfig';
+
 import { isMobileApp } from '@/services/platformDetection';
 import Index from '@/pages/Index';
 import MobileSplash from '@/pages/MobileSplash';
@@ -23,18 +23,14 @@ const PartnerProfileWrapper = () => {
 };
 
 export const PartnerRoutes = () => {
-  if (isSpecificBuild() && !isPartnerApp()) {
-    return null;
-  }
-
   return (
     <>
       <Route path="/" 
         element={
-          isMobileApp() || (isSpecificBuild() && isPartnerApp()) 
+          isMobileApp() 
             ? <MobileSplash /> 
             : <Index />
-        } 
+        }
       />
       <Route path="/install" element={<Install />} />
       <Route path="/partner/auth" element={<PartnerAuth />} />

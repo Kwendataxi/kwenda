@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { Route } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { isSpecificBuild, isDriverApp } from '@/config/appConfig';
+
 import { isMobileApp } from '@/services/platformDetection';
 import Index from '@/pages/Index';
 import MobileSplash from '@/pages/MobileSplash';
@@ -13,16 +13,12 @@ const DriverVerifyEmail = lazy(() => import('@/pages/DriverVerifyEmail'));
 const DriverFindPartner = lazy(() => import('@/pages/DriverFindPartner').then(m => ({ default: m.DriverFindPartner })));
 
 export const DriverRoutes = () => {
-  if (isSpecificBuild() && !isDriverApp()) {
-    return null;
-  }
-
   return (
     <>
       <Route 
         path="/" 
         element={
-          isMobileApp() || (isSpecificBuild() && isDriverApp()) 
+          isMobileApp() 
             ? <MobileSplash /> 
             : <Index />
         } 
