@@ -12,8 +12,8 @@ export const useBlockBackNavigation = (shouldBlock: boolean = true) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Routes publiques interdites si connecté
-  const PUBLIC_ROUTES = ['/', '/landing', '/auth', '/driver/auth', '/partner/auth', '/operatorx/admin/auth'];
+  // Routes publiques interdites si connecté (exclut les auth spécialisées pour changement de rôle)
+  const PUBLIC_ROUTES = ['/', '/landing', '/auth'];
 
   useEffect(() => {
     if (!shouldBlock || !user) return;

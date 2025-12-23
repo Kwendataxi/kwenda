@@ -112,7 +112,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/app/admin');
+        navigate('/operatorx/admin');
       }
     } catch (error: any) {
       logger.error('Erreur de connexion admin', error);
