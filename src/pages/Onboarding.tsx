@@ -94,7 +94,9 @@ const Onboarding: React.FC = () => {
       {/* Header compact */}
       <header className="flex items-center justify-between px-4 py-3 shrink-0">
         <div className="flex items-center gap-2">
-          <img src={kwendaLogoK} alt="Kwenda" className="w-7 h-7 rounded-md object-cover" />
+          <div className="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center p-0.5">
+            <img src={kwendaLogoK} alt="Kwenda" className="w-full h-full rounded-md object-cover" />
+          </div>
           <span className="font-semibold text-foreground">Kwenda</span>
         </div>
         <Button 
