@@ -84,7 +84,7 @@ export const FloatingCartIndicator = ({
                     rotate: [0, 10, -10, 0]
                   } : { scale: 1, rotate: 0 }}
                   exit={{ scale: 0, rotate: 180 }}
-                  transition={recentAddition ? { duration: 0.5, type: "spring" } : { type: 'spring', stiffness: 300 }}
+                  transition={recentAddition ? { duration: 0.5, ease: "easeInOut" } : { type: 'spring', stiffness: 300 }}
                   className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg ring-2 ring-white animate-pulse"
                 >
                   {cartCount > 99 ? '99+' : cartCount}
