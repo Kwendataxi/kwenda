@@ -205,7 +205,7 @@ export const PushNotificationManager = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'lottery_winners',
+          table: 'lottery_wins',
           filter: `user_id=eq.${user.id}`
         },
         async (payload) => {
