@@ -42,12 +42,13 @@ export const useAdminRestaurantSubscriptions = () => {
     try {
       setLoading(true);
 
+      // Use LEFT JOIN (no !inner) to avoid errors when relations don't exist
       const { data: subs, error } = await supabase
         .from('restaurant_subscriptions')
         .select(`
           *,
-          restaurant_profiles!inner(restaurant_name),
-          restaurant_subscription_plans!inner(name)
+          restaurant_profiles(restaurant_name),
+          restaurant_subscription_plans(name, monthly_price, currency)
         `)
         .order('created_at', { ascending: false });
 
@@ -61,8 +62,9 @@ export const useAdminRestaurantSubscriptions = () => {
         start_date: sub.start_date,
         end_date: sub.end_date,
         payment_method: sub.payment_method || 'kwenda_pay',
-        amount: sub.amount || 0,
-        currency: sub.currency || 'CDF',
+        // Get amount and currency from the plan
+        amount: sub.restaurant_subscription_plans?.monthly_price || 0,
+        currency: sub.restaurant_subscription_plans?.currency || 'CDF',
         restaurant_name: sub.restaurant_profiles?.restaurant_name,
         plan_name: sub.restaurant_subscription_plans?.name,
       }));

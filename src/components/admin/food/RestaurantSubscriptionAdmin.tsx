@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useAdminRestaurantSubscriptions } from '@/hooks/admin/useAdminRestaurantSubscriptions';
-import { Calendar, DollarSign, XCircle, Clock } from 'lucide-react';
+import { useAdminRestaurantSubscriptions, SubscriptionPlan } from '@/hooks/admin/useAdminRestaurantSubscriptions';
+import { Calendar, DollarSign, Clock, Edit } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -28,9 +28,12 @@ export const RestaurantSubscriptionAdmin = () => {
   const { subscriptions, plans, loading, extendSubscription, cancelSubscription, updatePlanPricing } = useAdminRestaurantSubscriptions();
   const [extendDialog, setExtendDialog] = useState(false);
   const [cancelDialog, setCancelDialog] = useState(false);
+  const [editPlanDialog, setEditPlanDialog] = useState(false);
   const [selectedSub, setSelectedSub] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [extendDays, setExtendDays] = useState('30');
   const [cancelReason, setCancelReason] = useState('');
+  const [newPrice, setNewPrice] = useState('');
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
@@ -69,6 +72,16 @@ export const RestaurantSubscriptionAdmin = () => {
       setCancelDialog(false);
       setSelectedSub(null);
       setCancelReason('');
+    }
+  };
+
+  const handleUpdatePrice = async () => {
+    if (!selectedPlan || !newPrice.trim()) return;
+    const success = await updatePlanPricing(selectedPlan.id, parseInt(newPrice));
+    if (success) {
+      setEditPlanDialog(false);
+      setSelectedPlan(null);
+      setNewPrice('');
     }
   };
 
@@ -217,19 +230,34 @@ export const RestaurantSubscriptionAdmin = () => {
                 <TableHead>Prix</TableHead>
                 <TableHead>Durée (jours)</TableHead>
                 <TableHead>Statut</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {plans.map((plan) => (
                 <TableRow key={plan.id}>
                   <TableCell className="font-medium">{plan.name}</TableCell>
-                  <TableCell>{plan.description}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">{plan.description}</TableCell>
                   <TableCell>{plan.monthly_price.toLocaleString()} {plan.currency}</TableCell>
                   <TableCell>30 jours (mensuel)</TableCell>
                   <TableCell>
                     <Badge variant={plan.is_active ? 'default' : 'secondary'}>
                       {plan.is_active ? 'Actif' : 'Inactif'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedPlan(plan);
+                        setNewPrice(plan.monthly_price.toString());
+                        setEditPlanDialog(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Modifier tarif
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -300,6 +328,41 @@ export const RestaurantSubscriptionAdmin = () => {
               disabled={!cancelReason.trim()}
             >
               Confirmer l'annulation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Plan Pricing Dialog */}
+      <Dialog open={editPlanDialog} onOpenChange={setEditPlanDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le tarif du plan</DialogTitle>
+            <DialogDescription>
+              {selectedPlan?.name} - Tarif actuel: {selectedPlan?.monthly_price.toLocaleString()} {selectedPlan?.currency}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPrice">Nouveau tarif ({selectedPlan?.currency})</Label>
+              <Input
+                id="newPrice"
+                type="number"
+                value={newPrice}
+                onChange={(e) => setNewPrice(e.target.value)}
+                placeholder="Ex: 50000"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditPlanDialog(false)}>
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleUpdatePrice}
+              disabled={!newPrice.trim() || parseInt(newPrice) <= 0}
+            >
+              Enregistrer le tarif
             </Button>
           </DialogFooter>
         </DialogContent>
