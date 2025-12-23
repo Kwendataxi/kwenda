@@ -1,8 +1,8 @@
 /**
  * 🎁 Hook système de parrainage chauffeur
  * - Code unique auto-généré
- * - Tracking filleuls
- * - Calcul bonus
+ * - Tracking filleuls avec limite de 20 max
+ * - Calcul bonus et stats
  */
 
 import { useAuth } from './useAuth';
@@ -19,6 +19,7 @@ export interface ReferralCode {
   total_earnings: number;
   bonus_per_referral: number;
   is_active: boolean;
+  max_referrals: number;
 }
 
 export interface ReferralTracking {
@@ -39,11 +40,55 @@ export interface ReferralTracking {
   };
 }
 
+export interface ReferralStats {
+  hasCode: boolean;
+  code?: string;
+  totalReferrals: number;
+  completedReferrals: number;
+  pendingReferrals: number;
+  totalEarned: number;
+  maxReferrals: number;
+  remainingSlots: number;
+  limitReached: boolean;
+  progressPercent: number;
+}
+
 export const useReferralSystem = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Charger le code de parrainage du chauffeur
+  // Charger les stats via la nouvelle fonction RPC
+  const { data: statsData, isLoading: loadingStats } = useQuery({
+    queryKey: ['driver-referral-stats', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const { data, error } = await supabase.rpc('get_driver_referral_stats', {
+        p_user_id: user.id
+      });
+
+      if (error) {
+        console.error('Error fetching referral stats:', error);
+        // Fallback to manual calculation if RPC doesn't exist
+        return null;
+      }
+
+      return data as {
+        hasCode: boolean;
+        code?: string;
+        totalReferrals: number;
+        completedReferrals: number;
+        pendingReferrals: number;
+        totalEarned: number;
+        maxReferrals: number;
+        remainingSlots: number;
+        limitReached: boolean;
+      };
+    },
+    enabled: !!user
+  });
+
+  // Charger le code de parrainage du chauffeur (fallback)
   const { data: referralCode, isLoading: loadingCode } = useQuery({
     queryKey: ['referral-code', user?.id],
     queryFn: async () => {
@@ -53,12 +98,12 @@ export const useReferralSystem = () => {
         .from('referral_codes')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       return data as ReferralCode | null;
     },
-    enabled: !!user
+    enabled: !!user && !statsData?.hasCode
   });
 
   // Charger les filleuls
@@ -69,32 +114,26 @@ export const useReferralSystem = () => {
 
       const { data, error } = await supabase
         .from('referral_tracking')
-        .select(`
-          *,
-          referred:referred_id (
-            id,
-            email
-          )
-        `)
+        .select('*')
         .eq('referrer_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Enrichir avec les noms des filleuls depuis driver_profiles
+      // Enrichir avec les noms des filleuls
       const enriched = await Promise.all(
         (data || []).map(async (ref: any) => {
           const { data: profile } = await supabase
-            .from('driver_profiles')
-            .select('id')
+            .from('profiles')
+            .select('display_name')
             .eq('user_id', ref.referred_id)
-            .single();
+            .maybeSingle();
 
           return {
             ...ref,
             referred_user: {
-              full_name: 'Chauffeur',
-              email: ref.referred?.email
+              full_name: profile?.display_name || 'Chauffeur',
+              email: ''
             }
           };
         })
@@ -117,13 +156,14 @@ export const useReferralSystem = () => {
 
       if (error) throw error;
 
-      // Insérer le code
+      // Insérer le code avec max_referrals
       const { error: insertError } = await supabase
         .from('referral_codes')
         .insert({
           user_id: user.id,
           code: data,
-          service_type: serviceType
+          service_type: serviceType,
+          max_referrals: 20
         });
 
       if (insertError) throw insertError;
@@ -132,6 +172,7 @@ export const useReferralSystem = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referral-code'] });
+      queryClient.invalidateQueries({ queryKey: ['driver-referral-stats'] });
       toast.success('Code de parrainage créé !');
     },
     onError: (error) => {
@@ -145,14 +186,19 @@ export const useReferralSystem = () => {
     mutationFn: async (code: string) => {
       if (!user) throw new Error('Non authentifié');
 
-      const { data, error } = await supabase.rpc('use_referral_code', {
+      const { data, error } = await supabase.rpc('apply_driver_referral_code', {
         p_code: code.toUpperCase(),
         p_referred_id: user.id
       });
 
       if (error) throw error;
 
-      const result = data as { success: boolean; error?: string; bonus_amount?: number };
+      const result = data as { 
+        success: boolean; 
+        error?: string; 
+        bonus_amount?: number;
+        remaining_slots?: number;
+      };
       
       if (!result.success) {
         throw new Error(result.error || 'Erreur inconnue');
@@ -162,6 +208,7 @@ export const useReferralSystem = () => {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['referral-tracking'] });
+      queryClient.invalidateQueries({ queryKey: ['driver-referral-stats'] });
       toast.success(`Code validé ! Vous recevrez ${result.bonus_amount} CDF après 10 courses`);
     },
     onError: (error: Error) => {
@@ -169,22 +216,31 @@ export const useReferralSystem = () => {
     }
   });
 
-  // Stats calculées
-  const stats = {
-    totalReferrals: referrals?.length || 0,
-    activeReferrals: referrals?.filter(r => r.status === 'pending').length || 0,
-    completedReferrals: referrals?.filter(r => r.status === 'completed').length || 0,
-    pendingEarnings: referrals
-      ?.filter(r => r.status === 'pending' && !r.referrer_bonus_paid)
-      .reduce((sum, r) => sum + r.referrer_bonus_amount, 0) || 0,
-    totalEarned: referralCode?.total_earnings || 0
+  // Stats calculées avec limite de 20
+  const maxReferrals = statsData?.maxReferrals || referralCode?.max_referrals || 20;
+  const totalReferrals = statsData?.totalReferrals ?? (referrals?.length || 0);
+  const completedReferrals = statsData?.completedReferrals ?? (referrals?.filter(r => r.status === 'completed').length || 0);
+  const pendingReferrals = statsData?.pendingReferrals ?? (referrals?.filter(r => r.status === 'pending').length || 0);
+  const remainingSlots = statsData?.remainingSlots ?? Math.max(0, maxReferrals - totalReferrals);
+
+  const stats: ReferralStats = {
+    hasCode: statsData?.hasCode ?? !!referralCode,
+    code: statsData?.code || referralCode?.code,
+    totalReferrals,
+    completedReferrals,
+    pendingReferrals,
+    totalEarned: statsData?.totalEarned || referralCode?.total_earnings || 0,
+    maxReferrals,
+    remainingSlots,
+    limitReached: statsData?.limitReached ?? (remainingSlots <= 0),
+    progressPercent: Math.min(100, (totalReferrals / maxReferrals) * 100)
   };
 
   return {
     referralCode,
     referrals,
     stats,
-    loading: loadingCode || loadingReferrals,
+    loading: loadingStats || loadingCode || loadingReferrals,
     generateCode,
     useCode
   };
