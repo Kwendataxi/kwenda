@@ -30,7 +30,8 @@ import {
   Loader2,
   Reply as ReplyIcon,
   ShoppingBag,
-  Trash2
+  Trash2,
+  Phone
 } from 'lucide-react';
 import { useUniversalChat, type UniversalConversation, type UniversalMessage } from '@/hooks/useUniversalChat';
 import { useChatPresence } from '@/hooks/useChatPresence';
@@ -47,6 +48,8 @@ import { ImageAttachment, ImageMessage, ImagePreview, uploadChatImage } from './
 import { NewMessagesButton } from './NewMessagesButton';
 import { LastMessagePreview } from './LastMessagePreview';
 import { EmptyConversationState } from './EmptyConversationState';
+import { CallConfirmationModal } from './CallConfirmationModal';
+import { LocationShareButton } from './LocationShareButton';
 import { toast } from 'sonner';
 
 interface UniversalChatInterfaceProps {
@@ -58,6 +61,9 @@ interface UniversalChatInterfaceProps {
   title?: string;
   quickActions?: { label: string; action: () => void; icon?: any }[];
   hideHeader?: boolean;
+  partnerPhone?: string;
+  partnerName?: string;
+  partnerType?: 'chauffeur' | 'livreur' | 'client' | 'vendeur';
 }
 
 export const UniversalChatInterface = ({
@@ -68,7 +74,10 @@ export const UniversalChatInterface = ({
   participantId,
   title,
   quickActions = [],
-  hideHeader = false
+  hideHeader = false,
+  partnerPhone,
+  partnerName,
+  partnerType = 'client'
 }: UniversalChatInterfaceProps) => {
   const { user } = useAuth();
   const {
@@ -95,6 +104,7 @@ export const UniversalChatInterface = ({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showNewMessagesButton, setShowNewMessagesButton] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [showCallModal, setShowCallModal] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -290,6 +300,19 @@ export const UniversalChatInterface = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Bouton d'appel - visible seulement si un numéro est disponible */}
+            {selectedConversation && partnerPhone && (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowCallModal(true)} 
+                  className="p-2 rounded-full bg-green-500/10 text-green-600 hover:bg-green-500/20 hover:text-green-700 transition-all"
+                >
+                  <Phone className="h-5 w-5" />
+                </Button>
+              </motion.div>
+            )}
             {isFloating && <Button variant="ghost" size="sm" onClick={() => setIsMinimized(true)} className="p-1"><MessageCircle className="h-4 w-4" /></Button>}
             {onClose && <Button variant="ghost" size="sm" onClick={onClose} className="p-1"><X className="h-4 w-4" /></Button>}
           </div>
@@ -398,6 +421,16 @@ export const UniversalChatInterface = ({
         <AnimatePresence>{showNewMessagesButton && selectedConversation && <NewMessagesButton onClick={() => scrollToBottom()} count={0} />}</AnimatePresence>
       </div>
       <AnimatePresence>{previewImage && <ImagePreview imageUrl={previewImage} onClose={() => setPreviewImage(null)} />}</AnimatePresence>
+      
+      {/* Modal de confirmation d'appel */}
+      <CallConfirmationModal
+        isOpen={showCallModal}
+        onClose={() => setShowCallModal(false)}
+        partnerName={partnerName || currentConversation?.other_participant?.shop_name || currentConversation?.other_participant?.display_name || 'Contact'}
+        partnerPhone={partnerPhone || ''}
+        partnerAvatar={currentConversation?.other_participant?.shop_logo_url || currentConversation?.other_participant?.avatar_url}
+        partnerType={partnerType}
+      />
     </Card>
   );
 };
