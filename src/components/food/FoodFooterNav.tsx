@@ -26,8 +26,8 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * 🍔 KWENDA FOOD - FOOTER NAVIGATION MODERNE
- * Design professionnel avec backdrop-blur, gradients et animations fluides
+ * 🍔 KWENDA FOOD - FOOTER NAVIGATION
+ * Harmonisé avec le style client (ModernBottomNavigation)
  */
 export const FoodFooterNav: React.FC<FoodFooterNavProps> = ({ 
   cartItemsCount = 0, 
@@ -45,114 +45,87 @@ export const FoodFooterNav: React.FC<FoodFooterNavProps> = ({
   };
 
   return (
-    <footer
-      data-food-footer
-      className="bottom-nav-standard z-[110] isolate"
-    >
-      {/* Ligne décorative supérieure avec gradient */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+    <nav className="bottom-nav-standard">
+      {/* Ligne décorative supérieure */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       
-      {/* Container principal avec glassmorphism */}
-      <div className="relative bg-background/80 backdrop-blur-2xl border-t border-border/50 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_-8px_48px_rgba(0,0,0,0.5)]">
-        {/* Effet de glow subtil */}
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent pointer-events-none" />
-        
-        <nav className="relative flex justify-around items-center h-16 px-2 max-w-2xl mx-auto">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = item.path ? location.pathname === item.path : false;
-            const isCart = item.action === 'cart';
+      <div className="flex items-center justify-around h-[72px] px-4 max-w-2xl mx-auto">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive = item.path ? location.pathname === item.path : false;
+          const isCart = item.action === 'cart';
 
-            return (
-              <motion.button
-                key={item.id}
-                onClick={() => handleClick(item)}
-                whileTap={{ scale: 0.88 }}
-                whileHover={{ scale: 1.08 }}
-                className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 px-3 py-2.5 rounded-2xl",
-                  "transition-all duration-300 ease-out",
-                  isActive
-                    ? 'text-primary'
-                    : isCart && cartItemsCount > 0
-                      ? 'text-orange-500'
-                      : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {/* Background actif avec glassmorphism */}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeBg"
-                    className="absolute inset-0 bg-primary/10 backdrop-blur-sm rounded-2xl border border-primary/20"
-                    transition={{ 
-                      type: "spring", 
-                      stiffness: 400, 
-                      damping: 30 
-                    }}
-                  />
-                )}
-
-                {/* Icône avec animation */}
+          return (
+            <motion.button
+              key={item.id}
+              onClick={() => handleClick(item)}
+              whileTap={{ scale: 0.9 }}
+              className={cn(
+                "relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl min-w-[56px]",
+                "transition-colors duration-200",
+                isActive
+                  ? 'text-primary'
+                  : isCart && cartItemsCount > 0
+                    ? 'text-orange-500'
+                    : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {/* Background actif */}
+              {isActive && (
                 <motion.div
-                  animate={{
-                    scale: isActive ? 1.1 : 1,
-                    y: isActive ? -2 : 0
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  className="relative z-10"
-                >
-                  <Icon 
-                    className="w-5 h-5" 
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                  
-                  {/* Badge panier */}
-                  {isCart && (
-                    <motion.span
-                      key={cartItemsCount}
-                      initial={{ scale: 1.5 }}
-                      animate={{ scale: 1 }}
-                      className={cn(
-                        "absolute -top-2 -right-2 min-w-[18px] h-[18px]",
-                        "text-[10px] font-bold rounded-full",
-                        "flex items-center justify-center",
-                        cartItemsCount > 0
-                          ? "bg-orange-500 text-white shadow-lg shadow-orange-500/40"
-                          : "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      {cartItemsCount}
-                    </motion.span>
-                  )}
-                </motion.div>
+                  layoutId="foodActiveBg"
+                  className="absolute inset-0 bg-primary/10 rounded-xl"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
 
-                {/* Label */}
-                <span 
-                  className={cn(
-                    "relative z-10 text-[10px] font-semibold tracking-wide",
-                    isActive ? 'font-bold' : 'font-medium'
-                  )}
-                >
-                  {item.label}
-                </span>
-
-                {/* Indicateur de tab actif (ligne en haut) */}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeIndicator"
-                    className="absolute -top-[2px] left-1/2 -translate-x-1/2 w-10 h-[3px] bg-gradient-to-r from-primary via-primary/90 to-primary rounded-full shadow-lg shadow-primary/50"
-                    transition={{ 
-                      type: "spring", 
-                      stiffness: 500, 
-                      damping: 35 
-                    }}
-                  />
+              {/* Icône */}
+              <div className="relative z-10">
+                <Icon 
+                  className={cn("w-5 h-5", isActive && "scale-110")}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                
+                {/* Badge panier */}
+                {isCart && (
+                  <motion.span
+                    key={cartItemsCount}
+                    initial={{ scale: 1.3 }}
+                    animate={{ scale: 1 }}
+                    className={cn(
+                      "absolute -top-2 -right-2 min-w-[18px] h-[18px]",
+                      "text-[10px] font-bold rounded-full",
+                      "flex items-center justify-center",
+                      cartItemsCount > 0
+                        ? "bg-orange-500 text-white shadow-lg shadow-orange-500/40"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {cartItemsCount}
+                  </motion.span>
                 )}
-              </motion.button>
-            );
-          })}
-        </nav>
+              </div>
+
+              {/* Label */}
+              <span className={cn(
+                "relative z-10 text-[10px] font-medium",
+                isActive && 'font-semibold'
+              )}>
+                {item.label}
+              </span>
+
+              {/* Indicateur actif (barre en bas) */}
+              {isActive && (
+                <motion.div
+                  layoutId="foodActiveIndicator"
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
       </div>
-    </footer>
+    </nav>
   );
 };
