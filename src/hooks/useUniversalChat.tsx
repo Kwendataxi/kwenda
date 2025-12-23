@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { pushNotificationService } from '@/services/pushNotificationService';
+import { toast } from 'sonner';
 
 export interface UniversalConversation {
   id: string;
@@ -611,6 +613,39 @@ export const useUniversalChat = () => {
               enrichedMessage,
             ],
           }));
+          
+          // 🔔 Notification push pour nouveau message
+          const senderName = profile.shop_name || profile.display_name || 'Nouveau message';
+          const messagePreview = newMessage.content?.length > 50 
+            ? newMessage.content.substring(0, 50) + '...' 
+            : newMessage.content || 'Nouveau message';
+
+          // Notification push navigateur
+          pushNotificationService.showNotification(
+            `💬 ${senderName}`,
+            {
+              body: messagePreview,
+              tag: `chat-${newMessage.conversation_id}`,
+              data: { 
+                conversationId: newMessage.conversation_id,
+                url: '/marketplace?tab=messages'
+              }
+            }
+          );
+
+          // Toast in-app
+          toast.info(`💬 ${senderName}`, {
+            description: messagePreview,
+            action: {
+              label: 'Voir',
+              onClick: () => {
+                window.location.href = '/client?tab=messages';
+              }
+            }
+          });
+
+          // Mettre à jour le badge de la page
+          pushNotificationService.updatePageBadge(1);
           
           fetchConversations();
         }
