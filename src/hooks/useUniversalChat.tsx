@@ -731,6 +731,35 @@ export const useUniversalChat = () => {
     }
   }, [user, createOrFindConversation]);
 
+  // Supprimer une conversation (soft delete pour l'utilisateur courant)
+  const deleteConversation = useCallback(async (conversationId: string) => {
+    if (!user) return false;
+
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation) return false;
+
+    try {
+      const isParticipant1 = conversation.participant_1 === user.id;
+      const updateField = isParticipant1 ? 'deleted_by_participant_1' : 'deleted_by_participant_2';
+
+      const { error } = await supabase
+        .from('unified_conversations')
+        .update({ [updateField]: true })
+        .eq('id', conversationId);
+
+      if (error) throw error;
+
+      // Mettre à jour l'état local
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+      toast.success('Conversation supprimée');
+      return true;
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast.error('Erreur lors de la suppression');
+      return false;
+    }
+  }, [user, conversations]);
+
   return {
     conversations,
     messages,
@@ -748,5 +777,6 @@ export const useUniversalChat = () => {
     createOrFindConversation,
     createConversationFromBooking,
     markMessagesAsRead,
+    deleteConversation,
   };
 };

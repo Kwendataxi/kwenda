@@ -12196,6 +12196,8 @@ export type Database = {
           context_id: string | null
           context_type: string
           created_at: string
+          deleted_by_participant_1: boolean | null
+          deleted_by_participant_2: boolean | null
           id: string
           last_message_at: string | null
           metadata: Json | null
@@ -12209,6 +12211,8 @@ export type Database = {
           context_id?: string | null
           context_type: string
           created_at?: string
+          deleted_by_participant_1?: boolean | null
+          deleted_by_participant_2?: boolean | null
           id?: string
           last_message_at?: string | null
           metadata?: Json | null
@@ -12222,6 +12226,8 @@ export type Database = {
           context_id?: string | null
           context_type?: string
           created_at?: string
+          deleted_by_participant_1?: boolean | null
+          deleted_by_participant_2?: boolean | null
           id?: string
           last_message_at?: string | null
           metadata?: Json | null

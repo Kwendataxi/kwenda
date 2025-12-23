@@ -1,11 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSwipeable } from 'react-swipeable';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   MessageCircle, 
   Send, 
@@ -18,7 +29,8 @@ import {
   AlertCircle,
   Loader2,
   Reply as ReplyIcon,
-  ShoppingBag
+  ShoppingBag,
+  Trash2
 } from 'lucide-react';
 import { useUniversalChat, type UniversalConversation, type UniversalMessage } from '@/hooks/useUniversalChat';
 import { useChatPresence } from '@/hooks/useChatPresence';
@@ -70,7 +82,8 @@ export const UniversalChatInterface = ({
     loadMoreMessages,
     hasMore,
     loadingMore,
-    retryMessage
+    retryMessage,
+    deleteConversation
   } = useUniversalChat();
 
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -285,7 +298,12 @@ export const UniversalChatInterface = ({
 
       <div className="flex-1 flex flex-col min-h-0 relative">
         {!selectedConversation ? (
-          <ConversationsList conversations={conversations} onSelectConversation={(id) => { setSelectedConversation(id); fetchMessages(id); }} loading={loading} />
+          <ConversationsList 
+            conversations={conversations} 
+            onSelectConversation={(id) => { setSelectedConversation(id); fetchMessages(id); }} 
+            onDeleteConversation={deleteConversation}
+            loading={loading} 
+          />
         ) : (
           <>
             <div ref={scrollAreaRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 bg-background">
@@ -384,7 +402,151 @@ export const UniversalChatInterface = ({
   );
 };
 
-const ConversationsList = ({ conversations, onSelectConversation, loading }: { conversations: UniversalConversation[]; onSelectConversation: (id: string) => void; loading: boolean }) => {
+// Composant pour un item de conversation avec swipe-to-delete
+const SwipeableConversationItem = ({ 
+  conversation, 
+  index,
+  onSelect, 
+  onDelete 
+}: { 
+  conversation: UniversalConversation; 
+  index: number;
+  onSelect: () => void;
+  onDelete: () => void;
+}) => {
+  const [swipeProgress, setSwipeProgress] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handlers = useSwipeable({
+    onSwiping: (e) => {
+      if (e.dir === 'Left') {
+        setSwipeProgress(Math.min(e.absX, 80));
+      }
+    },
+    onSwipedLeft: () => {
+      if (swipeProgress > 60) {
+        setIsDeleting(true);
+      }
+      setSwipeProgress(0);
+    },
+    onTouchEndOrOnMouseUp: () => {
+      if (swipeProgress < 60) {
+        setSwipeProgress(0);
+      }
+    },
+    trackMouse: true,
+    preventScrollOnSwipe: true,
+  });
+
+  const handleDelete = async () => {
+    await onDelete();
+    setIsDeleting(false);
+  };
+
+  return (
+    <>
+      <motion.div 
+        {...handlers}
+        key={conversation.id} 
+        initial={{ opacity: 0, y: 8 }} 
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, x: -100, height: 0 }}
+        transition={{ delay: index * 0.05 }}
+        className="relative overflow-hidden rounded-xl"
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setIsDeleting(true);
+        }}
+      >
+        {/* Fond rouge avec icône poubelle pour swipe */}
+        <div 
+          className="absolute inset-y-0 right-0 bg-gradient-to-l from-destructive to-destructive/80 flex items-center justify-end px-4 rounded-r-xl"
+          style={{ width: Math.max(swipeProgress, 0) }}
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: swipeProgress > 60 ? 1.2 : 1 }}
+          >
+            <Trash2 className="h-5 w-5 text-white" />
+          </motion.div>
+        </div>
+        
+        {/* Contenu de la conversation */}
+        <motion.div 
+          style={{ transform: `translateX(-${swipeProgress}px)` }}
+          onClick={onSelect} 
+          className="flex items-center gap-3 p-3 bg-card hover:bg-muted/60 cursor-pointer transition-all active:scale-[0.98] group border border-border/40 hover:border-border/60 shadow-sm hover:shadow rounded-xl"
+        >
+          <div className="relative">
+            <Avatar className="h-12 w-12 border-2 border-background shadow-md">
+              <AvatarImage src={conversation.other_participant?.shop_logo_url || conversation.other_participant?.avatar_url} />
+              <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-primary-foreground font-medium">
+                {conversation.other_participant?.shop_name?.[0] || conversation.other_participant?.display_name?.charAt(0) || 'V'}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-0.5">
+              <p className="font-semibold text-foreground truncate text-sm">
+                {conversation.other_participant?.shop_name || conversation.other_participant?.display_name || 'Vendeur'}
+              </p>
+              <span className="text-[11px] text-muted-foreground font-medium">
+                {conversation.last_message_at && new Date(conversation.last_message_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0 pr-2">
+                <LastMessagePreview message={conversation.last_message} isRead={!conversation.unread_count} />
+              </div>
+              {conversation.unread_count && conversation.unread_count > 0 && (
+                <Badge className="h-5 min-w-5 rounded-full px-1.5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground font-semibold shadow-sm">
+                  {conversation.unread_count}
+                </Badge>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Dialog de confirmation de suppression */}
+      <AlertDialog open={isDeleting} onOpenChange={setIsDeleting}>
+        <AlertDialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              Supprimer cette discussion ?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action masquera la conversation de votre liste. Les messages resteront visibles pour l'autre participant.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
+            <AlertDialogCancel className="flex-1 sm:flex-none mt-0">Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="flex-1 sm:flex-none bg-destructive hover:bg-destructive/90"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+const ConversationsList = ({ 
+  conversations, 
+  onSelectConversation, 
+  onDeleteConversation,
+  loading 
+}: { 
+  conversations: UniversalConversation[]; 
+  onSelectConversation: (id: string) => void; 
+  onDeleteConversation: (id: string) => Promise<boolean>;
+  loading: boolean;
+}) => {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -400,23 +562,17 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
   if (conversations.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-background">
-        {/* Illustration Moderne Animée */}
         <motion.div 
           initial={{ scale: 0, opacity: 0 }} 
           animate={{ scale: 1, opacity: 1 }} 
           transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
           className="mb-8 relative"
         >
-          {/* Cercle principal avec dégradé */}
           <div className="relative w-32 h-32">
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 via-orange-100 to-purple-100 dark:from-primary/10 dark:via-orange-900/20 dark:to-purple-900/20 animate-pulse" />
-            
-            {/* Icône principale */}
             <div className="absolute inset-4 rounded-full bg-card shadow-xl flex items-center justify-center border border-border/50">
               <MessageCircle className="h-12 w-12 text-primary" />
             </div>
-            
-            {/* Badges flottants animés */}
             <motion.div 
               animate={{ y: [0, -6, 0] }} 
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
@@ -424,7 +580,6 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
             >
               <span className="text-lg">💰</span>
             </motion.div>
-            
             <motion.div 
               animate={{ y: [0, 6, 0] }} 
               transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut", delay: 0.5 }}
@@ -432,7 +587,6 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
             >
               <span className="text-base">🛍️</span>
             </motion.div>
-            
             <motion.div 
               animate={{ y: [0, -4, 0] }} 
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut", delay: 1 }}
@@ -443,7 +597,6 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
           </div>
         </motion.div>
         
-        {/* Message d'accueil engageant */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }} 
@@ -458,7 +611,6 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
           </p>
         </motion.div>
         
-        {/* Bouton CTA Amélioré */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -482,46 +634,21 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
   return (
     <ScrollArea className="flex-1 bg-background">
       <div className="p-3 space-y-2">
-        {conversations.map((conversation, index) => (
-          <motion.div 
-            key={conversation.id} 
-            initial={{ opacity: 0, y: 8 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            onClick={() => onSelectConversation(conversation.id)} 
-            className="flex items-center gap-3 p-3 rounded-xl bg-card hover:bg-muted/60 cursor-pointer transition-all active:scale-[0.98] group border border-border/40 hover:border-border/60 shadow-sm hover:shadow"
-          >
-            <div className="relative">
-              <Avatar className="h-12 w-12 border-2 border-background shadow-md">
-                <AvatarImage src={conversation.other_participant?.shop_logo_url || conversation.other_participant?.avatar_url} />
-                <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-primary-foreground font-medium">
-                  {conversation.other_participant?.shop_name?.[0] || conversation.other_participant?.display_name?.charAt(0) || 'V'}
-                </AvatarFallback>
-              </Avatar>
-              {/* TODO: Use real presence when useChatPresence is available per conversation */}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-0.5">
-                <p className="font-semibold text-foreground truncate text-sm">
-                  {conversation.other_participant?.shop_name || conversation.other_participant?.display_name || 'Vendeur'}
-                </p>
-                <span className="text-[11px] text-muted-foreground font-medium">
-                  {conversation.last_message_at && new Date(conversation.last_message_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0 pr-2">
-                  <LastMessagePreview message={conversation.last_message} isRead={!conversation.unread_count} />
-                </div>
-                {conversation.unread_count && conversation.unread_count > 0 && (
-                  <Badge className="h-5 min-w-5 rounded-full px-1.5 flex items-center justify-center text-[10px] bg-primary text-primary-foreground font-semibold shadow-sm">
-                    {conversation.unread_count}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        ))}
+        {/* Indication swipe */}
+        <p className="text-[10px] text-muted-foreground text-center mb-2">
+          ← Glissez pour supprimer ou appuyez longuement
+        </p>
+        <AnimatePresence mode="popLayout">
+          {conversations.map((conversation, index) => (
+            <SwipeableConversationItem
+              key={conversation.id}
+              conversation={conversation}
+              index={index}
+              onSelect={() => onSelectConversation(conversation.id)}
+              onDelete={() => onDeleteConversation(conversation.id)}
+            />
+          ))}
+        </AnimatePresence>
       </div>
     </ScrollArea>
   );
