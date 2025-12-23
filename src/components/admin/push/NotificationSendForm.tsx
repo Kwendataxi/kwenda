@@ -189,13 +189,28 @@ export const NotificationSendForm: React.FC = () => {
       }
 
       // Send via push-notifications-broadcast
+      // Map frontend target_type to backend target_audience
+      const mapTargetType = (targetType: string): string => {
+        const mapping: Record<string, string> = {
+          'all_clients': 'clients',
+          'all_drivers': 'drivers',
+          'active_drivers': 'drivers',
+          'verified_drivers': 'drivers',
+          'all_partners': 'partners',
+          'all_vendors': 'vendors',
+          'zone_users': 'clients'
+        };
+        return mapping[targetType] || 'all';
+      };
+
       try {
         await callEdgeFunction('push-notifications-broadcast', {
           title: form.title.trim(),
           message: form.message.trim(),
-          target_type: form.target_type,
+          target_audience: mapTargetType(form.target_type),
           target_city: form.target_type === 'zone_users' ? form.city : undefined,
           priority: form.priority,
+          type: 'announcement',
           sound: form.sound,
           vibration: form.vibration
         });

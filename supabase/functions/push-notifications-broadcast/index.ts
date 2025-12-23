@@ -63,23 +63,27 @@ serve(async (req) => {
       throw new Error("Only admins can broadcast notifications");
     }
 
-    const body: BroadcastRequest = await req.json();
+    const body = await req.json();
     const { 
       title, 
       message, 
       type = 'system', 
       priority = 'normal', 
       target_audience,
+      target_type,  // Fallback for legacy frontend
       target_city,
       target_user_ids,
       data 
     } = body;
 
-    if (!title || !message || !target_audience) {
+    // Support both field names for compatibility
+    const audience = target_audience || target_type || null;
+
+    if (!title || !message || !audience) {
       throw new Error("Missing required fields: title, message, target_audience");
     }
 
-    console.log(`📢 Admin ${user.email} broadcasting ${priority} ${type} notification to ${target_audience}`);
+    console.log(`📢 Admin ${user.email} broadcasting ${priority} ${type} notification to ${audience}`);
 
     // Build user query based on target audience
     let userIds: string[] = [];
@@ -89,7 +93,7 @@ serve(async (req) => {
       userIds = target_user_ids;
     } else {
       // Query users based on audience
-      switch (target_audience) {
+      switch (audience) {
         case 'clients': {
           let query = supabaseClient.from('clients').select('user_id').eq('is_active', true);
           if (target_city) query = query.eq('city', target_city);
@@ -180,7 +184,7 @@ serve(async (req) => {
         severity: priority === 'urgent' ? 'critical' : priority === 'high' ? 'warning' : 'info',
         data: {
           broadcast_type: type,
-          target_audience,
+          target_audience: audience,
           target_city,
           user_count: userIds.length,
           sent_by: user.id
@@ -268,10 +272,10 @@ serve(async (req) => {
       .insert({
         user_id: user.id,
         activity_type: 'broadcast_notification',
-        description: `Broadcast "${title}" to ${target_audience} (${sentCount} sent, ${failedCount} failed)`,
+        description: `Broadcast "${title}" to ${audience} (${sentCount} sent, ${failedCount} failed)`,
         metadata: {
           broadcast_id: broadcast?.id,
-          target_audience,
+          target_audience: audience,
           target_city,
           total_users: userIds.length,
           sent_count: sentCount,
