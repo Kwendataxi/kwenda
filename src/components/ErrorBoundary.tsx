@@ -69,7 +69,7 @@ export class ErrorBoundary extends Component<Props, State> {
     const selectedRole = storage['kwenda_selected_role'];
     const dashboardPath = selectedRole === 'driver' ? '/app/chauffeur'
       : selectedRole === 'partner' ? '/app/partenaire'
-      : selectedRole === 'admin' ? '/app/admin'
+      : selectedRole === 'admin' ? '/operatorx/admin'
       : '/app/client';
     
     window.location.href = dashboardPath;

@@ -48,8 +48,16 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
 
   // Si l'authentification est requise mais l'utilisateur n'est pas connecté
   if (requireAuth && !user) {
-    // Rediriger vers la page d'auth appropriée selon l'app
-    return <Navigate to={APP_CONFIG.authRoute} state={{ from: location }} replace />;
+    // Rediriger vers la page d'auth appropriée selon le rôle requis
+    const authRoutes: Record<string, string> = {
+      'admin': '/operatorx/admin/auth',
+      'driver': '/driver/auth',
+      'partner': '/partner/auth',
+      'restaurant': '/restaurant/auth',
+      'client': '/auth'
+    };
+    const targetAuth = requiredRole ? authRoutes[requiredRole] || APP_CONFIG.authRoute : APP_CONFIG.authRoute;
+    return <Navigate to={targetAuth} state={{ from: location }} replace />;
   }
 
   // ✅ Vérifier le rôle requis et rediriger si nécessaire

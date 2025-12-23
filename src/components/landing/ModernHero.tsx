@@ -28,7 +28,7 @@ const ModernHero = () => {
           navigate("/app/partenaire");
           break;
         case 'admin':
-          navigate("/app/admin");
+          navigate("/operatorx/admin");
           break;
       }
     }

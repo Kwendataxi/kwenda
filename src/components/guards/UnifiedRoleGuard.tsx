@@ -55,7 +55,7 @@ export const UnifiedRoleGuard = ({
       case 'partner':
         return '/app/partenaire';
       case 'admin':
-        return '/app/admin';
+        return '/operatorx/admin';
       case 'restaurant':
         return '/app/restaurant';
       case 'client':

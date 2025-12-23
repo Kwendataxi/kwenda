@@ -72,7 +72,7 @@ const RoleSelection = () => {
 
   const navigateToRole = (role: UserRole) => {
     const paths: Record<UserRole, string> = {
-      admin: '/app/admin',
+      admin: '/operatorx/admin',
       partner: '/app/partenaire',
       driver: '/app/chauffeur',
       client: '/app/client',
