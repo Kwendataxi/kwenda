@@ -53,60 +53,46 @@ const NAV_ITEMS: Array<{
   // Tableau de bord
   { id: 'overview', label: "Vue d'ensemble", icon: BarChart3, group: 'dashboard' },
   
-  // Finances & Abonnements
-  { id: 'financial-stats', label: 'Statistiques Revenus', icon: PieChart, group: 'finance' },
+  // Finances
+  { id: 'financial-stats', label: 'Revenus', icon: PieChart, group: 'finance' },
   { id: 'subscriptions', label: 'Abonnements', icon: Package, group: 'finance' },
-  { id: 'subscription-config', label: 'Configuration Plans', icon: Settings, group: 'finance', badge: 'CONFIG' },
   
-  // Transport
-  { id: 'transport-management', label: 'Dashboard Transport', icon: Car, group: 'transport', badge: 'NEW' },
-  { id: 'delivery-management', label: 'Dashboard Livraisons', icon: Package, group: 'transport', badge: 'NEW' },
-  { id: 'rental-analytics', label: 'Analytics Location', icon: BarChart3, group: 'transport', badge: 'NEW' },
-  { id: 'tarifs', label: 'Tarifs', icon: Tag, group: 'transport' },
-  { id: 'zones', label: 'Zones', icon: MapPin, group: 'transport' },
-  { id: 'dispatch', label: 'Dispatch NG', icon: Zap, group: 'transport' },
-  { id: 'location', label: 'Location', icon: Car, group: 'transport' },
-  { id: 'vehicle-types', label: 'Types de véhicules', icon: Car, group: 'transport' },
-  { id: 'services', label: 'Services', icon: Cog, group: 'transport' },
+  // Opérations
+  { id: 'transport-management', label: 'Transport', icon: Car, group: 'operations' },
+  { id: 'delivery-management', label: 'Livraisons', icon: Package, group: 'operations' },
+  { id: 'rental-analytics', label: 'Location', icon: Car, group: 'operations' },
+  { id: 'tarifs', label: 'Tarifs', icon: Tag, group: 'operations' },
+  { id: 'zones', label: 'Zones', icon: MapPin, group: 'operations' },
   
-  // Gestion des utilisateurs
+  // Utilisateurs
   { id: 'drivers', label: 'Chauffeurs', icon: Car, group: 'users' },
   { id: 'partners', label: 'Partenaires', icon: Building, group: 'users' },
   { id: 'users', label: 'Utilisateurs', icon: Users, group: 'users' },
-  { id: 'teams', label: 'Équipes', icon: Users, group: 'users' },
-  { id: 'roles', label: 'Gestion Rôles', icon: Settings, group: 'users' },
   
   // Commerce
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, group: 'commerce' },
-  { id: 'marketplace-management', label: 'Gestion Marketplace', icon: Package, group: 'commerce', badge: 'NEW' },
-  { id: 'food-management', label: 'Gestion Restaurants', icon: UtensilsCrossed, group: 'commerce', badge: 'NEW' },
+  { id: 'food-management', label: 'Restaurants', icon: UtensilsCrossed, group: 'commerce' },
   { id: 'promocodes', label: 'Codes Promo', icon: Tag, group: 'commerce' },
   { id: 'lottery', label: 'Tombola', icon: Trophy, group: 'commerce' },
   
   // Communication
   { id: 'notifications', label: 'Notifications', icon: Bell, group: 'communication' },
-  { id: 'push-notifications', label: 'Notifications Push', icon: Megaphone, group: 'communication' },
   { id: 'support', label: 'Support', icon: Headphones, group: 'communication' },
   
-  // Analytics & Rapports
-  { id: 'cancellations', label: 'Annulations', icon: XCircle, group: 'analytics' },
-  
   // Système
-  { id: 'mission-control', label: 'Mission Control', icon: Shield, group: 'system' },
+  { id: 'cancellations', label: 'Annulations', icon: XCircle, group: 'system' },
   { id: 'settings', label: 'Paramètres', icon: Settings, group: 'system' },
-  { id: 'migration', label: 'Migration Google', icon: MapPin, group: 'system' },
   { id: 'test-data', label: 'Données de Test', icon: Database, group: 'system', devMode: true },
 ];
 
 const GROUP_LABELS = {
   dashboard: 'Tableau de bord',
-  finance: 'Finances & Abonnements',
-  transport: 'Transport & Logistique',
-  users: 'Gestion des utilisateurs',
-  commerce: 'Commerce & Marketing',
+  finance: 'Finances',
+  operations: 'Opérations',
+  users: 'Utilisateurs',
+  commerce: 'Commerce',
   communication: 'Communication',
-  analytics: 'Analytics & Rapports',
-  system: 'Système & Configuration'
+  system: 'Système'
 };
 
 export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({ 
