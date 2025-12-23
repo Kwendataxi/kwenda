@@ -12,6 +12,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { logger } from '@/utils/logger';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { secureStorage } from '@/utils/secureStorage';
 
 interface AdminLoginProps {
   onSuccess?: () => void;
@@ -26,6 +28,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +101,12 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
         return;
       }
 
-      // ✅ SEULEMENT ICI : Stocker loginIntent APRÈS vérification réussie
+      // ✅ CORRECTION : Invalider le cache des rôles AVANT navigation
+      secureStorage.removeItem('kwenda_user_roles_cache');
+      queryClient.invalidateQueries({ queryKey: ['user-roles'] });
+      logger.info('🔄 [AdminLogin] Cache rôles invalidé');
+
+      // ✅ Stocker loginIntent APRÈS vérification réussie
       localStorage.setItem('kwenda_login_intent', 'admin');
       localStorage.setItem('kwenda_selected_role', 'admin');
 
@@ -106,13 +114,13 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
         description: t('auth.welcome_admin')
       });
 
-      // ✅ CORRECTION : Attendre 500ms pour garantir sync cache secureStorage
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // ✅ Attendre sync cache
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/operatorx/admin');
+        navigate('/operatorx/admin', { replace: true });
       }
     } catch (error: any) {
       logger.error('Erreur de connexion admin', error);
