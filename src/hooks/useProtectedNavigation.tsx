@@ -12,8 +12,8 @@ export const useProtectedNavigation = () => {
   const { primaryRole } = useUserRoles();
   const navigate = useNavigate();
 
-  // Routes publiques interdites aux utilisateurs connectés
-  const PUBLIC_ROUTES = ['/', '/landing', '/auth', '/driver/auth', '/partner/auth', '/operatorx/admin/auth'];
+  // Routes publiques interdites aux utilisateurs connectés (exclut les auth spécialisées pour changement de rôle)
+  const PUBLIC_ROUTES = ['/', '/landing', '/auth'];
 
   /**
    * Retourne le chemin du dashboard selon le rôle

@@ -28,7 +28,7 @@ export const PaymentConfirmation = () => {
       const dashboardPaths: Record<string, string> = {
         driver: '/app/chauffeur',
         partner: '/app/partenaire',
-        admin: '/app/admin',
+        admin: '/operatorx/admin',
         restaurant: '/app/restaurant',
         client: '/app/client'
       };

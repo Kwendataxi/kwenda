@@ -18,7 +18,7 @@ export const useRoleBasedNavigation = () => {
     
     switch (role) {
       case 'admin':
-        return '/app/admin';
+        return '/operatorx/admin';
       case 'partner':
         return '/app/partenaire';
       case 'driver':

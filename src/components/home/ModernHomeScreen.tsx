@@ -70,7 +70,7 @@ export const ModernHomeScreen = memo(({
       const dashboardPaths: Record<string, string> = {
         driver: '/app/chauffeur',
         partner: '/app/partenaire',
-        admin: '/app/admin',
+        admin: '/operatorx/admin',
         restaurant: '/app/restaurant'
       };
       const targetPath = dashboardPaths[primaryRole] || '/app/client';

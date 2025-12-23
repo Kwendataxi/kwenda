@@ -45,7 +45,7 @@ export const ClientLogin = () => {
   const getRedirectPath = (role: string): string => {
     switch (role) {
       case 'admin':
-        return '/app/admin';
+        return '/operatorx/admin';
       case 'partner':
       case 'partenaire':
         return '/app/partenaire';

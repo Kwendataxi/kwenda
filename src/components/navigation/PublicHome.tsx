@@ -30,7 +30,7 @@ export const PublicHome = () => {
   }
 
   // CONNECTÉ : Redirection vers l'espace utilisateur
-  const redirectPath = userRole === 'admin' ? '/app/admin'
+  const redirectPath = userRole === 'admin' ? '/operatorx/admin'
     : userRole === 'partner' ? '/app/partenaire'
     : userRole === 'driver' ? '/app/chauffeur'
     : userRole === 'restaurant' ? '/app/restaurant'
