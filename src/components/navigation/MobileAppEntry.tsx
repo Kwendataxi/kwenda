@@ -1,12 +1,12 @@
 /**
- * 📱 MOBILE APP ENTRY POINT
- * Point d'entrée pour les apps natives (Capacitor)
- * Bypass la landing page marketing pour une expérience pro
+ * 📱 MOBILE APP ENTRY POINT - SUPER APP
+ * Point d'entrée unifié pour l'application Kwenda
+ * Gère l'authentification et la redirection selon le rôle
  */
 import { Navigate } from "react-router-dom";
 import { useAppReady } from "@/contexts/AppReadyContext";
 import MobileSplash from "@/pages/MobileSplash";
-import { APP_CONFIG } from "@/config/appConfig";
+import { APP_CONFIG, getRoleRoute, UserRole } from "@/config/appConfig";
 
 export const MobileAppEntry = () => {
   const { user, userRole, sessionReady, contentReady } = useAppReady();
@@ -16,37 +16,21 @@ export const MobileAppEntry = () => {
     return <MobileSplash />;
   }
   
-  // Non connecté → Page d'authentification directe
+  // Non connecté → Vérifier onboarding puis auth
   if (!user) {
-    // Vérifier si l'onboarding a été vu
-    const ctx = APP_CONFIG.type || "client";
-    const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+    const onboardingSeen = localStorage.getItem("onboarding_seen") === "1";
     
     if (!onboardingSeen) {
-      return <Navigate to={`/onboarding?context=${encodeURIComponent(ctx)}`} replace />;
+      return <Navigate to="/onboarding" replace />;
     }
     
-    return <Navigate to={APP_CONFIG.authRoute || "/auth"} replace />;
+    return <Navigate to={APP_CONFIG.authRoute} replace />;
   }
   
   // Connecté → Redirection vers le dashboard selon le rôle
-  const getRedirectPath = (): string => {
-    switch (userRole) {
-      case 'admin':
-        return '/operatorx/admin';
-      case 'partner':
-        return '/partenaire';
-      case 'driver':
-        return '/chauffeur';
-      case 'restaurant':
-        return '/restaurant';
-      case 'client':
-      default:
-        return '/client';
-    }
-  };
+  const redirectPath = getRoleRoute(userRole as UserRole);
   
-  return <Navigate to={getRedirectPath()} replace />;
+  return <Navigate to={redirectPath} replace />;
 };
 
 export default MobileAppEntry;

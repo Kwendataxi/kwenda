@@ -20,7 +20,7 @@ const MobileSplash: React.FC = () => {
       transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
     });
 
-    const ctx = localStorage.getItem("last_context") || APP_CONFIG.type || "client";
+    const ctx = localStorage.getItem("last_context") || "client";
     const exitTimer = setTimeout(() => setIsExiting(true), 2500);
     
     const timer = setTimeout(async () => {
@@ -77,15 +77,13 @@ const MobileSplash: React.FC = () => {
     };
   }, [navigate, logoControls]);
 
-  // Slogan dynamique
+  // Slogan dynamique selon l'intent de login
   const getSlogan = () => {
     const loginIntent = localStorage.getItem('kwenda_login_intent');
     
-    if (loginIntent === 'restaurant') {
-      return 'Livraison express pour vos clients !';
-    }
-    
-    switch (APP_CONFIG.type) {
+    switch (loginIntent) {
+      case 'restaurant':
+        return 'Livraison express pour vos clients !';
       case 'driver':
         return 'Gagnez plus, roulez mieux !';
       case 'partner':

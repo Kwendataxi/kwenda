@@ -1,18 +1,16 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * 📱 CAPACITOR CONFIGURATION - PRODUCTION READY
+ * 📱 CAPACITOR CONFIGURATION - KWENDA SUPER APP
+ * 
+ * Application unique multi-rôles : Client, Chauffeur, Partenaire
+ * L'utilisateur bascule entre les espaces depuis l'app
  * 
  * Pour le développement avec hot-reload, décommentez server.url
  * En production, le bundle local (dist/) est utilisé
- * 
- * Build multi-apps:
- * - cd.kwenda.client : App Client
- * - cd.kwenda.driver : App Chauffeur  
- * - cd.kwenda.partner : App Partenaire
  */
 const config: CapacitorConfig = {
-  appId: 'cd.kwenda.client',
+  appId: 'cd.kwenda.app',
   appName: 'Kwenda',
   webDir: 'dist',
   

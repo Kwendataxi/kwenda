@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 import { Route } from 'react-router-dom';
-import { isSpecificBuild } from '@/config/appConfig';
+
 
 // Pages publiques
 const HelpCenter = lazy(() => import('@/pages/support/HelpCenter'));
@@ -48,9 +48,6 @@ const ModernMapDemo = lazy(() => import('@/pages/test/ModernMapDemo'));
 const ComponentsDemo = lazy(() => import('@/pages/test/ComponentsDemo').then(m => ({ default: m.ComponentsDemo })));
 
 export const PublicRoutes = () => {
-  if (isSpecificBuild()) {
-    return null;
-  }
 
   return (
     <>
