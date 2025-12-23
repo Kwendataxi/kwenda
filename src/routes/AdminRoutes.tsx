@@ -20,8 +20,9 @@ export const AdminRoutes = () => {
 
   return (
     <>
+      {/* Route principale admin - /operatorx/admin uniquement */}
       <Route 
-        path="/app/admin" 
+        path="/operatorx/admin" 
         element={
           <ProtectedRoute requiredRole="admin">
             <AdminApp />
@@ -29,15 +30,7 @@ export const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminApp />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/taxi-dashboard" 
+        path="/operatorx/admin/taxi-dashboard" 
         element={
           <ProtectedRoute requiredRole="admin">
             <TaxiDashboard />
@@ -45,7 +38,7 @@ export const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin/production-config" 
+        path="/operatorx/admin/production-config" 
         element={
           <ProtectedRoute requiredRole="admin">
             <ProductionConfig />
@@ -53,7 +46,7 @@ export const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin/qr-manager" 
+        path="/operatorx/admin/qr-manager" 
         element={
           <ProtectedRoute requiredRole="admin">
             <QRCodeManager />
@@ -61,7 +54,7 @@ export const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin/qr-analytics" 
+        path="/operatorx/admin/qr-analytics" 
         element={
           <ProtectedRoute requiredRole="admin">
             <QRAnalytics />
@@ -69,7 +62,7 @@ export const AdminRoutes = () => {
         } 
       />
       <Route 
-        path="/admin/food" 
+        path="/operatorx/admin/food" 
         element={
           <ProtectedRoute requiredRole="admin">
             <AdminFoodManagement />
@@ -77,7 +70,7 @@ export const AdminRoutes = () => {
         } 
       />
       <Route
-        path="/admin/notification-test" 
+        path="/operatorx/admin/notification-test" 
         element={
           <ProtectedRoute requiredRole="admin">
             <AdminNotificationTestPage />
@@ -85,7 +78,7 @@ export const AdminRoutes = () => {
         } 
       />
       <Route
-        path="/admin/vendor-shop-test" 
+        path="/operatorx/admin/vendor-shop-test" 
         element={
           <ProtectedRoute requiredRole="admin">
             <VendorShopTestPage />

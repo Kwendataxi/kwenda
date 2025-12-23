@@ -59,47 +59,72 @@ export const EnhancedRoleManagement = () => {
     recentAssignments: 0
   });
 
-  // Charger les utilisateurs avec leurs rôles
+  // Charger les utilisateurs avec leurs rôles (sans auth.admin.listUsers())
   const fetchUsersWithRoles = async () => {
     try {
       setLoadingUsers(true);
       
-      // Récupérer les utilisateurs depuis les profils
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('clients')
-        .select('user_id, display_name, email')
-        .limit(50);
-
-      if (profilesError) {
-        console.warn('Error fetching from clients:', profilesError);
-      }
-
-      // Récupérer les rôles utilisateurs
+      // Récupérer les rôles utilisateurs avec les infos de profil
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
-        .select(`
-          user_id,
-          role,
-          admin_role,
-          assigned_at,
-          is_active
-        `);
+        .select('*')
+        .order('assigned_at', { ascending: false });
 
       if (rolesError) throw rolesError;
 
-      // Récupérer les utilisateurs auth
-      const { data: { users: authUsers }, error: usersError } = await supabase.auth.admin.listUsers();
-      if (usersError) {
-        console.warn('Error fetching auth users:', usersError);
-      }
+      // Récupérer les profils clients
+      const { data: clientsData } = await supabase
+        .from('clients')
+        .select('user_id, display_name, email');
 
-      // Combiner les données
-      const usersWithRoles: UserWithRoles[] = (authUsers || []).map(user => ({
-        id: user.id,
-        email: user.email || '',
-        created_at: user.created_at,
-        userRoles: rolesData?.filter(r => r.user_id === user.id) || []
-      }));
+      // Récupérer les profils chauffeurs
+      const { data: driversData } = await supabase
+        .from('chauffeurs')
+        .select('user_id, display_name, email');
+
+      // Récupérer les profils admins
+      const { data: adminsData } = await supabase
+        .from('admins')
+        .select('user_id, display_name, email');
+
+      // Créer un map des profils pour recherche rapide
+      const profilesMap = new Map<string, { email: string; displayName: string }>();
+      
+      clientsData?.forEach(c => profilesMap.set(c.user_id, { email: c.email, displayName: c.display_name }));
+      driversData?.forEach(d => profilesMap.set(d.user_id, { email: d.email, displayName: d.display_name || '' }));
+      adminsData?.forEach(a => profilesMap.set(a.user_id, { email: a.email, displayName: a.display_name }));
+
+      // Grouper les rôles par user_id
+      const userRolesMap = new Map<string, Array<{
+        role: UserRole;
+        admin_role?: AdminRole;
+        assigned_at: string;
+        is_active: boolean;
+      }>>();
+
+      rolesData?.forEach(r => {
+        const userId = r.user_id;
+        if (!userRolesMap.has(userId)) {
+          userRolesMap.set(userId, []);
+        }
+        userRolesMap.get(userId)!.push({
+          role: r.role as UserRole,
+          admin_role: r.admin_role as AdminRole | undefined,
+          assigned_at: r.assigned_at,
+          is_active: r.is_active
+        });
+      });
+
+      // Construire la liste des utilisateurs
+      const usersWithRoles: UserWithRoles[] = Array.from(userRolesMap.entries()).map(([userId, roles]) => {
+        const profile = profilesMap.get(userId);
+        return {
+          id: userId,
+          email: profile?.email || 'Email inconnu',
+          created_at: roles[0]?.assigned_at || new Date().toISOString(),
+          userRoles: roles
+        };
+      });
 
       setUsers(usersWithRoles);
 

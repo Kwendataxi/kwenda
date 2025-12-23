@@ -69,7 +69,7 @@ const AdminApp = () => {
       return <AdminSystemRoutes activeTab={activeTab} />;
     }
 
-    return <Navigate to="/admin?tab=overview" replace />;
+    return <Navigate to="/operatorx/admin?tab=overview" replace />;
   };
 
   return (
