@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import type { CarouselApi } from "@/components/ui/carousel";
-import BrandLogo from "@/components/brand/BrandLogo";
 import { OnboardingSlide } from "@/components/onboarding/OnboardingSlide";
 import { onboardingContent, type OnboardingContext } from "@/constants/onboardingContent";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import kwendaLogoK from "@/assets/kwenda-logo-k.jpg";
 
 const useOnboardingContext = (): OnboardingContext => {
   const [params] = useSearchParams();
@@ -94,7 +94,7 @@ const Onboarding: React.FC = () => {
       {/* Header compact */}
       <header className="flex items-center justify-between px-4 py-3 shrink-0">
         <div className="flex items-center gap-2">
-          <BrandLogo size={28} />
+          <img src={kwendaLogoK} alt="Kwenda" className="w-7 h-7 rounded-md object-cover" />
           <span className="font-semibold text-foreground">Kwenda</span>
         </div>
         <Button 
