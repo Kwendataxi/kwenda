@@ -24,8 +24,8 @@ interface ShareCodeModalProps {
 }
 
 export const ShareCodeModal = ({ open, onOpenChange, code }: ShareCodeModalProps) => {
-  const shareText = `🚗 Rejoignez ma flotte Kwenda!\n\nMon code chauffeur: ${code}\n\nUtilisez ce code pour m'ajouter à votre équipe et commencer à collaborer.\n\n📱 Téléchargez Kwenda Taxi Congo`;
-  const shortText = `Mon code chauffeur Kwenda: ${code}`;
+  const shareText = `🚗 Rejoignez Kwenda!\n\nMon Code Driver: ${code}\n\nUtilisez ce code pour m'ajouter à votre flotte ou inscrivez-vous avec ce code pour bénéficier de bonus.\n\n📱 Téléchargez Kwenda`;
+  const shortText = `Mon Code Driver Kwenda: ${code}`;
 
   const handleWhatsApp = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
@@ -46,7 +46,7 @@ export const ShareCodeModal = ({ open, onOpenChange, code }: ShareCodeModalProps
   };
 
   const handleEmail = () => {
-    const subject = 'Code Chauffeur Kwenda';
+    const subject = 'Code Driver Kwenda';
     const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareText)}`;
     window.open(url, '_self');
     onOpenChange(false);
@@ -72,7 +72,7 @@ export const ShareCodeModal = ({ open, onOpenChange, code }: ShareCodeModalProps
     try {
       if (navigator.share && window.isSecureContext) {
         await navigator.share({
-          title: 'Code Chauffeur Kwenda',
+          title: 'Code Driver Kwenda',
           text: shareText
         });
         onOpenChange(false);
@@ -90,9 +90,9 @@ export const ShareCodeModal = ({ open, onOpenChange, code }: ShareCodeModalProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center">Partager votre code</DialogTitle>
+          <DialogTitle className="text-center">Partager votre Code Driver</DialogTitle>
           <DialogDescription className="text-center">
-            Choisissez comment partager votre code partenaire
+            Partagez pour rejoindre une flotte ou parrainer des chauffeurs
           </DialogDescription>
         </DialogHeader>
         

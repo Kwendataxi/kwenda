@@ -60,14 +60,12 @@ export const usePartnerDrivers = () => {
       // Fetch driver profiles for each driver
       const driversWithProfiles = await Promise.all(
         (data || []).map(async (driver) => {
-          // Get profile data
           const { data: profile } = await supabase
             .from('profiles')
             .select('display_name, phone_number')
             .eq('user_id', driver.driver_id)
             .maybeSingle();
 
-          // Get chauffeur data for vehicle info and ratings
           const { data: chauffeur } = await supabase
             .from('chauffeurs')
             .select('rating_average, total_rides, vehicle_type, vehicle_plate, email')
@@ -104,7 +102,6 @@ export const usePartnerDrivers = () => {
       setValidatingCode(true);
       setDriverPreview(null);
 
-      // Search in driver_codes table (primary table)
       const { data: codeData, error: codeError } = await supabase
         .from('driver_codes')
         .select('driver_id, is_active, partner_id')
@@ -119,7 +116,27 @@ export const usePartnerDrivers = () => {
       }
 
       if (!codeData) {
-        toast.error('Code chauffeur invalide ou expiré');
+        toast.error('Code Driver invalide ou expiré');
+        return false;
+      }
+
+      // IMPORTANT: Check driver's service_type - reject taxi drivers
+      const { data: chauffeur } = await supabase
+        .from('chauffeurs')
+        .select('service_type, display_name, phone_number, email, rating_average, total_rides, vehicle_type, vehicle_plate, profile_photo_url')
+        .eq('user_id', codeData.driver_id)
+        .maybeSingle();
+
+      // Reject taxi drivers - they are independent
+      if (chauffeur?.service_type === 'taxi') {
+        toast.error('Les chauffeurs taxi sont indépendants et ne peuvent pas rejoindre une flotte partenaire');
+        return false;
+      }
+
+      // Only accept delivery, rental, or truck service types
+      const allowedTypes = ['delivery', 'rental', 'truck', 'both'];
+      if (chauffeur?.service_type && !allowedTypes.includes(chauffeur.service_type)) {
+        toast.error('Ce type de chauffeur ne peut pas rejoindre votre flotte');
         return false;
       }
 
@@ -135,7 +152,7 @@ export const usePartnerDrivers = () => {
         if (activeAssignment.partner_id === user.id) {
           toast.error('Ce chauffeur est déjà dans votre flotte');
         } else {
-          toast.error('Ce chauffeur est déjà assigné à un autre partenaire');
+          toast.error('Ce chauffeur est déjà assigné à un autre partenaire. Il doit quitter sa flotte actuelle.');
         }
         return false;
       }
@@ -147,16 +164,10 @@ export const usePartnerDrivers = () => {
         .eq('user_id', codeData.driver_id)
         .maybeSingle();
 
-      const { data: chauffeur } = await supabase
-        .from('chauffeurs')
-        .select('rating_average, total_rides, vehicle_type, vehicle_plate, profile_photo_url, email')
-        .eq('user_id', codeData.driver_id)
-        .maybeSingle();
-
       setDriverPreview({
         id: codeData.driver_id,
-        display_name: profile?.display_name || 'Chauffeur',
-        phone_number: profile?.phone_number || '',
+        display_name: profile?.display_name || chauffeur?.display_name || 'Chauffeur',
+        phone_number: profile?.phone_number || chauffeur?.phone_number || '',
         email: chauffeur?.email || '',
         rating_average: chauffeur?.rating_average || 0,
         total_rides: chauffeur?.total_rides || 0,
@@ -175,7 +186,6 @@ export const usePartnerDrivers = () => {
     }
   };
 
-  // Clear driver preview
   const clearDriverPreview = () => {
     setDriverPreview(null);
   };
@@ -186,7 +196,6 @@ export const usePartnerDrivers = () => {
     try {
       setAddingDriver(true);
 
-      // First, verify the driver code exists and is active
       const { data: codeData, error: codeError } = await supabase
         .from('driver_codes')
         .select('id, driver_id, partner_id')
@@ -201,7 +210,25 @@ export const usePartnerDrivers = () => {
       }
 
       if (!codeData) {
-        toast.error('Code chauffeur invalide ou expiré');
+        toast.error('Code Driver invalide ou expiré');
+        return false;
+      }
+
+      // IMPORTANT: Check driver's service_type - reject taxi drivers
+      const { data: chauffeur } = await supabase
+        .from('chauffeurs')
+        .select('service_type')
+        .eq('user_id', codeData.driver_id)
+        .maybeSingle();
+
+      if (chauffeur?.service_type === 'taxi') {
+        toast.error('Les chauffeurs taxi sont indépendants et ne peuvent pas rejoindre une flotte');
+        return false;
+      }
+
+      const allowedTypes = ['delivery', 'rental', 'truck', 'both'];
+      if (chauffeur?.service_type && !allowedTypes.includes(chauffeur.service_type)) {
+        toast.error('Ce type de chauffeur ne peut pas rejoindre votre flotte');
         return false;
       }
 
@@ -240,7 +267,7 @@ export const usePartnerDrivers = () => {
       }
 
       if (otherAssignment) {
-        toast.error('Ce chauffeur est déjà assigné à un autre partenaire');
+        toast.error('Ce chauffeur doit d\'abord quitter sa flotte actuelle avant de rejoindre la vôtre');
         return false;
       }
 
@@ -260,16 +287,11 @@ export const usePartnerDrivers = () => {
         return false;
       }
 
-      // CRITICAL: Update driver_codes.partner_id to link the code to this partner
-      const { error: updateCodeError } = await supabase
+      // Update driver_codes.partner_id
+      await supabase
         .from('driver_codes')
         .update({ partner_id: user.id })
         .eq('id', codeData.id);
-
-      if (updateCodeError) {
-        console.error('Error updating driver code partner_id:', updateCodeError);
-        // Don't fail the whole operation, just log it
-      }
 
       // Get partner info for notification
       const { data: partnerProfile } = await supabase
@@ -286,7 +308,7 @@ export const usePartnerDrivers = () => {
         .insert({
           user_id: codeData.driver_id,
           title: '🎉 Bienvenue dans la flotte!',
-          message: `Vous avez été ajouté à la flotte de ${partnerName}. Vous pouvez maintenant recevoir des courses.`,
+          message: `Vous avez été ajouté à la flotte de ${partnerName}. Vous pouvez maintenant recevoir des commandes.`,
           notification_type: 'fleet_join',
           is_sent: false,
           metadata: {
@@ -312,7 +334,6 @@ export const usePartnerDrivers = () => {
     if (!user) return false;
 
     try {
-      // Update partner_drivers status to inactive
       const { error } = await supabase
         .from('partner_drivers')
         .update({ status: 'inactive' })
@@ -325,14 +346,12 @@ export const usePartnerDrivers = () => {
         return false;
       }
 
-      // Clear partner_id from driver_codes
       await supabase
         .from('driver_codes')
         .update({ partner_id: null })
         .eq('driver_id', driverId)
         .eq('partner_id', user.id);
 
-      // Send notification to driver
       await supabase
         .from('push_notifications')
         .insert({
@@ -353,7 +372,6 @@ export const usePartnerDrivers = () => {
     }
   };
 
-  // Real-time subscription for driver changes
   useEffect(() => {
     if (!user) return;
 

@@ -35,10 +35,10 @@ export const DriverCodeCard: React.FC<DriverCodeCardProps> = ({
               <QrCode className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold text-foreground mb-2">
-              Générer votre code partenaire
+              Générer votre Code Driver
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Ce code vous permettra de rejoindre la flotte d'un partenaire
+              Ce code permet de rejoindre une flotte ou parrainer d'autres chauffeurs
             </p>
             <Button 
               onClick={generateCode} 
@@ -67,7 +67,7 @@ export const DriverCodeCard: React.FC<DriverCodeCardProps> = ({
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <QrCode className="h-4 w-4 text-primary" />
               </div>
-              <span className="font-medium text-foreground">Code Partenaire</span>
+              <span className="font-medium text-foreground">Code Driver</span>
             </div>
             <Badge 
               variant="outline" 
@@ -152,7 +152,7 @@ export const DriverCodeCard: React.FC<DriverCodeCardProps> = ({
 
           {/* Helper text */}
           <p className="text-xs text-center text-muted-foreground mt-4">
-            Partagez ce code avec un partenaire pour rejoindre sa flotte
+            Partagez ce code pour rejoindre une flotte ou parrainer des chauffeurs
           </p>
         </CardContent>
       </Card>
