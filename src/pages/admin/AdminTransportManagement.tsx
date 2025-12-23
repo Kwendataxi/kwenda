@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { DispatchMonitoringPanel } from "@/components/admin/transport/DispatchMonitoringPanel";
+import { BookingManagement } from "@/components/admin/bookings/BookingManagement";
+import { DriverManagement } from "@/components/admin/drivers/DriverManagement";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -318,30 +320,12 @@ const AdminTransportManagement = () => {
 
         {/* BOOKINGS TAB */}
         <TabsContent value="bookings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des Courses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Tableau de gestion détaillé des courses à implémenter
-              </p>
-            </CardContent>
-          </Card>
+          <BookingManagement />
         </TabsContent>
 
         {/* DRIVERS TAB */}
         <TabsContent value="drivers">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des Chauffeurs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Tableau de gestion détaillé des chauffeurs à implémenter
-              </p>
-            </CardContent>
-          </Card>
+          <DriverManagement />
         </TabsContent>
 
         {/* ANALYTICS TAB */}
