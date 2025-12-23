@@ -14,14 +14,12 @@ export const NavigationGuard = ({ children }: { children: React.ReactNode }) => 
   const navigate = useNavigate();
 
   // Routes publiques interdites aux utilisateurs connectés
+  // NOTE: Les pages d'auth spécialisées (/driver/auth, /partner/auth, /operatorx/admin/auth)
+  // sont exclues pour permettre le changement de rôle
   const PUBLIC_ROUTES = [
     '/',
     '/landing',
-    '/auth',
-    '/driver/auth',
-    '/partner/auth',
-    '/operatorx/admin/auth',
-    '/restaurant/auth'
+    '/auth'
   ];
 
   // Routes de callback/redirection à ignorer
