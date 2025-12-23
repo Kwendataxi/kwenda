@@ -34,6 +34,7 @@ import { MessageReply, MessageReplyPreview } from './MessageReply';
 import { ImageAttachment, ImageMessage, ImagePreview, uploadChatImage } from './ImageAttachment';
 import { NewMessagesButton } from './NewMessagesButton';
 import { LastMessagePreview } from './LastMessagePreview';
+import { EmptyConversationState } from './EmptyConversationState';
 import { toast } from 'sonner';
 
 interface UniversalChatInterfaceProps {
@@ -289,7 +290,16 @@ export const UniversalChatInterface = ({
           <>
             <div ref={scrollAreaRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 bg-background">
               {isLoadingMore && <div className="flex justify-center py-2"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>}
-              {hasMoreMessages && !isLoadingMore && <div className="text-center py-2"><span className="text-xs text-muted-foreground">↑ Défiler pour charger plus</span></div>}
+              {hasMoreMessages && !isLoadingMore && conversationMessages.length > 0 && <div className="text-center py-2"><span className="text-xs text-muted-foreground">↑ Défiler pour charger plus</span></div>}
+              
+              {/* État vide avec suggestions */}
+              {conversationMessages.length === 0 && !isLoadingMore && (
+                <EmptyConversationState 
+                  participantName={currentConversation?.other_participant?.shop_name || currentConversation?.other_participant?.display_name}
+                  onSendQuickMessage={(msg) => sendMessage(selectedConversation!, msg)}
+                />
+              )}
+              
               <div className="space-y-3">
                 <AnimatePresence mode="popLayout">
                   {conversationMessages.map((message) => (
@@ -488,7 +498,7 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: { c
                   {conversation.other_participant?.shop_name?.[0] || conversation.other_participant?.display_name?.charAt(0) || 'V'}
                 </AvatarFallback>
               </Avatar>
-              <OnlineStatusBadge isOnline={false} className="absolute -bottom-0.5 -right-0.5" />
+              {/* TODO: Use real presence when useChatPresence is available per conversation */}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
