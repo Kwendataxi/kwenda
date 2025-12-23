@@ -56,6 +56,7 @@ import Index from "./pages/Index";
 import { SmartHome } from "./components/navigation/SmartHome";
 import { PublicHome } from "./components/navigation/PublicHome";
 import { NavigationGuard } from "./components/navigation/NavigationGuard";
+import { MobileAppEntry } from "./components/navigation/MobileAppEntry";
 
 // Route modules
 import {
@@ -156,10 +157,16 @@ const AppContent = () => {
                         <OnboardingRedirect>
                           <Suspense fallback={<RouteLoadingFallback />}>
                             <Routes>
-                              {/* Landing page */}
-              {!isSpecificBuild() && <Route path="/" element={<PublicHome />} />}
-              {!isSpecificBuild() && <Route path="/landing" element={<Index />} />}
-                              {!isSpecificBuild() && <Route path="/app" element={<SmartHome />} />}
+                              {/* Landing page - Mobile apps go direct to app, web shows marketing */}
+                              {isMobileApp() ? (
+                                <Route path="/" element={<MobileAppEntry />} />
+                              ) : !isSpecificBuild() ? (
+                                <>
+                                  <Route path="/" element={<PublicHome />} />
+                                  <Route path="/landing" element={<Index />} />
+                                  <Route path="/app" element={<SmartHome />} />
+                                </>
+                              ) : null}
                               
                               {/* Shared routes */}
                               {SharedRoutes()}

@@ -30,7 +30,7 @@ const MobileSplash: React.FC = () => {
         const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
         
         if (loginIntent) {
-          const redirectPath = loginIntent === 'admin' ? '/admin' 
+          const redirectPath = loginIntent === 'admin' ? '/operatorx/admin' 
             : loginIntent === 'partner' ? '/partenaire'
             : loginIntent === 'driver' ? '/chauffeur'
             : loginIntent === 'restaurant' ? '/restaurant'
@@ -45,7 +45,7 @@ const MobileSplash: React.FC = () => {
           p_user_id: session.user.id
         });
         const primaryRole = roles?.[0]?.role || 'client';
-        const redirectPath = primaryRole === 'admin' ? '/admin' 
+        const redirectPath = primaryRole === 'admin' ? '/operatorx/admin' 
           : primaryRole === 'partner' ? '/partenaire'
           : primaryRole === 'driver' ? '/chauffeur'
           : primaryRole === 'restaurant' ? '/restaurant'
