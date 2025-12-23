@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ClientLoginForm } from "./ClientLoginForm";
-import { ArrowLeft, Car, Handshake, UtensilsCrossed, Sparkles } from "lucide-react";
+import { ArrowLeft, Car, Handshake, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -122,42 +122,15 @@ export const UnifiedAuthPage = () => {
               </motion.div>
             </div>
 
-            {/* Badge */}
-            <motion.div 
-              variants={itemVariants}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-rose-100 to-amber-100 dark:from-rose-900/30 dark:to-amber-900/30 border border-rose-200/50 dark:border-rose-700/30"
-            >
-              <Sparkles className="w-4 h-4 text-rose-500 dark:text-rose-400" />
-              <span className="text-sm font-medium bg-gradient-to-r from-rose-600 to-amber-600 dark:from-rose-400 dark:to-amber-400 bg-clip-text text-transparent">
-                Espace Client
-              </span>
-            </motion.div>
-            
-            {/* Title with gradient */}
-            <div className="space-y-2">
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 via-rose-800 to-gray-900 dark:from-white dark:via-rose-200 dark:to-white bg-clip-text text-transparent">
-                {t('auth.welcome')}
-              </h1>
-              <p className="text-muted-foreground">
-                {t('auth.client_subtitle')}
-              </p>
-            </div>
+            {/* Simple Title */}
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 via-rose-800 to-gray-900 dark:from-white dark:via-rose-200 dark:to-white bg-clip-text text-transparent">
+              Connexion
+            </h1>
           </motion.div>
 
           {/* Auth Card - Premium Glassmorphism */}
           <AuthCard delay={0.3}>
-            <div className="space-y-6">
-              <div className="text-center space-y-1">
-                <h2 className="text-lg font-semibold text-foreground">
-                  {t('auth.client_login_title')}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {t('auth.client_login_subtitle')}
-                </p>
-              </div>
-              
-              <ClientLoginForm />
-            </div>
+            <ClientLoginForm />
           </AuthCard>
 
           {/* Professional Spaces Section */}
