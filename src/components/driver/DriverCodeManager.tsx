@@ -61,7 +61,7 @@ export const DriverCodeManager = () => {
         <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <QrCode className="h-5 w-5 text-primary" />
-            Code Partenaire
+            Code Driver
           </CardTitle>
         </CardHeader>
         
@@ -136,7 +136,7 @@ export const DriverCodeManager = () => {
                 Aucun code actif
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Générez votre code pour rejoindre la flotte d'un partenaire
+                Générez votre code pour rejoindre une flotte ou parrainer des chauffeurs
               </p>
               <Button 
                 onClick={generateCode} 
@@ -265,10 +265,10 @@ export const DriverCodeManager = () => {
                 </div>
                 <div className="text-center py-4 bg-card rounded-xl border border-border/50">
                   <p className="text-muted-foreground mb-1">
-                    Aucun partenaire assigné
+                    Aucune flotte assignée
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Partagez votre code pour rejoindre une flotte
+                    Partagez votre Code Driver pour rejoindre une flotte
                   </p>
                 </div>
               </CardContent>

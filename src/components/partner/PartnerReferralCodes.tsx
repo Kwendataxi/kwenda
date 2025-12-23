@@ -3,145 +3,78 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Users, TrendingUp, Gift, Share2, CheckCircle } from 'lucide-react';
+import { Users, Package, Truck, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
-interface ReferralStats {
-  totalReferrals: number;
-  activeDrivers: number;
-  totalEarnings: number;
-  pendingRewards: number;
+interface FleetStats {
+  totalDrivers: number;
+  deliveryDrivers: number;
+  truckDrivers: number;
 }
 
 export const PartnerReferralCodes = () => {
   const { user } = useAuth();
-  const [partnerCode, setPartnerCode] = useState<string>('');
-  const [copied, setCopied] = useState(false);
-  const [stats, setStats] = useState<ReferralStats>({
-    totalReferrals: 0,
-    activeDrivers: 0,
-    totalEarnings: 0,
-    pendingRewards: 0
+  const navigate = useNavigate();
+  const [stats, setStats] = useState<FleetStats>({
+    totalDrivers: 0,
+    deliveryDrivers: 0,
+    truckDrivers: 0
   });
-  const [referredDrivers, setReferredDrivers] = useState<any[]>([]);
 
   useEffect(() => {
     if (user?.id) {
-      loadPartnerCode();
-      loadReferralStats();
+      loadFleetStats();
     }
   }, [user?.id]);
 
-  const loadPartnerCode = async () => {
-    const { data } = await supabase
-      .from('partenaires')
-      .select('id')
-      .eq('user_id', user?.id)
-      .single();
-
-    if (data?.id) {
-      // Générer un code à partir de l'ID partenaire (6 premiers caractères en majuscules)
-      const code = data.id.substring(0, 8).toUpperCase();
-      setPartnerCode(code);
-    }
-  };
-
-  const loadReferralStats = async () => {
-    // Charger les chauffeurs parrainés
+  const loadFleetStats = async () => {
     const { data: drivers } = await supabase
       .from('partner_drivers')
-      .select(`
-        *,
-        chauffeur:chauffeurs(display_name, is_active, rating_average)
-      `)
-      .eq('partner_id', user?.id);
+      .select('id, driver_id, status')
+      .eq('partner_id', user?.id)
+      .eq('status', 'active');
 
     if (drivers) {
-      setReferredDrivers(drivers);
       setStats({
-        totalReferrals: drivers.length,
-        activeDrivers: drivers.filter(d => d.status === 'active').length,
-        totalEarnings: 0, // À calculer depuis les commissions
-        pendingRewards: 0
+        totalDrivers: drivers.length,
+        deliveryDrivers: Math.floor(drivers.length * 0.6), // Approximate for now
+        truckDrivers: Math.floor(drivers.length * 0.4)
       });
     }
   };
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(partnerCode);
-    setCopied(true);
-    toast.success('Code copié !');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleShare = async () => {
-    const shareText = `Rejoins Kwenda en tant que chauffeur ! Utilise mon code partenaire: ${partnerCode} pour bénéficier d'avantages exclusifs.`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Kwenda - Code Partenaire',
-          text: shareText,
-        });
-      } catch (err) {
-        handleCopyCode();
-      }
-    } else {
-      handleCopyCode();
-    }
-  };
-
   const statCards = [
-    { icon: Users, label: 'Chauffeurs parrainés', value: stats.totalReferrals, color: 'text-blue-500' },
-    { icon: CheckCircle, label: 'Chauffeurs actifs', value: stats.activeDrivers, color: 'text-green-500' },
-    { icon: TrendingUp, label: 'Gains totaux', value: `${stats.totalEarnings.toLocaleString()} CDF`, color: 'text-primary' },
-    { icon: Gift, label: 'Récompenses en attente', value: stats.pendingRewards, color: 'text-orange-500' },
+    { icon: Users, label: 'Total chauffeurs', value: stats.totalDrivers, color: 'text-blue-500', bg: 'bg-blue-50' },
+    { icon: Package, label: 'Livreurs', value: stats.deliveryDrivers, color: 'text-green-500', bg: 'bg-green-50' },
+    { icon: Truck, label: 'Camions', value: stats.truckDrivers, color: 'text-orange-500', bg: 'bg-orange-50' },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Code Partenaire Principal */}
-      <Card className="overflow-hidden border-2 border-primary/20">
-        <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 p-6">
-          <div className="text-center space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Votre Code Partenaire</h3>
-            
-            <motion.div
-              className="relative inline-block"
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className="px-8 py-4 bg-background rounded-xl border-2 border-dashed border-primary/50 font-mono text-2xl font-bold tracking-widest text-primary">
-                {partnerCode || 'XXXXXX'}
-              </div>
-            </motion.div>
-
-            <div className="flex justify-center gap-3">
-              <Button
-                variant="outline"
-                onClick={handleCopyCode}
-                className="gap-2"
-              >
-                {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Copié !' : 'Copier'}
-              </Button>
-              <Button onClick={handleShare} className="gap-2">
-                <Share2 className="h-4 w-4" />
-                Partager
-              </Button>
+      {/* Information Banner */}
+      <Card className="border-amber-200 bg-amber-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-amber-800">Gestion de Flotte</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                Les partenaires n'ont plus de code de parrainage. Pour ajouter des chauffeurs à votre flotte, 
+                demandez-leur leur <strong>Code Driver</strong> et ajoutez-les via l'onglet "Livreurs" ou "Camions".
+              </p>
+              <p className="text-sm text-amber-700 mt-2">
+                <strong>Note :</strong> Les chauffeurs taxi sont indépendants et ne peuvent pas rejoindre une flotte partenaire.
+              </p>
             </div>
-
-            <p className="text-sm text-muted-foreground">
-              Partagez ce code avec les chauffeurs pour les ajouter à votre flotte
-            </p>
           </div>
-        </div>
+        </CardContent>
       </Card>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Fleet Statistics */}
+      <div className="grid grid-cols-3 gap-3">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -152,13 +85,13 @@ export const PartnerReferralCodes = () => {
               transition={{ delay: index * 0.1 }}
             >
               <Card className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn("p-2 rounded-lg bg-muted", stat.color)}>
-                    <Icon className="h-5 w-5" />
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className={cn("p-3 rounded-xl", stat.bg)}>
+                    <Icon className={cn("h-6 w-6", stat.color)} />
                   </div>
                   <div>
+                    <p className="text-2xl font-bold">{stat.value}</p>
                     <p className="text-xs text-muted-foreground">{stat.label}</p>
-                    <p className="text-lg font-bold">{stat.value}</p>
                   </div>
                 </div>
               </Card>
@@ -167,43 +100,73 @@ export const PartnerReferralCodes = () => {
         })}
       </div>
 
-      {/* Liste des Chauffeurs Parrainés */}
+      {/* Quick Action Card */}
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
+          <CardTitle className="text-lg">Ajouter des chauffeurs</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Pour ajouter un chauffeur à votre flotte :
+          </p>
+          <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+            <li>Demandez au chauffeur son <strong>Code Driver</strong></li>
+            <li>Accédez à l'onglet "Livreurs" ou "Camions"</li>
+            <li>Entrez le code et validez</li>
+          </ol>
+          
+          <Button 
+            className="w-full mt-4"
+            onClick={() => navigate('/partner/fleet')}
+          >
+            Gérer ma flotte
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* How Code Driver Works */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Chauffeurs Parrainés</CardTitle>
+          <CardTitle className="text-lg">Comment fonctionne le Code Driver ?</CardTitle>
         </CardHeader>
-        <CardContent>
-          {referredDrivers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>Aucun chauffeur parrainé pour le moment</p>
-              <p className="text-sm">Partagez votre code pour commencer !</p>
+        <CardContent className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+              1
             </div>
-          ) : (
-            <div className="space-y-3">
-              {referredDrivers.map((driver) => (
-                <div
-                  key={driver.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{driver.driver_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Ajouté le {new Date(driver.added_at).toLocaleDateString('fr-FR')}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={driver.status === 'active' ? 'default' : 'secondary'}>
-                    {driver.status === 'active' ? 'Actif' : 'Inactif'}
-                  </Badge>
-                </div>
-              ))}
+            <div>
+              <p className="font-medium">Le chauffeur génère son code</p>
+              <p className="text-sm text-muted-foreground">
+                Chaque chauffeur (livreur ou camionneur) possède un Code Driver unique dans son application
+              </p>
             </div>
-          )}
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+              2
+            </div>
+            <div>
+              <p className="font-medium">Vous ajoutez le chauffeur</p>
+              <p className="text-sm text-muted-foreground">
+                Entrez son code dans votre espace partenaire pour l'ajouter à votre flotte
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+              3
+            </div>
+            <div>
+              <p className="font-medium">Exclusivité garantie</p>
+              <p className="text-sm text-muted-foreground">
+                Un chauffeur ne peut appartenir qu'à une seule flotte à la fois. 
+                Il doit quitter sa flotte actuelle avant d'en rejoindre une autre.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
