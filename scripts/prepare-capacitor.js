@@ -118,7 +118,7 @@ try {
 }
 
 // Étape 3: Créer/Vérifier le dossier resources
-logStep('3/4', 'Vérification des ressources...');
+logStep('3/5', 'Vérification des ressources...');
 
 const resourcesDir = path.join(process.cwd(), 'resources', appType);
 
@@ -153,8 +153,53 @@ if (!fs.existsSync(resourcesDir)) {
   }
 }
 
-// Étape 4: Créer le fichier .env.local avec le type d'app
-logStep('4/4', 'Configuration de l\'environnement...');
+// Étape 4: Copier les fichiers Firebase
+logStep('4/5', 'Configuration Firebase...');
+
+const firebaseDir = path.join(process.cwd(), 'firebase', appType);
+const androidDir = path.join(process.cwd(), 'android', 'app');
+const iosDir = path.join(process.cwd(), 'ios', 'App', 'App');
+
+// Copier google-services.json pour Android
+const googleServicesSource = path.join(firebaseDir, 'google-services.json');
+const googleServicesDest = path.join(androidDir, 'google-services.json');
+
+if (fs.existsSync(googleServicesSource)) {
+  try {
+    if (!fs.existsSync(androidDir)) {
+      fs.mkdirSync(androidDir, { recursive: true });
+    }
+    fs.copyFileSync(googleServicesSource, googleServicesDest);
+    logSuccess('google-services.json copié vers android/app/');
+  } catch (error) {
+    logWarning(`Erreur copie Firebase Android: ${error.message}`);
+  }
+} else {
+  logWarning(`google-services.json non trouvé pour ${appType}`);
+  console.log(`   Placez le fichier dans: firebase/${appType}/google-services.json`);
+}
+
+// Copier GoogleService-Info.plist pour iOS
+const googleInfoSource = path.join(firebaseDir, 'GoogleService-Info.plist');
+const googleInfoDest = path.join(iosDir, 'GoogleService-Info.plist');
+
+if (fs.existsSync(googleInfoSource)) {
+  try {
+    if (!fs.existsSync(iosDir)) {
+      fs.mkdirSync(iosDir, { recursive: true });
+    }
+    fs.copyFileSync(googleInfoSource, googleInfoDest);
+    logSuccess('GoogleService-Info.plist copié vers ios/App/App/');
+  } catch (error) {
+    logWarning(`Erreur copie Firebase iOS: ${error.message}`);
+  }
+} else {
+  logWarning(`GoogleService-Info.plist non trouvé pour ${appType}`);
+  console.log(`   Placez le fichier dans: firebase/${appType}/GoogleService-Info.plist`);
+}
+
+// Étape 5: Créer le fichier .env.local avec le type d'app
+logStep('5/5', 'Configuration de l\'environnement...');
 
 const envContent = `# Auto-généré par prepare-capacitor.js
 # Type d'application pour le build
