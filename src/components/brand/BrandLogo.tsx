@@ -79,7 +79,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       fetchPriority="high"
       widths={logoWidths}
       sizes={logoSizes}
-      useWebP={true}
+      useWebP={false}
     />
   );
 };
