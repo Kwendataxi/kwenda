@@ -37,8 +37,8 @@ export const AuthPageLayout = ({
       <div className="w-full max-w-md relative z-10">
         {/* En-tête épuré avec logo et badge */}
         <div className="text-center mb-10 space-y-6 animate-fade-in">
-          <div className="relative inline-flex items-center justify-center w-28 h-28 rounded-2xl bg-white dark:bg-gray-950 shadow-lg mb-6 overflow-hidden hover:scale-105 transition-transform duration-300">
-            <BrandLogo size={96} />
+          <div className="relative inline-flex items-center justify-center w-32 h-32 rounded-2xl bg-white dark:bg-gray-950 shadow-xl mb-6 overflow-hidden hover:scale-105 transition-transform duration-300">
+            <BrandLogo size={112} />
           </div>
           
           {/* Badge professionnel */}
