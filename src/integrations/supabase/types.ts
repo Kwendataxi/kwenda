@@ -8561,6 +8561,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean | null
+          max_referrals: number | null
           referred_bonus: number | null
           service_type: string
           successful_referrals: number | null
@@ -8576,6 +8577,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          max_referrals?: number | null
           referred_bonus?: number | null
           service_type: string
           successful_referrals?: number | null
@@ -8591,6 +8593,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          max_referrals?: number | null
           referred_bonus?: number | null
           service_type?: string
           successful_referrals?: number | null
@@ -14903,6 +14906,10 @@ export type Database = {
         Args: { days_old?: number }
         Returns: number
       }
+      apply_driver_referral_code: {
+        Args: { p_code: string; p_referred_id: string }
+        Returns: Json
+      }
       apply_referral_code: {
         Args: { p_referee_id: string; p_referral_code: string }
         Returns: Json
@@ -15609,6 +15616,7 @@ export type Database = {
           vehicle_class: string
         }[]
       }
+      get_driver_referral_stats: { Args: { p_user_id: string }; Returns: Json }
       get_driver_service_info: {
         Args: { driver_user_id: string }
         Returns: {
