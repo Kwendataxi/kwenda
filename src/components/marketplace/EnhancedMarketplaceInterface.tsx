@@ -91,7 +91,14 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { orders, loading: ordersLoading, refetch: refetchOrders } = useMarketplaceOrders();
   const { verification } = useUserVerification();
   const { wallet } = useWallet();
-  const { createOrFindConversation } = useUniversalChat();
+  const { createOrFindConversation, conversations } = useUniversalChat();
+  
+  // Calcul des messages non lus marketplace
+  const marketplaceUnreadCount = React.useMemo(() => {
+    return conversations
+      .filter(conv => conv.context_type === 'marketplace')
+      .reduce((sum, conv) => sum + (conv.unread_count || 0), 0);
+  }, [conversations]);
   const { calculateDiscount, getOriginalPrice } = useProductPromotions();
   const { vendors: topVendors, loading: vendorsLoading } = useTopVendors(10);
   
@@ -1225,9 +1232,14 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               <CartIcon className="w-4 h-4" />
               <span className="hidden sm:inline">Commandes</span>
             </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-1 touch-manipulation">
+            <TabsTrigger value="messages" className="flex items-center gap-1 touch-manipulation relative">
               <MessageCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Messages</span>
+              {marketplaceUnreadCount > 0 && (
+                <Badge className="ml-1 h-5 min-w-[20px] px-1.5 bg-destructive text-destructive-foreground text-[10px] rounded-full animate-pulse">
+                  {marketplaceUnreadCount > 9 ? '9+' : marketplaceUnreadCount}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="escrow" className="flex items-center gap-1 touch-manipulation">
               <Shield className="w-4 h-4" />
@@ -1254,11 +1266,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </Tabs>
       </div>
 
-      {/* Floating Cart Indicator */}
-      <FloatingCartIndicator
-        cartItems={cartItems}
-        onOpenCart={() => setIsCartOpen(true)}
-      />
 
       {/* Unified Shopping Cart (Sprint 1) */}
       <UnifiedShoppingCart
