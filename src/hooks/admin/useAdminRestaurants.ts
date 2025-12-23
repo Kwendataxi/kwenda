@@ -35,12 +35,10 @@ export const useAdminRestaurants = () => {
   const fetchRestaurants = async (filters?: RestaurantFilters) => {
     try {
       setLoading(true);
+      // Query restaurant_profiles directly - no join with clients table
       let query = supabase
         .from('restaurant_profiles')
-        .select(`
-          *,
-          user:clients!inner(display_name, phone_number, email)
-        `);
+        .select('*');
 
       if (filters?.status) {
         query = query.eq('verification_status', filters.status);
@@ -56,11 +54,12 @@ export const useAdminRestaurants = () => {
       
       if (error) throw error;
 
+      // Use data directly from restaurant_profiles
       const formattedData = data?.map(r => ({
         ...r,
-        owner_name: r.user?.[0]?.display_name,
-        owner_phone: r.user?.[0]?.phone_number,
-        owner_email: r.user?.[0]?.email,
+        owner_name: r.business_name || r.restaurant_name,
+        owner_phone: r.phone_number,
+        owner_email: r.email,
       })) || [];
 
       setRestaurants(formattedData);
