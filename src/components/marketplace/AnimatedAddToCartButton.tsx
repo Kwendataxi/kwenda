@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Check } from 'lucide-react';
+import { ShoppingCart, Check, Loader2 } from 'lucide-react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +10,7 @@ interface AnimatedAddToCartButtonProps {
   isAvailable: boolean;
   isInCart?: boolean;
   className?: string;
+  size?: 'sm' | 'default' | 'lg';
 }
 
 type ButtonState = 'default' | 'adding' | 'added';
@@ -18,18 +19,19 @@ export const AnimatedAddToCartButton: React.FC<AnimatedAddToCartButtonProps> = (
   onAdd,
   isAvailable,
   isInCart = false,
-  className
+  className,
+  size = 'sm'
 }) => {
   const [state, setState] = useState<ButtonState>('default');
   const [showRipple, setShowRipple] = useState(false);
   const { triggerSuccess } = useHapticFeedback();
 
-  // Reset après 3 secondes
+  // Reset après 2.5 secondes (plus court)
   useEffect(() => {
     if (state === 'added') {
       const timer = setTimeout(() => {
         setState('default');
-      }, 3000);
+      }, 2500);
       return () => clearTimeout(timer);
     }
   }, [state]);
@@ -39,20 +41,20 @@ export const AnimatedAddToCartButton: React.FC<AnimatedAddToCartButtonProps> = (
     
     if (!isAvailable || state === 'adding') return;
 
-    // Vibration haptique
+    // Vibration haptique légère
     triggerSuccess();
 
-    // Ripple effect
+    // Ripple effect soft
     setShowRipple(true);
-    setTimeout(() => setShowRipple(false), 600);
+    setTimeout(() => setShowRipple(false), 400);
 
-    // Séquence d'états
+    // Séquence d'états plus fluide
     setState('adding');
     
     setTimeout(() => {
       onAdd();
       setState('added');
-    }, 300);
+    }, 400);
   };
 
   const getButtonContent = () => {
@@ -60,12 +62,11 @@ export const AnimatedAddToCartButton: React.FC<AnimatedAddToCartButtonProps> = (
       case 'adding':
         return (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1, rotate: 360 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             className="flex items-center gap-1.5"
           >
-            <ShoppingCart className="h-3 w-3" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
             <span>Ajout...</span>
           </motion.div>
         );
@@ -73,44 +74,62 @@ export const AnimatedAddToCartButton: React.FC<AnimatedAddToCartButtonProps> = (
       case 'added':
         return (
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             transition={{ 
-              duration: 0.5, 
               type: 'spring',
-              stiffness: 200,
-              damping: 15
+              stiffness: 300,
+              damping: 20
             }}
             className="flex items-center gap-1.5"
           >
-            <Check className="h-3 w-3" />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: [0, 1.3, 1] }}
+              transition={{ duration: 0.4, times: [0, 0.6, 1] }}
+            >
+              <Check className="h-3.5 w-3.5" />
+            </motion.div>
             <span>Ajouté !</span>
           </motion.div>
         );
       
       default:
         return (
-          <div className="flex items-center gap-1.5">
-            <ShoppingCart className="h-3 w-3" />
+          <motion.div 
+            className="flex items-center gap-1.5"
+            whileHover={{ scale: 1.02 }}
+          >
+            <ShoppingCart className="h-3.5 w-3.5" />
             <span>Acheter</span>
-          </div>
+          </motion.div>
         );
     }
   };
 
+  const sizeClasses = {
+    sm: "h-8 text-xs",
+    default: "h-10 text-sm",
+    lg: "h-12 text-base"
+  };
+
   return (
-    <motion.div className="relative flex-1">
-      {/* Ripple effect */}
+    <motion.div 
+      className="relative flex-1"
+      whileHover={{ scale: state === 'default' ? 1.02 : 1 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      {/* Ripple effect soft */}
       <AnimatePresence>
         {showRipple && (
           <motion.div
-            initial={{ scale: 0, opacity: 0.5 }}
-            animate={{ scale: 2.5, opacity: 0 }}
+            initial={{ scale: 0.3, opacity: 0.6 }}
+            animate={{ scale: 2, opacity: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            className="absolute inset-0 rounded-md pointer-events-none"
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="absolute inset-0 rounded-lg pointer-events-none z-0"
             style={{
-              background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, transparent 70%)',
             }}
           />
         )}
@@ -118,69 +137,66 @@ export const AnimatedAddToCartButton: React.FC<AnimatedAddToCartButtonProps> = (
 
       {/* Button */}
       <Button
-        size="sm"
+        size={size}
         disabled={!isAvailable}
         onClick={handleClick}
         className={cn(
-          "h-8 text-xs w-full relative overflow-hidden transition-all duration-300",
-          state === 'added' && "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800",
+          sizeClasses[size],
+          "w-full relative overflow-hidden transition-all duration-300",
+          state === 'added' && "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800",
+          state === 'adding' && "bg-primary/80",
           className
         )}
       >
-        <motion.div
-          animate={{
-            scale: state === 'adding' ? [1, 1.1, 1] : 1,
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          {getButtonContent()}
-        </motion.div>
+        {getButtonContent()}
 
-        {/* Pulse animation quand "added" */}
-        {state === 'added' && (
-          <motion.div
-            initial={{ scale: 1, opacity: 0.5 }}
-            animate={{ 
-              scale: [1, 1.5, 1.5],
-              opacity: [0.5, 0, 0]
-            }}
-            transition={{ 
-              duration: 2,
-              repeat: 1,
-              ease: "easeOut"
-            }}
-            className="absolute inset-0 bg-red-400 rounded-md pointer-events-none"
-          />
-        )}
+        {/* Soft pulse animation quand "added" */}
+        <AnimatePresence>
+          {state === 'added' && (
+            <motion.div
+              initial={{ scale: 1, opacity: 0.3 }}
+              animate={{ 
+                scale: [1, 1.3],
+                opacity: [0.3, 0]
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ 
+                duration: 0.6,
+                ease: "easeOut"
+              }}
+              className="absolute inset-0 bg-green-400/50 rounded-lg pointer-events-none"
+            />
+          )}
+        </AnimatePresence>
       </Button>
 
-      {/* Particules à l'ajout */}
+      {/* Particules légères (4 au lieu de 6) */}
       <AnimatePresence>
         {state === 'added' && (
           <>
-            {[...Array(6)].map((_, i) => (
+            {[...Array(4)].map((_, i) => (
               <motion.div
                 key={i}
                 initial={{ 
                   x: 0, 
                   y: 0, 
                   scale: 1,
-                  opacity: 1 
+                  opacity: 0.8 
                 }}
                 animate={{ 
-                  x: Math.cos((i * Math.PI * 2) / 6) * 30,
-                  y: Math.sin((i * Math.PI * 2) / 6) * 30,
+                  x: Math.cos((i * Math.PI * 2) / 4) * 25,
+                  y: Math.sin((i * Math.PI * 2) / 4) * 25,
                   scale: 0,
                   opacity: 0
                 }}
                 transition={{ 
-                  duration: 0.6,
+                  duration: 0.5,
                   ease: "easeOut"
                 }}
                 className="absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full pointer-events-none"
                 style={{
-                  background: `linear-gradient(45deg, hsl(var(--primary)), hsl(var(--orange-500)))`,
-                  boxShadow: '0 0 8px hsl(var(--primary) / 0.5)'
+                  background: 'hsl(var(--primary))',
+                  boxShadow: '0 0 6px hsl(var(--primary) / 0.4)'
                 }}
               />
             ))}

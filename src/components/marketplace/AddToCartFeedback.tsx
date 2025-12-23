@@ -98,98 +98,94 @@ export const useAddToCartFeedback = ({ onOpenCart }: AddToCartFeedbackProps = {}
     });
   };
 
-  // Toast moderne avec image produit et progress bar
+  // Toast moderne avec slide-up fluide
   const showAddToCartToast = (product: Product, quantity: number = 1) => {
     toast.custom((t) => (
       <motion.div
-        initial={{ opacity: 0, x: 100, scale: 0.9 }}
-        animate={{ opacity: 1, x: 0, scale: 1 }}
-        exit={{ opacity: 0, x: 100, scale: 0.9 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="bg-card border-2 border-primary/30 rounded-xl shadow-2xl overflow-hidden max-w-md w-full backdrop-blur-sm"
+        initial={{ opacity: 0, y: 50, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 400, 
+          damping: 30 
+        }}
+        className="bg-card border border-border/50 rounded-2xl shadow-xl overflow-hidden max-w-sm w-full backdrop-blur-md"
       >
-        {/* Progress bar animée */}
+        {/* Progress bar subtile */}
         <motion.div
           initial={{ width: '100%' }}
           animate={{ width: '0%' }}
-          transition={{ duration: 5, ease: "linear" }}
-          className="h-1 bg-gradient-to-r from-primary via-orange-500 to-primary"
-          style={{ 
-            background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--orange-500)), hsl(var(--primary)))',
-            backgroundSize: '200% 100%',
-            animation: 'shimmer 2s linear infinite'
-          }}
+          transition={{ duration: 2.5, ease: "linear" }}
+          className="h-0.5 bg-gradient-to-r from-primary to-green-500"
         />
 
-        <div className="p-4">
-          <div className="flex items-start gap-3">
-            {/* Image produit arrondie 40x40 */}
-            <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted flex-shrink-0 shadow-md ring-2 ring-primary/20">
+        <div className="p-3">
+          <div className="flex items-center gap-3">
+            {/* Image produit */}
+            <motion.div 
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="w-12 h-12 rounded-xl overflow-hidden bg-muted flex-shrink-0 shadow-md"
+            >
               <img
                 src={product.image}
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
-            </div>
+            </motion.div>
 
             {/* Infos */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-2 mb-1">
+              <div className="flex items-center gap-2">
                 <motion.div 
                   initial={{ scale: 0 }}
-                  animate={{ scale: 1.1 }}
-                  transition={{ duration: 0.3, type: "spring", bounce: 0.5 }}
-                  className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full"
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 400 }}
+                  className="p-1 bg-green-100 dark:bg-green-900/40 rounded-full"
                 >
-                  <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                 </motion.div>
-                <div className="flex-1">
-                  <p className="font-bold text-sm line-clamp-1 text-foreground">
-                    🎉 {product.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Ajouté au panier • Quantité: {quantity}
-                  </p>
-                  <p className="text-base font-bold text-primary mt-1">
-                    {formatPrice(product.price * quantity)}
-                  </p>
-                </div>
+                <p className="font-semibold text-sm line-clamp-1 text-foreground">
+                  {product.title}
+                </p>
               </div>
-
-              {/* Actions simplifiées */}
-              <div className="flex gap-2 mt-2">
-                {onOpenCart && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      toast.dismiss(t);
-                      onOpenCart();
-                    }}
-                    className="flex-1"
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Voir le panier
-                  </Button>
-                )}
-                {!onOpenCart && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => toast.dismiss(t)}
-                    className="flex-1"
-                  >
-                    Continuer
-                  </Button>
-                )}
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-muted-foreground">
+                  Qté: {quantity}
+                </p>
+                <p className="text-sm font-bold text-primary">
+                  {formatPrice(product.price * quantity)}
+                </p>
               </div>
             </div>
+
+            {/* Bouton panier */}
+            {onOpenCart && (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    toast.dismiss(t);
+                    onOpenCart();
+                  }}
+                  className="h-9 px-3 rounded-xl hover:bg-primary/10"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                </Button>
+              </motion.div>
+            )}
           </div>
         </div>
       </motion.div>
     ), {
-      duration: 3000,
-      position: 'bottom-right',
+      duration: 2500,
+      position: 'bottom-center',
       className: 'max-w-sm',
     });
   };
