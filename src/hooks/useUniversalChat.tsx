@@ -69,22 +69,31 @@ export const useUniversalChat = () => {
   const [sendingMessages, setSendingMessages] = useState<Set<string>>(new Set());
   const profilesCacheRef = useRef<{ [userId: string]: any }>({});
 
-  // Fetch profiles with caching
+  // Fetch profiles with caching - prioritize vendor profiles for marketplace
   const fetchProfiles = useCallback(async (userIds: string[]) => {
-    const uncachedIds = userIds.filter(id => !profilesCacheRef.current[id]);
+    const uncachedIds = userIds.filter(id => id && !profilesCacheRef.current[id]);
     
     if (uncachedIds.length > 0) {
-      const [{ data: profiles }, { data: vendorProfiles }] = await Promise.all([
-        supabase.from('profiles').select('user_id, display_name, avatar_url').in('user_id', uncachedIds),
-        supabase.from('vendor_profiles').select('user_id, shop_name, shop_logo_url').in('user_id', uncachedIds)
-      ]);
+      try {
+        const [{ data: profiles, error: profilesError }, { data: vendorProfiles, error: vendorError }] = await Promise.all([
+          supabase.from('profiles').select('user_id, display_name, avatar_url').in('user_id', uncachedIds),
+          supabase.from('vendor_profiles').select('user_id, shop_name, shop_logo_url').in('user_id', uncachedIds)
+        ]);
 
-      profiles?.forEach(p => {
-        profilesCacheRef.current[p.user_id] = { ...profilesCacheRef.current[p.user_id], ...p };
-      });
-      vendorProfiles?.forEach(vp => {
-        profilesCacheRef.current[vp.user_id] = { ...profilesCacheRef.current[vp.user_id], ...vp };
-      });
+        if (profilesError) console.warn('Error fetching profiles:', profilesError);
+        if (vendorError) console.warn('Error fetching vendor profiles:', vendorError);
+
+        // First load regular profiles
+        profiles?.forEach(p => {
+          profilesCacheRef.current[p.user_id] = { ...profilesCacheRef.current[p.user_id], ...p };
+        });
+        // Then overlay vendor profiles (prioritized for marketplace)
+        vendorProfiles?.forEach(vp => {
+          profilesCacheRef.current[vp.user_id] = { ...profilesCacheRef.current[vp.user_id], ...vp };
+        });
+      } catch (error) {
+        console.error('Error in fetchProfiles:', error);
+      }
     }
 
     return userIds.reduce((acc, id) => {
@@ -164,7 +173,7 @@ export const useUniversalChat = () => {
           last_message_at: conv.last_message_at,
           other_participant: {
             id: otherParticipantId,
-            display_name: profile.display_name || 'Utilisateur',
+            display_name: profile.shop_name || profile.display_name || 'Vendeur',
             avatar_url: profile.avatar_url,
             shop_name: profile.shop_name,
             shop_logo_url: profile.shop_logo_url,

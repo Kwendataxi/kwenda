@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Image as ImageIcon, Check, CheckCheck } from 'lucide-react';
+import { MapPin, Image as ImageIcon, Check, CheckCheck, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -24,8 +24,9 @@ export const LastMessagePreview: React.FC<LastMessagePreviewProps> = ({
   
   if (!message) {
     return (
-      <p className={cn("text-xs text-muted-foreground italic", className)}>
-        Pas de message
+      <p className={cn("text-xs text-muted-foreground/70 italic flex items-center gap-1", className)}>
+        <MessageCircle className="h-3 w-3" />
+        Commencez la discussion...
       </p>
     );
   }
