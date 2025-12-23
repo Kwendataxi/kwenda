@@ -15,6 +15,7 @@ import {
   Percent
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { RentalVehicleList, RentalBookingList, RentalPartnerList } from "@/components/admin/rental";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -384,44 +385,17 @@ const AdminRentalAnalytics = () => {
 
         {/* VEHICLES TAB */}
         <TabsContent value="vehicles">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion de la Flotte</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Tableau détaillé de gestion des véhicules à implémenter
-              </p>
-            </CardContent>
-          </Card>
+          <RentalVehicleList />
         </TabsContent>
 
         {/* BOOKINGS TAB */}
         <TabsContent value="bookings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des Réservations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Calendrier et gestion des réservations à implémenter
-              </p>
-            </CardContent>
-          </Card>
+          <RentalBookingList />
         </TabsContent>
 
         {/* PARTNERS TAB */}
         <TabsContent value="partners">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des Partenaires</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Tableau de gestion des partenaires location à implémenter
-              </p>
-            </CardContent>
-          </Card>
+          <RentalPartnerList />
         </TabsContent>
       </Tabs>
     </div>
