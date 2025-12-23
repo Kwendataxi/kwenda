@@ -11,6 +11,7 @@ import { AdminUserRoutes } from './admin/routes/AdminUserRoutes';
 import { AdminConfigRoutes } from './admin/routes/AdminConfigRoutes';
 import { AdminCommunicationRoutes } from './admin/routes/AdminCommunicationRoutes';
 import { AdminSystemRoutes } from './admin/routes/AdminSystemRoutes';
+import { AdminAccessDenied } from '@/components/auth/AdminAccessDenied';
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center p-8">
@@ -21,16 +22,24 @@ const LoadingFallback = () => (
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const { isAdmin, loading: rolesLoading } = useUserRoles();
+  const { isAdmin, loading: rolesLoading, userRoles } = useUserRoles();
   const { stats } = useAdminStats();
 
   if (rolesLoading) {
     return <LoadingFallback />;
   }
 
+  // ✅ CORRECTION : Afficher écran AccessDenied explicite au lieu de redirect silencieux
   if (!isAdmin) {
-    console.error('❌ [AdminApp] Access denied: User is not admin');
-    return <Navigate to="/operatorx/admin/auth" replace />;
+    console.error('❌ [AdminApp] Access denied: User is not admin', {
+      detectedRoles: userRoles.map(r => r.role)
+    });
+    return (
+      <AdminAccessDenied 
+        detectedRoles={userRoles.map(r => r.role)} 
+        requiredRole="admin" 
+      />
+    );
   }
 
   const renderContent = () => {
