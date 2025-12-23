@@ -200,7 +200,7 @@ export const ReferralDashboard: React.FC = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <Clock className="w-8 h-8 mx-auto text-yellow-500 mb-2" />
-            <p className="text-2xl font-bold text-foreground">{stats.activeReferrals}</p>
+            <p className="text-2xl font-bold text-foreground">{stats.pendingReferrals}</p>
             <p className="text-xs text-muted-foreground">En cours</p>
           </CardContent>
         </Card>
@@ -216,12 +216,12 @@ export const ReferralDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Gains en attente */}
-      {stats.pendingEarnings > 0 && (
+      {/* Limite de filleuls */}
+      {stats.remainingSlots <= 5 && stats.remainingSlots > 0 && (
         <Alert className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20">
           <DollarSign className="w-4 h-4 text-yellow-600" />
           <AlertDescription className="text-sm text-yellow-700 dark:text-yellow-400">
-            <strong>{stats.pendingEarnings.toLocaleString()} CDF</strong> en attente de validation (filleuls en cours)
+            <strong>Plus que {stats.remainingSlots} place(s)</strong> disponible(s) sur {stats.maxReferrals}
           </AlertDescription>
         </Alert>
       )}
