@@ -102,7 +102,7 @@ export const SharedRoutes = () => {
       {/* Notifications page */}
       <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
       
-      <Route path="/admin/marketplace" element={<Navigate to="/admin?tab=marketplace-management" replace />} />
+      <Route path="/admin/marketplace" element={<Navigate to="/operatorx/admin?tab=marketplace-management" replace />} />
     </>
   );
 };
