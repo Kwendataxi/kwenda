@@ -1,5 +1,5 @@
 /**
- * Service de détection de plateforme d'exécution
+ * 📱 Service de détection de plateforme d'exécution
  * Permet de différencier entre web, PWA et Capacitor
  */
 
@@ -9,12 +9,22 @@ export const isMobileDevice = (): boolean => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
+/**
+ * Détection si l'app tourne en mode Capacitor natif
+ * Utilisé pour bypass la landing page marketing
+ */
 export const isMobileApp = (): boolean => {
   if (typeof window === 'undefined') return false;
   
   // Détection Capacitor native
   // @ts-ignore - Capacitor injecte cette propriété
-  return window.Capacitor?.isNativePlatform() ?? false;
+  const isCapacitor = window.Capacitor?.isNativePlatform() ?? false;
+  
+  // Détection alternative via le protocole (capacitor:// ou ionic://)
+  const isNativeProtocol = window.location.protocol === 'capacitor:' || 
+                           window.location.protocol === 'ionic:';
+  
+  return isCapacitor || isNativeProtocol;
 };
 
 export const isPWA = (): boolean => {
@@ -55,6 +65,14 @@ export const getOS = (): 'ios' | 'android' | 'other' => {
   return 'other';
 };
 
+/**
+ * Vérifie si les éléments marketing doivent être affichés
+ * Masqués dans les apps natives et PWA
+ */
+export const shouldShowMarketingUI = (): boolean => {
+  return !isMobileApp() && !isPWA();
+};
+
 // Log de diagnostic
 export const logPlatformInfo = () => {
   const platform = getPlatformType();
@@ -65,6 +83,7 @@ export const logPlatformInfo = () => {
     os,
     isMobile: isMobileApp(),
     isPWA: isPWA(),
+    shouldShowMarketing: shouldShowMarketingUI(),
     protocol: window.location.protocol,
     userAgent: window.navigator.userAgent.substring(0, 100)
   });

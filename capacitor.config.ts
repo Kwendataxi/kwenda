@@ -1,14 +1,29 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
+/**
+ * 📱 CAPACITOR CONFIGURATION - PRODUCTION READY
+ * 
+ * Pour le développement avec hot-reload, décommentez server.url
+ * En production, le bundle local (dist/) est utilisé
+ * 
+ * Build multi-apps:
+ * - cd.kwenda.client : App Client
+ * - cd.kwenda.driver : App Chauffeur  
+ * - cd.kwenda.partner : App Partenaire
+ */
 const config: CapacitorConfig = {
-  appId: 'cd.kwenda.taxi',
-  appName: 'Kwenda Taxi',
+  appId: 'cd.kwenda.client',
+  appName: 'Kwenda',
   webDir: 'dist',
-  server: {
-    url: "capacitor://localhost",
-    cleartext: false
-  },
+  
+  // 🔧 DEVELOPMENT: Décommenter pour hot-reload
+  // server: {
+  //   url: "https://e825ab56-72bd-4bca-b104-8ec14fdf48d8.lovableproject.com?forceHideBadge=true",
+  //   cleartext: true
+  // },
+  
   appUrlScheme: "kwenda",
+  
   plugins: {
     Geolocation: {
       permissions: ["location", "coarseLocation"],
@@ -22,18 +37,18 @@ const config: CapacitorConfig = {
     },
     LocalNotifications: {
       smallIcon: "ic_stat_icon_config_sample",
-      iconColor: "#1B365D",
+      iconColor: "#DC2626",
       sound: "default"
     },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"]
     },
     SplashScreen: {
-      launchAutoHide: true,
-      launchShowDuration: 2000,
-      launchFadeOutDuration: 500,
-      backgroundColor: "#0B1220",
-      androidScaleType: "CENTER_CROP"
+      launchAutoHide: false,
+      launchShowDuration: 0,
+      backgroundColor: "#DC2626",
+      androidScaleType: "CENTER_CROP",
+      showSpinner: false
     },
     BackgroundMode: {
       enabled: true,
@@ -42,9 +57,11 @@ const config: CapacitorConfig = {
       silent: false
     }
   },
+  
   bundledWebRuntime: false,
+  
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
     permissions: [
@@ -56,10 +73,11 @@ const config: CapacitorConfig = {
       "android.permission.RECEIVE_BOOT_COMPLETED"
     ]
   },
+  
   ios: {
     contentInset: "automatic",
     scrollEnabled: true,
-    overrideUserAgent: "Kwenda Taxi Congo Mobile App",
+    overrideUserAgent: "Kwenda Mobile App",
     backgroundModes: ["location", "background-fetch", "background-processing"]
   }
 };
