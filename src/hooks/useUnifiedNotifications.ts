@@ -19,10 +19,14 @@ interface UnifiedNotification {
 
 // ✅ Helper pour éviter les erreurs TypeScript avec dynamic table names
 const fetchFromTable = async (tableName: string, userId: string, userIdField: string) => {
-  const { data, error } = await (supabase as any)
-    .from(tableName)
-    .select('*')
-    .eq(userIdField === 'none' ? 'id' : userIdField, userIdField === 'none' ? userId : userId)
+  let query = (supabase as any).from(tableName).select('*');
+  
+  // Ne pas filtrer par user_id pour les tables globales (admin_notifications)
+  if (userIdField !== 'none') {
+    query = query.eq(userIdField, userId);
+  }
+  
+  const { data, error } = await query
     .order('created_at', { ascending: false })
     .limit(50);
   

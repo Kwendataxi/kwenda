@@ -3492,6 +3492,48 @@ export type Database = {
           },
         ]
       }
+      food_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          metadata: Json | null
+          notification_type: string
+          order_id: string | null
+          priority: string | null
+          read_at: string | null
+          restaurant_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          notification_type?: string
+          order_id?: string | null
+          priority?: string | null
+          read_at?: string | null
+          restaurant_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          notification_type?: string
+          order_id?: string | null
+          priority?: string | null
+          read_at?: string | null
+          restaurant_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       food_order_ratings: {
         Row: {
           comment: string | null
