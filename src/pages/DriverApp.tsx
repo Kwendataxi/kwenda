@@ -143,8 +143,8 @@ const DriverApp = () => {
 
       {/* Layout flex pour header + contenu + footer */}
       <div className="flex flex-col min-h-screen bg-background">
-        {/* Contenu scrollable - pb-floating-nav pour espace sous la nav flottante */}
-        <main className="flex-1 overflow-y-auto pb-floating-nav">
+        {/* Contenu scrollable - pb-24 pour espace sous la nav fixe */}
+        <main className="flex-1 overflow-y-auto pb-24">
           <AnimatePresence mode="wait">
             <motion.div 
               key={tab}
@@ -184,16 +184,16 @@ const DriverApp = () => {
           </AnimatePresence>
         </main>
 
-        {/* Footer navigation flottante moderne */}
+        {/* Footer navigation fixe - style identique au client */}
         <UniversalBottomNavigation 
           userType="driver"
           activeTab={tab === 'food' ? 'orders' : tab} 
           onTabChange={(newTab) => {
             setTab(newTab as any);
           }}
-          variant="enhanced"
+          variant="default"
           showLabels={true}
-          floating={true}
+          floating={false}
         />
       </div>
     </DriverServiceProvider>

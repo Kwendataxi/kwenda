@@ -47,7 +47,7 @@ const navigationConfigs = {
     { id: 'orders' as const, label: 'Courses', icon: Car },
     { id: 'earnings' as const, label: 'Gains', icon: Wallet },
     { id: 'challenges' as const, label: 'Défis', icon: Trophy },
-    { id: 'subscription' as const, label: 'Abonnement', icon: CreditCard },
+    { id: 'subscription' as const, label: 'Abo', icon: CreditCard },
     { id: 'profile' as const, label: 'Profil', icon: User }
   ],
   partner: [
@@ -105,122 +105,140 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
       );
     }
     
+    // Style default - identique au ModernBottomNavigation client
     return cn(
-      'flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl transition-all duration-200',
-      'min-touch-target touch-manipulation',
-      isActive 
-        ? 'text-primary bg-primary/10 scale-105' 
-        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+      'relative flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all duration-200',
+      'min-w-[60px] group active:scale-95 min-touch-target touch-manipulation'
     );
   };
 
   return (
-    <nav className={cn(
-      floating ? 'bottom-nav-floating' : 'bottom-nav-standard',
-      !floating && variant === 'enhanced' && 'pb-6',
-      className
-    )}>
+    <nav 
+      className={cn(
+        floating ? 'bottom-nav-floating' : 'bottom-nav-standard',
+        className
+      )}
+      style={{ 
+        willChange: 'transform',
+        pointerEvents: 'auto',
+        touchAction: 'none'
+      }}
+    >
+      {/* Gradient d'accentuation subtile en haut - comme le client */}
+      {!floating && variant === 'default' && (
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      )}
+      
+      {/* Container des boutons - hauteur fixe explicite */}
       <div className={cn(
-        'mx-auto max-w-screen-sm',
-        !floating && 'px-4 pb-[env(safe-area-inset-bottom)]',
-        !floating && variant === 'enhanced' && 'px-6',
+        'flex items-center justify-around h-[72px] px-4 max-w-screen-sm mx-auto',
         floating && 'px-2'
       )}>
-        <motion.div 
-          className={cn(
-            'grid transition-all duration-300',
-            // Pas de background/border supplémentaire si floating (déjà géré par la nav)
-            !floating && variant === 'default' && 'bg-background/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lg',
-            !floating && variant === 'enhanced' && 'bg-background/98 backdrop-blur-2xl border-2 border-primary/20 rounded-3xl shadow-2xl p-1',
-            floating && 'bg-transparent'
-          )}
-          style={{ gridTemplateColumns: `repeat(${config.length}, minmax(0, 1fr))` }}
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ 
-            type: 'spring', 
-            stiffness: floating ? 200 : (variant === 'enhanced' ? 260 : 300), 
-            damping: floating ? 25 : (variant === 'enhanced' ? 20 : 25)
-          }}
-        >
-          {config.map((item, index) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            const badge = badges[item.id];
-            
+        {config.map((item, index) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          const badge = badges[item.id];
+          
+          if (variant === 'enhanced') {
+            // Style enhanced avec animations
             return (
               <motion.button
                 key={item.id}
                 className={getItemClasses(isActive)}
-                onClick={() => handleTabPress(item.id, item.isMore)}
+                onClick={() => handleTabPress(item.id)}
                 aria-label={item.label}
-                initial={variant === 'enhanced' ? { opacity: 0, y: 20 } : undefined}
-                animate={variant === 'enhanced' ? { opacity: 1, y: 0 } : undefined}
-                transition={variant === 'enhanced' ? { delay: index * 0.1 } : undefined}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
                 whileTap={{ scale: 0.9 }}
-                whileHover={variant === 'enhanced' ? { scale: 1.1, rotate: 3 } : { scale: 1.02 }}
+                whileHover={{ scale: 1.1, rotate: 3 }}
               >
-                {/* Indicateur actif en haut (enhanced only) */}
-                {variant === 'enhanced' && isActive && (
+                {isActive && (
                   <motion.div 
                     className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-full"
                     layoutId={`activeIndicator-${userType}`}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
                 )}
-
                 <div className="relative">
-                  <Icon className={cn(
-                    'transition-colors duration-200',
-                    variant === 'default' && 'h-5 w-5',
-                    variant === 'enhanced' && 'h-6 w-6',
-                    isActive && 'text-primary',
-                    !isActive && 'text-muted-foreground'
-                  )} />
-                  
-                  {/* Effet de brillance pour icône active (enhanced only) */}
-                  {variant === 'enhanced' && isActive && (
+                  <Icon className="h-6 w-6 transition-colors duration-200 text-primary" />
+                  {isActive && (
                     <motion.div 
                       className="absolute inset-0 bg-primary/20 rounded-full blur-lg -z-10"
-                      animate={{ 
-                        scale: [1, 1.2, 1], 
-                        opacity: [0.5, 0.8, 0.5] 
-                      }}
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                   )}
-                  
                   {badge && badge > 0 && (
-                    <motion.div
-                      className="absolute -top-2 -right-2"
-                      animate={variant === 'enhanced' ? { scale: [1, 1.2, 1] } : undefined}
-                      transition={variant === 'enhanced' ? { duration: 2, repeat: Infinity } : undefined}
-                    >
-                      <Badge 
-                        variant="destructive" 
-                        className="h-4 w-4 p-0 text-xs flex items-center justify-center min-w-4 bg-primary text-primary-foreground border-0"
-                      >
+                    <motion.div className="absolute -top-2 -right-2" animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+                      <Badge variant="destructive" className="h-4 w-4 p-0 text-xs flex items-center justify-center min-w-4 bg-primary text-primary-foreground border-0">
                         {badge > 99 ? '99+' : badge}
                       </Badge>
                     </motion.div>
                   )}
                 </div>
-
                 {showLabels && (
-                  <span className={cn(
-                    'font-medium transition-colors',
-                    variant === 'default' && 'text-xs hidden xs:block',
-                    variant === 'enhanced' && 'text-xs font-semibold',
-                    isActive && 'text-primary',
-                    !isActive && 'text-muted-foreground'
-                  )}>
+                  <span className={cn('text-xs font-semibold transition-colors', isActive ? 'text-primary' : 'text-muted-foreground')}>
                     {item.label}
                   </span>
                 )}
               </motion.button>
             );
-          })}
-        </motion.div>
+          }
+          
+          // Style default - identique au ModernBottomNavigation client
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleTabPress(item.id)}
+              className={getItemClasses(isActive)}
+              aria-label={item.label}
+            >
+              {/* Active background avec glassmorphism moderne */}
+              {isActive && (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-primary/8 to-primary/4 rounded-2xl border border-primary/20 shadow-lg shadow-primary/10" />
+              )}
+              
+              {/* Icon container */}
+              <div className="relative z-10">
+                <Icon 
+                  className={cn(
+                    'w-6 h-6 transition-all duration-300 ease-out',
+                    isActive 
+                      ? 'text-primary scale-110' 
+                      : 'text-muted-foreground group-hover:text-foreground group-hover:scale-105'
+                  )}
+                />
+                
+                {/* Notification badge */}
+                {badge && badge > 0 && (
+                  <div className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-[10px] font-bold shadow-md border-2 border-background">
+                    {badge > 9 ? '9+' : badge}
+                  </div>
+                )}
+              </div>
+              
+              {/* Label */}
+              {showLabels && (
+                <span 
+                  className={cn(
+                    'relative z-10 text-xs font-semibold tracking-tight transition-all duration-300',
+                    isActive 
+                      ? 'text-primary' 
+                      : 'text-muted-foreground group-hover:text-foreground'
+                  )}
+                >
+                  {item.label}
+                </span>
+              )}
+              
+              {/* Active indicator bar */}
+              {isActive && (
+                <div className="absolute -bottom-0.5 h-1 w-8 bg-gradient-to-r from-primary/60 via-primary to-primary/60 rounded-full" />
+              )}
+            </button>
+          );
+        })}
       </div>
     </nav>
   );
