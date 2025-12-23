@@ -41,8 +41,21 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     }
   }, [user, requireAuth, location.pathname]);
 
+  // 🔍 Log de diagnostic initial
+  console.log('🔍 [ProtectedRoute] State check', {
+    path: location.pathname,
+    requireAuth,
+    requiredRole,
+    hasUser: !!user,
+    sessionReady,
+    contentReady,
+    rolesLoading,
+    userRolesCount: userRoles.length
+  });
+
   // Attendre que tout soit prêt (transition invisible)
   if (!sessionReady || !contentReady || rolesLoading) {
+    console.log('⏳ [ProtectedRoute] Waiting for ready state...');
     return <InvisibleLoadingBar />;
   }
 
@@ -57,6 +70,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
       'client': '/auth'
     };
     const targetAuth = requiredRole ? authRoutes[requiredRole] || APP_CONFIG.authRoute : APP_CONFIG.authRoute;
+    console.log('🔀 [ProtectedRoute] No user, redirecting to:', targetAuth);
     return <Navigate to={targetAuth} state={{ from: location }} replace />;
   }
 

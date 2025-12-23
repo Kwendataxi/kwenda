@@ -82,6 +82,15 @@ export const AdminRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      {/* Route fallback pour toutes les sous-routes admin non définies */}
+      <Route 
+        path="/operatorx/admin/*" 
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminApp />
+          </ProtectedRoute>
+        } 
+      />
     </>
   );
 };
