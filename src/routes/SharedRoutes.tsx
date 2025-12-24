@@ -29,6 +29,7 @@ const RestaurantSubscription = lazy(() => import('@/pages/restaurant/RestaurantS
 const RestaurantPOS = lazy(() => import('@/pages/restaurant/RestaurantPOS'));
 const RestaurantProfile = lazy(() => import('@/pages/restaurant/RestaurantProfile'));
 const RestaurantWalletPage = lazy(() => import('@/pages/restaurant/RestaurantWalletPage'));
+const RestaurantEscrowPage = lazy(() => import('@/pages/restaurant/RestaurantEscrowPage'));
 const TestSoundsPage = lazy(() => import('@/pages/TestSoundsPage').then(m => ({ default: m.TestSoundsPage })));
 const TestLotteryPage = lazy(() => import('@/pages/TestLotteryPage').then(m => ({ default: m.TestLotteryPage })));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
@@ -61,6 +62,7 @@ export const SharedRoutes = () => {
       <Route path="/restaurant/pos" element={<ProtectedRoute><RestaurantPOS /></ProtectedRoute>} />
       <Route path="/restaurant/profile" element={<ProtectedRoute><RestaurantProfile /></ProtectedRoute>} />
       <Route path="/restaurant/wallet" element={<ProtectedRoute><RestaurantWalletPage /></ProtectedRoute>} />
+      <Route path="/restaurant/escrow" element={<ProtectedRoute><RestaurantEscrowPage /></ProtectedRoute>} />
       
       {/* Common protected routes */}
       <Route path="/role-selection" element={<ProtectedRoute><RoleSelection /></ProtectedRoute>} />
