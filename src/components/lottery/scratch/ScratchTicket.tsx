@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Gift, Ticket } from 'lucide-react';
+import { Sparkles, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { KwendaGrattaWin, CARD_TYPE_CONFIG, REWARD_CONFIG } from '@/types/kwenda-gratta';
 import { cn } from '@/lib/utils';
 import confetti from 'canvas-confetti';
+import { StampReveal, StampType } from './StampReveal';
 
 interface ScratchTicketProps {
   card: KwendaGrattaWin;
@@ -24,9 +25,19 @@ export const ScratchTicket: React.FC<ScratchTicketProps> = ({
   const [isScratching, setIsScratching] = useState(false);
   const [percentage, setPercentage] = useState(0);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [showStamp, setShowStamp] = useState(false);
   const lastPosition = useRef<{ x: number; y: number } | null>(null);
   const totalPixels = useRef(0);
   const animationFrame = useRef<number>();
+
+  // Determine stamp type based on value
+  const getStampType = (): StampType => {
+    // Big wins = GAGNÉ, small wins/boosts = BONUS
+    if (card.value >= 100 || card.rewardCategory === 'free_delivery') {
+      return 'win';
+    }
+    return 'bonus';
+  };
 
   const cardConfig = CARD_TYPE_CONFIG[card.cardType];
   const rewardConfig = REWARD_CONFIG[card.rewardCategory];
@@ -196,6 +207,8 @@ export const ScratchTicket: React.FC<ScratchTicketProps> = ({
           setIsRevealed(true);
           onReveal();
           triggerCelebration();
+          // Show stamp with slight delay for dramatic effect
+          setTimeout(() => setShowStamp(true), 200);
         }
 
         animationFrame.current = undefined;
@@ -335,19 +348,16 @@ export const ScratchTicket: React.FC<ScratchTicketProps> = ({
                   </div>
                 </motion.div>
 
-                {isRevealed && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="absolute top-2 right-2"
-                  >
-                    <div className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                      <Gift className="h-3 w-3" />
-                      GAGNÉ !
-                    </div>
-                  </motion.div>
-                )}
+                {/* Stamp animation on reveal */}
+                <AnimatePresence>
+                  {isRevealed && showStamp && (
+                    <StampReveal
+                      type={getStampType()}
+                      value={card.value}
+                      currency={card.currency}
+                    />
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Scratch canvas overlay */}
