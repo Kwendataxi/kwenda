@@ -12,6 +12,7 @@ export interface FoodOrder {
   restaurant_id: string;
   restaurant_name?: string;
   restaurant_logo?: string;
+  restaurant_phone?: string;
   status: FoodOrderStatus;
   total_amount: number;
   delivery_fee: number;
@@ -48,7 +49,14 @@ export const useFoodClientOrders = () => {
 
       const { data, error } = await supabase
         .from('food_orders')
-        .select('*')
+        .select(`
+          *,
+          restaurant:restaurant_profiles!restaurant_id (
+            restaurant_name,
+            logo_url,
+            phone_number
+          )
+        `)
         .eq('customer_id', userId)
         .order('created_at', { ascending: false });
 
@@ -62,8 +70,9 @@ export const useFoodClientOrders = () => {
         order_number: order.order_number,
         client_id: order.customer_id,
         restaurant_id: order.restaurant_id,
-        restaurant_name: 'Restaurant',
-        restaurant_logo: undefined,
+        restaurant_name: order.restaurant?.restaurant_name || 'Restaurant',
+        restaurant_logo: order.restaurant?.logo_url,
+        restaurant_phone: order.restaurant?.phone_number,
         status: order.status,
         total_amount: order.total_amount,
         delivery_fee: order.delivery_fee || 0,

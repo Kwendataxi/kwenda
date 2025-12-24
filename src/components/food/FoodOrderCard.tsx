@@ -108,10 +108,24 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
             <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <p className="flex-1">{order.delivery_address}</p>
           </div>
+          
+          {/* Restaurant phone */}
+          {order.restaurant_phone && (
+            <a 
+              href={`tel:${order.restaurant_phone}`}
+              className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium"
+            >
+              <Phone className="w-4 h-4" />
+              <span>📍 Restaurant : {order.restaurant_phone}</span>
+            </a>
+          )}
+          
+          {/* Client delivery phone */}
           <div className="flex items-center gap-2 text-muted-foreground dark:text-muted-foreground/90">
             <Phone className="w-4 h-4" />
-            <p>{order.delivery_phone}</p>
+            <p>🚚 Livraison : {order.delivery_phone}</p>
           </div>
+          
           <div className="flex items-center gap-2 text-muted-foreground dark:text-muted-foreground/90">
             <Clock className="w-4 h-4" />
             <p>{format(new Date(order.created_at), 'PPp', { locale: fr })}</p>
