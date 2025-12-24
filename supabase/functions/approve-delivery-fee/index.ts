@@ -86,14 +86,15 @@ serve(async (req) => {
       );
     }
 
-    // 3. Si approuvé, débiter les frais de livraison
+    // 3. Si approuvé, traiter les frais de livraison
     const deliveryFee = order.delivery_fee || 0;
+    let paymentMethod = 'wallet';
 
     if (deliveryFee <= 0) {
       throw new Error('Aucun frais de livraison à approuver');
     }
 
-    console.log('💰 Debiting delivery fee:', deliveryFee);
+    console.log('💰 Processing delivery fee:', deliveryFee);
 
     // Vérifier le solde
     const { data: wallet, error: walletError } = await supabase
@@ -106,45 +107,59 @@ serve(async (req) => {
       throw new Error('Portefeuille introuvable');
     }
 
-    const availableBalance = (wallet.balance || 0) + (wallet.bonus_balance || 0);
+    const bonusBalance = Number(wallet.bonus_balance || 0);
+    const mainBalance = Number(wallet.balance || 0);
+    const totalBalance = bonusBalance + mainBalance;
 
-    if (availableBalance < deliveryFee) {
-      throw new Error(`Solde insuffisant pour les frais de livraison. Requis: ${deliveryFee} CDF | Disponible: ${availableBalance} CDF`);
-    }
-
-    // Débiter le wallet (priorité bonus)
-    if ((wallet.bonus_balance || 0) >= deliveryFee) {
-      await supabase
-        .from('user_wallets')
-        .update({ 
-          bonus_balance: (wallet.bonus_balance || 0) - deliveryFee,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
+    // Si solde insuffisant, basculer automatiquement en cash
+    if (totalBalance < deliveryFee) {
+      console.log('💵 Solde insuffisant, bascule automatique vers cash:', { totalBalance, deliveryFee });
+      paymentMethod = 'cash_on_delivery';
     } else {
-      await supabase
-        .from('user_wallets')
-        .update({ 
-          balance: (wallet.balance || 0) - deliveryFee,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
+      // Débiter le wallet (priorité bonus)
+      if (bonusBalance >= deliveryFee) {
+        await supabase
+          .from('user_wallets')
+          .update({ 
+            bonus_balance: bonusBalance - deliveryFee,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+      } else {
+        await supabase
+          .from('user_wallets')
+          .update({ 
+            balance: mainBalance - deliveryFee,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+      }
     }
 
-    // 4. Mettre à jour l'escrow avec les frais de livraison
-    const platformFeeLivraison = deliveryFee * 0.05;
-    const sellerFeeLivraison = deliveryFee - platformFeeLivraison;
+    // 4. Mettre à jour l'escrow avec les frais de livraison (seulement si wallet)
+    if (paymentMethod === 'wallet') {
+      const platformFeeLivraison = deliveryFee * 0.05;
+      const sellerFeeLivraison = deliveryFee - platformFeeLivraison;
 
-    await supabase
-      .from('escrow_transactions')
-      .update({
-        amount: supabase.sql`amount + ${deliveryFee}`,
-        delivery_fee: deliveryFee,
-        platform_fee: supabase.sql`platform_fee + ${platformFeeLivraison}`,
-        seller_amount: supabase.sql`seller_amount + ${sellerFeeLivraison}`,
-        updated_at: new Date().toISOString()
-      })
-      .eq('order_id', orderId);
+      await supabase
+        .from('escrow_transactions')
+        .update({
+          delivery_fee: deliveryFee,
+          updated_at: new Date().toISOString()
+        })
+        .eq('order_id', orderId);
+
+      // Logger l'activité wallet
+      await supabase.from('activity_logs').insert({
+        user_id: userId,
+        activity_type: 'delivery_fee_payment',
+        description: `Frais de livraison - Commande #${orderId.slice(0, 8)}`,
+        amount: -deliveryFee,
+        currency: 'CDF',
+        reference_type: 'marketplace_order',
+        reference_id: orderId
+      });
+    }
 
     // 5. Confirmer la commande
     await supabase
@@ -152,35 +167,29 @@ serve(async (req) => {
       .update({
         status: 'confirmed',
         vendor_confirmation_status: 'buyer_approved',
+        delivery_fee_payment_method: paymentMethod,
         buyer_approved_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
       .eq('id', orderId);
 
-    // 6. Logger l'activité
-    await supabase.from('activity_logs').insert({
-      user_id: userId,
-      activity_type: 'delivery_fee_payment',
-      description: `Frais de livraison - Commande #${orderId.slice(0, 8)}`,
-      amount: -deliveryFee,
-      currency: 'CDF',
-      reference_type: 'marketplace_order',
-      reference_id: orderId
-    });
-
-    // 7. Notifier le vendeur
+    // 6. Notifier le vendeur
+    const paymentInfo = paymentMethod === 'cash_on_delivery' 
+      ? ' (paiement en espèces à la livraison)' 
+      : '';
+    
     await supabase.from('system_notifications').insert({
       user_id: order.seller_id,
       title: 'Frais acceptés ✅',
-      message: `Le client a accepté les frais de livraison (${deliveryFee} CDF). Préparez la commande.`,
+      message: `Le client a accepté les frais de livraison (${deliveryFee} CDF)${paymentInfo}. Préparez la commande.`,
       notification_type: 'delivery_fee_accepted',
-      data: { order_id: orderId, delivery_fee: deliveryFee }
+      data: { order_id: orderId, delivery_fee: deliveryFee, payment_method: paymentMethod }
     });
 
-    console.log('✅ Delivery fee approved successfully');
+    console.log('✅ Delivery fee approved successfully', { paymentMethod });
 
     return new Response(
-      JSON.stringify({ success: true, deliveryFee }),
+      JSON.stringify({ success: true, deliveryFee, paymentMethod }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
