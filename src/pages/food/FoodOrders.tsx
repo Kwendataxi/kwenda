@@ -8,6 +8,7 @@ import { ArrowLeft, ShoppingBag, PackageCheck, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FoodFooterNav } from '@/components/food/FoodFooterNav';
+import { FoodBackToTop } from '@/components/food/FoodBackToTop';
 
 export default function FoodOrders() {
   const navigate = useNavigate();
@@ -138,6 +139,7 @@ export default function FoodOrders() {
           </TabsContent>
         </Tabs>
       </div>
+      <FoodBackToTop />
       <FoodFooterNav />
     </div>
   );

@@ -10,6 +10,7 @@ import { useFavorites } from '@/context/FavoritesContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { FoodFooterNav } from '@/components/food/FoodFooterNav';
+import { FoodBackToTop } from '@/components/food/FoodBackToTop';
 
 export default function FoodFavorites() {
   const navigate = useNavigate();
@@ -245,6 +246,7 @@ export default function FoodFavorites() {
           </TabsContent>
         </Tabs>
       </div>
+      <FoodBackToTop />
       <FoodFooterNav />
     </div>
   );

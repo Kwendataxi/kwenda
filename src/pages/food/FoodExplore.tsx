@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { RestaurantCard } from '@/components/food/RestaurantCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FoodFooterNav } from '@/components/food/FoodFooterNav';
+import { FoodBackToTop } from '@/components/food/FoodBackToTop';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft, 
   Search, 
@@ -14,10 +17,15 @@ import {
   DollarSign,
   Star,
   Clock,
-  Truck
+  Truck,
+  Store,
+  UtensilsCrossed,
+  Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAllDishes } from '@/hooks/useAllDishes';
+import { useAllRestaurants } from '@/hooks/useAllRestaurants';
+import { useSmartCitySelection } from '@/hooks/useSmartCitySelection';
 import {
   Sheet,
   SheetContent,
@@ -38,16 +46,22 @@ import {
 } from '@/components/ui/select';
 
 const CUISINE_CATEGORIES = [
-  { value: 'african', label: '🌍 Africain', emoji: '🌍' },
-  { value: 'fast-food', label: '🍔 Fast-food', emoji: '🍔' },
-  { value: 'asian', label: '🍜 Asiatique', emoji: '🍜' },
-  { value: 'italian', label: '🍕 Italien', emoji: '🍕' },
-  { value: 'grillades', label: '🥩 Grillades', emoji: '🥩' },
-  { value: 'desserts', label: '🍰 Desserts', emoji: '🍰' },
+  { value: 'african', label: 'Africain', emoji: '🌍' },
+  { value: 'fast-food', label: 'Fast-food', emoji: '🍔' },
+  { value: 'asian', label: 'Asiatique', emoji: '🍜' },
+  { value: 'italian', label: 'Italien', emoji: '🍕' },
+  { value: 'grillades', label: 'Grillades', emoji: '🥩' },
+  { value: 'desserts', label: 'Desserts', emoji: '🍰' },
+  { value: 'boissons', label: 'Boissons', emoji: '🥤' },
+  { value: 'breakfast', label: 'Petit-déj', emoji: '🍳' },
 ];
 
 export default function FoodExplore() {
   const navigate = useNavigate();
+  const { currentCity } = useSmartCitySelection();
+  const city = currentCity?.name || 'Kinshasa';
+  
+  const [activeTab, setActiveTab] = useState<'restaurants' | 'dishes'>('restaurants');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000]);
@@ -57,11 +71,42 @@ export default function FoodExplore() {
   const [openNow, setOpenNow] = useState(false);
   const [sortBy, setSortBy] = useState<string>('popularity');
 
-  // Mock data - à remplacer par vrai appel API
-  const { dishes, isLoading } = useAllDishes('Kinshasa');
-  const restaurants: any[] = []; // Simulé
+  // Fetch restaurants
+  const { 
+    restaurants, 
+    isLoading: restaurantsLoading,
+    updateFilters: updateRestaurantFilters,
+    resetFilters: resetRestaurantFilters
+  } = useAllRestaurants(city);
 
-  const loading = isLoading;
+  // Fetch dishes
+  const { 
+    dishes, 
+    isLoading: dishesLoading,
+    updateFilters: updateDishFilters,
+    resetFilters: resetDishFilters
+  } = useAllDishes(city);
+
+  // Filter restaurants based on search
+  const filteredRestaurants = restaurants.filter(r => {
+    const matchesSearch = !searchQuery || 
+      r.restaurant_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.address?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRating = r.rating_average >= minRating;
+    const matchesDeliveryTime = !r.average_preparation_time || r.average_preparation_time <= maxDeliveryTime;
+    return matchesSearch && matchesRating && matchesDeliveryTime;
+  });
+
+  // Filter dishes based on search and categories
+  const filteredDishes = dishes.filter(d => {
+    const matchesSearch = !searchQuery || 
+      d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.restaurant_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategories.length === 0 || 
+      selectedCategories.includes(d.category?.toLowerCase() || '');
+    const matchesPrice = d.price >= priceRange[0] && d.price <= priceRange[1];
+    return matchesSearch && matchesCategory && matchesPrice;
+  });
 
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev =>
@@ -80,6 +125,8 @@ export default function FoodExplore() {
     setFreeDeliveryOnly(false);
     setOpenNow(false);
     setSortBy('popularity');
+    resetRestaurantFilters();
+    resetDishFilters();
   };
 
   const hasActiveFilters = 
@@ -92,7 +139,9 @@ export default function FoodExplore() {
     freeDeliveryOnly ||
     openNow;
 
-  if (loading) {
+  const loading = restaurantsLoading || dishesLoading;
+
+  if (loading && restaurants.length === 0 && dishes.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background pb-24">
         <div className="container max-w-2xl mx-auto px-4 py-6 space-y-4">
@@ -100,6 +149,7 @@ export default function FoodExplore() {
             <Skeleton key={i} className="h-48 w-full rounded-xl" />
           ))}
         </div>
+        <FoodFooterNav />
       </div>
     );
   }
@@ -129,7 +179,7 @@ export default function FoodExplore() {
                 placeholder="Rechercher un restaurant ou un plat..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 bg-background dark:bg-card border-border/60 dark:border-border/80 text-foreground dark:text-foreground/95 placeholder:text-muted-foreground/60 dark:placeholder:text-muted-foreground/80"
+                className="pl-10 pr-10 bg-background dark:bg-card border-border/60"
               />
               {searchQuery && (
                 <Button
@@ -153,7 +203,7 @@ export default function FoodExplore() {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="h-[80vh] overflow-y-auto bg-card dark:bg-card/98 border-t-2 border-border/60 dark:border-border/80">
+              <SheetContent side="bottom" className="h-[80vh] overflow-y-auto bg-card border-t-2 border-border/60">
                 <SheetHeader>
                   <SheetTitle>Filtres</SheetTitle>
                   <SheetDescription>
@@ -267,10 +317,24 @@ export default function FoodExplore() {
                 className="cursor-pointer whitespace-nowrap"
                 onClick={() => toggleCategory(cat.value)}
               >
-                {cat.label}
+                {cat.emoji} {cat.label}
               </Badge>
             ))}
           </div>
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+            <TabsList className="w-full grid grid-cols-2">
+              <TabsTrigger value="restaurants" className="gap-2">
+                <Store className="w-4 h-4" />
+                Restaurants ({filteredRestaurants.length})
+              </TabsTrigger>
+              <TabsTrigger value="dishes" className="gap-2">
+                <UtensilsCrossed className="w-4 h-4" />
+                Plats ({filteredDishes.length})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
 
@@ -279,10 +343,10 @@ export default function FoodExplore() {
         {/* Active Filters */}
         {hasActiveFilters && (
           <div className="mb-4 flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-muted-foreground">Filtres actifs:</span>
+            <span className="text-sm text-muted-foreground">Filtres:</span>
             {searchQuery && (
               <Badge variant="secondary">
-                Recherche: {searchQuery}
+                "{searchQuery}"
                 <X
                   className="w-3 h-3 ml-1 cursor-pointer"
                   onClick={() => setSearchQuery('')}
@@ -298,44 +362,149 @@ export default function FoodExplore() {
                 />
               </Badge>
             ))}
+            {minRating > 0 && (
+              <Badge variant="secondary">
+                ≥ {minRating}⭐
+              </Badge>
+            )}
           </div>
         )}
 
-        {/* Restaurant Grid */}
-        <div className="space-y-4">
-          <AnimatePresence>
-            {restaurants.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-12"
-              >
-                <p className="text-6xl mb-4">🔍</p>
-                <h3 className="text-xl font-bold text-foreground mb-2">
-                  Aucun résultat trouvé
-                </h3>
-                <p className="text-muted-foreground">
-                  Essayez d'ajuster vos filtres ou votre recherche
-                </p>
-              </motion.div>
-            ) : (
-              restaurants.map((restaurant: any) => (
+        <Tabs value={activeTab}>
+          {/* Restaurants Tab */}
+          <TabsContent value="restaurants" className="space-y-4 mt-0">
+            <AnimatePresence mode="popLayout">
+              {filteredRestaurants.length === 0 ? (
                 <motion.div
-                  key={restaurant.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
                 >
-                  <RestaurantCard
-                    restaurant={restaurant}
-                    onClick={() => navigate(`/food?restaurant=${restaurant.id}`)}
-                  />
+                  <p className="text-6xl mb-4">🍽️</p>
+                  <h3 className="text-xl font-bold text-foreground mb-2">
+                    Aucun restaurant trouvé
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Essayez d'ajuster vos filtres ou votre recherche
+                  </p>
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={clearFilters}>
+                      Réinitialiser les filtres
+                    </Button>
+                  )}
                 </motion.div>
-              ))
-            )}
-          </AnimatePresence>
-        </div>
+              ) : (
+                filteredRestaurants.map((restaurant, index) => (
+                  <motion.div
+                    key={restaurant.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <RestaurantCard
+                      restaurant={restaurant}
+                      onClick={() => navigate(`/food?restaurant=${restaurant.id}`)}
+                    />
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
+          </TabsContent>
+
+          {/* Dishes Tab */}
+          <TabsContent value="dishes" className="space-y-4 mt-0">
+            <AnimatePresence mode="popLayout">
+              {filteredDishes.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
+                >
+                  <p className="text-6xl mb-4">🍜</p>
+                  <h3 className="text-xl font-bold text-foreground mb-2">
+                    Aucun plat trouvé
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Essayez d'ajuster vos filtres ou votre recherche
+                  </p>
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={clearFilters}>
+                      Réinitialiser les filtres
+                    </Button>
+                  )}
+                </motion.div>
+              ) : (
+                filteredDishes.map((dish, index) => (
+                  <motion.div
+                    key={dish.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card 
+                      className="overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all cursor-pointer bg-card shadow-md"
+                      onClick={() => navigate(`/food?restaurant=${dish.restaurant_id}`)}
+                    >
+                      <div className="flex gap-4 p-4">
+                        {/* Image */}
+                        <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                          {dish.main_image_url ? (
+                            <img
+                              src={dish.main_image_url}
+                              alt={dish.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-4xl">
+                              🍽️
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-foreground truncate">{dish.name}</h3>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
+                            <Store className="w-3 h-3" />
+                            {dish.restaurant_name || 'Restaurant'}
+                          </p>
+                          
+                          {dish.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                              {dish.description}
+                            </p>
+                          )}
+
+                          <div className="flex items-center justify-between">
+                            <p className="text-lg font-bold text-primary">
+                              {dish.price?.toLocaleString()} CDF
+                            </p>
+                            <Button 
+                              size="sm" 
+                              className="gap-1 h-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/food?restaurant=${dish.restaurant_id}`);
+                              }}
+                            >
+                              <Plus className="w-3 h-3" />
+                              Voir
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
+          </TabsContent>
+        </Tabs>
       </div>
+
+      <FoodBackToTop />
       <FoodFooterNav />
     </div>
   );
