@@ -1,10 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Phone, MapPin, Clock, ChevronRight, ExternalLink, User } from 'lucide-react';
+import { Phone, MapPin, Clock, ChevronRight, ExternalLink, User, Lock, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-
 interface OrderItem {
   name: string;
   quantity: number;
@@ -27,6 +26,7 @@ interface OrderCardProps {
       display_name?: string | null;
       phone_number?: string | null;
     } | null;
+    payment_status?: string;
   };
   elapsedMinutes: number;
   onConfirm?: (prepTime: number) => void;
@@ -112,11 +112,19 @@ export const OrderCard = ({
                 <span>{elapsedMinutes} min</span>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-right space-y-1">
               <p className="font-bold text-primary text-lg">{order.total_amount.toLocaleString()} CDF</p>
-              <Badge className={cn(statusConfig.color, "text-white text-xs")}>
-                {statusConfig.label}
-              </Badge>
+              <div className="flex items-center gap-1.5 justify-end">
+                {order.payment_status === 'paid' && (
+                  <Badge variant="outline" className="text-xs gap-1 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800">
+                    <Lock className="h-2.5 w-2.5" />
+                    Escrow
+                  </Badge>
+                )}
+                <Badge className={cn(statusConfig.color, "text-white text-xs")}>
+                  {statusConfig.label}
+                </Badge>
+              </div>
             </div>
           </div>
 

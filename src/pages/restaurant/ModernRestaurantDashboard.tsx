@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat, Store, Share2, TrendingUp, Eye } from 'lucide-react';
+import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat, Store, Share2, TrendingUp, Eye, Lock, ArrowRight } from 'lucide-react';
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
 import { useFoodNotifications } from '@/hooks/useFoodNotifications';
@@ -21,6 +21,7 @@ interface RestaurantStats {
   todayRevenue: number;
   avgRating: number;
   pendingOrders: number;
+  pendingEscrow: number;
 }
 
 interface RestaurantProfile {
@@ -43,6 +44,7 @@ export default function ModernRestaurantDashboard() {
     todayRevenue: 0,
     avgRating: 0,
     pendingOrders: 0,
+    pendingEscrow: 0,
   });
 
   const { activeSubscription, checkExpirationWarning } = useRestaurantSubscription();
@@ -107,18 +109,28 @@ export default function ModernRestaurantDashboard() {
       const today = new Date().toISOString().split('T')[0];
       const { data: orders } = await supabase
         .from('food_orders')
-        .select('total_amount, status')
+        .select('total_amount, status, payment_status')
         .eq('restaurant_id', profile.id)
         .gte('created_at', today);
 
       const todayRevenue = orders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
       const pendingOrders = orders?.filter(o => ['pending', 'confirmed'].includes(o.status)).length || 0;
 
+      // Calculate pending escrow (paid orders not yet delivered)
+      const { data: escrowData } = await supabase
+        .from('escrow_transactions')
+        .select('seller_amount')
+        .eq('seller_id', user.id)
+        .eq('status', 'held');
+      
+      const pendingEscrow = escrowData?.reduce((sum, e) => sum + (e.seller_amount || 0), 0) || 0;
+
       setStats({
         todayOrders: orders?.length || 0,
         todayRevenue,
         avgRating: profile.rating_average || 0,
         pendingOrders,
+        pendingEscrow,
       });
 
     } catch (error: any) {
@@ -381,6 +393,44 @@ export default function ModernRestaurantDashboard() {
         )}
       </div>
 
+      {/* Widget Escrow - Revenus en attente */}
+      {stats.pendingEscrow > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
+                    <Lock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Revenus en attente</p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                      {stats.pendingEscrow.toLocaleString()} CDF
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      Fonds sécurisés • Auto-libération 48h après livraison
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                  onClick={() => navigate('/restaurant/escrow')}
+                >
+                  Voir détails
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Alerte abonnement */}
       {subscriptionWarning?.isExpiring && (
         <motion.div
@@ -463,7 +513,7 @@ export default function ModernRestaurantDashboard() {
             {[
               { icon: Package, label: 'Commandes', path: '/restaurant?tab=orders' },
               { icon: ChefHat, label: 'Menu', path: '/restaurant?tab=menu' },
-              { icon: Store, label: 'Profil', path: '/restaurant?tab=profile' },
+              { icon: Lock, label: 'Escrow', path: '/restaurant/escrow' },
               { icon: DollarSign, label: 'Caisse', path: '/restaurant?tab=pos' },
             ].map((action, index) => {
               const ActionIcon = action.icon;
