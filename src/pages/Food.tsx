@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FoodOrderInterface } from '@/components/food/FoodOrderInterface';
 import { FoodServiceTransition } from '@/components/food/FoodServiceTransition';
 import { FoodFooterNav } from '@/components/food/FoodFooterNav';
+import { FoodBackToTop } from '@/components/food/FoodBackToTop';
 
 export default function Food() {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ export default function Food() {
           onCartStateChange={handleCartStateChange}
         />
       </FoodServiceTransition>
+      <FoodBackToTop />
       <FoodFooterNav 
         cartItemsCount={cartItemsCount}
         onCartClick={handleCartClick}
