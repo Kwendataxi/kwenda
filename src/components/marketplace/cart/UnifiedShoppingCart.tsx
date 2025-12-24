@@ -5,12 +5,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShoppingBag, Plus, Minus, Trash2, Shield, CheckCircle, Loader2 } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Trash2, Shield, CheckCircle, Loader2, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatedCartItem } from './AnimatedCartItem';
 import { CartEmptyState } from './CartEmptyState';
 import { KwendaPayCheckout } from './KwendaPayCheckout';
 import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
+import { UnifiedTopUpModal } from '@/components/wallet/UnifiedTopUpModal';
 import { useWallet } from '@/hooks/useWallet';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useToast } from '@/hooks/use-toast';
@@ -45,6 +46,7 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
 
   // Calculs
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -293,6 +295,19 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
                     />
                   </div>
                 </div>
+
+                {/* Bouton de rechargement si solde insuffisant */}
+                {(!wallet || wallet.balance < totalPrice) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-amber-500 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700"
+                    onClick={() => setShowTopUpModal(true)}
+                  >
+                    <Wallet className="w-4 h-4 mr-2" />
+                    Recharger {(totalPrice - (wallet?.balance || 0)).toLocaleString()} CDF
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -404,6 +419,18 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
       />
 
       <SuccessConfetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
+
+      {/* Modal de rechargement wallet */}
+      <UnifiedTopUpModal
+        open={showTopUpModal}
+        onClose={() => setShowTopUpModal(false)}
+        userType="client"
+        walletBalance={wallet?.balance || 0}
+        currency="CDF"
+        onSuccess={() => {
+          setShowTopUpModal(false);
+        }}
+      />
     </>
   );
 };
