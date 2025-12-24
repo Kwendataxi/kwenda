@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, MapPin, Phone, PackageCheck, XCircle } from 'lucide-react';
+import { Clock, MapPin, Phone, PackageCheck, XCircle, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -101,6 +101,44 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
             </div>
           ))}
         </div>
+
+        {/* Driver contact - only when delivering */}
+        {order.status === 'delivering' && order.driver_id && (
+          <div className="p-4 bg-primary/10 dark:bg-primary/20 border-y border-primary/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {order.driver_photo ? (
+                  <img 
+                    src={order.driver_photo} 
+                    alt={order.driver_name || 'Livreur'}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-primary/30"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <User className="w-6 h-6 text-primary" />
+                  </div>
+                )}
+                <div>
+                  <p className="font-semibold text-foreground">
+                    🚴 {order.driver_name || 'Votre livreur'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">En route vers vous</p>
+                </div>
+              </div>
+              {order.driver_phone && (
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  className="shadow-md"
+                  onClick={() => window.open(`tel:${order.driver_phone}`, '_self')}
+                >
+                  <Phone className="w-4 h-4 mr-2" />
+                  Appeler
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Delivery Info */}
         <div className="p-4 bg-muted/30 dark:bg-muted/50 space-y-2 text-sm">

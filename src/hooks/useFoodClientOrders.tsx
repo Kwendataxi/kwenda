@@ -13,6 +13,10 @@ export interface FoodOrder {
   restaurant_name?: string;
   restaurant_logo?: string;
   restaurant_phone?: string;
+  driver_id?: string;
+  driver_name?: string;
+  driver_phone?: string;
+  driver_photo?: string;
   status: FoodOrderStatus;
   total_amount: number;
   delivery_fee: number;
@@ -55,6 +59,11 @@ export const useFoodClientOrders = () => {
             restaurant_name,
             logo_url,
             phone_number
+          ),
+          driver:driver_profiles!driver_id (
+            profile_photo_url,
+            display_name,
+            phone_number
           )
         `)
         .eq('customer_id', userId)
@@ -73,6 +82,10 @@ export const useFoodClientOrders = () => {
         restaurant_name: order.restaurant?.restaurant_name || 'Restaurant',
         restaurant_logo: order.restaurant?.logo_url,
         restaurant_phone: order.restaurant?.phone_number,
+        driver_id: order.driver_id,
+        driver_name: order.driver?.display_name,
+        driver_phone: order.driver?.phone_number,
+        driver_photo: order.driver?.profile_photo_url,
         status: order.status,
         total_amount: order.total_amount,
         delivery_fee: order.delivery_fee || 0,
