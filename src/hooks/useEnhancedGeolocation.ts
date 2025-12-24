@@ -31,7 +31,7 @@ export function useEnhancedGeolocation() {
   const cacheRef = useRef<Map<string, CachedLocation>>(new Map());
   const lastPositionRef = useRef<GeolocationPosition | null>(null);
 
-  // Cache des lieux populaires par ville
+  // Cache des lieux populaires par ville (RDC uniquement)
   const popularPlaces = useRef({
     'Kinshasa': [
       { name: 'Centre-ville de Kinshasa', lat: -4.3217, lng: 15.3069, accuracy: 100 },
@@ -43,9 +43,9 @@ export function useEnhancedGeolocation() {
       { name: 'Centre-ville de Lubumbashi', lat: -11.6792, lng: 27.5294, accuracy: 100 },
       { name: 'Aéroport de Lubumbashi', lat: -11.5912, lng: 27.5308, accuracy: 50 }
     ],
-    'Abidjan': [
-      { name: 'Plateau Abidjan', lat: 5.3364, lng: -4.0267, accuracy: 100 },
-      { name: 'Aéroport Félix Houphouët-Boigny', lat: 5.2539, lng: -3.9263, accuracy: 50 }
+    'Kolwezi': [
+      { name: 'Centre-ville de Kolwezi', lat: -10.7147, lng: 25.4764, accuracy: 100 },
+      { name: 'Aéroport de Kolwezi', lat: -10.7689, lng: 25.5067, accuracy: 50 }
     ]
   });
 

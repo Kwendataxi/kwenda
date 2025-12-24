@@ -1,6 +1,6 @@
 /**
  * Service de détection intelligente de ville pour Kwenda
- * Supporte Kinshasa, Lubumbashi, Kolwezi, Abidjan
+ * RDC uniquement: Kinshasa, Lubumbashi, Kolwezi
  */
 
 import { SUPPORTED_CITIES, type CityConfig, type UnifiedCoordinates } from '@/types/unifiedLocation';
@@ -198,8 +198,6 @@ class CityDetectionService {
         return { ...baseConfig, basePriceMultiplier: 1.2 }; // +20%
       case 'Kolwezi':
         return { ...baseConfig, basePriceMultiplier: 1.1 }; // +10%
-      case 'Abidjan':
-        return { ...baseConfig, currency: 'XOF' };
       default: // Kinshasa
         return baseConfig;
     }

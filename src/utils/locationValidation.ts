@@ -16,12 +16,11 @@ export interface ValidatedLocation {
   coordinates?: { lat: number; lng: number };
 }
 
-// Coordonnées par défaut sécurisées pour chaque ville
+// Coordonnées par défaut sécurisées pour chaque ville (RDC uniquement)
 export const DEFAULT_COORDINATES = {
   'Kinshasa': { lat: -4.3217, lng: 15.3069 },
   'Lubumbashi': { lat: -11.6708, lng: 27.4794 },
-  'Kolwezi': { lat: -10.7158, lng: 25.4664 },
-  'Abidjan': { lat: 5.3600, lng: -4.0083 }
+  'Kolwezi': { lat: -10.7158, lng: 25.4664 }
 } as const;
 
 /**

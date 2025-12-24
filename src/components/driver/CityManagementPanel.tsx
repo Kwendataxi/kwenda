@@ -23,11 +23,6 @@ const CITY_INFO = {
     description: 'Ville minière',
     zones: 4,
     currency: 'CDF'
-  },
-  'Abidjan': {
-    description: 'Capitale économique de la Côte d\'Ivoire',
-    zones: 6,
-    currency: 'XOF'
   }
 };
 

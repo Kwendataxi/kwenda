@@ -143,7 +143,7 @@ export const DriverTransactionHistory: React.FC = () => {
     }
   };
 
-  const formatAmount = (amount: number, currency: string = 'CDF') => formatCurrency(amount, currency as 'CDF' | 'XOF');
+  const formatAmount = (amount: number, currency: string = 'CDF') => formatCurrency(amount, 'CDF');
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {

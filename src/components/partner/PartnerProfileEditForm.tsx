@@ -41,7 +41,6 @@ const AVAILABLE_ZONES = [
   { id: 'kinshasa', label: 'Kinshasa' },
   { id: 'lubumbashi', label: 'Lubumbashi' },
   { id: 'kolwezi', label: 'Kolwezi' },
-  { id: 'abidjan', label: 'Abidjan' },
 ];
 
 const BUSINESS_TYPES = [

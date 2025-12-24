@@ -111,7 +111,6 @@ export const BookingFilters: React.FC<BookingFiltersProps> = ({
               <SelectItem value="kinshasa">Kinshasa</SelectItem>
               <SelectItem value="lubumbashi">Lubumbashi</SelectItem>
               <SelectItem value="kolwezi">Kolwezi</SelectItem>
-              <SelectItem value="abidjan">Abidjan</SelectItem>
             </SelectContent>
           </Select>
 

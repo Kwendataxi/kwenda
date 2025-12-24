@@ -67,7 +67,7 @@ const ModernHeroSimplified = () => {
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
                   <span className="text-xs font-medium text-foreground">
-                    Kinshasa • Lubumbashi • Kolwezi • Abidjan
+                    Kinshasa • Lubumbashi • Kolwezi
                   </span>
                 </div>
               </div>

@@ -122,7 +122,7 @@ export const CityServicesManager: React.FC = () => {
         waiting_fee_per_minute: rule.waiting_fee_per_minute,
         free_waiting_time_minutes: rule.free_waiting_time_minutes,
         max_waiting_time_minutes: rule.max_waiting_time_minutes,
-        currency: targetCity === 'Abidjan' ? 'XOF' : rule.currency,
+        currency: rule.currency,
         is_active: true
       }));
 

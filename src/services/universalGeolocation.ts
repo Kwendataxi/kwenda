@@ -22,7 +22,7 @@ export interface CityConfig {
   currency: string;
 }
 
-// Configuration des villes supportées avec leurs zones géographiques
+// Configuration des villes supportées - RDC uniquement
 export const SUPPORTED_CITIES: Record<string, CityConfig> = {
   kinshasa: {
     name: 'Kinshasa',
@@ -68,21 +68,6 @@ export const SUPPORTED_CITIES: Record<string, CityConfig> = {
     communes: ['Kolwezi', 'Manika', 'Mutoshi'],
     timezone: 'Africa/Lubumbashi',
     currency: 'CDF'
-  },
-  abidjan: {
-    name: 'Abidjan',
-    code: 'ABJ',
-    countryCode: 'CI',
-    coordinates: { lat: 5.3364, lng: -4.0267 },
-    bounds: {
-      north: 5.6,
-      south: 5.1,
-      east: -3.7,
-      west: -4.3
-    },
-    communes: ['Plateau', 'Cocody', 'Yopougon', 'Adjamé', 'Attecoubé', 'Treichville', 'Marcory', 'Koumassi', 'Port-Bouët', 'Abobo'],
-    timezone: 'Africa/Abidjan',
-    currency: 'XOF'
   }
 };
 
@@ -352,7 +337,7 @@ export class UniversalGeolocationService {
   }
 
   /**
-   * 🎯 Lieux populaires de fallback par ville
+   * 🎯 Lieux populaires de fallback par ville (RDC uniquement)
    */
   private getFallbackPopularPlaces(city: CityConfig): any[] {
     const fallbacks: Record<string, any[]> = {
@@ -369,11 +354,6 @@ export class UniversalGeolocationService {
       kolwezi: [
         { name: 'Centre-ville', commune: 'Kolwezi', lat: -10.7147, lng: 25.4764 },
         { name: 'Aéroport de Kolwezi', commune: 'Kolwezi', lat: -10.7689, lng: 25.5067 }
-      ],
-      abidjan: [
-        { name: 'Plateau', commune: 'Plateau', lat: 5.3197, lng: -4.0267 },
-        { name: 'Cocody', commune: 'Cocody', lat: 5.3478, lng: -3.9871 },
-        { name: 'Aéroport Félix Houphouët-Boigny', commune: 'Port-Bouët', lat: 5.2539, lng: -3.9263 }
       ]
     };
 

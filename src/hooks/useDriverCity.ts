@@ -11,14 +11,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-export type City = 'Kinshasa' | 'Lubumbashi' | 'Kolwezi' | 'Abidjan';
+export type City = 'Kinshasa' | 'Lubumbashi' | 'Kolwezi';
 
-// Coordonnées approximatives des villes pour détection GPS
+// Coordonnées approximatives des villes pour détection GPS (RDC uniquement)
 const CITY_COORDINATES: Record<City, { lat: number; lng: number; radius: number }> = {
   'Kinshasa': { lat: -4.3276, lng: 15.3136, radius: 50 }, // 50km radius
   'Lubumbashi': { lat: -11.6609, lng: 27.4748, radius: 30 },
-  'Kolwezi': { lat: -10.7159, lng: 25.4748, radius: 20 },
-  'Abidjan': { lat: 5.3209, lng: -3.9948, radius: 40 }
+  'Kolwezi': { lat: -10.7159, lng: 25.4748, radius: 20 }
 };
 
 export const useDriverCity = () => {
@@ -149,6 +148,6 @@ export const useDriverCity = () => {
     autoDetectCity,
     detectCityFromLocation,
     detectAndConfirmCity,
-    availableCities: ['Kinshasa', 'Lubumbashi', 'Kolwezi', 'Abidjan'] as City[]
+    availableCities: ['Kinshasa', 'Lubumbashi', 'Kolwezi'] as City[]
   };
 };

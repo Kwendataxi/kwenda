@@ -14,7 +14,7 @@ interface DriverBiddingResponseProps {
   pickupLocation: string;
   distanceToPickup: number;
   onResponseSubmitted?: () => void;
-  currency?: 'CDF' | 'XOF';
+  currency?: 'CDF';
   distance?: number;
 }
 

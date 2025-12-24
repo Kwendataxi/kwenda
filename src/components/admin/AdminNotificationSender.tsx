@@ -353,7 +353,6 @@ export const AdminNotificationSender: React.FC = () => {
                           <SelectItem value="Kinshasa">Kinshasa</SelectItem>
                           <SelectItem value="Lubumbashi">Lubumbashi</SelectItem>
                           <SelectItem value="Kolwezi">Kolwezi</SelectItem>
-                          <SelectItem value="Abidjan">Abidjan</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
