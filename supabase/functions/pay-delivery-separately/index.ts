@@ -258,10 +258,12 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: paymentMethod === 'kwenda_pay' 
-          ? 'Livraison payée avec succès' 
-          : `Paiement ${paymentMethod} configuré`,
+          ? `${deliveryFee} CDF débités de votre wallet` 
+          : `Paiement ${paymentMethod === 'cash' ? 'en espèces' : 'Mobile Money'} configuré`,
         payment_method: paymentMethod,
-        delivery_fee: deliveryFee
+        delivery_fee: deliveryFee,
+        wallet_debited: paymentMethod === 'kwenda_pay',
+        auto_switched: false
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
     );

@@ -60,10 +60,32 @@ export const DeliverySeparatePaymentDialog = ({
         return;
       }
 
-      toast({
-        title: '✅ Paiement confirmé',
-        description: data.message || 'Livraison payée avec succès',
-      });
+      // Gérer les différents cas de réponse
+      if (data?.auto_switched) {
+        // Solde insuffisant → basculé automatiquement en cash
+        toast({
+          title: '💵 Paiement en cash configuré',
+          description: `Solde insuffisant. Préparez ${deliveryFee.toLocaleString()} CDF en espèces pour le livreur`,
+        });
+      } else if (data?.success && paymentMethod === 'kwenda_pay' && data?.wallet_debited) {
+        // Paiement wallet réussi avec débit effectif
+        toast({
+          title: '✅ Paiement confirmé',
+          description: `${deliveryFee.toLocaleString()} CDF débités de votre wallet`,
+        });
+      } else if (paymentMethod === 'cash' || paymentMethod === 'mobile_money') {
+        // Cash ou mobile money choisi explicitement
+        toast({
+          title: '✓ Mode de paiement configuré',
+          description: data.message || 'Le livreur sera informé',
+        });
+      } else {
+        // Fallback
+        toast({
+          title: '✅ Confirmé',
+          description: data.message || 'Paiement livraison configuré',
+        });
+      }
 
       onSuccess?.();
       onClose();
