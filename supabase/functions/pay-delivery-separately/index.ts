@@ -107,15 +107,46 @@ serve(async (req) => {
       const mainBalance = Number(wallet.balance || 0);
       const totalAvailable = bonusBalance + mainBalance;
 
+      // Si solde insuffisant, basculer automatiquement vers cash
       if (totalAvailable < deliveryFee) {
+        console.log('💵 Solde insuffisant, bascule auto vers cash:', { totalAvailable, deliveryFee });
+        
+        // Configurer en cash on delivery
+        await supabase
+          .from(tableName)
+          .update({
+            delivery_payment_status: 'cash_on_delivery',
+            delivery_payment_method: 'cash'
+          })
+          .eq('id', orderId);
+
+        // Notifier le livreur si assigné
+        if (order.driver_id) {
+          await supabase.from('system_notifications').insert({
+            user_id: order.driver_id,
+            title: 'Paiement livraison en cash',
+            message: `Commande ${order.order_number || orderId}: 💵 Cash à récupérer (${deliveryFee} CDF)`,
+            notification_type: 'delivery_payment',
+            data: { 
+              order_id: orderId,
+              order_type: orderType,
+              delivery_fee: deliveryFee,
+              payment_method: 'cash',
+              payment_status: 'cash_on_delivery',
+              auto_switched: true
+            }
+          });
+        }
+
         return new Response(
-          JSON.stringify({ 
-            error: 'insufficient_funds',
-            message: 'Solde insuffisant pour la livraison',
-            required: deliveryFee,
-            available: totalAvailable
+          JSON.stringify({
+            success: true,
+            message: 'Solde insuffisant - Paiement configuré en cash à la livraison',
+            payment_method: 'cash',
+            delivery_fee: deliveryFee,
+            auto_switched: true
           }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
         );
       }
 
