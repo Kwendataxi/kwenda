@@ -1,9 +1,9 @@
 /**
  * Utilitaires de formatage des devises pour l'application Kwenda
- * Supporte CDF (RDC) et XOF (Côte d'Ivoire)
+ * RDC uniquement - CDF (Franc Congolais)
  */
 
-export type Currency = 'CDF' | 'XOF';
+export type Currency = 'CDF';
 
 export const formatCurrency = (amount: number, currency: Currency = 'CDF'): string => {
   return `${amount.toLocaleString()} ${currency}`;
@@ -20,11 +20,7 @@ export const formatCurrencyCompact = (amount: number, currency: Currency = 'CDF'
 };
 
 export const getCurrencyByCity = (city: string): Currency => {
-  const lowerCity = city.toLowerCase();
-  if (lowerCity.includes('abidjan')) {
-    return 'XOF';
-  }
-  return 'CDF'; // Default pour RDC (Kinshasa, Lubumbashi, Kolwezi)
+  return 'CDF'; // Toutes les villes sont en RDC
 };
 
 /**
@@ -38,6 +34,5 @@ export const formatCDF = (amount: number): string => {
  * Fonction qui détecte automatiquement la devise selon la ville
  */
 export const formatPrice = (amount: number, city?: string): string => {
-  const currency = city ? getCurrencyByCity(city) : 'CDF';
-  return formatCurrency(amount, currency);
+  return formatCurrency(amount, 'CDF');
 };

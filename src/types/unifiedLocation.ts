@@ -108,7 +108,7 @@ export const coordinatesEqual = (a: UnifiedCoordinates, b: UnifiedCoordinates, t
   return Math.abs(a.lat - b.lat) < tolerance && Math.abs(a.lng - b.lng) < tolerance;
 };
 
-// Villes supportées par Kwenda
+// Villes supportées par Kwenda (RDC uniquement)
 export const SUPPORTED_CITIES: Record<string, CityConfig> = {
   kinshasa: {
     name: 'Kinshasa',
@@ -144,16 +144,6 @@ export const SUPPORTED_CITIES: Record<string, CityConfig> = {
     communes: ['Dilala', 'Manika', 'Mutoshi'],
     timezone: 'Africa/Lubumbashi',
     currency: 'CDF'
-  },
-  abidjan: {
-    name: 'Abidjan',
-    code: 'ABJ',
-    countryCode: 'CI',
-    defaultCoordinates: { lat: 5.3599, lng: -4.0083 },
-    bounds: { north: 5.6, south: 5.1, east: -3.6, west: -4.4 },
-    communes: ['Plateau', 'Cocody', 'Yopougon', 'Adjamé', 'Abobo', 'Treichville'],
-    timezone: 'Africa/Abidjan',
-    currency: 'XOF'
   }
 };
 

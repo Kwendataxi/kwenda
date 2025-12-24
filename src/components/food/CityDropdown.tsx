@@ -18,7 +18,6 @@ const CITIES: City[] = [
   { name: 'Kinshasa', country: 'RDC', emoji: '🇨🇩' },
   { name: 'Lubumbashi', country: 'RDC', emoji: '🇨🇩' },
   { name: 'Kolwezi', country: 'RDC', emoji: '🇨🇩' },
-  { name: 'Abidjan', country: 'Côte d\'Ivoire', emoji: '🇨🇮' },
 ];
 
 interface CityDropdownProps {

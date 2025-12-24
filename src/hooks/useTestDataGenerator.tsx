@@ -18,7 +18,7 @@ export const useTestDataGenerator = () => {
 
   const generateTestUsers = async (count: number = 50) => {
     const users = [];
-    const cities = ['Kinshasa', 'Lubumbashi', 'Kolwezi', 'Abidjan'];
+    const cities = ['Kinshasa', 'Lubumbashi', 'Kolwezi'];
     const firstNames = ['Jean', 'Marie', 'Pierre', 'Lucie', 'Paul', 'Sophie', 'Michel', 'Anne', 'Robert', 'Claire'];
     const lastNames = ['Mukendi', 'Kabila', 'Tshisekedi', 'Ngozi', 'Bemba', 'Kamitatu', 'Katumbi', 'Mwanza'];
 

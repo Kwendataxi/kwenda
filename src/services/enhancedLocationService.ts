@@ -197,7 +197,7 @@ export class EnhancedLocationService {
     try {
       const { data, error } = await supabase.rpc('intelligent_places_search', {
         search_query: query,
-        search_city: region === 'cd' ? 'Kinshasa' : 'Abidjan',
+        search_city: 'Kinshasa',
         user_latitude: userLat,
         user_longitude: userLng,
         max_results: 10
@@ -321,7 +321,7 @@ export class EnhancedLocationService {
     try {
       const { data } = await supabase.rpc('intelligent_places_search', {
         search_query: '',
-        search_city: region === 'cd' ? 'Kinshasa' : 'Abidjan',
+        search_city: 'Kinshasa',
         user_latitude: userLat,
         user_longitude: userLng,
         max_results: 8
@@ -349,9 +349,7 @@ export class EnhancedLocationService {
 
   // 🆘 RÉSULTATS FALLBACK
   private getFallbackResults(query: string, region: string): LocationSearchResult[] {
-    const cityCenter = region === 'cd' 
-      ? { lat: -4.3217, lng: 15.3069, city: 'Kinshasa', country: 'RDC' }
-      : { lat: 5.3600, lng: -4.0083, city: 'Abidjan', country: 'Côte d\'Ivoire' };
+    const cityCenter = { lat: -4.3217, lng: 15.3069, city: 'Kinshasa', country: 'RDC' };
 
     if (query) {
       return [{
