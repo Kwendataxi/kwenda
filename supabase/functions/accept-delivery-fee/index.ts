@@ -52,8 +52,7 @@ serve(async (req) => {
         .from('escrow_payments')
         .update({
           amount: productAmount,
-          status: 'held',
-          updated_at: new Date().toISOString()
+          status: 'held'
         })
         .eq('id', existingEscrow.id);
 
