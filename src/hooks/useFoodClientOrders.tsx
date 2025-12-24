@@ -60,10 +60,10 @@ export const useFoodClientOrders = () => {
             logo_url,
             phone_number
           ),
-          driver:driver_profiles!driver_id (
-            profile_photo_url,
+          driver:chauffeurs!food_orders_driver_id_fkey (
             display_name,
-            phone_number
+            phone_number,
+            profile_photo_url
           )
         `)
         .eq('customer_id', userId)
