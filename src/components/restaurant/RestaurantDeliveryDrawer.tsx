@@ -3,7 +3,7 @@
  * Permet de commander un livreur avec données pré-remplies
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useDynamicDeliveryPricing } from '@/hooks/useDynamicDeliveryPricing';
+import { cityDetectionService } from '@/services/cityDetectionService';
 import { 
   Package, MapPin, Truck, CheckCircle2, Loader2, X, Utensils
 } from 'lucide-react';
@@ -86,9 +87,50 @@ export const RestaurantDeliveryDrawer = ({
   const [isCalculating, setIsCalculating] = useState(false);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [distance, setDistance] = useState<number>(0);
+  const [detectedCurrency, setDetectedCurrency] = useState<string>('CDF');
+
+  // Détecter automatiquement la ville depuis les coordonnées
+  const detectedCity = useMemo(() => {
+    if (restaurantProfile?.latitude && restaurantProfile?.longitude) {
+      const result = cityDetectionService.detectCityFromCoordinates({
+        lat: restaurantProfile.latitude,
+        lng: restaurantProfile.longitude
+      });
+      return result.city;
+    }
+    // Fallback: essayer avec les coordonnées de livraison
+    if (order?.delivery_coordinates) {
+      const result = cityDetectionService.detectCityFromCoordinates({
+        lat: order.delivery_coordinates.lat,
+        lng: order.delivery_coordinates.lng
+      });
+      return result.city;
+    }
+    return cityDetectionService.detectCity({}).city;
+  }, [restaurantProfile?.latitude, restaurantProfile?.longitude, order?.delivery_coordinates]);
+
+  // Formater l'adresse de livraison de manière lisible
+  const formatDeliveryAddress = (address?: string, coords?: { lat: number; lng: number }): string => {
+    if (!address && !coords) return 'Adresse client';
+    
+    // Si l'adresse est juste des coordonnées brutes, afficher un texte plus lisible
+    if (address) {
+      const coordsPattern = /^-?\d+\.?\d*,\s*-?\d+\.?\d*$/;
+      if (!coordsPattern.test(address.trim())) {
+        return address;
+      }
+    }
+    
+    // Retourner un texte lisible avec la distance
+    if (distance > 0) {
+      return `Point de livraison • ${distance.toFixed(1)} km`;
+    }
+    
+    return `Point de livraison (${detectedCity.name})`;
+  };
 
   // Calculer la distance entre deux points
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const calculateDistanceHaversine = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lng2 - lng1) * Math.PI / 180;
@@ -102,11 +144,14 @@ export const RestaurantDeliveryDrawer = ({
   // Calculer le prix quand le service change
   useEffect(() => {
     const fetchPrice = async () => {
+      const cityName = detectedCity.name;
+      setDetectedCurrency(detectedCity.currency);
+      
       if (!order?.delivery_coordinates || !restaurantProfile?.latitude || !restaurantProfile?.longitude) {
         // Utiliser une distance par défaut si pas de coordonnées
         const defaultDistance = 5;
         setDistance(defaultDistance);
-        const result = await calculatePrice(selectedService, defaultDistance);
+        const result = await calculatePrice(selectedService, defaultDistance, cityName);
         if (result) {
           setCalculatedPrice(result.calculated_price);
         }
@@ -114,7 +159,7 @@ export const RestaurantDeliveryDrawer = ({
       }
       
       setIsCalculating(true);
-      const dist = calculateDistance(
+      const dist = calculateDistanceHaversine(
         restaurantProfile.latitude,
         restaurantProfile.longitude,
         order.delivery_coordinates.lat,
@@ -122,9 +167,12 @@ export const RestaurantDeliveryDrawer = ({
       );
       setDistance(dist);
       
-      const result = await calculatePrice(selectedService, dist);
+      const result = await calculatePrice(selectedService, dist, cityName);
       if (result) {
         setCalculatedPrice(result.calculated_price);
+        if (result.currency) {
+          setDetectedCurrency(result.currency);
+        }
       }
       setIsCalculating(false);
     };
@@ -132,7 +180,7 @@ export const RestaurantDeliveryDrawer = ({
     if (isOpen) {
       fetchPrice();
     }
-  }, [selectedService, order?.delivery_coordinates, restaurantProfile, isOpen]);
+  }, [selectedService, order?.delivery_coordinates, restaurantProfile, isOpen, detectedCity]);
 
   // Commander un livreur
   const handleRequestDelivery = async () => {
@@ -162,7 +210,19 @@ export const RestaurantDeliveryDrawer = ({
   };
 
   const pickupAddress = restaurantProfile?.address || restaurantProfile?.restaurant_name || 'Votre restaurant';
-  const deliveryAddress = order?.delivery_address || 'Adresse client';
+  const deliveryAddress = formatDeliveryAddress(order?.delivery_address, order?.delivery_coordinates);
+
+  // Formater le prix avec la bonne devise
+  const formatPriceWithCurrency = (price: number): string => {
+    if (detectedCurrency === 'XOF') {
+      return new Intl.NumberFormat('fr-CI', {
+        style: 'currency',
+        currency: 'XOF',
+        minimumFractionDigits: 0,
+      }).format(price);
+    }
+    return formatPrice(price, detectedCurrency);
+  };
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
@@ -278,7 +338,7 @@ export const RestaurantDeliveryDrawer = ({
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   ) : (
                     <p className="text-2xl font-bold text-primary">
-                      {formatPrice(calculatedPrice)}
+                      {formatPriceWithCurrency(calculatedPrice)}
                     </p>
                   )}
                 </div>
@@ -305,7 +365,7 @@ export const RestaurantDeliveryDrawer = ({
             ) : (
               <>
                 <Truck className="h-4 w-4 mr-2" />
-                Commander • {formatPrice(calculatedPrice)}
+                Commander • {formatPriceWithCurrency(calculatedPrice)}
               </>
             )}
           </Button>

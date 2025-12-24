@@ -198,6 +198,8 @@ class CityDetectionService {
         return { ...baseConfig, basePriceMultiplier: 1.2 }; // +20%
       case 'Kolwezi':
         return { ...baseConfig, basePriceMultiplier: 1.1 }; // +10%
+      case 'Abidjan':
+        return { ...baseConfig, basePriceMultiplier: 1.0, currency: 'XOF' }; // Côte d'Ivoire
       default: // Kinshasa
         return baseConfig;
     }
