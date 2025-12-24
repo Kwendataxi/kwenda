@@ -5,6 +5,7 @@ import { ProductModeration } from '@/pages/admin/marketplace/ProductModeration';
 import { AdminFoodDashboard } from '@/components/admin/food/AdminFoodDashboard';
 import AdminFoodManagement from '@/pages/admin/AdminFoodManagement';
 import AdminMarketplaceManagement from '@/pages/admin/AdminMarketplaceManagement';
+import { AdminEscrowManager } from '@/components/admin/escrow/AdminEscrowManager';
 import { Loader2 } from 'lucide-react';
 
 const LoadingFallback = () => (
@@ -29,6 +30,15 @@ export const AdminMarketplaceRoutes = ({ activeTab }: { activeTab: string }) => 
         <Suspense fallback={<LoadingFallback />}>
           <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
             <ProductModeration />
+          </FlexiblePermissionGuard>
+        </Suspense>
+      );
+
+    case 'escrow':
+      return (
+        <Suspense fallback={<LoadingFallback />}>
+          <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+            <AdminEscrowManager />
           </FlexiblePermissionGuard>
         </Suspense>
       );

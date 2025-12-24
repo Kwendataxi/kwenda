@@ -71,6 +71,7 @@ const NAV_ITEMS: Array<{
   
   // Commerce
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, group: 'commerce' },
+  { id: 'escrow', label: 'Escrow & Conflits', icon: Shield, group: 'commerce', badge: 'NEW' },
   { id: 'food-management', label: 'Restaurants', icon: UtensilsCrossed, group: 'commerce' },
   { id: 'promocodes', label: 'Codes Promo', icon: Tag, group: 'commerce' },
   { id: 'lottery', label: 'Tombola', icon: Trophy, group: 'commerce' },
