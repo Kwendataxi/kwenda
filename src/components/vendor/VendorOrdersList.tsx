@@ -62,11 +62,12 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
       const vendorProductIds = vendorProducts.map(p => p.id);
 
+      // Inclure 'assigned_to_driver' et 'picked_up_by_driver' dans les statuts actifs
       const { data: active, error: activeError } = await supabase
         .from('marketplace_orders')
         .select('*')
         .in('product_id', vendorProductIds)
-        .in('status', ['confirmed', 'preparing', 'ready_for_pickup', 'in_transit'])
+        .in('status', ['confirmed', 'preparing', 'ready_for_pickup', 'assigned_to_driver', 'picked_up_by_driver', 'in_transit'])
         .order('created_at', { ascending: false });
 
       if (activeError) throw activeError;
@@ -265,6 +266,8 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
       'confirmed': { variant: 'default', label: 'Confirmée', icon: CheckCircle },
       'preparing': { variant: 'default', label: 'En préparation', icon: Package },
       'ready_for_pickup': { variant: 'default', label: 'Prête', icon: Package },
+      'assigned_to_driver': { variant: 'default', label: 'Livreur assigné', icon: Truck },
+      'picked_up_by_driver': { variant: 'default', label: 'Récupérée', icon: Truck },
       'in_transit': { variant: 'default', label: 'En livraison', icon: Truck },
       'delivered': { variant: 'default', label: 'Livrée', icon: CheckCircle },
       'completed': { variant: 'default', label: 'Terminée', icon: CheckCircle }

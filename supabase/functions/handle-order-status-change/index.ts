@@ -109,20 +109,31 @@ serve(async (req) => {
     console.log(`Order ${orderId} updated successfully to ${newStatus}`)
 
     // Handle special actions based on status
-    if (newStatus === 'ready_for_pickup' && order.delivery_method === 'delivery') {
+    // Considérer comme "livraison" si delivery_method !== 'pickup' (inclut 'standard', 'delivery', etc.)
+    const isDeliveryOrder = order.delivery_method !== 'pickup'
+
+    if (newStatus === 'ready_for_pickup' && isDeliveryOrder) {
       // Auto-assign to an available driver for delivery orders
       try {
-        const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/marketplace-driver-assignment`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
-          },
-          body: JSON.stringify({ orderId })
+        console.log(`[handle-order-status-change] Order ${orderId} ready for delivery, triggering driver assignment...`)
+        
+        // Utiliser les coordonnées de pickup ou fallback sur delivery_coordinates
+        const pickupCoords = order.pickup_coordinates || order.delivery_coordinates
+        
+        const { data: assignmentResult, error: assignmentError } = await supabase.functions.invoke('marketplace-driver-assignment', {
+          body: { 
+            orderId,
+            action: 'assign',
+            pickupCoordinates: pickupCoords,
+            deliveryCoordinates: order.delivery_coordinates
+          }
         })
 
-        const result = await response.json()
-        console.log('Driver assignment result:', result)
+        if (assignmentError) {
+          console.error('Driver assignment error:', assignmentError)
+        } else {
+          console.log('Driver assignment result:', assignmentResult)
+        }
       } catch (assignmentError) {
         console.error('Failed to assign driver:', assignmentError)
         // Don't fail the status update if driver assignment fails
