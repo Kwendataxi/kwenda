@@ -99,19 +99,30 @@ export const AdminJobForm = ({ jobId, onClose }: AdminJobFormProps) => {
 
       if (error) throw error;
       
+      const validEmploymentTypes = ['full_time', 'part_time', 'contract', 'freelance', 'internship'] as const;
+      const validStatuses = ['draft', 'active', 'closed'] as const;
+      
+      const employmentType = validEmploymentTypes.includes(data.employment_type as any) 
+        ? data.employment_type as JobEmploymentType 
+        : 'full_time';
+      
+      const status = validStatuses.includes(data.status as any) 
+        ? data.status as 'draft' | 'active' | 'closed' 
+        : 'active';
+      
       setFormData({
         title: data.title || '',
         description: data.description || '',
         company_id: data.company_id || '',
         category: data.category || 'Transport & Logistique',
-        employment_type: data.employment_type || 'full_time',
+        employment_type: employmentType,
         salary_min: data.salary_min?.toString() || '',
         salary_max: data.salary_max?.toString() || '',
         location_city: data.location_city || 'Kinshasa',
         is_remote: data.is_remote || false,
         is_featured: data.is_featured || false,
         skills: (data.skills || []).join(', '),
-        status: data.status || 'active',
+        status: status,
       });
     } catch (error) {
       console.error('Error fetching job:', error);

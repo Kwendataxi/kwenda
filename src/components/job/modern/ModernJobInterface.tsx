@@ -157,8 +157,6 @@ export const ModernJobInterface = ({ onBack }: ModernJobInterfaceProps) => {
               <ModernJobFilters
                 selectedCategory={selectedCategory}
                 onCategoryChange={setSelectedCategory}
-                remoteOnly={remoteOnly}
-                onRemoteOnlyChange={setRemoteOnly}
                 categoryCounts={categoryCounts}
               />
 
@@ -210,7 +208,6 @@ export const ModernJobInterface = ({ onBack }: ModernJobInterfaceProps) => {
                               job={job}
                               variant="featured"
                               onClick={() => handleJobClick(job)}
-                              onSave={() => saveJob(job.id)}
                               index={index}
                             />
                           ))}
@@ -234,7 +231,6 @@ export const ModernJobInterface = ({ onBack }: ModernJobInterfaceProps) => {
                               job={job}
                               variant="standard"
                               onClick={() => handleJobClick(job)}
-                              onSave={() => saveJob(job.id)}
                               index={index}
                             />
                           ))}

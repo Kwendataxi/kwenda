@@ -52,7 +52,8 @@ export const AdminApplicationsList = () => {
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Fetch applications with jobs
+      const { data: appsData, error: appsError } = await supabase
         .from('job_applications')
         .select(`
           *,
@@ -60,17 +61,28 @@ export const AdminApplicationsList = () => {
             title,
             location_city,
             job_companies (name)
-          ),
-          clients!job_applications_user_id_fkey (
-            display_name,
-            email,
-            phone_number
           )
         `)
         .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
-      setApplications((data || []) as ApplicationWithDetails[]);
+      if (appsError) throw appsError;
+
+      // Fetch client info separately for each user_id
+      const userIds = [...new Set((appsData || []).map(a => a.user_id))];
+      const { data: clientsData } = await supabase
+        .from('clients')
+        .select('user_id, display_name, email, phone_number')
+        .in('user_id', userIds);
+
+      const clientsMap = new Map(clientsData?.map(c => [c.user_id, c]) || []);
+
+      const enrichedApps = (appsData || []).map(app => ({
+        ...app,
+        status: app.status as JobApplicationStatus,
+        clients: clientsMap.get(app.user_id) || undefined
+      }));
+
+      setApplications(enrichedApps as ApplicationWithDetails[]);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast.error('Erreur lors du chargement');
