@@ -12,6 +12,7 @@ import { OrderFilters } from '@/components/restaurant/orders/OrderFilters';
 import { OrderCard } from '@/components/restaurant/orders/OrderCard';
 import { motion } from 'framer-motion';
 import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import { notificationSoundService } from '@/services/notificationSound';
 
 export default function ModernRestaurantOrders() {
   const navigate = useNavigate();
@@ -41,9 +42,9 @@ export default function ModernRestaurantOrders() {
 
       const unsubscribe = subscribeToOrders(
         restaurantId,
-        (newOrder) => {
-          const audio = new Audio('/notification.mp3');
-          audio.play().catch(() => {});
+        async (newOrder) => {
+          // Jouer le son de notification via le service
+          await notificationSoundService.playNotificationSound('newOrder');
 
           toast({
             title: '🍽️ Nouvelle commande !',

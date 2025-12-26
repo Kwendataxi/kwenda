@@ -168,8 +168,33 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
 
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;
-  const isSelfDelivery = order.vendor_delivery_method === 'self';
-  const isKwendaDelivery = order.vendor_delivery_method === 'kwenda';
+  
+  // Fallback: si vendor_delivery_method n'est pas défini, considérer comme self-delivery
+  const deliveryMethod = order.vendor_delivery_method || 'self';
+  const isSelfDelivery = deliveryMethod === 'self';
+  const isKwendaDelivery = deliveryMethod === 'kwenda';
+
+  const handleSetDeliveryMethod = async (method: 'self' | 'kwenda') => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('marketplace_orders')
+        .update({
+          vendor_delivery_method: method,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', order.id);
+
+      if (error) throw error;
+      toast.success(method === 'self' ? 'Vous livrerez vous-même' : 'Livreur Kwenda assigné');
+      onStatusUpdate?.();
+    } catch (error) {
+      console.error('Error setting delivery method:', error);
+      toast.error('Erreur lors de la configuration');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Card className="p-6">
@@ -224,9 +249,40 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
           </div>
         </div>
 
+        {/* Choix du mode de livraison si non défini */}
+        {!order.vendor_delivery_method && order.status === 'confirmed' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 space-y-3"
+          >
+            <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+              ⚠️ Choisissez votre mode de livraison :
+            </p>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleSetDeliveryMethod('self')}
+                disabled={loading}
+                variant="outline"
+                className="flex-1"
+              >
+                🚗 Je livre moi-même
+              </Button>
+              <Button
+                onClick={() => handleSetDeliveryMethod('kwenda')}
+                disabled={loading}
+                variant="outline"
+                className="flex-1"
+              >
+                🚚 Livreur Kwenda
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Actions selon le statut et mode de livraison */}
         <div className="space-y-3">
-          {order.status === 'confirmed' && (
+          {order.status === 'confirmed' && order.vendor_delivery_method && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

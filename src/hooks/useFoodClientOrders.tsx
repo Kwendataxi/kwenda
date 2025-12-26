@@ -51,6 +51,7 @@ export const useFoodClientOrders = () => {
     queryFn: async () => {
       if (!userId) return [];
 
+      // Étape 1: Récupérer les commandes avec restaurant (sans join chauffeur)
       const { data, error } = await supabase
         .from('food_orders')
         .select(`
@@ -59,11 +60,6 @@ export const useFoodClientOrders = () => {
             restaurant_name,
             logo_url,
             phone_number
-          ),
-          driver:chauffeurs!food_orders_driver_id_fkey (
-            display_name,
-            phone_number,
-            profile_photo_url
           )
         `)
         .eq('customer_id', userId)
@@ -74,28 +70,50 @@ export const useFoodClientOrders = () => {
         throw error;
       }
 
-      return (data || []).map((order: any) => ({
-        id: order.id,
-        order_number: order.order_number,
-        client_id: order.customer_id,
-        restaurant_id: order.restaurant_id,
-        restaurant_name: order.restaurant?.restaurant_name || 'Restaurant',
-        restaurant_logo: order.restaurant?.logo_url,
-        restaurant_phone: order.restaurant?.phone_number,
-        driver_id: order.driver_id,
-        driver_name: order.driver?.display_name,
-        driver_phone: order.driver?.phone_number,
-        driver_photo: order.driver?.profile_photo_url,
-        status: order.status,
-        total_amount: order.total_amount,
-        delivery_fee: order.delivery_fee || 0,
-        items: order.items || [],
-        delivery_address: order.delivery_address,
-        delivery_phone: order.delivery_phone,
-        notes: order.delivery_instructions,
-        created_at: order.created_at,
-        updated_at: order.updated_at,
-      })) as FoodOrder[];
+      // Étape 2: Récupérer les chauffeurs séparément
+      const driverIds = [...new Set((data || []).filter(o => o.driver_id).map(o => o.driver_id))];
+      let driversMap: Record<string, any> = {};
+
+      if (driverIds.length > 0) {
+        const { data: drivers } = await supabase
+          .from('chauffeurs')
+          .select('user_id, display_name, phone_number, profile_photo_url')
+          .in('user_id', driverIds);
+        
+        if (drivers) {
+          driversMap = drivers.reduce((acc, driver) => ({
+            ...acc,
+            [driver.user_id]: driver
+          }), {});
+        }
+      }
+
+      // Mapper avec les données chauffeur
+      return (data || []).map((order: any) => {
+        const driver = driversMap[order.driver_id];
+        return {
+          id: order.id,
+          order_number: order.order_number,
+          client_id: order.customer_id,
+          restaurant_id: order.restaurant_id,
+          restaurant_name: order.restaurant?.restaurant_name || 'Restaurant',
+          restaurant_logo: order.restaurant?.logo_url,
+          restaurant_phone: order.restaurant?.phone_number,
+          driver_id: order.driver_id,
+          driver_name: driver?.display_name,
+          driver_phone: driver?.phone_number,
+          driver_photo: driver?.profile_photo_url,
+          status: order.status,
+          total_amount: order.total_amount,
+          delivery_fee: order.delivery_fee || 0,
+          items: order.items || [],
+          delivery_address: order.delivery_address,
+          delivery_phone: order.delivery_phone,
+          notes: order.delivery_instructions,
+          created_at: order.created_at,
+          updated_at: order.updated_at,
+        };
+      }) as FoodOrder[];
     },
     enabled: !!userId,
   });
