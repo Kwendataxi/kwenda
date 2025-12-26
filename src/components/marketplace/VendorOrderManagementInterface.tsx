@@ -25,12 +25,15 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
         .from('marketplace_orders')
         .update({
           status: 'ready_for_pickup',
-          ready_at: new Date().toISOString(),
+          ready_for_pickup_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('id', order.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur mise à jour ready_for_pickup:', error);
+        throw error;
+      }
 
       // Notifier le client
       await supabase.from('push_notifications').insert({
@@ -54,9 +57,9 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
 
       toast.success('Commande marquée comme prête pour livraison');
       onStatusUpdate?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating status:', error);
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(`Erreur: ${error.message || 'Erreur lors de la mise à jour'}`);
     } finally {
       setLoading(false);
     }
@@ -69,12 +72,15 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
         .from('marketplace_orders')
         .update({
           status: 'in_transit',
-          pickup_at: new Date().toISOString(),
+          in_transit_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('id', order.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur mise à jour in_transit:', error);
+        throw error;
+      }
 
       await supabase.from('push_notifications').insert({
         user_id: order.buyer_id,
@@ -86,9 +92,9 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
 
       toast.success('Livraison démarrée');
       onStatusUpdate?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting delivery:', error);
-      toast.error('Erreur lors du démarrage');
+      toast.error(`Erreur: ${error.message || 'Erreur lors du démarrage'}`);
     } finally {
       setLoading(false);
     }
@@ -106,7 +112,10 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
         })
         .eq('id', order.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur mise à jour delivered:', error);
+        throw error;
+      }
 
       await supabase.from('push_notifications').insert({
         user_id: order.buyer_id,
@@ -118,9 +127,9 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
 
       toast.success('Livraison marquée comme terminée');
       onStatusUpdate?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error completing delivery:', error);
-      toast.error('Erreur lors de la finalisation');
+      toast.error(`Erreur: ${error.message || 'Erreur lors de la finalisation'}`);
     } finally {
       setLoading(false);
     }
@@ -142,6 +151,20 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
           color: 'text-blue-500',
           bgColor: 'bg-blue-500/10'
         };
+      case 'assigned_to_driver':
+        return {
+          icon: Truck,
+          label: 'Livreur assigné',
+          color: 'text-indigo-500',
+          bgColor: 'bg-indigo-500/10'
+        };
+      case 'picked_up_by_driver':
+        return {
+          icon: Truck,
+          label: 'Récupéré par livreur',
+          color: 'text-cyan-500',
+          bgColor: 'bg-cyan-500/10'
+        };
       case 'in_transit':
         return {
           icon: Truck,
@@ -155,6 +178,13 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
           label: 'Livré (en attente confirmation client)',
           color: 'text-green-500',
           bgColor: 'bg-green-500/10'
+        };
+      case 'completed':
+        return {
+          icon: CheckCircle,
+          label: 'Terminée',
+          color: 'text-emerald-500',
+          bgColor: 'bg-emerald-500/10'
         };
       default:
         return {
@@ -282,7 +312,8 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
 
         {/* Actions selon le statut et mode de livraison */}
         <div className="space-y-3">
-          {order.status === 'confirmed' && order.vendor_delivery_method && (
+          {/* Bouton "Prêt pour livraison" - visible si confirmed (avec ou sans delivery method défini) */}
+          {order.status === 'confirmed' && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -342,9 +373,30 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
           )}
 
           {order.status === 'ready_for_pickup' && isKwendaDelivery && (
-            <div className="text-center py-4">
-              <p className="text-sm text-muted-foreground">
+            <div className="text-center py-4 bg-indigo-500/10 rounded-lg">
+              <Truck className="h-8 w-8 text-indigo-500 mx-auto mb-2 animate-pulse" />
+              <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
                 🚚 En attente de récupération par le livreur Kwenda
+              </p>
+            </div>
+          )}
+
+          {(order.status === 'assigned_to_driver' || order.status === 'picked_up_by_driver') && (
+            <div className="text-center py-4 bg-cyan-500/10 rounded-lg">
+              <Truck className="h-8 w-8 text-cyan-500 mx-auto mb-2" />
+              <p className="text-sm font-medium text-cyan-700 dark:text-cyan-300">
+                {order.status === 'assigned_to_driver' 
+                  ? '🚚 Livreur en route pour récupérer le colis' 
+                  : '📦 Colis récupéré, en route vers le client'}
+              </p>
+            </div>
+          )}
+
+          {order.status === 'in_transit' && isKwendaDelivery && (
+            <div className="text-center py-4 bg-purple-500/10 rounded-lg">
+              <Truck className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+              <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                🚗 Livraison en cours par le livreur Kwenda
               </p>
             </div>
           )}
