@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { notificationSoundService } from '@/services/notificationSound';
 
 interface VendorOrder {
   id: string;
@@ -132,13 +133,14 @@ export const useVendorOrders = () => {
 
       if (fetchError || !order) throw new Error('Commande introuvable');
 
-      // Mettre à jour le statut de confirmation
+      // Mettre à jour le statut de confirmation + initialiser vendor_delivery_method
       const { error: updateError } = await supabase
         .from('marketplace_orders')
         .update({
           vendor_confirmation_status: 'confirmed',
           vendor_confirmed_at: new Date().toISOString(),
           status: 'confirmed',
+          vendor_delivery_method: 'self', // Par défaut: livraison auto-gérée
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId);
@@ -242,8 +244,12 @@ export const useVendorOrders = () => {
           schema: 'public',
           table: 'marketplace_orders'
         },
-        (payload) => {
+        async (payload) => {
           console.log('Nouvelle commande reçue:', payload);
+          
+          // 🔊 Jouer le son de notification
+          await notificationSoundService.playNotificationSound('newOrder');
+          
           loadPendingOrders();
         }
       )

@@ -68,13 +68,19 @@ class NotificationSoundService {
   private soundEnabled: boolean = true;
   private volume: number = 0.9; // 90% volume par défaut
 
-  private async initAudioContext() {
-    if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    }
-    
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
+  private async initAudioContext(): Promise<boolean> {
+    try {
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+      return true;
+    } catch (error) {
+      console.warn('Failed to initialize AudioContext:', error);
+      return false;
     }
   }
 
@@ -145,6 +151,14 @@ class NotificationSoundService {
       return;
     }
 
+    // Initialiser AudioContext d'abord (nécessaire pour fallback aussi)
+    const audioReady = await this.initAudioContext();
+    if (!audioReady) {
+      console.warn('🔇 [NotifSound] AudioContext non disponible');
+      this.triggerVibration(type);
+      return;
+    }
+
     try {
       const soundUrl = this.sounds[type];
       console.log(`📁 [NotifSound] Chargement: ${soundUrl}`);
@@ -155,7 +169,8 @@ class NotificationSoundService {
         console.log(`✅ [NotifSound] Lecture OK: ${type}`);
         await this.playBuffer(audioBuffer);
       } else {
-        console.warn(`⚠️ [NotifSound] Fallback beep pour: ${type}`);
+        // Fichier MP3 non disponible, utiliser fallback oscillator
+        console.log(`🔔 [NotifSound] Fallback beep pour: ${type}`);
         this.playFallbackSound(type);
       }
       
@@ -163,6 +178,7 @@ class NotificationSoundService {
       this.triggerVibration(type);
     } catch (error) {
       console.error(`❌ [NotifSound] Erreur: ${type}`, error);
+      // En cas d'erreur, essayer le fallback
       this.playFallbackSound(type);
       this.triggerVibration(type);
     }
@@ -170,7 +186,12 @@ class NotificationSoundService {
 
   private playFallbackSound(type: keyof NotificationSounds = 'general') {
     // Create distinctive beep sounds by category
-    if (!this.audioContext) return;
+    if (!this.audioContext) {
+      console.warn('🔇 [NotifSound] AudioContext non disponible pour fallback');
+      return;
+    }
+
+    try {
 
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
@@ -222,6 +243,10 @@ class NotificationSoundService {
     
     oscillator.start(this.audioContext.currentTime);
     oscillator.stop(this.audioContext.currentTime + 0.2);
+    console.log(`🔔 [NotifSound] Beep joué: ${type} @ ${frequencies[type] || 800}Hz`);
+    } catch (error) {
+      console.error('❌ [NotifSound] Erreur fallback:', error);
+    }
   }
 
   private triggerVibration(type: keyof NotificationSounds) {
