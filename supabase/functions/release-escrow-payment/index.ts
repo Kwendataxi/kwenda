@@ -24,7 +24,7 @@ serve(async (req) => {
 
     const { orderId } = await req.json();
 
-    console.log('Releasing escrow for order:', orderId);
+    console.log('🔓 Releasing escrow for order:', orderId);
 
     // Récupérer la commande
     const { data: order, error: orderError } = await supabaseClient
@@ -37,62 +37,81 @@ serve(async (req) => {
       .single();
 
     if (orderError || !order) {
+      console.error('❌ Order not found:', orderError);
       throw new Error('Commande non trouvée');
     }
+
+    console.log('📦 Order found:', order.id, 'Status:', order.status);
 
     // Vérifier que la commande est complétée ou livrée
     if (!['completed', 'delivered'].includes(order.status)) {
       throw new Error('La commande doit être complétée avant de libérer les fonds');
     }
 
-    // Récupérer le paiement escrow depuis escrow_transactions
-    const { data: escrowTransaction, error: escrowError } = await supabaseClient
-      .from('escrow_transactions')
+    // ✅ CORRECTION: Chercher dans escrow_payments au lieu de escrow_transactions
+    const { data: escrowPayment, error: escrowError } = await supabaseClient
+      .from('escrow_payments')
       .select('*')
       .eq('order_id', orderId)
       .eq('status', 'held')
       .single();
 
-    if (escrowError || !escrowTransaction) {
+    if (escrowError || !escrowPayment) {
+      console.error('❌ No escrow payment found:', escrowError);
       throw new Error('Aucun paiement escrow en attente trouvé');
     }
 
-    // Utiliser les montants pré-calculés dans escrow_transactions
-    const platformCommission = escrowTransaction.platform_fee || (order.total_amount * 0.05);
-    const sellerAmount = escrowTransaction.seller_amount || (order.total_amount - platformCommission);
+    console.log('💰 Escrow payment found:', escrowPayment.id, 'Amount:', escrowPayment.amount);
+
+    // Calculer les montants
+    const totalAmount = escrowPayment.amount;
+    const platformCommission = totalAmount * 0.05; // 5% commission
+    const sellerAmount = totalAmount - platformCommission;
+
+    console.log('📊 Amounts - Total:', totalAmount, 'Commission:', platformCommission, 'Seller:', sellerAmount);
 
     // Mettre à jour le paiement escrow
     const { error: escrowUpdateError } = await supabaseClient
-      .from('escrow_transactions')
+      .from('escrow_payments')
       .update({
         status: 'released',
-        released_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        released_at: new Date().toISOString()
       })
-      .eq('id', escrowTransaction.id);
+      .eq('id', escrowPayment.id);
 
-    if (escrowUpdateError) throw escrowUpdateError;
+    if (escrowUpdateError) {
+      console.error('❌ Failed to update escrow:', escrowUpdateError);
+      throw escrowUpdateError;
+    }
+
+    console.log('✅ Escrow status updated to released');
 
     // Récupérer ou créer le wallet vendeur
+    const sellerId = escrowPayment.seller_id || order.marketplace_products.seller_id;
+    
     let { data: wallet } = await supabaseClient
       .from('vendor_wallets')
       .select('*')
-      .eq('vendor_id', order.marketplace_products.seller_id)
-      .eq('currency', 'CDF')
+      .eq('vendor_id', sellerId)
+      .eq('currency', escrowPayment.currency || 'CDF')
       .single();
 
     if (!wallet) {
+      console.log('📝 Creating new vendor wallet');
       const { data: newWallet, error: createError } = await supabaseClient
         .from('vendor_wallets')
         .insert({
-          vendor_id: order.marketplace_products.seller_id,
+          vendor_id: sellerId,
           balance: 0,
-          currency: 'CDF'
+          currency: escrowPayment.currency || 'CDF'
         })
         .select()
         .single();
 
-      if (createError) throw createError;
+      if (createError) {
+        console.error('❌ Failed to create wallet:', createError);
+        throw createError;
+      }
       wallet = newWallet;
     }
 
@@ -106,30 +125,35 @@ serve(async (req) => {
       })
       .eq('id', wallet.id);
 
-    if (walletUpdateError) throw walletUpdateError;
-
-    // Mettre à jour la transaction vendeur
-    const { error: transactionError } = await supabaseClient
-      .from('vendor_wallet_transactions')
-      .update({
-        status: 'completed',
-        amount: sellerAmount
-      })
-      .eq('reference_id', orderId)
-      .eq('vendor_id', order.marketplace_products.seller_id);
-
-    if (transactionError) {
-      console.error('Transaction update error:', transactionError);
+    if (walletUpdateError) {
+      console.error('❌ Failed to update wallet:', walletUpdateError);
+      throw walletUpdateError;
     }
+
+    console.log('💳 Wallet updated. New balance:', wallet.balance + sellerAmount);
+
+    // Créer transaction de crédit vendeur
+    await supabaseClient
+      .from('vendor_wallet_transactions')
+      .insert({
+        vendor_id: sellerId,
+        transaction_type: 'credit',
+        amount: sellerAmount,
+        currency: escrowPayment.currency || 'CDF',
+        description: `Vente - Commande #${orderId.substring(0, 8)}`,
+        reference_id: orderId,
+        reference_type: 'marketplace_order',
+        status: 'completed'
+      });
 
     // Créer transaction commission plateforme
     await supabaseClient
       .from('vendor_wallet_transactions')
       .insert({
-        vendor_id: order.marketplace_products.seller_id,
+        vendor_id: sellerId,
         transaction_type: 'commission',
         amount: -platformCommission,
-        currency: 'CDF',
+        currency: escrowPayment.currency || 'CDF',
         description: `Commission plateforme (5%) - Commande #${orderId.substring(0, 8)}`,
         reference_id: orderId,
         reference_type: 'marketplace_order',
@@ -149,14 +173,16 @@ serve(async (req) => {
     await supabaseClient
       .from('activity_logs')
       .insert({
-        user_id: order.marketplace_products.seller_id,
+        user_id: sellerId,
         activity_type: 'escrow_release',
-        description: `Paiement libéré: ${sellerAmount.toLocaleString()} FC (après commission)`,
+        description: `Paiement libéré: ${sellerAmount.toLocaleString()} FC (après commission 5%)`,
         reference_id: orderId,
         reference_type: 'marketplace_order',
         amount: sellerAmount,
-        currency: 'CDF'
+        currency: escrowPayment.currency || 'CDF'
       });
+
+    console.log('🎉 Escrow release completed successfully');
 
     return new Response(
       JSON.stringify({ 
@@ -169,7 +195,7 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('Error releasing escrow:', error);
+    console.error('❌ Error releasing escrow:', error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { 
