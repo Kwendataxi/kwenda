@@ -26,7 +26,7 @@ interface FoodOrderCardProps {
   isCancelling?: boolean;
 }
 
-const STATUS_CONFIG: Record<FoodOrderStatus, { label: string; color: string; icon: string }> = {
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   pending: { label: 'En attente', color: 'bg-yellow-500', icon: '⏳' },
   confirmed: { label: 'Confirmée', color: 'bg-blue-500', icon: '✅' },
   preparing: { label: 'En préparation', color: 'bg-orange-500', icon: '👨‍🍳' },
@@ -36,9 +36,12 @@ const STATUS_CONFIG: Record<FoodOrderStatus, { label: string; color: string; ico
   cancelled: { label: 'Annulée', color: 'bg-red-500', icon: '❌' },
 };
 
+// Fallback config for unknown statuses
+const DEFAULT_STATUS = { label: 'Inconnu', color: 'bg-gray-500', icon: '❓' };
+
 export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardProps) => {
   const navigate = useNavigate();
-  const statusConfig = STATUS_CONFIG[order.status];
+  const statusConfig = STATUS_CONFIG[order.status] || DEFAULT_STATUS;
   const canCancel = ['pending', 'confirmed'].includes(order.status);
   const isActiveOrder = ['confirmed', 'preparing', 'ready', 'delivering'].includes(order.status);
 
