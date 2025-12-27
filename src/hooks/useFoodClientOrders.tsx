@@ -46,28 +46,39 @@ export const useFoodClientOrders = () => {
   }, []);
 
   // Fetch all orders for current user
-  const { data: orders = [], isLoading, refetch } = useQuery({
+  const { data: orders = [], isLoading, error: queryError, refetch } = useQuery({
     queryKey: ['food-client-orders', userId],
     queryFn: async () => {
       if (!userId) return [];
 
-      // Étape 1: Récupérer les commandes avec restaurant (sans join chauffeur)
+      // Étape 1: Récupérer les commandes SANS join problématique
       const { data, error } = await supabase
         .from('food_orders')
-        .select(`
-          *,
-          restaurant:restaurant_profiles!restaurant_id (
-            restaurant_name,
-            logo_url,
-            phone_number
-          )
-        `)
+        .select('*')
         .eq('customer_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching food orders:', error);
         throw error;
+      }
+
+      // Étape 2: Récupérer les restaurants séparément
+      const restaurantIds = [...new Set((data || []).filter(o => o.restaurant_id).map(o => o.restaurant_id))];
+      let restaurantsMap: Record<string, any> = {};
+
+      if (restaurantIds.length > 0) {
+        const { data: restaurants } = await supabase
+          .from('restaurant_profiles')
+          .select('id, restaurant_name, logo_url, phone_number')
+          .in('id', restaurantIds);
+        
+        if (restaurants) {
+          restaurantsMap = restaurants.reduce((acc, r) => ({
+            ...acc,
+            [r.id]: r
+          }), {});
+        }
       }
 
       // Étape 2: Récupérer les chauffeurs séparément
@@ -88,17 +99,18 @@ export const useFoodClientOrders = () => {
         }
       }
 
-      // Mapper avec les données chauffeur
+      // Mapper avec les données chauffeur et restaurant
       return (data || []).map((order: any) => {
         const driver = driversMap[order.driver_id];
+        const restaurant = restaurantsMap[order.restaurant_id];
         return {
           id: order.id,
           order_number: order.order_number,
           client_id: order.customer_id,
           restaurant_id: order.restaurant_id,
-          restaurant_name: order.restaurant?.restaurant_name || 'Restaurant',
-          restaurant_logo: order.restaurant?.logo_url,
-          restaurant_phone: order.restaurant?.phone_number,
+          restaurant_name: restaurant?.restaurant_name || 'Restaurant',
+          restaurant_logo: restaurant?.logo_url,
+          restaurant_phone: restaurant?.phone_number,
           driver_id: order.driver_id,
           driver_name: driver?.display_name,
           driver_phone: driver?.phone_number,
@@ -217,6 +229,7 @@ export const useFoodClientOrders = () => {
     completedOrders,
     cancelledOrders,
     isLoading,
+    error: queryError,
     refetch,
     cancelOrder: cancelOrderMutation.mutate,
     isCancelling: cancelOrderMutation.isPending,
