@@ -21,38 +21,21 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
   const handleMarkReadyForPickup = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('marketplace_orders')
-        .update({
-          status: 'ready_for_pickup',
-          ready_for_pickup_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
-
-      if (error) {
-        console.error('Erreur mise à jour ready_for_pickup:', error);
-        throw error;
-      }
-
-      // Notifier le client
-      await supabase.from('push_notifications').insert({
-        user_id: order.buyer_id,
-        title: '📦 Colis prêt !',
-        message: `Votre commande est prête et attend d'être expédiée`,
-        notification_type: 'marketplace_order',
-        metadata: { order_id: order.id }
+      const { data, error } = await supabase.functions.invoke('handle-order-status-change', {
+        body: { 
+          orderId: order.id, 
+          newStatus: 'ready_for_pickup',
+          metadata: { vendor_delivery_method: order.vendor_delivery_method || 'self' }
+        }
       });
 
-      // Si Kwenda, notifier le livreur assigné
-      if (order.vendor_delivery_method === 'kwenda' && order.marketplace_delivery_assignments?.[0]) {
-        await supabase.from('push_notifications').insert({
-          user_id: order.marketplace_delivery_assignments[0].driver_id,
-          title: '📦 Colis disponible',
-          message: `Le colis est prêt pour récupération`,
-          notification_type: 'delivery_assignment',
-          metadata: { order_id: order.id }
-        });
+      if (error) {
+        console.error('Erreur edge function ready_for_pickup:', error);
+        throw new Error(error.message || 'Erreur serveur');
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Échec de la mise à jour');
       }
 
       toast.success('Commande marquée comme prête pour livraison');
@@ -68,27 +51,22 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
   const handleStartSelfDelivery = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('marketplace_orders')
-        .update({
-          status: 'in_transit',
-          in_transit_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
+      const { data, error } = await supabase.functions.invoke('handle-order-status-change', {
+        body: { 
+          orderId: order.id, 
+          newStatus: 'in_transit',
+          metadata: { self_delivery: true }
+        }
+      });
 
       if (error) {
-        console.error('Erreur mise à jour in_transit:', error);
-        throw error;
+        console.error('Erreur edge function in_transit:', error);
+        throw new Error(error.message || 'Erreur serveur');
       }
 
-      await supabase.from('push_notifications').insert({
-        user_id: order.buyer_id,
-        title: '🚗 Livraison en cours',
-        message: `Le vendeur a commencé la livraison de votre commande`,
-        notification_type: 'marketplace_delivery',
-        metadata: { order_id: order.id }
-      });
+      if (!data?.success) {
+        throw new Error(data?.error || 'Échec de la mise à jour');
+      }
 
       toast.success('Livraison démarrée');
       onStatusUpdate?.();
@@ -103,27 +81,22 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
   const handleCompleteSelfDelivery = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('marketplace_orders')
-        .update({
-          status: 'delivered',
-          delivered_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
+      const { data, error } = await supabase.functions.invoke('handle-order-status-change', {
+        body: { 
+          orderId: order.id, 
+          newStatus: 'delivered',
+          metadata: { self_delivery: true }
+        }
+      });
 
       if (error) {
-        console.error('Erreur mise à jour delivered:', error);
-        throw error;
+        console.error('Erreur edge function delivered:', error);
+        throw new Error(error.message || 'Erreur serveur');
       }
 
-      await supabase.from('push_notifications').insert({
-        user_id: order.buyer_id,
-        title: '✅ Colis livré',
-        message: `Le vendeur a marqué votre commande comme livrée. Confirmez la réception.`,
-        notification_type: 'marketplace_delivery',
-        metadata: { order_id: order.id }
-      });
+      if (!data?.success) {
+        throw new Error(data?.error || 'Échec de la mise à jour');
+      }
 
       toast.success('Livraison marquée comme terminée');
       onStatusUpdate?.();
