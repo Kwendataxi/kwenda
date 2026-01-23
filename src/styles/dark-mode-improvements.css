@@ -1,0 +1,342 @@
+/* Dark Mode Contrast Improvements */
+
+/* Utility classes for better contrast */
+.text-readable {
+  @apply text-foreground/85;
+}
+
+.text-readable-muted {
+  @apply text-foreground/70;
+}
+
+.bg-subtle {
+  @apply bg-card/80 backdrop-blur-sm;
+}
+
+.border-visible {
+  @apply border-border/60;
+}
+
+/* Enhanced dropdowns */
+.dropdown-content {
+  @apply bg-card/95 backdrop-blur-md border border-border/60;
+  z-index: 50;
+}
+
+/* Improved skeleton loading */
+.dark .animate-pulse {
+  @apply bg-muted/60;
+}
+
+/* Better table row hover */
+.dark .table-row-hover:hover {
+  @apply bg-muted/30;
+}
+
+/* Enhanced tabs */
+.dark .tabs-list {
+  @apply bg-muted/40;
+}
+
+.dark .tabs-trigger[data-state="active"] {
+  @apply bg-card text-foreground shadow-sm;
+}
+
+/* Toast notifications improvements */
+.dark .toast {
+  @apply bg-card/95 border-border/60 text-foreground;
+}
+
+/* Form improvements */
+.dark .form-label {
+  @apply text-foreground/90;
+}
+
+.dark .placeholder\:text-muted-foreground::placeholder {
+  @apply text-foreground/50;
+}
+
+/* Modern card enhancements */
+.dark .card-modern {
+  @apply bg-card/90 border-border/40;
+}
+
+.dark .card-modern:hover {
+  @apply border-border/60 bg-card/95;
+}
+
+/* Icon visibility improvements */
+.dark .icon-secondary {
+  @apply text-foreground/70;
+}
+
+.dark .icon-muted {
+  @apply text-foreground/50;
+}
+
+/* Badge improvements */
+.dark .badge-secondary {
+  @apply bg-muted/60 text-foreground/85;
+}
+
+/* Select improvements */
+.dark .select-content {
+  @apply bg-card/95 border-border/60;
+}
+
+.dark .select-item[data-highlighted] {
+  @apply bg-muted/40 text-foreground;
+}
+
+/* Additional utility classes for better visibility */
+.text-secondary-visible {
+  @apply text-foreground/80;
+}
+
+.bg-elevated {
+  @apply bg-card/95 backdrop-blur-xl;
+}
+
+.border-elevated {
+  @apply border-border/70;
+}
+
+.dropdown-visible {
+  @apply bg-popover border-border/60 backdrop-blur-xl;
+}
+
+.card-shadow {
+  @apply shadow-lg dark:shadow-2xl;
+}
+
+/* Improved contrast for interactive elements */
+.dark .interactive-hover:hover {
+  @apply bg-muted/50 text-foreground;
+}
+
+.dark .text-emphasis {
+  @apply text-foreground/95;
+}
+
+/* Admin login page improvements */
+.dark .admin-login-bg {
+  @apply bg-gradient-to-br from-background via-card/50 to-background;
+}
+
+.dark .admin-login-icon-bg {
+  @apply bg-primary/20 backdrop-blur-md border border-primary/30;
+}
+
+.dark .admin-login-card {
+  @apply bg-card/95 border-border/60 backdrop-blur-xl;
+}
+
+/* Enhanced text readability for auth pages */
+.dark .auth-description {
+  @apply text-foreground/85;
+}
+
+.dark .auth-title {
+  @apply text-foreground/95;
+}
+
+/* Improved dropdown and popover visibility */
+.dark .dropdown-menu {
+  @apply bg-card/95 border-border/60 backdrop-blur-xl;
+}
+
+.dark .popover-content {
+  @apply bg-card/95 border-border/60 backdrop-blur-xl text-foreground/95;
+}
+
+/* Kwenda Food - Dark Mode Enhancements */
+.food-card-modern {
+  @apply bg-card dark:bg-card/95 border-2 border-border/50 dark:border-border/80;
+  @apply shadow-md dark:shadow-xl dark:shadow-primary/10;
+  @apply hover:border-primary/50 dark:hover:border-primary/70;
+  @apply transition-all duration-300;
+}
+
+.food-text-primary {
+  @apply text-foreground dark:text-foreground/95;
+}
+
+.food-text-secondary {
+  @apply text-muted-foreground dark:text-muted-foreground/90;
+}
+
+.food-price {
+  @apply text-primary dark:text-primary-glow font-bold;
+}
+
+.food-badge {
+  @apply shadow-md backdrop-blur-sm border-2 border-white/50;
+}
+
+.food-section-bg {
+  @apply bg-gradient-to-b from-primary/5 dark:from-primary/10 to-background dark:to-background;
+}
+
+.food-header-sticky {
+  @apply sticky top-0 z-10 bg-background dark:bg-background backdrop-blur-md;
+  @apply border-b border-border/60 dark:border-border/80 shadow-sm dark:shadow-lg;
+}
+
+.food-input {
+  @apply bg-background dark:bg-card;
+  @apply border-border/60 dark:border-border/80;
+  @apply text-foreground dark:text-foreground/95;
+  @apply placeholder:text-muted-foreground/60 dark:placeholder:text-muted-foreground/80;
+}
+
+/* Enhanced skeleton for food components */
+.dark .food-skeleton {
+  @apply bg-muted/80;
+}
+
+.dark .food-skeleton-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+}
+
+/* Category pills improvements */
+.dark .category-pill-active {
+  @apply bg-primary/90 border-2 border-primary-glow;
+}
+
+.dark .category-pill-inactive {
+  @apply bg-muted/80 text-muted-foreground/90 border-2 border-transparent;
+}
+
+/* ========================================
+   Rental Section - Dark Mode Optimized
+   ======================================== */
+
+/* Vehicle Cards */
+.rental-vehicle-card {
+  @apply bg-card border border-border/50;
+  @apply shadow-sm hover:shadow-md;
+  @apply transition-all duration-200;
+}
+
+.dark .rental-vehicle-card {
+  @apply bg-card/95 border-border/40;
+  @apply hover:border-border/60;
+}
+
+/* Price Tags */
+.rental-price-tag {
+  @apply bg-white/95 text-emerald-600;
+  @apply border border-white/20;
+  @apply backdrop-blur-sm rounded-lg;
+}
+
+.dark .rental-price-tag {
+  @apply bg-slate-800/95 text-emerald-400;
+  @apply border-slate-700/50;
+}
+
+/* Stat Cards */
+.rental-stat-card {
+  @apply bg-card border border-border/50;
+  @apply hover:shadow-md transition-shadow duration-200;
+}
+
+.dark .rental-stat-card {
+  @apply bg-card/90 border-border/40;
+}
+
+/* Category Badges */
+.rental-category-badge {
+  @apply bg-white/95 text-foreground;
+  @apply shadow-sm border-0;
+}
+
+.dark .rental-category-badge {
+  @apply bg-slate-800/95 text-slate-200;
+}
+
+/* Driver Badge */
+.rental-driver-badge {
+  @apply bg-emerald-500 text-white shadow-sm;
+}
+
+.dark .rental-driver-badge {
+  @apply bg-emerald-600;
+}
+
+/* Specs Pills */
+.rental-spec-pill {
+  @apply bg-muted/50 px-2 py-1 rounded-md;
+  @apply text-muted-foreground;
+}
+
+.dark .rental-spec-pill {
+  @apply bg-muted/30;
+}
+
+/* Button Styles */
+.rental-btn-primary {
+  @apply bg-emerald-500 hover:bg-emerald-600;
+  @apply text-white border-0;
+}
+
+.dark .rental-btn-primary {
+  @apply bg-emerald-600 hover:bg-emerald-700;
+}
+
+/* Search Input */
+.rental-search-input {
+  @apply border-border/50 bg-background;
+  @apply focus:border-emerald-500 focus:ring-emerald-500/20;
+}
+
+.dark .rental-search-input {
+  @apply border-border/40 bg-card/50;
+  @apply focus:border-emerald-400;
+}
+
+/* Filter Chips */
+.rental-filter-chip {
+  @apply border-border/50 hover:bg-muted/50;
+}
+
+.dark .rental-filter-chip {
+  @apply border-border/40 hover:bg-muted/30;
+}
+
+.rental-filter-chip-active {
+  @apply bg-emerald-500 text-white border-0;
+}
+
+.dark .rental-filter-chip-active {
+  @apply bg-emerald-600;
+}
+
+/* Partner Store Header */
+.rental-store-header {
+  @apply bg-background;
+}
+
+.dark .rental-store-header {
+  @apply bg-background/95;
+}
+
+/* About Section Card */
+.rental-about-card {
+  @apply bg-card border border-border/50;
+}
+
+.dark .rental-about-card {
+  @apply bg-card/90 border-border/40;
+}
+
+/* Contact Info Pills */
+.rental-contact-pill {
+  @apply bg-emerald-500/5 border border-emerald-500/20;
+  @apply hover:bg-emerald-500/10 transition-colors;
+}
+
+.dark .rental-contact-pill {
+  @apply bg-emerald-400/10 border-emerald-400/20;
+  @apply hover:bg-emerald-400/15;
+}

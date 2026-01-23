@@ -1,0 +1,179 @@
+/**
+ * 🚗 Hook pour afficher les chauffeurs en temps réel sur la carte
+ * Subscription Supabase Realtime + calcul de distance
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface LiveDriver {
+  id: string;
+  driver_id: string;
+  latitude: number;
+  longitude: number;
+  heading: number | null;
+  speed: number | null;
+  is_online: boolean;
+  is_available: boolean;
+  last_ping: string;
+  driver_name?: string;
+  vehicle_model?: string;
+  vehicle_plate?: string;
+}
+
+interface UseLiveDriversOptions {
+  userLocation: { lat: number; lng: number } | null;
+  maxRadius?: number; // en km
+  showOnlyAvailable?: boolean;
+  updateInterval?: number; // en ms
+}
+
+export const useLiveDrivers = ({
+  userLocation,
+  maxRadius = 10,
+  showOnlyAvailable = true,
+  updateInterval = 10000
+}: UseLiveDriversOptions) => {
+  const [liveDrivers, setLiveDrivers] = useState<LiveDriver[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Calcul de distance Haversine
+  const calculateDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Charger les chauffeurs disponibles
+  const loadDrivers = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Récupérer les chauffeurs actifs (ping < 5 minutes)
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      
+      let query = supabase
+        .from('driver_locations')
+        .select('*')
+        .eq('is_online', true)
+        .gte('last_ping', fiveMinutesAgo);
+
+      if (showOnlyAvailable) {
+        query = query.eq('is_available', true);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) throw fetchError;
+
+      if (!data) {
+        setLiveDrivers([]);
+        return;
+      }
+
+      // Mapper directement sans JOIN - infos chauffeur optionnelles
+      const driversWithInfo: LiveDriver[] = data.map((location: any) => ({
+        id: location.id,
+        driver_id: location.driver_id,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        heading: location.heading,
+        speed: location.speed,
+        is_online: location.is_online,
+        is_available: location.is_available,
+        last_ping: location.last_ping,
+        driver_name: `Chauffeur ${location.driver_id.substring(0, 8)}`,
+        vehicle_model: location.vehicle_class || 'Standard',
+        vehicle_plate: null
+      }));
+
+      let filteredDrivers = driversWithInfo;
+
+      if (userLocation) {
+        filteredDrivers = driversWithInfo.filter((driver) => {
+          const distance = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            driver.latitude,
+            driver.longitude
+          );
+          return distance <= maxRadius;
+        });
+      }
+
+      setLiveDrivers(filteredDrivers);
+      setError(null);
+    } catch (err) {
+      console.error('❌ Erreur chargement chauffeurs:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
+  }, [userLocation, maxRadius, showOnlyAvailable]);
+
+  // ⚡ PHASE 2: Suppression du polling - uniquement realtime
+  useEffect(() => {
+    loadDrivers();
+    
+    // Pas de polling, uniquement realtime updates
+    // const interval = setInterval(loadDrivers, updateInterval);
+    // return () => clearInterval(interval);
+  }, [loadDrivers]);
+
+  // ⚡ PHASE 2: Subscription temps réel avec debounce
+  useEffect(() => {
+    // Debounce pour éviter trop de rechargements
+    let debounceTimer: NodeJS.Timeout;
+    
+    const debouncedLoadDrivers = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadDrivers();
+      }, 2000); // 2 secondes de debounce
+    };
+
+    const channel = supabase
+      .channel('live-drivers-tracking')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'driver_locations',
+          filter: 'is_online=eq.true'
+        },
+        (payload) => {
+          console.log('🔄 Mise à jour position chauffeur (debounced):', payload);
+          debouncedLoadDrivers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [loadDrivers]);
+
+  return {
+    liveDrivers,
+    loading,
+    error,
+    driversCount: liveDrivers.length,
+    refresh: loadDrivers
+  };
+};

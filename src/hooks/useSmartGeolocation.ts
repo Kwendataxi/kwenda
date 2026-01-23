@@ -1,0 +1,1056 @@
+/**
+ * 🎯 HOOK DE GÉOLOCALISATION INTELLIGENT ET UNIFIÉ
+ * 
+ * Performance, fiabilité et UX optimisés pour l'Afrique
+ * Fallbacks automatiques : GPS → IP → Cache → Base de données → Défaut
+ */
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { universalGeolocation, type CityConfig } from '@/services/universalGeolocation';
+import { nativeGeolocationService, type NativeLocationData } from '@/services/nativeGeolocationService';
+
+// Types unifiés
+export interface LocationData {
+  address: string;
+  lat: number;
+  lng: number;
+  type?: 'gps' | 'ip' | 'database' | 'fallback' | 'recent' | 'popular' | 'current' | 'default' | 'geocoded' | 'google' | 'manual';
+  placeId?: string;
+  accuracy?: number;
+  name?: string;
+  subtitle?: string;
+  confidence?: number;
+}
+
+export interface LocationSearchResult extends LocationData {
+  id: string;
+  title?: string;
+  isPopular?: boolean;
+  distance?: number;
+  relevanceScore?: number;
+}
+
+export interface GeolocationOptions {
+  enableHighAccuracy?: boolean;
+  timeout?: number;
+  maximumAge?: number;
+  fallbackToIP?: boolean;
+  fallbackToDatabase?: boolean;
+  fallbackToDefault?: boolean;
+}
+
+interface SmartGeolocationState {
+  currentLocation: LocationData | null;
+  loading: boolean;
+  error: string | null;
+  searchResults: LocationSearchResult[];
+  searchLoading: boolean;
+  lastUpdate: number | null;
+  source: string | null;
+  currentCity: CityConfig | null;
+  cityDetectionLoading: boolean;
+}
+
+export const useSmartGeolocation = () => {
+  const [state, setState] = useState<SmartGeolocationState>({
+    currentLocation: null,
+    loading: false,
+    error: null,
+    searchResults: [],
+    searchLoading: false,
+    lastUpdate: null,
+    source: null,
+    currentCity: null,
+    cityDetectionLoading: false
+  });
+
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const watchIdRef = useRef<number | null>(null);
+
+  // 🎯 GÉOLOCALISATION UNIVERSELLE PRINCIPALE - GPS HAUTE PRÉCISION
+  const getCurrentPosition = useCallback(async (options: GeolocationOptions = {}): Promise<LocationData> => {
+    const {
+      enableHighAccuracy = true,
+      timeout = 8000, // 🔧 FIX: 8s pour précision optimale
+      maximumAge = 60000, // Cache 60s pour éviter requêtes excessives
+      fallbackToIP = true,
+      fallbackToDatabase = true,
+      fallbackToDefault = true
+    } = options;
+
+    setState(prev => ({ ...prev, loading: true, error: null, cityDetectionLoading: true }));
+
+    try {
+      let detectedCity: CityConfig;
+      
+      // 🔧 PERF FIX: GPS avec 1 seul retry rapide au lieu de 3
+      try {
+        const gpsPosition = await getGPSPositionWithRetry({ 
+          enableHighAccuracy, 
+          timeout, 
+          maximumAge 
+        });
+        
+        if (gpsPosition.accuracy && gpsPosition.accuracy > 500) {
+          throw new Error(`Précision GPS insuffisante: ${Math.round(gpsPosition.accuracy)}m`);
+        }
+        
+        detectedCity = await universalGeolocation.detectUserCity({
+          lat: gpsPosition.lat,
+          lng: gpsPosition.lng
+        });
+        
+        setState(prev => ({
+          ...prev,
+          currentLocation: gpsPosition,
+          loading: false,
+          source: `GPS (${Math.round(gpsPosition.accuracy || 0)}m)`,
+          lastUpdate: Date.now(),
+          currentCity: detectedCity,
+          cityDetectionLoading: false
+        }));
+        setCachedPosition(gpsPosition);
+        
+        return gpsPosition;
+      } catch (gpsError) {
+        console.error('❌ GPS échoué après tous les retries:', gpsError);
+        
+        // Afficher erreur utilisateur claire
+        setState(prev => ({
+          ...prev,
+          error: gpsError instanceof Error ? gpsError.message : 'GPS indisponible'
+        }));
+      }
+
+      // 3. Fallback IP avec détection de ville
+      if (fallbackToIP) {
+        try {
+          const ipPosition = await getIPPosition();
+          
+          // Détecter la ville avec les coordonnées IP
+          detectedCity = await universalGeolocation.detectUserCity({
+            lat: ipPosition.lat,
+            lng: ipPosition.lng
+          });
+          
+          setState(prev => ({
+            ...prev,
+            currentLocation: ipPosition,
+            loading: false,
+            source: 'IP',
+            lastUpdate: Date.now(),
+            currentCity: detectedCity,
+            cityDetectionLoading: false
+          }));
+          setCachedPosition(ipPosition);
+          return ipPosition;
+        } catch (ipError) {
+          console.log('IP geolocation failed:', ipError);
+        }
+      }
+
+      // 4. Détecter la ville même sans position exacte et utiliser cache local
+      detectedCity = await universalGeolocation.detectUserCity();
+      
+      const cachedPosition = getCachedPosition();
+      if (cachedPosition) {
+        setState(prev => ({
+          ...prev,
+          currentLocation: cachedPosition,
+          loading: false,
+          source: 'Cache',
+          lastUpdate: Date.now(),
+          currentCity: detectedCity,
+          cityDetectionLoading: false
+        }));
+        return cachedPosition;
+      }
+
+      // 5. Position de la ville détectée depuis la base de données
+      if (fallbackToDatabase) {
+        try {
+          const dbPosition = await getDatabasePosition();
+          setState(prev => ({
+            ...prev,
+            currentLocation: dbPosition,
+            loading: false,
+            source: 'Database',
+            lastUpdate: Date.now(),
+            currentCity: detectedCity,
+            cityDetectionLoading: false
+          }));
+          return dbPosition;
+        } catch (dbError) {
+          console.log('Database fallback failed:', dbError);
+        }
+      }
+
+      // 6. Position par défaut basée sur la ville détectée (pas toujours Kinshasa)
+      if (fallbackToDefault) {
+        const defaultPosition = {
+          address: detectedCity.name,
+          lat: detectedCity.coordinates.lat,
+          lng: detectedCity.coordinates.lng,
+          type: 'default' as const,
+          name: detectedCity.name
+        };
+        setState(prev => ({
+          ...prev,
+          currentLocation: defaultPosition,
+          loading: false,
+          source: `Default (${detectedCity.name})`,
+          lastUpdate: Date.now(),
+          currentCity: detectedCity,
+          cityDetectionLoading: false
+        }));
+        return defaultPosition;
+      }
+
+      throw new Error('Toutes les méthodes de géolocalisation ont échoué');
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: `Géolocalisation impossible: ${errorMessage}`
+      }));
+      throw error;
+    }
+  }, []);
+
+  // 🔍 RECHERCHE UNIVERSELLE INTELLIGENTE AVEC CACHE
+  const searchLocations = useCallback(async (query: string): Promise<LocationSearchResult[]> => {
+    if (!query.trim()) {
+      const popularPlaces = await getPopularPlacesForCurrentCity();
+      setState(prev => ({ ...prev, searchResults: popularPlaces }));
+      return popularPlaces;
+    }
+
+    setState(prev => ({ ...prev, searchLoading: true }));
+
+    // Debounce pour éviter trop de requêtes
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    return new Promise((resolve) => {
+      searchTimeoutRef.current = setTimeout(async () => {
+        try {
+          // Utiliser le service de géolocalisation amélioré
+          const { enhancedLocationService } = await import('@/services/enhancedLocationService');
+          
+          const currentCity = state.currentCity?.code || 'cd';
+          const userLat = state.currentLocation?.lat;
+          const userLng = state.currentLocation?.lng;
+          
+          const results = await enhancedLocationService.searchLocations(
+            query,
+            currentCity,
+            userLat,
+            userLng
+          );
+
+          setState(prev => ({
+            ...prev,
+            searchResults: results,
+            searchLoading: false
+          }));
+          resolve(results);
+
+        } catch (error) {
+          console.error('Search error:', error);
+          const popularFallback = getPopularPlacesFallback();
+          setState(prev => ({
+            ...prev,
+            searchResults: popularFallback,
+            searchLoading: false
+          }));
+          resolve(popularFallback);
+        }
+      }, 200); // 200ms debounce (optimisé de 300ms)
+    });
+  }, [state.currentCity, state.currentLocation]);
+
+  // 🗺️ LIEUX POPULAIRES UNIVERSELS - VILLE ACTUELLE DÉTECTÉE
+  const getPopularPlacesForCurrentCity = useCallback(async (): Promise<LocationSearchResult[]> => {
+    try {
+      // Forcer détection de la ville AVANT de charger les lieux
+      const detectedCity = await universalGeolocation.detectUserCity();
+      console.log('🗺️ Lieux populaires pour:', detectedCity.name);
+      
+      const results = await universalGeolocation.getPopularPlacesForCurrentCity();
+      console.log('🗺️ Lieux populaires chargés:', results.length, results.map((p: any) => p.name));
+      
+      return results.map((place: any, index: number) => ({
+        id: `pop-${index}`,
+        name: place.name,
+        address: `${place.commune || ''}, ${place.city || detectedCity.name}`.replace(/^,\s*/, '').trim() || place.name,
+        lat: place.latitude || place.lat,
+        lng: place.longitude || place.lng,
+        type: 'popular' as const,
+        title: place.name,
+        subtitle: `${place.commune || ''}, ${place.city || detectedCity.name}`.replace(/^,\s*/, '').trim() || place.name,
+        isPopular: true,
+        relevanceScore: 100 - index * 5
+      }));
+    } catch (error) {
+      console.error('Erreur lieux populaires:', error);
+      return getPopularPlacesFallback();
+    }
+  }, []);
+
+  const getPopularPlacesFallback = useCallback((): LocationSearchResult[] => {
+    // Utiliser la ville détectée dynamiquement au lieu de Kinshasa codé en dur
+    const detectedCity = universalGeolocation.getCurrentCity();
+    console.log('🗺️ Fallback lieux pour ville:', detectedCity.name);
+    
+    // Lieux par ville
+    const placesByCity: Record<string, LocationSearchResult[]> = {
+      'Kinshasa': [
+        {
+          id: 'pop-1',
+          name: 'Aéroport International de N\'djili',
+          address: 'Aéroport N\'djili, Kinshasa, RDC',
+          lat: -4.3857,
+          lng: 15.4444,
+          type: 'popular',
+          title: 'Aéroport N\'djili',
+          subtitle: 'Transport international',
+          isPopular: true,
+          relevanceScore: 100
+        },
+        {
+          id: 'pop-2',
+          name: 'Centre-ville de Kinshasa',
+          address: 'Gombe, Kinshasa, RDC',
+          lat: -4.3217,
+          lng: 15.3069,
+          type: 'popular',
+          title: 'Centre-ville',
+          subtitle: 'Gombe, quartier des affaires',
+          isPopular: true,
+          relevanceScore: 95
+        },
+        {
+          id: 'pop-3',
+          name: 'Université de Kinshasa',
+          address: 'Mont-Amba, Kinshasa, RDC',
+          lat: -4.4324,
+          lng: 15.2973,
+          type: 'popular',
+          title: 'UNIKIN',
+          subtitle: 'Campus universitaire principal',
+          isPopular: true,
+          relevanceScore: 90
+        }
+      ],
+      'Abidjan': [
+        {
+          id: 'pop-1',
+          name: 'Plateau',
+          address: 'Plateau, Abidjan, Côte d\'Ivoire',
+          lat: 5.3197,
+          lng: -4.0267,
+          type: 'popular',
+          title: 'Plateau',
+          subtitle: 'Centre des affaires',
+          isPopular: true,
+          relevanceScore: 100
+        },
+        {
+          id: 'pop-2',
+          name: 'Cocody',
+          address: 'Cocody, Abidjan, Côte d\'Ivoire',
+          lat: 5.3478,
+          lng: -3.9871,
+          type: 'popular',
+          title: 'Cocody',
+          subtitle: 'Quartier résidentiel',
+          isPopular: true,
+          relevanceScore: 95
+        },
+        {
+          id: 'pop-3',
+          name: 'Aéroport Félix Houphouët-Boigny',
+          address: 'Port-Bouët, Abidjan, Côte d\'Ivoire',
+          lat: 5.2539,
+          lng: -3.9263,
+          type: 'popular',
+          title: 'Aéroport',
+          subtitle: 'Transport international',
+          isPopular: true,
+          relevanceScore: 90
+        }
+      ],
+      'Lubumbashi': [
+        {
+          id: 'pop-1',
+          name: 'Centre-ville',
+          address: 'Lubumbashi, RDC',
+          lat: -11.6792,
+          lng: 27.4748,
+          type: 'popular',
+          title: 'Centre-ville',
+          subtitle: 'Quartier des affaires',
+          isPopular: true,
+          relevanceScore: 100
+        }
+      ],
+      'Kolwezi': [
+        {
+          id: 'pop-1',
+          name: 'Centre-ville',
+          address: 'Kolwezi, RDC',
+          lat: -10.7147,
+          lng: 25.4764,
+          type: 'popular',
+          title: 'Centre-ville',
+          subtitle: 'Quartier central',
+          isPopular: true,
+          relevanceScore: 100
+        }
+      ]
+    };
+    
+    return placesByCity[detectedCity.name] || placesByCity['Kinshasa'];
+  }, []);
+
+  // 🧹 NETTOYER LES ERREURS
+  const clearError = useCallback(() => {
+    setState(prev => ({ ...prev, error: null }));
+  }, []);
+
+  // 📏 CALCULER DISTANCE
+  const calculateDistance = useCallback((point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number => {
+    const R = 6371000; // Rayon de la Terre en mètres
+    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+    const dLng = (point2.lng - point1.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }, []);
+
+  // 📏 FORMATER DISTANCE
+  const formatDistance = useCallback((meters: number): string => {
+    if (meters < 1000) {
+      return `${Math.round(meters)}m`;
+    }
+    return `${(meters / 1000).toFixed(1)}km`;
+  }, []);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      if (watchIdRef.current !== null) {
+        navigator.geolocation?.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
+
+  return {
+    // État principal
+    currentLocation: state.currentLocation,
+    loading: state.loading,
+    error: state.error,
+    searchResults: state.searchResults,
+    searchLoading: state.searchLoading,
+    lastUpdate: state.lastUpdate,
+    source: state.source,
+
+    // Actions principales
+    getCurrentPosition,
+    searchLocations: async (query: string, callback?: (results: LocationSearchResult[]) => void) => {
+      if (callback) {
+        // Mode callback pour compatibilité
+        try {
+          const results = await searchLocations(query);
+          callback(results);
+        } catch {
+          callback([]);
+        }
+      } else {
+        // Mode Promise
+        return searchLocations(query);
+      }
+    },
+    getPopularPlaces: getPopularPlacesFallback,
+    clearError,
+    calculateDistance,
+    formatDistance,
+
+    // Aliases de compatibilité pour useGeolocation
+    latitude: state.currentLocation?.lat || -4.3217,
+    longitude: state.currentLocation?.lng || 15.3069,
+    accuracy: state.currentLocation?.accuracy || 0,
+    isRealGPS: state.currentLocation?.type === 'gps',
+    currentPosition: state.currentLocation,
+    
+    // Aliases de méthodes pour compatibilité
+    getCurrentLocation: getCurrentPosition,
+    requestLocation: getCurrentPosition,
+    forceRefreshPosition: () => getCurrentPosition(),
+    
+    // Propriétés d'état supplémentaires
+    lastKnownPosition: state.currentLocation,
+    isLoading: state.loading,
+    position: state.currentLocation,
+    currentCity: state.currentCity,
+    cityDetectionLoading: state.cityDetectionLoading,
+    
+    // Propriété ville sous forme de string pour compatibilité
+    currentCityName: state.currentCity?.name || 'Kinshasa'
+  };
+};
+
+// Cache et gestion des requêtes
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 300000; // 5 minutes
+let abortControllerRef: AbortController | null = null;
+
+// Obtenir la ville actuelle
+const getCurrentCity = () => {
+  // Retourner la ville par défaut pour l'instant
+  return { name: 'Kinshasa', region: 'CD' };
+};
+
+// Fonction pour détecter et valider les adresses Google Maps réelles
+const isValidRealAddress = (address: string): boolean => {
+  if (!address || address.length < 15) return false;
+  
+  // Détecter les Plus Codes (format XXXX+XXX)
+  if (address.match(/[A-Z0-9]{4,}\+[A-Z0-9]{2,}/)) {
+    console.log('❌ Plus Code détecté:', address);
+    return false;
+  }
+  
+  // Détecter les coordonnées brutes
+  if (address.match(/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/)) {
+    console.log('❌ Coordonnées brutes détectées:', address);
+    return false;
+  }
+  
+  // Doit contenir au moins une ville ou un pays
+  const hasLocation = address.includes('Kinshasa') || 
+                      address.includes('Lubumbashi') || 
+                      address.includes('Kolwezi') ||
+                      address.includes('Abidjan') ||
+                      address.includes('Congo') ||
+                      address.includes('Côte d\'Ivoire');
+  
+  if (!hasLocation) {
+    console.log('❌ Pas de ville/pays reconnu:', address);
+    return false;
+  }
+  
+  return true;
+};
+
+// Construire une adresse lisible à partir des composants Google
+const buildReadableAddress = (addressComponents: any[]): string => {
+  const components = {
+    street: '',
+    neighborhood: '',
+    commune: '',
+    city: '',
+    country: ''
+  };
+  
+  addressComponents.forEach((comp: any) => {
+    if (comp.types.includes('route') || comp.types.includes('street_address')) {
+      components.street = comp.long_name;
+    }
+    if (comp.types.includes('neighborhood') || comp.types.includes('sublocality')) {
+      components.neighborhood = comp.long_name;
+    }
+    if (comp.types.includes('administrative_area_level_2') || comp.types.includes('locality')) {
+      components.commune = comp.long_name;
+    }
+    if (comp.types.includes('administrative_area_level_1') || comp.types.includes('locality')) {
+      if (!components.city) components.city = comp.long_name;
+    }
+    if (comp.types.includes('country')) {
+      components.country = comp.long_name;
+    }
+  });
+  
+  // Construire l'adresse avec les parties disponibles
+  const parts = [
+    components.street,
+    components.neighborhood,
+    components.commune || components.city,
+    components.country
+  ].filter(Boolean);
+  
+  return parts.join(', ') || 'Position non identifiée';
+};
+
+  // Géocodage inverse amélioré avec détection de Plus Codes
+const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string): Promise<string> => {
+  try {
+    const cacheKey = `reverse-${lat.toFixed(6)}-${lng.toFixed(6)}-${region || 'default'}`;
+    const cached = cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data as string;
+    }
+
+    console.log('🔍 Géocodage inverse pour:', { lat, lng, region });
+
+    // ✅ PHASE 1A: Timeout strict de 3 secondes max
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 3000);
+
+    try {
+      // Forcer l'utilisation de Google Maps avec language=fr
+      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+        body: { 
+          query: `${lat},${lng}`,
+          region: region || getCurrentCity()?.region || 'CD',
+          language: 'fr'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (error) {
+        console.error('❌ Erreur geocode-proxy:', error);
+        throw error;
+      }
+
+      // Extraire et valider l'adresse Google Maps
+      if (data?.results && data.results.length > 0) {
+        const result = data.results[0];
+        let address = result.formatted_address || '';
+        
+        console.log('📍 Adresse Google reçue:', address);
+        
+        // Vérifier si c'est une vraie adresse (pas un Plus Code)
+        if (!isValidRealAddress(address)) {
+          console.log('⚠️ Adresse invalide, construction manuelle...');
+          
+          // Construire manuellement l'adresse avec address_components
+          if (result.address_components && result.address_components.length > 0) {
+            address = buildReadableAddress(result.address_components);
+            console.log('✅ Adresse construite:', address);
+          }
+        }
+        
+        // Vérifier une dernière fois
+        if (isValidRealAddress(address)) {
+          cache.set(cacheKey, {
+            data: address,
+            timestamp: Date.now()
+          });
+          console.log('✅ Adresse valide retournée:', address);
+          return address;
+        }
+      }
+
+      // Fallback intelligent basé sur la région
+      const city = getCurrentCity();
+      const fallbackAddress = city ? 
+        `Proche de ${city.name}, ${city.region}` : 
+        `Position géographique (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      
+      cache.set(cacheKey, {
+        data: fallbackAddress,
+        timestamp: Date.now()
+      });
+
+      return fallbackAddress;
+    } catch (timeoutError) {
+      clearTimeout(timeoutId);
+      console.log('⏱️ Géocodage timeout 3s, fallback immédiat');
+      throw new Error('Geocoding timeout');
+    }
+  } catch (error: any) {
+    console.error('❌ Erreur géocodage inverse:', error);
+    
+    // Fallback intelligent avec nom de ville si possible
+    const city = getCurrentCity();
+    return city ? 
+      `Proche de ${city.name}, ${city.region}` : 
+      `Position géographique (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+  }
+};
+
+// 🔧 FONCTIONS UTILITAIRES PRIVÉES
+
+// 🎯 GPS HAUTE PRÉCISION - Respecte les options passées
+async function getGPSPositionWithRetry(options: PositionOptions): Promise<LocationData> {
+  const maxAttempts = 2;
+  let lastError: Error | null = null;
+  let bestPosition: LocationData | null = null;
+  let bestAccuracy = Infinity;
+  
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      // ✅ CORRECTION: Utiliser les options passées, ne pas les écraser
+      const attemptConfig = { 
+        enableHighAccuracy: options.enableHighAccuracy !== false, // Respect de l'option
+        timeout: attempt === 0 ? (options.timeout || 8000) : 12000, // 2ème tentative plus longue
+        maximumAge: options.maximumAge !== undefined ? options.maximumAge : 5000 // 5s par défaut, pas 60s
+      };
+      
+      console.log(`📍 GPS tentative ${attempt + 1}/${maxAttempts}:`, attemptConfig);
+      
+      const position = await getGPSPosition(attemptConfig);
+      const accuracy = position.accuracy || 999;
+      
+      // Garder la meilleure position
+      if (accuracy < bestAccuracy) {
+        bestAccuracy = accuracy;
+        bestPosition = position;
+      }
+      
+      // Si précision acceptable, retourner immédiatement
+      if (accuracy <= 100) {
+        console.log(`✅ GPS précision excellente: ${Math.round(accuracy)}m`);
+        return position;
+      }
+      
+      // Si précision moyenne mais acceptable
+      if (accuracy <= 300) {
+        console.log(`⚠️ GPS précision moyenne: ${Math.round(accuracy)}m`);
+        return position;
+      }
+      
+      lastError = new Error(`GPS précision insuffisante: ${Math.round(accuracy)}m`);
+      
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Erreur GPS inconnue');
+      console.warn(`❌ GPS tentative ${attempt + 1} échouée:`, lastError.message);
+    }
+  }
+  
+  // Retourner la meilleure position même si imprécise
+  if (bestPosition) {
+    console.log(`⚠️ GPS: utilisation meilleure position disponible (${Math.round(bestAccuracy)}m)`);
+    return bestPosition;
+  }
+  
+  throw lastError || new Error('GPS indisponible');
+}
+
+/**
+ * 📱 GPS NATIF - Utilise Capacitor sur Android/iOS, fallback sur Browser pour web
+ * ✅ FIX: Résout le problème GPS Android
+ */
+async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
+  const timeout = options.timeout || 30000;
+  
+  try {
+    console.log('📍 Demande GPS via nativeGeolocationService...');
+    
+    // Utiliser le service natif (Capacitor sur mobile, Browser sur web)
+    const nativePosition: NativeLocationData = await nativeGeolocationService.getCurrentPosition({
+      enableHighAccuracy: options.enableHighAccuracy !== false,
+      timeout: timeout,
+      maximumAge: options.maximumAge || 5000
+    });
+    
+    const { lat, lng, accuracy, source } = nativePosition;
+    
+    console.log(`📍 Position GPS ${source} obtenue:`, {
+      lat: lat,
+      lng: lng,
+      accuracy: Math.round(accuracy),
+      source
+    });
+    
+    // Géocodage inverse pour obtenir l'adresse
+    let address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    let retryCount = 0;
+    const maxRetries = 2;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        const geocodePromise = reverseGeocodeEnhanced(lat, lng, getCurrentCity()?.region);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Geocoding timeout')), 8000)
+        );
+        
+        const geocodedAddress = await Promise.race([geocodePromise, timeoutPromise]) as string;
+        
+        if (isValidRealAddress(geocodedAddress)) {
+          address = geocodedAddress;
+          console.log('✅ Adresse lisible obtenue:', address);
+          break;
+        } else {
+          console.log(`⚠️ Adresse invalide (tentative ${retryCount + 1}):`, geocodedAddress);
+          retryCount++;
+          if (retryCount <= maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      } catch (error) {
+        console.log(`❌ Géocodage tentative ${retryCount + 1} échouée:`, error);
+        retryCount++;
+        
+        if (retryCount > maxRetries) {
+          const city = getCurrentCity();
+          address = city ? 
+            `Position proche de ${city.name}, ${city.region}` : 
+            `Position: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+      }
+    }
+    
+    // Calculer la confiance selon la précision
+    let confidence = 0.5;
+    if (accuracy < 20) confidence = 0.98;
+    else if (accuracy < 50) confidence = 0.95;
+    else if (accuracy < 100) confidence = 0.90;
+    else if (accuracy < 200) confidence = 0.80;
+    else confidence = 0.60;
+    
+    return {
+      address,
+      lat,
+      lng,
+      type: 'gps',
+      accuracy,
+      confidence
+    };
+    
+  } catch (error: any) {
+    console.error('❌ Erreur GPS nativeGeolocationService:', error);
+    throw error;
+  }
+}
+
+async function getIPPosition(): Promise<LocationData> {
+  // ✅ OPTIMISATION : Utiliser le cache localStorage au lieu d'appels API multiples
+  const { IPGeolocationCache } = await import('@/services/IPGeolocationCache');
+  
+  try {
+    const cached = await IPGeolocationCache.getOrFetch();
+    return {
+      address: `${cached.city}, ${cached.country}`,
+      lat: cached.latitude,
+      lng: cached.longitude,
+      type: 'ip' as const,
+      accuracy: cached.accuracy,
+      confidence: 0.7
+    };
+  } catch (error) {
+    // Fallback sur ip-api.com seulement si cache échoue
+    const response = await fetch('http://ip-api.com/json/?fields=status,lat,lon,city,country,regionName');
+    const data = await response.json();
+    
+    if (data.status !== 'success') throw new Error('All IP services failed');
+    
+    return {
+      address: `${data.city}, ${data.regionName}, ${data.country}`,
+      lat: data.lat,
+      lng: data.lon,
+      type: 'ip' as const,
+      accuracy: 10000,
+      confidence: 0.7
+    };
+  }
+}
+
+async function getDatabasePosition(): Promise<LocationData> {
+  const currentCity = universalGeolocation.getCurrentCity();
+  
+  const { data, error } = await supabase
+    .rpc('intelligent_places_search', {
+      search_query: '',
+      search_city: currentCity.name,
+      max_results: 1
+    });
+
+  if (error || !data?.[0]) {
+    throw new Error('Database position failed');
+  }
+
+  const place = data[0];
+  return {
+    address: place.name,
+    lat: place.latitude,
+    lng: place.longitude,
+    type: 'database',
+    name: place.name,
+    subtitle: `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim() || place.name,
+    confidence: 0.8
+  };
+}
+
+function getDefaultPosition(): LocationData {
+  const currentCity = universalGeolocation.getCurrentCity();
+  
+  return {
+    address: `${currentCity.name}, ${currentCity.countryCode === 'CD' ? 'RDC' : 'Côte d\'Ivoire'}`,
+    lat: currentCity.coordinates.lat,
+    lng: currentCity.coordinates.lng,
+    type: 'default',
+    name: currentCity.name,
+    subtitle: 'Ville par défaut',
+    confidence: 0.5
+  };
+}
+
+// 🔍 RECHERCHE UNIVERSELLE DANS LA BASE DE DONNÉES
+async function searchInCurrentCityDatabase(query: string): Promise<LocationSearchResult[]> {
+  try {
+    const results = await universalGeolocation.searchInCurrentCity(query, 8);
+    return results.map((place: any) => ({
+      id: place.id,
+      name: place.name,
+      address: place.formatted_address || `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim(),
+      lat: place.latitude,
+      lng: place.longitude,
+      type: 'database' as const,
+      title: place.name,
+      subtitle: place.subtitle || `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim(),
+      relevanceScore: place.relevance_score || 50,
+      distance: place.distance_meters ? Math.round(place.distance_meters / 1000) : undefined
+    }));
+  } catch (error) {
+    console.error('Erreur recherche base de données:', error);
+    return [];
+  }
+}
+
+async function searchInDatabase(query: string): Promise<LocationSearchResult[]> {
+  try {
+    // Utiliser la ville détectée dynamiquement au lieu de Kinshasa codé en dur
+    const currentCity = universalGeolocation.getCurrentCity();
+    const { data, error } = await supabase
+      .rpc('intelligent_places_search', {
+        search_query: query,
+        search_city: currentCity.name,
+        max_results: 6
+      });
+
+    if (error) throw error;
+
+    return data?.map((place: any) => ({
+      id: place.id,
+      address: place.name,
+      lat: place.latitude,
+      lng: place.longitude,
+      type: 'database' as const,
+      title: place.name,
+      subtitle: `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim(),
+      relevanceScore: place.relevance_score,
+      confidence: place.relevance_score / 100
+    })) || [];
+  } catch (error) {
+    console.error('Database search error:', error);
+    return [];
+  }
+}
+
+async function searchViaGoogle(query: string): Promise<LocationSearchResult[]> {
+  try {
+    // Adapter la recherche Google selon la ville détectée DYNAMIQUEMENT
+    const currentCity = universalGeolocation.getCurrentCity();
+    console.log(`🌐 Recherche Google dans: ${currentCity.name} (${currentCity.countryCode})`);
+    
+    const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+      body: { 
+        query: query,
+        city: currentCity.name,
+        region: currentCity.countryCode.toLowerCase()
+      }
+    });
+
+    if (error) throw error;
+
+    return data?.results?.slice(0, 3).map((result: any, index: number) => ({
+      id: `google-${index}`,
+      address: result.formatted_address,
+      lat: result.geometry.location.lat,
+      lng: result.geometry.location.lng,
+      type: 'google' as const,
+      title: result.formatted_address,
+      subtitle: `Via Google Maps • ${currentCity.name}`,
+      relevanceScore: 70 - index * 10, // Score Google modéré
+      confidence: 0.85
+    })) || [];
+  } catch (error) {
+    console.error('Google search error:', error);
+    return [];
+  }
+}
+
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  try {
+    const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+      body: { lat, lng, reverse: true }
+    });
+
+    if (error) throw error;
+    return data?.results?.[0]?.formatted_address || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  } catch (error) {
+    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
+}
+
+function getCachedPosition(): LocationData | null {
+  try {
+    const cached = localStorage.getItem('smart-location-cache');
+    if (cached) {
+      const data = JSON.parse(cached);
+      
+      // STRICT: N'accepter que les positions GPS récentes (< 2 minutes)
+      const age = Date.now() - data.timestamp;
+      const isGPS = data.location?.type === 'gps';
+      const maxAge = isGPS ? 2 * 60 * 1000 : 30 * 1000; // 2min GPS, 30s autres
+      
+      if (age < maxAge) {
+        console.log(`✅ Cache valide (${Math.round(age/1000)}s):`, data.location?.type);
+        return data.location;
+      } else {
+        console.log(`🗑️ Cache expiré (${Math.round(age/1000)}s), suppression`);
+        localStorage.removeItem('smart-location-cache');
+      }
+    }
+  } catch (error) {
+    console.error('Cache read error:', error);
+  }
+  return null;
+}
+
+function setCachedPosition(location: LocationData): void {
+  try {
+    // Ne mettre en cache QUE les positions GPS précises
+    if (location.type === 'gps' && location.accuracy && location.accuracy < 200) {
+      localStorage.setItem('smart-location-cache', JSON.stringify({
+        location,
+        timestamp: Date.now()
+      }));
+      console.log(`💾 Position GPS mise en cache (${Math.round(location.accuracy)}m)`);
+    } else {
+      console.log(`⚠️ Position non cachée (type: ${location.type}, précision: ${location.accuracy}m)`);
+    }
+  } catch (error) {
+    console.error('Cache write error:', error);
+  }
+}
+
+// 🧹 Nettoyer le cache IP invalide au démarrage
+if (typeof window !== 'undefined') {
+  try {
+    const cached = localStorage.getItem('smart-location-cache');
+    if (cached) {
+      const data = JSON.parse(cached);
+      // Supprimer tout cache IP ou positions imprécises
+      if (data.location?.type === 'ip' || (data.location?.accuracy && data.location.accuracy > 500)) {
+        console.log('🗑️ Suppression cache invalide:', data.location?.type);
+        localStorage.removeItem('smart-location-cache');
+      }
+    }
+  } catch (e) {
+    console.error('Cache cleanup error:', e);
+  }
+}

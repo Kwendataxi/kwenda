@@ -1,0 +1,1364 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp, MessageCircle, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChatProvider } from '@/components/chat/ChatProvider';
+
+// Components modernes
+import { ModernMarketplaceHeader } from './ModernMarketplaceHeader';
+import { ModernProductCard } from './ModernProductCard';
+import { OptimizedProductCard } from './OptimizedProductCard';
+// ProductQuickView remplacé par ProductDetailSheet
+import { ModernProductGrid } from './ModernProductGrid';
+import { FloatingCartIndicator } from './FloatingCartIndicator';
+import { useAddToCartFeedback } from './AddToCartFeedback';
+import { CategoryScrollBar } from './CategoryScrollBar';
+import { QuickFiltersBar } from './QuickFiltersBar';
+import { ResponsiveGrid } from '../ui/responsive-grid';
+import { AutoHideMarketplacePromoSlider } from './AutoHideMarketplacePromoSlider';
+import { KwendaShopHeader } from './KwendaShopHeader';
+import { TopProductsSection } from './TopProductsSection';
+import { AiShopperProductCard } from './AiShopperProductCard';
+import { useProductPromotions } from '@/hooks/useProductPromotions';
+import { AllMarketplaceProductsView } from './AllMarketplaceProductsView';
+import { AllVendorsView } from './AllVendorsView';
+import { VendorCard } from './VendorCard';
+
+// Anciens composants (conservés pour compatibilité)
+import { ProductGrid } from './ProductGrid';
+import { UnifiedShoppingCart } from './cart/UnifiedShoppingCart';
+import { ProductDetailSheet } from './ProductDetailSheet';
+import { VendorStoreView } from './VendorStoreView';
+import { ClientEscrowDashboard } from '../escrow/ClientEscrowDashboard';
+import { HorizontalProductScroll } from './HorizontalProductScroll';
+import { WalletBalance } from './WalletBalance';
+import { DeliveryCalculator } from './DeliveryCalculator';
+import { OrderTracker } from './OrderTracker';
+import { AdvancedOrderTracker } from './AdvancedOrderTracker';
+import { AdvancedFilters } from './AdvancedFilters';
+import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
+import { MessagesTab } from './MessagesTab';
+
+// Hooks
+import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useUserVerification } from '@/hooks/useUserVerification';
+import { useWallet } from '@/hooks/useWallet';
+import { useUniversalChat } from '@/hooks/useUniversalChat';
+import { useCart } from '@/context/CartContext';
+import { useProductFavorites } from '@/hooks/useProductFavorites';
+import { useTopVendors } from '@/hooks/useTopVendors';
+
+// Utiliser les types unifiés de marketplace.ts
+import { MarketplaceProduct, CartItem as MarketplaceCartItem, HorizontalProduct, productToCartItem } from '@/types/marketplace';
+
+// Alias pour rétro-compatibilité
+type Product = MarketplaceProduct;
+type CartItem = MarketplaceCartItem;
+
+// Interfaces déplacées vers src/types/marketplace.ts
+
+interface EnhancedMarketplaceInterfaceProps {
+  onNavigate: (path: string) => void;
+}
+
+export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterfaceProps> = ({ onNavigate }) => {
+  return (
+    <ChatProvider>
+      <EnhancedMarketplaceContent onNavigate={onNavigate} />
+    </ChatProvider>
+  );
+};
+
+const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = ({ onNavigate }) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { t, formatCurrency } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const geolocation = useGeolocation();
+  const locationLoading = geolocation.loading;
+  const coordinates = geolocation.latitude && geolocation.longitude ? { lat: geolocation.latitude, lng: geolocation.longitude } : null;
+  const { orders, loading: ordersLoading, refetch: refetchOrders } = useMarketplaceOrders();
+  const { verification } = useUserVerification();
+  const { wallet } = useWallet();
+  const { createOrFindConversation, conversations } = useUniversalChat();
+  
+  // Calcul des messages non lus marketplace
+  const marketplaceUnreadCount = React.useMemo(() => {
+    return conversations
+      .filter(conv => conv.context_type === 'marketplace')
+      .reduce((sum, conv) => sum + (conv.unread_count || 0), 0);
+  }, [conversations]);
+  const { calculateDiscount, getOriginalPrice } = useProductPromotions();
+  const { vendors: topVendors, loading: vendorsLoading } = useTopVendors(10);
+  
+  // State management
+  const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow' | 'messages'>('shop');
+  const [viewMode, setViewMode] = useState<'home' | 'all-products' | 'all-vendors'>('home');
+  const { favorites, toggleFavorite, isFavorite, loading: favoritesLoading } = useProductFavorites(user?.id);
+
+  // Détecter retour depuis l'espace vendeur
+  useEffect(() => {
+    if (location.state?.returnFromVendor) {
+      setCurrentTab('shop');
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // Utiliser le panier global du CartContext
+  const { 
+    cartItems, 
+    addToCart: addToCartGlobal,
+    removeFromCart: removeFromCartGlobal,
+    updateQuantity: updateQuantityGlobal,
+    clearCart: clearCartGlobal 
+  } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
+  const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
+  
+  // Quick View state supprimé - utilisation de selectedProduct/isProductDetailsOpen
+  // Feedback visuel
+  const { showFeedback } = useAddToCartFeedback({ onOpenCart: () => setIsCartOpen(true) });
+  
+  // Delivery fee approval
+  const [pendingFeeOrder, setPendingFeeOrder] = useState<any | null>(null);
+  const [isFeeDialogOpen, setIsFeeDialogOpen] = useState(false);
+  const [deliveryInfo, setDeliveryInfo] = useState<any>(null);
+  
+  // Filters
+  const [filters, setFilters] = useState({
+    searchQuery: '',
+    selectedCategory: 'all',
+    priceRange: [0, 5000000] as [number, number],
+    minRating: 0,
+    conditions: [] as string[],
+    maxDistance: 50,
+    availability: 'all' as 'all' | 'available' | 'unavailable',
+    sortBy: 'popularity',
+    showOnlyFavorites: false,
+  });
+  
+  
+  // ✅ État de connexion
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  // Hooks supprimés - duplication nettoyée
+
+  // Check for pending fee approval orders
+  useEffect(() => {
+    if (orders && orders.length > 0) {
+      const pendingApproval = orders.find(o => o.status === 'pending_buyer_approval' && !o.delivery_fee_approved_by_buyer);
+      if (pendingApproval && pendingApproval.id !== pendingFeeOrder?.id) {
+        setPendingFeeOrder(pendingApproval);
+        setIsFeeDialogOpen(true);
+      }
+    }
+  }, [orders]);
+
+  // ✅ Détection de connexion en ligne/hors ligne
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('✅ [Marketplace] Connexion rétablie');
+      setIsOnline(true);
+      loadProducts(); // Reload automatique quand la connexion revient
+    };
+    
+    const handleOffline = () => {
+      console.warn('❌ [Marketplace] Connexion perdue');
+      setIsOnline(false);
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // ✅ Fonction de chargement stabilisée avec useCallback
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log('🔍 [Marketplace] Chargement des produits...');
+      console.log('🌐 [Marketplace] Online:', navigator.onLine);
+      console.log('👤 [Marketplace] User:', user?.id || 'anonymous');
+      
+      const startTime = performance.now();
+      
+      const { data, error } = await supabase
+        .from('marketplace_products')
+        .select(`
+          *,
+          vendor_profiles(
+            shop_name,
+            shop_logo_url,
+            average_rating,
+            total_sales,
+            follower_count
+          )
+        `)
+        .eq('status', 'active')
+        .eq('moderation_status', 'approved')
+        .order('popularity_score', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+
+      const endTime = performance.now();
+      console.log(`⏱️ [Marketplace] Query took ${(endTime - startTime).toFixed(0)}ms`);
+
+      if (error) {
+        console.error('❌ [Marketplace] Supabase error:', error);
+        throw error;
+      }
+
+      console.log(`✅ [Marketplace] ${data?.length || 0} produits chargés depuis Supabase`);
+      console.log('📦 [Marketplace] Sample product:', data?.[0]);
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ [Marketplace] Aucun produit trouvé dans la base de données');
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      // Normalisation des images
+      const normalizeProductImages = (images: any): string[] => {
+        if (!images) return [];
+        if (Array.isArray(images)) {
+          return images.map(img => typeof img === 'string' ? img : String(img)).filter(Boolean);
+        }
+        if (typeof images === 'string') {
+          try {
+            const parsed = JSON.parse(images);
+            return Array.isArray(parsed) ? parsed : [images];
+          } catch {
+            return [images];
+          }
+        }
+        return [];
+      };
+
+      const transformedProducts = data.map(product => {
+        const specsObj = product.specifications && typeof product.specifications === 'object' 
+          ? product.specifications as Record<string, any>
+          : {};
+        
+        const normalizedImages = normalizeProductImages(product.images);
+        const fallbackImage = 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=800&h=800&fit=crop';
+        
+        const cleanedImages = normalizedImages.map(img => 
+          img.includes('placehold.co') ? fallbackImage : img
+        );
+        
+        return {
+          id: product.id,
+          title: product.title,
+          price: product.price,
+          images: cleanedImages,
+          image: cleanedImages[0] || fallbackImage,
+          category: product.category,
+          condition: product.condition || 'new',
+          description: product.description || '',
+          seller_id: product.seller_id,
+          seller: { 
+            display_name: (product.vendor_profiles as any)?.shop_name || 'Boutique Kwenda'
+          },
+          sellerLogo: (product.vendor_profiles as any)?.shop_logo_url,
+          sellerRating: (product.vendor_profiles as any)?.average_rating || 0,
+          sellerTotalSales: (product.vendor_profiles as any)?.total_sales || 0,
+          sellerFollowers: (product.vendor_profiles as any)?.follower_count || 0,
+          location: product.location || 'Kinshasa',
+          coordinates: product.coordinates && typeof product.coordinates === 'object' 
+            ? product.coordinates as { lat: number; lng: number }
+            : undefined,
+          inStock: (product.stock_count || 0) > 0,
+          stockCount: product.stock_count || 0,
+          rating: product.rating_average || 0,
+          reviews: product.rating_count || 0,
+          brand: product.brand,
+          specifications: specsObj,
+          viewCount: product.view_count || 0,
+          salesCount: product.sales_count || 0,
+          popularityScore: product.popularity_score || 0,
+          moderation_status: product.moderation_status || 'pending',
+          created_at: product.created_at, // ✅ AJOUT pour badge NOUVEAUTÉ
+        };
+      });
+
+      setProducts(transformedProducts);
+      console.log(`✅ [Marketplace] ${transformedProducts.length} produits transformés et prêts`);
+      if (transformedProducts.length > 0) {
+        console.log('📦 [Marketplace] Premier produit transformé:', transformedProducts[0]);
+      }
+    } catch (error) {
+      console.error('💥 [Marketplace] CRITICAL ERROR:', error);
+      setProducts([]);
+      
+      toast({
+        title: "Erreur de chargement",
+        description: "Impossible de charger les produits. Vérifiez votre connexion.",
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, toast]);
+
+  // ✅ Chargement initial avec gestion des erreurs et rechargement forcé
+  useEffect(() => {
+    console.log('🚀 [Marketplace] MONTAGE COMPOSANT');
+    console.log('📊 [Marketplace] État initial:', {
+      productsCount: products.length,
+      loading,
+      isOnline,
+      userConnected: !!user
+    });
+    
+    let mounted = true;
+    
+    const executeLoad = async () => {
+      if (!mounted) return;
+      
+      console.log('📦 [Marketplace] Démarrage chargement initial...');
+      
+      try {
+        await loadProducts();
+        console.log('✅ [Marketplace] Chargement initial terminé');
+      } catch (err) {
+        console.error('💥 [Marketplace] Erreur chargement initial:', err);
+        
+        // Retry après 2s si échec
+        if (mounted) {
+          console.log('🔄 [Marketplace] Retry dans 2s...');
+          setTimeout(() => {
+            if (mounted) loadProducts();
+          }, 2000);
+        }
+      }
+    };
+    
+    executeLoad();
+    
+    // Force reload si toujours vide après 5s
+    const forceTimer = setTimeout(() => {
+      if (mounted && products.length === 0 && !loading) {
+        console.warn('⚠️ [Marketplace] FORCE RELOAD - Toujours vide après 5s');
+        loadProducts();
+      }
+    }, 5000);
+    
+    return () => {
+      console.log('🧹 [Marketplace] DÉMONTAGE COMPOSANT');
+      mounted = false;
+      clearTimeout(forceTimer);
+    };
+  }, [loadProducts]);
+
+  // ✅ Gérer la navigation vers l'onglet Messages via URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    
+    if (tab === 'messages') {
+      console.log('📩 [Marketplace] Navigation vers onglet Messages');
+      setCurrentTab('messages');
+      // Clear URL param
+      window.history.replaceState({}, '', '/marketplace');
+    }
+  }, []);
+
+  // loadProducts moved above before useEffect
+
+  // Calculate distance between two points
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Filter management functions
+  const handleUpdateFilter = <K extends keyof typeof filters>(
+    key: K, 
+    value: typeof filters[K]
+  ) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      searchQuery: '',
+      selectedCategory: 'all',
+      priceRange: [0, 5000000],
+      minRating: 0,
+      conditions: [],
+      maxDistance: 50,
+      availability: 'all',
+      sortBy: 'popularity',
+      showOnlyFavorites: false,
+    });
+  };
+
+  const handleApplyQuickFilter = (preset: string) => {
+    switch (preset) {
+      case 'nearby':
+        handleUpdateFilter('maxDistance', 5);
+        break;
+      case 'cheap':
+        handleUpdateFilter('priceRange', [0, 50000]);
+        handleUpdateFilter('sortBy', 'price_low');
+        break;
+      case 'premium':
+        handleUpdateFilter('minRating', 4.5);
+        handleUpdateFilter('sortBy', 'rating');
+        break;
+      case 'new':
+        handleUpdateFilter('conditions', ['new']);
+        break;
+      case 'deals':
+        handleUpdateFilter('priceRange', [0, 100000]);
+        break;
+    }
+  };
+
+  // Calculate filter stats
+  const hasActiveFilters = 
+    filters.priceRange[0] > 0 ||
+    filters.priceRange[1] < 5000000 ||
+    filters.minRating > 0 ||
+    filters.conditions.length > 0 ||
+    filters.maxDistance < 50 ||
+    filters.availability !== 'all' ||
+    filters.showOnlyFavorites;
+
+  const activeFiltersCount = [
+    filters.priceRange[0] > 0 || filters.priceRange[1] < 5000000,
+    filters.minRating > 0,
+    filters.conditions.length > 0,
+    filters.maxDistance < 50,
+    filters.availability !== 'all',
+    filters.showOnlyFavorites,
+  ].filter(Boolean).length;
+
+  const calculateAveragePrice = (prods: Product[]) => {
+    if (prods.length === 0) return 0;
+    return prods.reduce((sum, p) => sum + p.price, 0) / prods.length;
+  };
+
+  // Filter products
+  console.log('🔍 [Marketplace] Début filtrage:', { productsCount: products.length, filters });
+  
+  const filteredProducts = products.filter(product => {
+    // Category filter
+    const categoryMatch = filters.selectedCategory === 'all' || product.category === filters.selectedCategory;
+    if (!categoryMatch) return false;
+
+    // Search filter (from filters state + legacy searchQuery)
+    const query = filters.searchQuery || searchQuery;
+    if (query && !product.title.toLowerCase().includes(query.toLowerCase())) {
+      return false;
+    }
+
+    // Price filter
+    if (product.price < filters.priceRange[0] || product.price > filters.priceRange[1]) {
+      return false;
+    }
+
+    // Rating filter
+    if (filters.minRating > 0 && product.rating < filters.minRating) {
+      return false;
+    }
+
+    // Condition filter
+    if (filters.conditions.length > 0 && !filters.conditions.includes(product.condition)) {
+      return false;
+    }
+
+    // Availability filter
+    if (filters.availability === 'available' && !product.inStock) {
+      return false;
+    }
+    if (filters.availability === 'unavailable' && product.inStock) {
+      return false;
+    }
+
+    // Distance filter avec validation
+    if (filters.maxDistance < 50 && coordinates) {
+      try {
+        if (product.coordinates && 
+            typeof product.coordinates.lat === 'number' && 
+            typeof product.coordinates.lng === 'number') {
+          const distance = calculateDistance(
+            coordinates.lat, coordinates.lng,
+            product.coordinates.lat, product.coordinates.lng
+          );
+          if (distance > filters.maxDistance) {
+            return false;
+          }
+        }
+      } catch (error) {
+        console.warn('[EnhancedMarketplace] Distance calculation error:', error);
+        // Ne pas exclure le produit si erreur de calcul
+      }
+    }
+
+    // Favorites filter
+    if (filters.showOnlyFavorites && !isFavorite(product.id)) {
+      return false;
+    }
+
+    return true;
+  }).sort((a, b) => {
+    // Apply sorting
+    switch (filters.sortBy) {
+      case 'price_low':
+        return a.price - b.price;
+      case 'price_high':
+        return b.price - a.price;
+      case 'rating':
+        return b.rating - a.rating;
+      case 'distance':
+        if (coordinates && a.coordinates && b.coordinates) {
+          const distA = calculateDistance(coordinates.lat, coordinates.lng, a.coordinates.lat, a.coordinates.lng);
+          const distB = calculateDistance(coordinates.lat, coordinates.lng, b.coordinates.lat, b.coordinates.lng);
+          return distA - distB;
+        }
+        return 0;
+      case 'newest':
+        return b.id.localeCompare(a.id);
+      case 'popularity':
+      default:
+        return (b.rating * b.reviews) - (a.rating * a.reviews);
+    }
+  });
+
+  console.log('✅ [Marketplace] Produits filtrés:', filteredProducts.length);
+  if (filteredProducts.length > 0) {
+    console.log('📦 [Marketplace] Premier produit filtré:', filteredProducts[0]);
+  }
+
+  // Wrapper pour addToCart - feedback sur bouton uniquement (style Kwenda Food)
+  const addToCart = (product: Product, quantity: number = 1) => {
+    console.log('🛒 [Marketplace] Ajout au panier:', product.title);
+    addToCartGlobal(product);
+
+    // Vibration douce
+    if (navigator.vibrate) {
+      navigator.vibrate(30);
+    }
+
+    // Animation bounce sur le badge panier uniquement
+    const cartIcon = document.querySelector('[data-cart-button]');
+    if (cartIcon) {
+      cartIcon.classList.add('animate-bounce');
+      setTimeout(() => cartIcon.classList.remove('animate-bounce'), 400);
+    }
+    
+    // PAS DE TOAST - le feedback est sur le bouton AnimatedAddToCartButton
+  };
+
+  // Connecter les fonctions au CartContext
+  const updateCartQuantity = (productId: string, quantity: number) => {
+    console.log('[EnhancedMarketplace] Updating quantity:', productId, quantity);
+    updateQuantityGlobal(productId, quantity);
+  };
+
+  const removeFromCart = (productId: string) => {
+    console.log('[EnhancedMarketplace] Removing item:', productId);
+    removeFromCartGlobal(productId);
+  };
+
+  const handleCheckout = async () => {
+    // Le panier est géré par CartContext maintenant
+    // Il sera vidé automatiquement après checkout
+    
+    // Rafraîchir les commandes
+    refetchOrders();
+    
+    // Toast de confirmation
+    toast({
+      title: "✅ Commande validée",
+      description: "Vos commandes ont été créées avec succès",
+    });
+  };
+
+  // Product filtering and grouping
+  const featuredProducts = filteredProducts.slice(0, 8);
+  const popularProducts = filteredProducts.filter(p => p.rating >= 4.5).slice(0, 6);
+  const nearbyProducts = filteredProducts.filter(p => p.coordinates).slice(0, 6);
+
+  // Calcul des sous-ensembles de produits
+  const trendingProducts = filteredProducts
+    .filter(p => p.popularityScore && p.popularityScore > 200)
+    .slice(0, 10);
+  
+  const newProducts = filteredProducts
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    .slice(0, 10);
+  
+  const nearbyCalculated = coordinates
+    ? filteredProducts
+        .filter(p => p.coordinates)
+        .sort((a, b) => {
+          const distA = calculateDistance(coordinates.lat, coordinates.lng, a.coordinates!.lat, a.coordinates!.lng);
+          const distB = calculateDistance(coordinates.lat, coordinates.lng, b.coordinates!.lat, b.coordinates!.lng);
+          return distA - distB;
+        })
+        .slice(0, 10)
+    : [];
+
+  // ✅ Les top vendeurs sont maintenant chargés via useTopVendors avec les vraies données de la DB
+
+  // Gestion des favoris avec persistance
+  const handleToggleFavorite = async (productId: string) => {
+    await toggleFavorite(productId);
+  };
+
+  const convertToHorizontalProduct = (product: Product): HorizontalProduct => ({
+    id: product.id,
+    name: product.title,
+    price: product.price,
+    image: product.image,
+    rating: product.rating || 0,
+    reviewCount: product.reviews || 0,
+    category: product.category,
+    seller: product.seller?.display_name || 'Vendeur',
+    sellerId: product.seller_id,
+    isAvailable: product.inStock,
+    location: product.coordinates,
+  });
+
+  const calculatePopularityScore = (product: Product) => {
+    const views = product.viewCount || 0;
+    const sales = product.salesCount || 0;
+    const rating = product.rating || 0;
+    return (views * 0.3) + (sales * 0.5) + (rating * 20);
+  };
+
+  // Helper unifié pour ajouter au panier depuis n'importe quel format
+  const handleAddToCartUnified = (item: Product | HorizontalProduct | any) => {
+    // Si c'est déjà un Product (MarketplaceProduct)
+    if ('title' in item && 'inStock' in item) {
+      addToCart(item as Product);
+      return;
+    }
+    
+    // Si c'est un HorizontalProduct, retrouver l'original
+    const originalProduct = filteredProducts.find(p => p.id === item.id);
+    if (originalProduct) {
+      addToCart(originalProduct);
+      return;
+    }
+    
+    // Fallback : construire un Product minimal
+    addToCart({
+      id: item.id,
+      title: item.name || item.title,
+      price: item.price,
+      image: item.image,
+      images: [item.image],
+      category: item.category || 'general',
+      condition: 'new',
+      seller_id: item.sellerId || item.seller_id,
+      seller: { display_name: item.seller || 'Vendeur' },
+      location: 'Kinshasa',
+      inStock: item.isAvailable ?? item.inStock ?? true,
+      stockCount: 1,
+      rating: item.rating || 0,
+      reviews: item.reviewCount || 0,
+      moderation_status: 'approved',
+      description: ''
+    } as Product);
+  };
+
+  const handlePromoClick = (action: string) => {
+    switch (action) {
+      case 'electronics':
+        // Filtrer catégorie électronique
+        setFilters(prev => ({ ...prev, selectedCategory: 'electronics' }));
+        // Scroll vers les produits
+        setTimeout(() => {
+          document.querySelector('[data-section="all-products"]')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+        toast({
+          title: "🎉 Promo électronique activée",
+          description: "Code TECH30 : -30% sur tous les produits électroniques",
+        });
+        break;
+        
+      case 'free_delivery':
+        // Afficher un message expliquant la livraison gratuite
+        toast({
+          title: "🚀 Livraison gratuite",
+          description: "Pour toute commande supérieure à 50 000 CDF, profitez de la livraison gratuite !",
+          duration: 5000,
+        });
+        // Filtrer produits >50k
+        setFilters(prev => ({ ...prev, priceRange: [50000, 2000000] }));
+        setTimeout(() => {
+          document.querySelector('[data-section="all-products"]')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+        break;
+        
+      case 'new_vendors':
+        // Trier par date de création (nouveaux produits)
+        setFilters(prev => ({ ...prev, sortBy: 'newest' }));
+        setTimeout(() => {
+          document.querySelector('[data-section="all-products"]')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+        toast({
+          title: "💎 Nouveaux vendeurs",
+          description: "Découvrez les derniers produits de nos nouveaux partenaires",
+        });
+        break;
+        
+      case 'become_vendor':
+        // Rediriger vers l'espace vendeur
+        onNavigate('/app/vendeur-request');
+        break;
+        
+      default:
+        console.log('Action non gérée:', action);
+    }
+  };
+
+  const renderShopTab = () => {
+    if (viewMode === 'all-products') {
+      return (
+        <AllMarketplaceProductsView
+          onBack={() => setViewMode('home')}
+          onAddToCart={(product) => addToCart(product, 1)}
+          onViewDetails={(product) => navigate(`/marketplace/product/${product.id}`)}
+          onVisitShop={(id) => navigate(`/marketplace/shop/${id}`)}
+        />
+      );
+    }
+
+    if (viewMode === 'all-vendors') {
+      return (
+        <AllVendorsView
+          onBack={() => setViewMode('home')}
+          onSelectVendor={(id) => navigate(`/marketplace/shop/${id}`)}
+        />
+      );
+    }
+
+    return (
+    <div className="space-y-8">
+      {/* SLIDER PUBLICITAIRE - Auto-hide après 6s */}
+      <section className="px-4 pt-2">
+        <AutoHideMarketplacePromoSlider 
+          onPromoClick={handlePromoClick}
+          autoplayDelay={5000}
+        />
+      </section>
+
+      {/* LOADING INDICATOR - Visible pendant le chargement */}
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-16">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full mb-4"
+          />
+          <p className="text-muted-foreground font-medium">Chargement des produits...</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Si ça prend trop de temps, actualisez la page
+          </p>
+        </div>
+      )}
+
+      {/* EMPTY STATE - Aucun produit disponible */}
+      {!loading && filteredProducts.length === 0 && (
+        <motion.div 
+          className="text-center py-16 px-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="max-w-md mx-auto">
+            <div className="mb-6 relative">
+              <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center">
+                <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold mb-3">Aucun produit disponible</h3>
+            <p className="text-muted-foreground mb-6">
+              La marketplace est en cours de préparation. 
+              Revenez bientôt pour découvrir nos produits !
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={() => {
+                  console.log('🔄 [Marketplace] Rechargement manuel déclenché');
+                  handleResetFilters();
+                  setLoading(true);
+                  loadProducts();
+                }}
+                variant="default"
+              >
+                Actualiser
+              </Button>
+              <Button 
+                onClick={() => {
+                  console.log('🔄 [Marketplace] HARD RELOAD');
+                  window.location.reload();
+                }}
+                variant="outline"
+              >
+                Recharger la page
+              </Button>
+              <Button 
+                onClick={() => onNavigate('/vendeur/inscription')}
+                variant="outline"
+              >
+                Devenir vendeur
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* DEBUG: Fallback si filtres trop restrictifs */}
+      {!loading && products.length > 0 && filteredProducts.length === 0 && (
+        <motion.div 
+          className="text-center py-12 px-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg mx-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <h3 className="text-xl font-bold mb-2">🔍 Aucun produit ne correspond aux filtres</h3>
+          <p className="text-muted-foreground mb-4">
+            {products.length} produits chargés, mais aucun ne correspond à vos critères.
+          </p>
+          <Button onClick={handleResetFilters} variant="default">
+            Réinitialiser les filtres
+          </Button>
+        </motion.div>
+      )}
+
+      {/* PRODUITS POPULAIRES - Grille 2 colonnes style AiShopper */}
+      {!loading && filteredProducts.length > 0 && (
+        <section className="px-4 py-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Produits populaires</h2>
+            <Button variant="ghost" size="sm" onClick={() => setViewMode('all-products')} className="text-blue-600">
+              Voir tout
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {filteredProducts.slice(0, 12).map(product => {
+              // ✅ VALIDATION des données obligatoires
+              if (!product.id || !product.title || !product.image || !product.seller?.display_name) {
+                console.error('❌ [Marketplace] Produit invalide ignoré:', product);
+                return null;
+              }
+              
+              const discount = calculateDiscount(product);
+              const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+              
+              return (
+                <AiShopperProductCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    title: product.title,
+                    price: product.price,
+                    originalPrice,
+                    discount,
+                    image: product.image,
+                    seller: product.seller,
+                    seller_id: product.seller_id,
+                    inStock: product.inStock,
+                    stockCount: product.stockCount,
+                    rating: product.rating,
+                    reviews: product.reviews,
+                    created_at: product.created_at // ✅ AJOUT pour badge NOUVEAUTÉ
+                  }}
+                  cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
+                  onAddToCart={() => addToCart(product, 1)}
+                  onQuickView={() => {
+                    setSelectedProduct(product);
+                    setIsProductDetailsOpen(true);
+                  }}
+                  onToggleFavorite={() => handleToggleFavorite(product.id)}
+                  onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
+                  isFavorite={isFavorite(product.id)}
+                />
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* BOUTIQUES POPULAIRES - Section avec slider horizontal */}
+      {!vendorsLoading && topVendors.length > 0 && (
+        <section className="px-4 py-6 space-y-4 bg-gradient-to-br from-muted/20 via-muted/10 to-transparent">
+          <div className="flex items-center justify-between">
+            <motion.h2 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-2xl font-bold flex items-center gap-2"
+            >
+              <Store className="h-6 w-6 text-primary drop-shadow-glow" />
+              Boutiques populaires
+            </motion.h2>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setViewMode('all-vendors')}
+              className="text-primary hover:text-primary/80 font-semibold"
+            >
+              Voir tout
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          
+          {/* Slider horizontal de vendeurs avec vraies données */}
+          <div className="overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4">
+            <motion.div 
+              className="flex gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {topVendors.slice(0, 8).map((vendor, idx) => (
+                <div key={vendor.user_id} className="w-[280px] flex-shrink-0">
+                  <VendorCard
+                    vendor={vendor}
+                    onVisit={(id) => navigate(`/marketplace/shop/${id}`)}
+                    badge={idx === 0 ? 'top' : idx < 3 ? 'similar' : undefined}
+                    index={idx}
+                  />
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* TABS : TOUS / NOUVEAUTÉS / PROCHE */}
+      {!loading && filteredProducts.length > 0 && (
+        <section className="px-4">
+          <Tabs defaultValue="tous" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="tous" className="text-sm">
+                🏪 Tous
+              </TabsTrigger>
+              <TabsTrigger value="nouveautes" className="text-sm">
+                ✨ Nouveautés
+              </TabsTrigger>
+              <TabsTrigger value="proche" className="text-sm">
+                📍 Proche
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Onglet TOUS */}
+            <TabsContent value="tous" className="space-y-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-bold">Tous les produits</h3>
+                <select 
+                  value={filters.sortBy} 
+                  onChange={(e) => setFilters(prev => ({...prev, sortBy: e.target.value}))}
+                  className="h-8 text-xs border rounded-md px-2 bg-background"
+                >
+                  <option value="popularity">Popularité</option>
+                  <option value="price_low">Prix croissant</option>
+                  <option value="price_high">Prix décroissant</option>
+                  <option value="rating">Meilleures notes</option>
+                  <option value="newest">Plus récents</option>
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {filteredProducts.slice(0, 12).map(product => {
+                  const discount = calculateDiscount(product);
+                  const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+                  
+                  return (
+                    <AiShopperProductCard
+                      key={product.id}
+                      product={{
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        originalPrice,
+                        discount,
+                        image: product.image,
+                        seller: product.seller,
+                        seller_id: product.seller_id,
+                        inStock: product.inStock,
+                        stockCount: product.stockCount,
+                        rating: product.rating,
+                        reviews: product.reviews,
+                        created_at: product.created_at
+                      }}
+                      cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
+                      onAddToCart={() => addToCart(product, 1)}
+                      onQuickView={() => {
+                        setSelectedProduct(product);
+                        setIsProductDetailsOpen(true);
+                      }}
+                      onToggleFavorite={() => handleToggleFavorite(product.id)}
+                      onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
+                      isFavorite={isFavorite(product.id)}
+                    />
+                  );
+                })}
+              </div>
+            </TabsContent>
+
+            {/* Onglet NOUVEAUTÉS */}
+            <TabsContent value="nouveautes" className="space-y-4">
+              <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+                <Sparkles className="h-5 w-5 text-purple-500" />
+                Dernières nouveautés
+              </h3>
+
+              {/* DEBUG BUTTONS - Visible uniquement si vide depuis plus de 3s */}
+              {!loading && products.length === 0 && (
+                <div className="fixed bottom-20 right-4 z-50 flex flex-col gap-2">
+                  <Button
+                    onClick={() => {
+                      console.log('🔧 [DEBUG] Force reload manuel');
+                      setLoading(true);
+                      loadProducts();
+                    }}
+                    variant="destructive"
+                    size="sm"
+                    className="shadow-2xl animate-pulse"
+                  >
+                    🔧 Debug: Recharger
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      console.log('🔧 [DEBUG] Diagnostic complet');
+                      console.log({
+                        productsCount: products.length,
+                        loading,
+                        isOnline,
+                        user: user?.id,
+                        filters,
+                        cartItems: cartItems.length
+                      });
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="shadow-2xl"
+                  >
+                    📊 Logs
+                  </Button>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-3">
+                {newProducts.slice(0, 12).map(product => {
+                  const discount = calculateDiscount(product);
+                  const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+                  
+                  return (
+                    <AiShopperProductCard
+                      key={product.id}
+                      product={{
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        originalPrice,
+                        discount,
+                        image: product.image,
+                        seller: product.seller,
+                        seller_id: product.seller_id,
+                        inStock: product.inStock,
+                        stockCount: product.stockCount,
+                        rating: product.rating,
+                        reviews: product.reviews,
+                        created_at: product.created_at
+                      }}
+                      cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
+                      onAddToCart={() => addToCart(product, 1)}
+                      onQuickView={() => {
+                        setSelectedProduct(product);
+                        setIsProductDetailsOpen(true);
+                      }}
+                      onToggleFavorite={() => handleToggleFavorite(product.id)}
+                      onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
+                      isFavorite={isFavorite(product.id)}
+                    />
+                  );
+                })}
+              </div>
+            </TabsContent>
+
+            {/* Onglet PROCHE */}
+            <TabsContent value="proche" className="space-y-4">
+              {nearbyCalculated.length > 0 ? (
+                <>
+                  <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
+                    <MapPin className="h-5 w-5 text-green-500" />
+                    Près de chez vous
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    {nearbyCalculated.slice(0, 12).map(product => {
+                      const discount = calculateDiscount(product);
+                      const originalPrice = discount > 0 ? getOriginalPrice(product.price, discount) : undefined;
+                      
+                      return (
+                        <AiShopperProductCard
+                          key={product.id}
+                          product={{
+                            id: product.id,
+                            title: product.title,
+                            price: product.price,
+                            originalPrice,
+                            discount,
+                            image: product.image,
+                            seller: product.seller,
+                            seller_id: product.seller_id,
+                            inStock: product.inStock,
+                            stockCount: product.stockCount,
+                            rating: product.rating,
+                            reviews: product.reviews,
+                            created_at: product.created_at
+                          }}
+                          cartQuantity={cartItems.find(item => item.id === product.id)?.quantity || 0}
+                          onAddToCart={() => addToCart(product, 1)}
+                          onQuickView={() => {
+                            setSelectedProduct(product);
+                            setIsProductDetailsOpen(true);
+                          }}
+                          onToggleFavorite={() => handleToggleFavorite(product.id)}
+                          onVisitShop={(vendorId) => navigate(`/marketplace/shop/${vendorId}`)}
+                          isFavorite={isFavorite(product.id)}
+                        />
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    Aucun produit proche trouvé
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </section>
+      )}
+    </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-background mobile-safe-layout">
+      {/* Kwenda Shop Header moderne */}
+      <KwendaShopHeader
+        cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+        onBack={() => onNavigate('/client')}
+        onCartClick={() => setIsCartOpen(true)}
+      />
+      
+      {/* ✅ Bandeau d'alerte hors ligne */}
+      {!isOnline && (
+        <div className="sticky top-0 z-50 bg-destructive text-destructive-foreground px-4 py-2 text-center text-sm font-medium">
+          ⚠️ Vous êtes hors ligne. Vérifiez votre connexion internet.
+        </div>
+      )}
+      
+      {/* Data attribute pour animations de feedback */}
+      <div data-cart-button style={{ display: 'none' }} />
+
+      {/* Content */}
+      <div className="p-4 content-scrollable">
+        <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as any)}>
+          <TabsList className="grid w-full grid-cols-4 bg-muted/50 backdrop-blur-sm">
+            <TabsTrigger value="shop" className="flex items-center gap-1 touch-manipulation">
+              <ShoppingBag className="w-4 h-4" />
+              <span className="hidden sm:inline">Boutique</span>
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="flex items-center gap-1 touch-manipulation">
+              <CartIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Commandes</span>
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="flex items-center gap-1 touch-manipulation relative">
+              <MessageCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Messages</span>
+              {marketplaceUnreadCount > 0 && (
+                <Badge className="ml-1 h-5 min-w-[20px] px-1.5 bg-destructive text-destructive-foreground text-[10px] rounded-full animate-pulse">
+                  {marketplaceUnreadCount > 9 ? '9+' : marketplaceUnreadCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="escrow" className="flex items-center gap-1 touch-manipulation">
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">Escrow</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="shop" className="mt-4">
+            {renderShopTab()}
+          </TabsContent>
+
+          <TabsContent value="orders" className="mt-4">
+            <AdvancedOrderTracker />
+          </TabsContent>
+
+          <TabsContent value="messages" className="mt-4">
+            <MessagesTab />
+          </TabsContent>
+
+          <TabsContent value="escrow" className="mt-4">
+            <ClientEscrowDashboard />
+          </TabsContent>
+
+        </Tabs>
+      </div>
+
+
+      {/* Unified Shopping Cart (Sprint 1) */}
+      <UnifiedShoppingCart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={updateCartQuantity}
+        onRemoveItem={removeFromCart}
+        userCoordinates={coordinates}
+      />
+
+      {/* ProductQuickView supprimé - remplacé par ProductDetailSheet ci-dessous */}
+
+      {/* Product Details Sheet - Style Kwenda Food harmonisé */}
+      {selectedProduct && (
+        <ProductDetailSheet
+          open={isProductDetailsOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setIsProductDetailsOpen(false);
+              setSelectedProduct(null);
+            }
+          }}
+          product={{
+            id: selectedProduct.id,
+            name: selectedProduct.title,
+            price: selectedProduct.price,
+            image: selectedProduct.image,
+            images: selectedProduct.images,
+            description: selectedProduct.description,
+            rating: selectedProduct.rating,
+            reviewCount: selectedProduct.reviews,
+            seller: selectedProduct.seller.display_name,
+            sellerId: selectedProduct.seller_id,
+            isAvailable: selectedProduct.inStock,
+            stockCount: selectedProduct.stockCount,
+            condition: selectedProduct.condition,
+            location: selectedProduct.location,
+          }}
+          onAddToCart={(qty, notes) => {
+            if (selectedProduct) {
+              for (let i = 0; i < qty; i++) {
+                addToCart(selectedProduct);
+              }
+            }
+          }}
+          onSellerClick={() => {
+            setIsProductDetailsOpen(false);
+            setSelectedProduct(null);
+            setSelectedVendorId(selectedProduct.seller_id);
+          }}
+        />
+      )}
+
+      {/* Vendor Store View */}
+      {selectedVendorId && (
+        <VendorStoreView
+          vendorId={selectedVendorId}
+          onClose={() => setSelectedVendorId(null)}
+          onAddToCart={(product) => {
+            // Find the original product and add to cart
+            const originalProduct = products.find(p => p.id === product.id);
+            if (originalProduct) addToCart(originalProduct);
+          }}
+          onViewDetails={(product) => {
+            const originalProduct = products.find(p => p.id === product.id);
+            if (originalProduct) {
+              setSelectedProduct(originalProduct);
+              setIsProductDetailsOpen(true);
+              setSelectedVendorId(null);
+            }
+          }}
+          userLocation={coordinates}
+        />
+      )}
+
+      {/* Delivery Fee Approval Dialog */}
+      {pendingFeeOrder && (
+        <DeliveryFeeApprovalDialog
+          order={pendingFeeOrder}
+          open={isFeeDialogOpen}
+          onOpenChange={setIsFeeDialogOpen}
+          onApproved={() => {
+            setIsFeeDialogOpen(false);
+            setPendingFeeOrder(null);
+            refetchOrders();
+            toast({ title: "✅ Paiement confirmé", description: "Votre commande sera bientôt livrée" });
+          }}
+          onOpenChat={async () => {
+            const conversation = await createOrFindConversation(
+              'marketplace',
+              pendingFeeOrder.seller_id,
+              pendingFeeOrder.product_id,
+              `Chat - Commande #${pendingFeeOrder.id.slice(0, 8)}`
+            );
+            if (conversation) {
+              setIsFeeDialogOpen(false);
+              toast({ title: "Chat ouvert", description: "Discutez avec le vendeur" });
+            }
+          }}
+        />
+      )}
+
+      {/* Advanced Filters Panel */}
+      <AdvancedFilters
+        isOpen={isFiltersOpen}
+        onClose={() => setIsFiltersOpen(false)}
+        filters={filters}
+        onUpdateFilter={handleUpdateFilter}
+        onResetFilters={handleResetFilters}
+        onApplyQuickFilter={handleApplyQuickFilter}
+        hasActiveFilters={hasActiveFilters}
+        filterStats={{
+          totalProducts: products.length,
+          filteredCount: filteredProducts.length,
+          averagePrice: calculateAveragePrice(filteredProducts),
+        }}
+      />
+
+    </div>
+  );
+};
+
+export default EnhancedMarketplaceInterface;

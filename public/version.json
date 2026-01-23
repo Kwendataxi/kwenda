@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "buildDate": "2025-11-08T22:00:00Z",
+  "forceUpdate": false,
+  "minVersion": "2.0.0",
+  "features": [
+    "Système de mise à jour stable",
+    "Protection anti-boucle infinie",
+    "Détection intelligente de version",
+    "Pause automatique pendant l'authentification"
+  ]
+}

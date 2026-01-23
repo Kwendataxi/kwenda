@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kwenda</string>
+    <string name="title_activity_main">Kwenda</string>
+    <string name="package_name">cd.kwenda.app</string>
+    <string name="custom_url_scheme">cd.kwenda.app</string>
+</resources>

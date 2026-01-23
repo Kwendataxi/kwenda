@@ -1,0 +1,219 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
+import { VEHICLE_CLASS_TO_SERVICE_TYPE } from '@/utils/pricingMapper';
+
+export interface AvailableTaxiService {
+  id: string;
+  service_type: 'transport';
+  vehicle_class: string;
+  base_price: number;
+  price_per_km: number;
+  price_per_minute: number;
+  minimum_fare: number;
+  surge_multiplier: number;
+  waiting_fee_per_minute: number;
+  free_waiting_time_minutes: number;
+  max_waiting_time_minutes: number;
+  currency: string;
+  city: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // Données enrichies de service_configurations
+  display_name: string;
+  description?: string;
+}
+
+/**
+ * Multiplicateur de prix par ville (ajustement automatique)
+ */
+const getCityMultiplier = (city: string): number => {
+  switch(city) {
+    case 'Lubumbashi': return 1.2; // +20%
+    case 'Kolwezi': return 1.1; // +10%
+    case 'Abidjan': return 1.0; // XOF a un taux différent mais même base
+    default: return 1.0;
+  }
+};
+
+/**
+ * Hook unifié pour récupérer les services taxi disponibles
+ * Combine pricing_rules.is_active ET service_configurations.is_active
+ * 
+ * Un service est visible UNIQUEMENT si les deux conditions sont remplies :
+ * 1. pricing_rules.is_active = true
+ * 2. service_configurations.is_active = true (via mapping vehicle_class -> service_type)
+ * 
+ * FALLBACK : Si aucune règle n'existe pour une ville, utilise Kinshasa avec multiplicateur
+ */
+export const useAvailableTaxiServices = (city: string = 'Kinshasa') => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery<AvailableTaxiService[]>({
+    queryKey: ['available-taxi-services', city],
+    queryFn: async () => {
+      const timestamp = Date.now();
+      console.log(`[${timestamp}] 🚕 Fetching available taxi services for city:`, {
+        cityReceived: city,
+        cityType: typeof city,
+        cityValue: city || 'UNDEFINED'
+      });
+
+      // 1. Récupérer les pricing_rules actifs pour cette ville
+      console.log(`[${timestamp}] 📊 Executing SQL query:`, {
+        table: 'pricing_rules',
+        filter: `.ilike('city', '${city}')`,
+        service_type: 'transport',
+        is_active: true
+      });
+
+      let { data: pricingRules, error: pricingError } = await supabase
+        .from('pricing_rules')
+        .select('*')
+        .ilike('city', city) // ✅ Case-insensitive pour robustesse
+        .eq('service_type', 'transport')
+        .eq('is_active', true);
+
+      if (pricingError) {
+        console.error(`[${timestamp}] ❌ Error fetching pricing_rules:`, pricingError);
+        throw pricingError;
+      }
+
+      console.log(`[${timestamp}] 📊 Pricing rules fetched:`, {
+        count: pricingRules?.length || 0,
+        city: city,
+        vehicleClasses: pricingRules?.map(r => r.vehicle_class) || []
+      });
+
+      // FALLBACK : Si aucune règle active pour cette ville, utiliser Kinshasa
+      if (!pricingRules || pricingRules.length === 0) {
+        console.warn(`[${timestamp}] ⚠️ No active pricing rules for ${city}, falling back to Kinshasa`);
+        
+        const { data: fallbackRules, error: fallbackError } = await supabase
+          .from('pricing_rules')
+          .select('*')
+          .eq('city', 'Kinshasa')
+          .eq('service_type', 'transport')
+          .eq('is_active', true);
+          
+        if (fallbackError) throw fallbackError;
+        
+        // Adapter les prix selon le multiplicateur de la ville
+        const cityMultiplier = getCityMultiplier(city);
+        pricingRules = fallbackRules?.map(rule => ({
+          ...rule,
+          city: city, // Garder la ville demandée
+          base_price: rule.base_price * cityMultiplier,
+          price_per_km: rule.price_per_km * cityMultiplier,
+          price_per_minute: rule.price_per_minute * cityMultiplier,
+          minimum_fare: rule.minimum_fare * cityMultiplier,
+          waiting_fee_per_minute: rule.waiting_fee_per_minute * cityMultiplier
+        }));
+        
+        console.log(`[${timestamp}] 🔄 Fallback applied with ${cityMultiplier}x multiplier`);
+      }
+
+      // 2. Récupérer les service_configurations pour les taxis
+      const { data: serviceConfigs, error: configError } = await supabase
+        .from('service_configurations')
+        .select('*')
+        .eq('service_category', 'taxi')
+        .eq('is_active', true);
+
+      if (configError) {
+        console.error(`[${timestamp}] ❌ Error fetching service_configurations:`, configError);
+        throw configError;
+      }
+
+      console.log(`[${timestamp}] ⚙️ Service configurations:`, {
+        count: serviceConfigs?.length || 0,
+        serviceTypes: serviceConfigs?.map(c => c.service_type) || []
+      });
+
+      // 3. Filtrer pour ne garder que les services avec BOTH is_active = true
+      const availableServices: AvailableTaxiService[] = (pricingRules || [])
+        .map((rule: any) => {
+          // Mapper vehicle_class -> service_type (ex: 'eco' -> 'taxi_eco')
+          const serviceType = VEHICLE_CLASS_TO_SERVICE_TYPE[rule.vehicle_class];
+          
+          // Trouver la configuration correspondante
+          const config = serviceConfigs?.find(c => c.service_type === serviceType);
+
+          // Si config n'existe pas ou n'est pas active, exclure ce service
+          if (!config || !config.is_active) {
+            console.log(`[${timestamp}] ⚠️ Service ${rule.vehicle_class} excluded:`, {
+              serviceType: serviceType,
+              configExists: !!config,
+              configActive: config?.is_active || false,
+              reason: !config ? 'No matching config' : 'Config inactive'
+            });
+            return null;
+          }
+
+          // Enrichir avec les données de configuration
+          return {
+            ...rule,
+            display_name: config.display_name,
+            description: config.description,
+          } as AvailableTaxiService;
+        })
+        .filter(Boolean) as AvailableTaxiService[];
+
+      console.log(`[${timestamp}] ✅ Available services after filtering:`, {
+        count: availableServices.length,
+        services: availableServices.map(s => s.vehicle_class)
+      });
+
+      return availableServices;
+    },
+    staleTime: 5 * 1000,         // 5 secondes - refetch rapide quand city change
+    gcTime: 5 * 60 * 1000,        // 5 minutes - garbage collection
+    refetchOnMount: true,         // true au lieu de 'always'
+    refetchOnWindowFocus: false,  // false pour éviter refetch trop fréquents
+  });
+
+  // Realtime: Écouter les changements sur les deux tables
+  useEffect(() => {
+    const pricingChannel = supabase
+      .channel('pricing-rules-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pricing_rules' },
+        (payload: any) => {
+          const affectedCity = payload.new?.city || payload.old?.city;
+          if (affectedCity === city) {
+            console.log('🔄 Pricing rules changed, invalidating cache...');
+            queryClient.invalidateQueries({ queryKey: ['available-taxi-services', city] });
+          }
+        }
+      )
+      .subscribe();
+
+    const configChannel = supabase
+      .channel('service-configurations-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'service_configurations' },
+        (payload: any) => {
+          console.log('🔄 Service configurations changed, invalidating cache...');
+          queryClient.invalidateQueries({ queryKey: ['available-taxi-services', city] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try {
+        supabase.removeChannel(pricingChannel);
+        supabase.removeChannel(configChannel);
+      } catch {}
+    };
+  }, [queryClient, city]);
+
+  return {
+    availableServices: query.data || [],
+    loading: query.isLoading,
+    error: query.error as Error | null,
+    refresh: () => queryClient.invalidateQueries({ queryKey: ['available-taxi-services', city] }),
+  };
+};

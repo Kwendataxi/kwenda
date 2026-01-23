@@ -1,0 +1,305 @@
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { UtensilsCrossed, ChefHat, ArrowLeft, Phone, CheckCircle2, Info } from 'lucide-react';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { SUPPORTED_CITIES } from '@/constants/cities';
+
+export default function RestaurantAuth() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [phoneValid, setPhoneValid] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    restaurantName: '',
+    phone: '',
+    city: ''
+  });
+
+  const validatePhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^0[0-9]{9}$/;
+    return phoneRegex.test(phone.replace(/[\s\-]/g, ''));
+  };
+
+  const handleAuth = async () => {
+    try {
+      setLoading(true);
+      
+      console.log('🔐 [RestaurantAuth] Tentative de connexion/inscription', {
+        isSignUp,
+        email: formData.email,
+        restaurantName: formData.restaurantName
+      });
+      
+      if (isSignUp) {
+        // Validation téléphone
+        if (!validatePhoneNumber(formData.phone)) {
+          toast.error('Le numéro de téléphone doit être au format : 0991234567 (10 chiffres)');
+          return;
+        }
+
+        // Validation nom restaurant
+        if (!formData.restaurantName.trim()) {
+          toast.error('Le nom du restaurant est obligatoire');
+          return;
+        }
+
+        // Validation ville
+        if (!formData.city) {
+          toast.error('Veuillez sélectionner votre ville d\'opération');
+          return;
+        }
+
+        // Compatible mobile Capacitor
+        const isCapacitor = (window as any).Capacitor?.isNativePlatform?.() ?? false;
+        const redirectUrl = isCapacitor ? 'https://kwenda.app/restaurant' : `${window.location.origin}/restaurant`;
+        
+        // Inscription - Le trigger gère automatiquement la création du profil et du rôle
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              restaurant_name: formData.restaurantName,
+              phone: formData.phone,
+              city: formData.city,
+              user_type: 'restaurant'
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        // ✅ Sauvegarder l'intention de connexion pour redirection correcte
+        localStorage.setItem('kwenda_login_intent', 'restaurant');
+        localStorage.setItem('kwenda_selected_role', 'restaurant');
+
+        console.log('✅ [RestaurantAuth] Inscription réussie, loginIntent défini:', {
+          loginIntent: localStorage.getItem('kwenda_login_intent'),
+          selectedRole: localStorage.getItem('kwenda_selected_role')
+        });
+
+        // ✅ Attendre 100ms pour garantir l'écriture localStorage
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        toast.success('Compte créé avec succès ! Vérifiez votre email pour confirmer votre compte.');
+        navigate('/restaurant');
+      } else {
+        // Connexion
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        });
+
+        if (error) throw error;
+
+        console.log('✅ [RestaurantAuth] Login successful', { userId: data.user?.id });
+
+        // ✅ CORRECTION : Attendre stabilisation session (augmenter à 1000ms)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // ✅ CORRECTION : Forcer refresh session + attendre confirmation
+        const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !refreshedSession) {
+          console.error('❌ Session non établie après connexion', sessionError);
+          throw new Error('Session non établie. Veuillez réessayer.');
+        }
+        
+        console.log('📦 Session refreshed', { 
+          hasSession: !!refreshedSession,
+          expiresAt: refreshedSession.expires_at
+        });
+
+        // ✅ CORRECTION : Définir loginIntent
+        localStorage.setItem('kwenda_login_intent', 'restaurant');
+        localStorage.setItem('kwenda_selected_role', 'restaurant');
+
+        toast.success('Bienvenue ! Connexion réussie.');
+        
+        // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        navigate('/restaurant');
+      }
+    } catch (error: any) {
+      console.error('❌ [RestaurantAuth] Erreur:', error);
+      toast.error(error.message || "Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-4">
+        
+        <Card className="shadow-xl animate-scale-in">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
+              <UtensilsCrossed className="w-8 h-8 text-white" />
+            </div>
+            
+            {/* Badge Espace Restaurant */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800">
+              <UtensilsCrossed className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                Espace Restaurant
+              </span>
+            </div>
+            
+            <CardTitle className="text-2xl">
+              {isSignUp ? 'Devenir Restaurant Partenaire' : 'Kwenda Food'}
+            </CardTitle>
+            <CardDescription>
+              {isSignUp 
+                ? 'Rejoignez notre réseau et développez votre activité'
+                : 'Gérez votre restaurant et vos commandes'
+              }
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {isSignUp && (
+              <>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Nom du restaurant"
+                    value={formData.restaurantName}
+                    onChange={(e) => setFormData({ ...formData, restaurantName: e.target.value })}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      placeholder="0991234567"
+                      value={formData.phone}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData({ ...formData, phone: value });
+                        setPhoneValid(validatePhoneNumber(value));
+                      }}
+                      className={cn(
+                        "pl-10 pr-10",
+                        phoneValid && "border-green-500 focus-visible:ring-green-500"
+                      )}
+                      required
+                    />
+                    {phoneValid && (
+                      <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    Format: 0XXXXXXXXX (10 chiffres)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ville d'opération *</Label>
+                  <Select 
+                    value={formData.city} 
+                    onValueChange={(value) => setFormData({ ...formData, city: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez votre ville" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORTED_CITIES.map(city => (
+                        <SelectItem key={city.value} value={city.value}>
+                          {city.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            <Input
+              type="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+
+            <Input
+              type="password"
+              placeholder="Mot de passe"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+
+            <Button 
+              className="w-full h-12 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold" 
+              onClick={handleAuth}
+              disabled={loading}
+            >
+              <ChefHat className="w-4 h-4 mr-2" />
+              {isSignUp ? 'Créer mon restaurant' : 'Se connecter'}
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full h-12"
+              onClick={() => setIsSignUp(!isSignUp)}
+            >
+              {isSignUp 
+                ? 'Déjà inscrit ? Se connecter' 
+                : 'Nouveau restaurant ? S\'inscrire'
+              }
+            </Button>
+
+            {/* Liens vers autres espaces */}
+            <div className="text-center pt-4 space-y-2 text-sm">
+              <p className="text-muted-foreground">Pas restaurant ?</p>
+              <div className="flex flex-wrap justify-center items-center gap-2">
+                <Link to="/app/auth" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
+                  Client
+                </Link>
+                <span className="text-muted-foreground/50">•</span>
+                <Link to="/driver/auth" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
+                  Chauffeur
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Footer - Bouton Retour à l'accueil */}
+        <div className="mt-8 pt-6 border-t border-border/30 pb-8">
+          <div className="flex flex-col items-center gap-3">
+            <Button 
+              onClick={() => navigate('/')}
+              variant="outline"
+              size="default"
+              className="group relative overflow-hidden w-full sm:w-auto sm:min-w-[200px] border-border/50 hover:border-orange-500/50 hover:shadow-md dark:border-border/30 dark:hover:border-orange-400/40 dark:hover:bg-orange-500/5 transition-all duration-300"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ArrowLeft className="h-4 w-4 mr-2 relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
+              <span className="relative z-10 font-medium">Retour à l'accueil</span>
+            </Button>
+            
+            <p className="text-xs text-muted-foreground text-center px-4">
+              Découvrez nos services sans vous connecter
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

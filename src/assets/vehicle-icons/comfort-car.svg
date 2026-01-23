@@ -1,0 +1,80 @@
+<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ombre portée élégante -->
+  <ellipse cx="70" cy="86" rx="55" ry="8" fill="#000000" opacity="0.18"/>
+  
+  <!-- Groupe principal berline 3D -->
+  <g transform="translate(0, -2)">
+    <!-- Gradients bleus modernes -->
+    <defs>
+      <linearGradient id="comfortBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#3B82F6"/>
+        <stop offset="50%" stop-color="#2563EB"/>
+        <stop offset="100%" stop-color="#1D4ED8"/>
+      </linearGradient>
+      <linearGradient id="comfortRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#60A5FA"/>
+        <stop offset="100%" stop-color="#3B82F6"/>
+      </linearGradient>
+      <linearGradient id="comfortWindow" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#DBEAFE" stop-opacity="0.4"/>
+      </linearGradient>
+    </defs>
+    
+    <!-- Roue arrière berline 3D -->
+    <circle cx="35" cy="72" r="16" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="2.5"/>
+    <circle cx="35" cy="72" r="12" fill="#404040" stroke="#2C2C2C" stroke-width="1.5"/>
+    <circle cx="35" cy="72" r="8" fill="#5A5A5A"/>
+    <circle cx="35" cy="72" r="4" fill="#707070"/>
+    <circle cx="33" cy="70" r="3.5" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Roue avant berline 3D -->
+    <circle cx="105" cy="72" r="16" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="2.5"/>
+    <circle cx="105" cy="72" r="12" fill="#404040" stroke="#2C2C2C" stroke-width="1.5"/>
+    <circle cx="105" cy="72" r="8" fill="#5A5A5A"/>
+    <circle cx="105" cy="72" r="4" fill="#707070"/>
+    <circle cx="103" cy="70" r="3.5" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Carrosserie berline élégante -->
+    <path d="M 20 72 L 25 62 Q 32 38 55 36 L 85 36 Q 106 38 111 62 L 120 72 Z" 
+          fill="url(#comfortBody)" stroke="#1D4ED8" stroke-width="2.5"/>
+    
+    <!-- Reflet carrosserie premium -->
+    <path d="M 28 60 Q 38 44 60 42 L 80 42 Q 100 44 108 60" 
+          fill="#FFFFFF" opacity="0.2" stroke="none"/>
+    
+    <!-- Toit berline 3D -->
+    <path d="M 45 36 Q 48 24 62 22 L 78 22 Q 90 24 93 36" 
+          fill="url(#comfortRoof)" stroke="#3B82F6" stroke-width="2"/>
+    
+    <!-- Reflet toit -->
+    <path d="M 50 34 Q 52 27 62 25 L 76 25 Q 86 27 88 34" 
+          fill="#FFFFFF" opacity="0.25" stroke="none"/>
+    
+    <!-- Vitres avant teintées -->
+    <path d="M 48 35 Q 50 27 62 25 L 68 25 L 68 35 Z" 
+          fill="url(#comfortWindow)" stroke="#3B82F6" stroke-width="1"/>
+    <path d="M 46 34 Q 48 29 58 27" 
+          stroke="#FFFFFF" stroke-width="0.5" opacity="0.5" fill="none"/>
+    
+    <!-- Vitres arrière teintées -->
+    <path d="M 72 25 L 78 25 Q 88 27 90 35 L 72 35 Z" 
+          fill="url(#comfortWindow)" stroke="#3B82F6" stroke-width="1"/>
+    
+    <!-- Phares LED modernes angulaires -->
+    <path d="M 112 50 L 118 50 L 116 54 Z" fill="#FFFFFF" opacity="0.95"/>
+    <path d="M 112 60 L 118 60 L 116 64 Z" fill="#FFFFFF" opacity="0.95"/>
+    <circle cx="115" cy="52" r="1.5" fill="#FFFFFF"/>
+    
+    <!-- Feux arrière LED -->
+    <rect x="20" y="58" width="5" height="10" rx="1.5" fill="#EF4444" opacity="0.9"/>
+    <rect x="21" y="59" width="3" height="8" rx="1" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Ligne chrome élégante -->
+    <path d="M 35 58 L 105 58" stroke="#E0E7FF" stroke-width="1.5" opacity="0.7"/>
+    
+    <!-- Rétroviseur 3D -->
+    <ellipse cx="100" cy="42" rx="4" ry="2.5" fill="#2563EB" stroke="#1D4ED8" stroke-width="1"/>
+    <ellipse cx="100" cy="42" rx="2.5" ry="1.5" fill="#60A5FA" opacity="0.5"/>
+  </g>
+</svg>

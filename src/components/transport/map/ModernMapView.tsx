@@ -1,0 +1,762 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { Loader2, MapPin, Plus, Minus, Navigation as NavigationIcon, Layers } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import CustomMarkers from './CustomMarkers';
+import ProfessionalRoutePolyline from './ProfessionalRoutePolyline';
+import LiveDriversLayer from '../LiveDriversLayer';
+import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+import { useMapTheme } from '@/hooks/useMapTheme';
+import { throttle } from '@/utils/performanceUtils';
+import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+interface Location {
+  lat: number;
+  lng: number;
+  address: string;
+  name?: string;
+}
+
+interface ModernMapViewProps {
+  pickup?: Location | null;
+  destination?: Location | null;
+  onMapClick?: (location: { lat: number; lng: number }) => void;
+  visualizationMode?: 'selection' | 'route' | 'tracking';
+  currentDriverLocation?: { lat: number; lng: number };
+  userLocation?: { lat: number; lng: number } | null;
+  className?: string;
+  showLiveDrivers?: boolean;
+}
+
+export default function ModernMapView({
+  pickup,
+  destination,
+  onMapClick,
+  visualizationMode = 'selection',
+  currentDriverLocation,
+  userLocation,
+  className = '',
+  showLiveDrivers = true
+}: ModernMapViewProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const mapboxMapRef = useRef<mapboxgl.Map | null>(null);
+  const { isLoaded, error, isLoading, retryCount, loadingProgress } = useGoogleMaps();
+  const { mapStyles } = useMapTheme();
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [useMapboxFallback, setUseMapboxFallback] = useState(false);
+  const [showDriversLayer, setShowDriversLayer] = useState(showLiveDrivers);
+  const { toast } = useToast();
+
+  // 🔍 Phase 5: Logs détaillés
+  useEffect(() => {
+    console.log('📊 [ModernMapView] État actuel:', {
+      isLoaded,
+      error,
+      isLoading,
+      retryCount,
+      loadingProgress,
+      isMapReady,
+      useMapboxFallback,
+      hasPickup: !!pickup,
+      hasDestination: !!destination,
+      hasUserLocation: !!userLocation
+    });
+  }, [isLoaded, error, isLoading, retryCount, loadingProgress, isMapReady, useMapboxFallback, pickup, destination, userLocation]);
+
+  // Fallback Mapbox seulement après plusieurs échecs
+  useEffect(() => {
+    if (error && retryCount >= 3 && !useMapboxFallback) {
+      console.log('⚠️ Google Maps failed after retries, switching to Mapbox fallback');
+      setUseMapboxFallback(true);
+      toast({
+        title: "Erreur Google Maps",
+        description: "Impossible de charger Google Maps. Veuillez vérifier votre connexion et recharger la page.",
+        variant: "destructive"
+      });
+    }
+  }, [error, retryCount, useMapboxFallback, toast]);
+
+  // 🗺️ Initialisation Mapbox Fallback (simplifié et robuste)
+  useEffect(() => {
+    if (!useMapboxFallback || !mapRef.current || mapboxMapRef.current) return;
+
+    const initMapbox = () => {
+      try {
+        // Token public Mapbox (gratuit pour usage modéré)
+        mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+        
+        const center: [number, number] = userLocation 
+          ? [userLocation.lng, userLocation.lat]
+          : pickup 
+          ? [pickup.lng, pickup.lat]
+          : [15.3069, -4.3217]; // Kinshasa (lng, lat inversé pour Mapbox)
+
+        console.log('🗺️ Initialisation Mapbox avec centre:', center);
+
+        const map = new mapboxgl.Map({
+          container: mapRef.current!,
+          style: 'mapbox://styles/mapbox/dark-v11',
+          center: center,
+          zoom: 13,
+          pitch: 45,
+          bearing: 0,
+          antialias: true
+        });
+
+        // Contrôles de navigation
+        map.addControl(new mapboxgl.NavigationControl({
+          visualizePitch: true,
+          showZoom: true,
+          showCompass: true
+        }), 'top-right');
+
+        // Attendre le chargement de la carte
+        map.on('load', () => {
+          console.log('✅ Mapbox carte chargée');
+          
+          // Ajouter marker position utilisateur (bleu pulsant)
+          if (userLocation) {
+            const el = document.createElement('div');
+            el.className = 'user-location-marker';
+            el.style.cssText = `
+              width: 30px;
+              height: 30px;
+              background: radial-gradient(circle, #3B82F6, #2563EB);
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+              animation: pulse-marker 2s ease-in-out infinite;
+            `;
+
+            new mapboxgl.Marker({ element: el, anchor: 'center' })
+              .setLngLat([userLocation.lng, userLocation.lat])
+              .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<strong>📍 Ma position</strong>'))
+              .addTo(map);
+          }
+
+          // Ajouter marker pickup (noir Kwenda)
+          if (pickup) {
+            const el = document.createElement('div');
+            el.className = 'pickup-marker';
+            el.style.cssText = `
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(145deg, #1A1A1A, #2A2A2A);
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 20px;
+            `;
+            el.innerHTML = '📍';
+
+            new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+              .setLngLat([pickup.lng, pickup.lat])
+              .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>📍 Départ</strong><br/>${pickup.address}`))
+              .addTo(map);
+          }
+
+          // Ajouter marker destination (rouge Kwenda)
+          if (destination) {
+            const el = document.createElement('div');
+            el.className = 'destination-marker';
+            el.style.cssText = `
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(145deg, #DC2626, #EF4444);
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 8px 20px rgba(239, 68, 68, 0.6);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 20px;
+              animation: pulse-marker 2s ease-in-out infinite;
+            `;
+            el.innerHTML = '🎯';
+
+            new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+              .setLngLat([destination.lng, destination.lat])
+              .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>🎯 Destination</strong><br/>${destination.address}`))
+              .addTo(map);
+          }
+
+          // Route entre pickup et destination
+          if (pickup && destination && visualizationMode === 'route') {
+            console.log('🛣️ Ajout route Mapbox');
+            
+            // Créer ligne de route
+            map.addSource('route', {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'LineString',
+                  coordinates: [
+                    [pickup.lng, pickup.lat],
+                    [destination.lng, destination.lat]
+                  ]
+                }
+              }
+            });
+
+            map.addLayer({
+              id: 'route',
+              type: 'line',
+              source: 'route',
+              layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+              },
+              paint: {
+                'line-color': '#EF4444',
+                'line-width': 5,
+                'line-gradient': [
+                  'interpolate',
+                  ['linear'],
+                  ['line-progress'],
+                  0, '#1A1A1A',
+                  1, '#EF4444'
+                ]
+              }
+            });
+
+            // Ajuster bounds
+            const bounds = new mapboxgl.LngLatBounds();
+            bounds.extend([pickup.lng, pickup.lat]);
+            bounds.extend([destination.lng, destination.lat]);
+            map.fitBounds(bounds, { padding: 80, duration: 1000 });
+          }
+        });
+
+        mapboxMapRef.current = map;
+        setIsMapReady(true);
+
+        return () => {
+          map.remove();
+        };
+      } catch (err) {
+        console.error('❌ Erreur Mapbox:', err);
+      }
+    };
+
+    initMapbox();
+  }, [useMapboxFallback, pickup, destination, userLocation, visualizationMode]);
+
+  // Initialisation de la carte Google Maps avec Map ID
+  useEffect(() => {
+    if (!isLoaded || !mapRef.current || mapInstanceRef.current || useMapboxFallback) return;
+
+    const initializeMap = async () => {
+      try {
+        // ✅ Double vérification avant création
+        if (!window.google?.maps?.Map) {
+          console.error('❌ google.maps.Map is not available');
+          toast({
+            title: "Erreur",
+            description: "Google Maps n'est pas disponible",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // ✅ S'assurer que la bibliothèque maps est chargée
+        console.log('🔄 Importing Google Maps library...');
+        await window.google.maps.importLibrary('maps');
+        await window.google.maps.importLibrary('marker');
+        
+        // ✅ Délai de sécurité pour laisser le temps au constructeur de s'initialiser
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // ✅ Vérification finale du constructeur
+        if (typeof window.google.maps.Map !== 'function') {
+          console.error('❌ google.maps.Map is not a constructor');
+          return;
+        }
+
+        // 📍 Centrage automatique sur la position réelle détectée
+        const defaultCenter = userLocation 
+          ? { lat: userLocation.lat, lng: userLocation.lng }
+          : pickup 
+          ? { lat: pickup.lat, lng: pickup.lng }
+          : { lat: -4.3217, lng: 15.3069 }; // Kinshasa en dernier recours
+        
+        console.log('📍 Centrage carte sur position réelle:', defaultCenter, 
+          userLocation ? '✅ POSITION UTILISATEUR DÉTECTÉE' : pickup ? '(pickup)' : '(Kinshasa default)');
+
+        // Récupérer le Map ID depuis le loader
+        const { googleMapsLoader } = await import('@/services/googleMapsLoader');
+        const mapId = googleMapsLoader.getMapId();
+        
+        if (!mapId) {
+          console.error('❌ Map ID not available');
+          toast({
+            title: "Configuration manquante",
+            description: "Map ID non configuré. Veuillez ajouter GOOGLE_MAPS_MAP_ID dans les secrets.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log('✅ Using Map ID:', mapId);
+
+        const map = new google.maps.Map(mapRef.current!, {
+          mapId: mapId, // ✅ CRITIQUE pour AdvancedMarkerElement
+          center: defaultCenter,
+          zoom: userLocation ? 15 : pickup ? 14 : 13,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          zoomControl: true,
+          tilt: 45,
+          heading: 0,
+          gestureHandling: 'greedy',
+          styles: mapStyles // 🎨 Thème dynamique clair/sombre
+        });
+
+        console.log('✅ [ModernMapView] Carte Google Maps créée avec succès avec Map ID');
+        
+        toast({
+          title: "🗺️ Google Maps chargé",
+          description: "Carte interactive prête",
+        });
+
+        // Gestion du clic sur la carte avec effet ripple et throttling
+        if (onMapClick) {
+          console.log('🖱️ [ModernMapView] Gestionnaire de clic activé');
+          const throttledClick = throttle((e: google.maps.MapMouseEvent) => {
+            if (e.latLng) {
+              console.log('📍 [ModernMapView] Clic carte:', e.latLng.lat(), e.latLng.lng());
+              createRippleEffect(e.latLng);
+              onMapClick({
+                lat: e.latLng.lat(),
+                lng: e.latLng.lng()
+              });
+            }
+          }, 300);
+
+          map.addListener('click', throttledClick);
+        }
+
+        mapInstanceRef.current = map;
+        setIsMapReady(true);
+        console.log('✅ [ModernMapView] Carte prête et référence stockée');
+      } catch (err) {
+        console.error('❌ [ModernMapView] Erreur initialisation carte:', err);
+        toast({
+          title: "Erreur de chargement",
+          description: "Impossible de charger la carte. Rechargez la page.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    initializeMap();
+  }, [isLoaded, onMapClick, pickup, userLocation, useMapboxFallback, toast]);
+
+  // Créer un effet ripple au clic
+  const createRippleEffect = (position: google.maps.LatLng) => {
+    if (!mapInstanceRef.current) return;
+
+    const ripple = new google.maps.Circle({
+      strokeColor: '#3B82F6',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#3B82F6',
+      fillOpacity: 0.35,
+      map: mapInstanceRef.current,
+      center: position,
+      radius: 10
+    });
+
+    let currentRadius = 10;
+    const maxRadius = 100;
+    const step = 10;
+
+    const animate = () => {
+      currentRadius += step;
+      if (currentRadius < maxRadius) {
+        ripple.setRadius(currentRadius);
+        ripple.setOptions({
+          fillOpacity: 0.35 * (1 - currentRadius / maxRadius),
+          strokeOpacity: 0.8 * (1 - currentRadius / maxRadius)
+        });
+        requestAnimationFrame(animate);
+      } else {
+        ripple.setMap(null);
+      }
+    };
+
+    animate();
+  };
+
+  // 🎯 Ajustement automatique du zoom/bounds premium
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isMapReady) return;
+
+    console.log('📹 [ModernMapView] Ajustement automatique caméra:', { 
+      hasPickup: !!pickup, 
+      hasDestination: !!destination,
+      hasUserLocation: !!userLocation
+    });
+
+    if (pickup && destination) {
+      // ✅ Mode Route: Afficher pickup + destination avec padding premium
+      console.log('🗺️ Ajustement bounds: Pickup + Destination');
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend({ lat: pickup.lat, lng: pickup.lng });
+      bounds.extend({ lat: destination.lat, lng: destination.lng });
+      
+      mapInstanceRef.current.fitBounds(bounds, { 
+        top: 80, 
+        right: 80, 
+        bottom: 80, 
+        left: 80 
+      });
+
+      // Limiter le zoom max pour éviter trop de zoom
+      const listener = google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
+        const currentZoom = mapInstanceRef.current?.getZoom();
+        if (currentZoom && currentZoom > 16) {
+          mapInstanceRef.current?.setZoom(16);
+        }
+      });
+
+      return () => {
+        google.maps.event.removeListener(listener);
+      };
+    } else if (userLocation) {
+      // ✅ Position utilisateur détectée: Centrer avec zoom 15
+      console.log('📍 Centrage sur position utilisateur détectée');
+      animateCameraTransition({
+        center: { lat: userLocation.lat, lng: userLocation.lng },
+        zoom: 15,
+        tilt: 45,
+        heading: 0
+      }, 1000);
+    } else if (pickup) {
+      // Pickup uniquement: Zoom 14
+      console.log('📍 Centrage sur pickup uniquement');
+      animateCameraTransition({
+        center: { lat: pickup.lat, lng: pickup.lng },
+        zoom: 14,
+        tilt: 45,
+        heading: 0
+      }, 1000);
+    } else if (destination) {
+      // Destination uniquement
+      animateCameraTransition({
+        center: { lat: destination.lat, lng: destination.lng },
+        zoom: 14,
+        tilt: 45,
+        heading: 0
+      }, 1000);
+    }
+  }, [pickup, destination, userLocation, isMapReady]);
+
+  // Fonction d'animation de caméra fluide
+  const animateCameraTransition = (
+    targetOptions: {
+      center?: google.maps.LatLng | google.maps.LatLngLiteral;
+      zoom?: number;
+      tilt?: number;
+      heading?: number;
+    },
+    duration: number
+  ): Promise<void> => {
+    return new Promise((resolve) => {
+      if (!mapInstanceRef.current) {
+        resolve();
+        return;
+      }
+
+      const map = mapInstanceRef.current;
+      const startTime = Date.now();
+      const startCenter = map.getCenter();
+      const startZoom = map.getZoom() || 13;
+      const startTilt = map.getTilt() || 0;
+      const startHeading = map.getHeading() || 0;
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function (ease-in-out)
+        const eased = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        // Interpoler les valeurs
+        if (targetOptions.center && startCenter) {
+          let targetLat: number;
+          let targetLng: number;
+          
+          if (typeof targetOptions.center === 'object' && 'lat' in targetOptions.center) {
+            targetLat = typeof targetOptions.center.lat === 'function' 
+              ? targetOptions.center.lat() 
+              : targetOptions.center.lat;
+            targetLng = typeof targetOptions.center.lng === 'function'
+              ? targetOptions.center.lng()
+              : targetOptions.center.lng;
+          } else {
+            targetLat = (targetOptions.center as google.maps.LatLng).lat();
+            targetLng = (targetOptions.center as google.maps.LatLng).lng();
+          }
+          
+          const lat = startCenter.lat() + (targetLat - startCenter.lat()) * eased;
+          const lng = startCenter.lng() + (targetLng - startCenter.lng()) * eased;
+          map.setCenter({ lat, lng });
+        }
+
+        if (targetOptions.zoom !== undefined) {
+          const zoom = startZoom + (targetOptions.zoom - startZoom) * eased;
+          map.setZoom(zoom);
+        }
+
+        if (targetOptions.tilt !== undefined) {
+          const tilt = startTilt + (targetOptions.tilt - startTilt) * eased;
+          map.setTilt(tilt);
+        }
+
+        if (targetOptions.heading !== undefined) {
+          const heading = startHeading + (targetOptions.heading - startHeading) * eased;
+          map.setHeading(heading);
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          resolve();
+        }
+      };
+
+      animate();
+    });
+  };
+
+  // 🎨 Phase 5: Indicateur de chargement amélioré
+  if (!isLoaded && isLoading) {
+    return (
+      <div className={`flex flex-col items-center justify-center bg-gradient-to-br from-muted/20 to-muted/40 rounded-lg ${className}`}>
+        <div className="text-center p-8 max-w-md">
+          <div className="relative mb-6">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+            <MapPin className="h-6 w-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary/60 animate-pulse" />
+          </div>
+          
+          <p className="text-lg font-medium mb-2">🗺️ Chargement de la carte...</p>
+          
+          {/* Progress bar */}
+          <div className="w-full bg-muted/30 rounded-full h-2 mb-3 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500 ease-out rounded-full"
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+          
+          <p className="text-sm text-muted-foreground">
+            {retryCount > 0 
+              ? `Nouvelle tentative (${retryCount}/5)... Veuillez patienter.`
+              : 'Connexion au service de cartographie...'
+            }
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 🚨 Phase 5: Mode hors-ligne si échec complet
+  if (error && !useMapboxFallback) {
+    return (
+      <div className={`flex flex-col items-center justify-center bg-gradient-to-br from-destructive/5 to-destructive/10 rounded-lg border-2 border-destructive/20 ${className}`}>
+        <div className="text-center p-8 max-w-md">
+          <div className="mb-4 p-4 rounded-full bg-destructive/10 w-fit mx-auto">
+            <MapPin className="h-10 w-10 text-destructive" />
+          </div>
+          
+          <p className="text-lg font-semibold text-destructive mb-2">📵 Mode hors-ligne</p>
+          <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          
+          <div className="bg-muted/50 rounded-lg p-4 text-left space-y-2">
+            <p className="text-xs font-medium">💡 Vérifiez :</p>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              <li>• Votre connexion internet</li>
+              <li>• La clé API Google Maps</li>
+              <li>• Les restrictions de domaine</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`flex items-center justify-center bg-muted/20 rounded-lg ${className}`}>
+        <div className="text-center p-6">
+          <p className="text-destructive">Erreur de chargement de la carte</p>
+          <p className="text-sm text-muted-foreground mt-2">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Contrôles de la carte
+  const handleZoomIn = () => {
+    if (mapInstanceRef.current) {
+      const currentZoom = mapInstanceRef.current.getZoom() || 13;
+      mapInstanceRef.current.setZoom(currentZoom + 1);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (mapInstanceRef.current) {
+      const currentZoom = mapInstanceRef.current.getZoom() || 13;
+      mapInstanceRef.current.setZoom(currentZoom - 1);
+    }
+  };
+
+  const handleLocateUser = () => {
+    if (userLocation && mapInstanceRef.current) {
+      animateCameraTransition({
+        center: { lat: userLocation.lat, lng: userLocation.lng },
+        zoom: 15
+      }, 1000);
+    }
+  };
+
+  const toggleLiveDrivers = () => {
+    setShowDriversLayer(prev => !prev);
+    toast({
+      title: showDriversLayer ? "Chauffeurs masqués" : "Chauffeurs affichés",
+      description: showDriversLayer ? "Les véhicules ne sont plus visibles" : "Affichage des véhicules en temps réel"
+    });
+  };
+
+  return (
+    <div className={`relative ${className}`}>
+      {/* Carte Google Maps */}
+      <div ref={mapRef} className="w-full h-full rounded-lg shadow-lg" />
+
+      {/* Contrôles de carte modernes */}
+      {isMapReady && mapInstanceRef.current && !useMapboxFallback && (
+        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+          {[
+            { icon: Plus, action: handleZoomIn, label: "Zoom +" },
+            { icon: Minus, action: handleZoomOut, label: "Zoom -" },
+            { icon: NavigationIcon, action: handleLocateUser, label: "Ma position" },
+            { icon: Layers, action: toggleLiveDrivers, label: "Chauffeurs", active: showDriversLayer }
+          ].map(({ icon: Icon, action, label, active }) => (
+            <motion.div key={label} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={action}
+                className={`bg-white/80 dark:bg-gray-900/80 backdrop-blur-md 
+                  border-white/30 shadow-lg hover:shadow-glow
+                  rounded-2xl w-12 h-12 ${active ? 'bg-primary/20 border-primary' : ''}`}
+                title={label}
+              >
+                <Icon className="h-5 w-5" />
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Markers personnalisés */}
+      {isMapReady && mapInstanceRef.current && !useMapboxFallback && (
+        <>
+          <CustomMarkers
+            map={mapInstanceRef.current}
+            pickup={pickup}
+            destination={destination}
+            userLocation={userLocation}
+          />
+
+          {/* Couche chauffeurs en temps réel */}
+          {showDriversLayer && (
+            <LiveDriversLayer
+              map={mapInstanceRef.current}
+              userLocation={userLocation}
+              maxRadius={10}
+              showOnlyAvailable={true}
+            />
+          )}
+
+          {/* Route professionnelle style Yango */}
+          {pickup && destination && visualizationMode === 'route' && (
+            <ProfessionalRoutePolyline
+              map={mapInstanceRef.current}
+              pickup={pickup}
+              destination={destination}
+              showTraffic={false}
+              animate={true}
+            />
+          )}
+        </>
+      )}
+
+      {/* Badge Mapbox si fallback actif */}
+      {useMapboxFallback && (
+        <div className="absolute top-4 left-4 bg-gradient-to-r from-primary to-primary/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-white/20">
+          <span className="text-xs font-bold text-white flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Carte Mapbox Active
+          </span>
+        </div>
+      )}
+      
+      {/* Styles pour animations Mapbox */}
+      {useMapboxFallback && (
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes pulse-marker {
+            0%, 100% {
+              transform: scale(1);
+              box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            }
+            50% {
+              transform: scale(1.1);
+              box-shadow: 0 0 40px rgba(59, 130, 246, 0.8);
+            }
+          }
+        `}} />
+      )}
+
+      {/* Indicateur de mode */}
+      {visualizationMode !== 'selection' && (
+        <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md">
+          <span className="text-xs font-medium">
+            {visualizationMode === 'route' && '🗺️ Trajet planifié'}
+            {visualizationMode === 'tracking' && '📍 Suivi en direct'}
+          </span>
+        </div>
+      )}
+      
+      {/* 🙈 Phase 3: Masquer les crédits Google Maps */}
+      <style dangerouslySetInnerHTML={{__html: `
+        /* Masquer les contrôles copyright Google */
+        .gm-style-cc,
+        .gm-style a[href^="https://maps.google.com/maps"],
+        .gmnoprint,
+        .gm-style-mtc,
+        a[title="Report errors in the road map or imagery to Google"] {
+          opacity: 0.1 !important;
+          pointer-events: none !important;
+        }
+        
+        /* Positionner discrètement en bas à droite */
+        .gm-style-cc {
+          bottom: 2px !important;
+          right: 2px !important;
+        }
+      `}} />
+    </div>
+  );
+}

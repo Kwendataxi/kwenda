@@ -1,0 +1,58 @@
+# Cache des assets statiques (images, fonts, etc.) pour 1 an
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache des fichiers JS et CSS avec hash pour 1 an
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache des images à la racine pour 1 an
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache des fonts pour 1 an
+/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+# Pas de cache pour le HTML (toujours fetch la dernière version)
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Pas de cache pour le service worker
+/registerSW.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Cache pour le manifest
+/manifest*.json
+  Cache-Control: public, max-age=604800
+
+# Sécurité et performance
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(self)

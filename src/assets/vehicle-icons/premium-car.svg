@@ -1,0 +1,93 @@
+<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ombre portée luxueuse -->
+  <ellipse cx="70" cy="87" rx="58" ry="9" fill="#000000" opacity="0.2"/>
+  
+  <!-- Groupe principal SUV 3D -->
+  <g transform="translate(0, -1)">
+    <!-- Gradients violets premium -->
+    <defs>
+      <linearGradient id="premiumBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#8B5CF6"/>
+        <stop offset="50%" stop-color="#7C3AED"/>
+        <stop offset="100%" stop-color="#6D28D9"/>
+      </linearGradient>
+      <linearGradient id="premiumRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#A78BFA"/>
+        <stop offset="100%" stop-color="#8B5CF6"/>
+      </linearGradient>
+      <linearGradient id="premiumWindow" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#DDD6FE" stop-opacity="0.35"/>
+      </linearGradient>
+      <linearGradient id="premiumChrome" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#E0E7FF"/>
+        <stop offset="50%" stop-color="#FFFFFF"/>
+        <stop offset="100%" stop-color="#E0E7FF"/>
+      </linearGradient>
+    </defs>
+    
+    <!-- Roue arrière SUV 3D imposante -->
+    <circle cx="33" cy="74" r="17" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="3"/>
+    <circle cx="33" cy="74" r="13" fill="#404040" stroke="#2C2C2C" stroke-width="1.5"/>
+    <circle cx="33" cy="74" r="9" fill="#5A5A5A"/>
+    <circle cx="33" cy="74" r="5" fill="#8B5CF6" opacity="0.3"/>
+    <circle cx="31" cy="72" r="4" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Roue avant SUV 3D imposante -->
+    <circle cx="107" cy="74" r="17" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="3"/>
+    <circle cx="107" cy="74" r="13" fill="#404040" stroke="#2C2C2C" stroke-width="1.5"/>
+    <circle cx="107" cy="74" r="9" fill="#5A5A5A"/>
+    <circle cx="107" cy="74" r="5" fill="#8B5CF6" opacity="0.3"/>
+    <circle cx="105" cy="72" r="4" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Carrosserie SUV haute et imposante -->
+    <path d="M 18 74 L 23 60 Q 30 35 56 33 L 84 33 Q 108 35 113 60 L 122 74 Z" 
+          fill="url(#premiumBody)" stroke="#6D28D9" stroke-width="3"/>
+    
+    <!-- Reflet carrosserie premium -->
+    <path d="M 26 62 Q 36 42 60 40 L 80 40 Q 102 42 110 62" 
+          fill="#FFFFFF" opacity="0.22" stroke="none"/>
+    
+    <!-- Toit SUV panoramique 3D -->
+    <path d="M 42 33 Q 45 20 62 18 L 78 18 Q 93 20 96 33" 
+          fill="url(#premiumRoof)" stroke="#8B5CF6" stroke-width="2.5"/>
+    
+    <!-- Reflet toit panoramique -->
+    <path d="M 47 31 Q 50 23 62 21 L 76 21 Q 88 23 91 31" 
+          fill="#FFFFFF" opacity="0.28" stroke="none"/>
+    
+    <!-- Vitres avant premium -->
+    <path d="M 45 32 Q 47 23 62 21 L 68 21 L 68 32 Z" 
+          fill="url(#premiumWindow)" stroke="#8B5CF6" stroke-width="1.5"/>
+    <path d="M 43 31 Q 45 25 58 23" 
+          stroke="#FFFFFF" stroke-width="0.8" opacity="0.6" fill="none"/>
+    
+    <!-- Vitres arrière premium -->
+    <path d="M 72 21 L 78 21 Q 91 23 93 32 L 72 32 Z" 
+          fill="url(#premiumWindow)" stroke="#8B5CF6" stroke-width="1.5"/>
+    
+    <!-- Phares LED premium bi-xenon -->
+    <ellipse cx="114" cy="52" rx="7" ry="5" fill="#FFFFFF" opacity="0.95" stroke="#DDD6FE" stroke-width="1"/>
+    <ellipse cx="114" cy="62" rx="6" ry="4" fill="#FFFFFF" opacity="0.95" stroke="#DDD6FE" stroke-width="1"/>
+    <circle cx="114" cy="52" r="2.5" fill="#FFFFFF"/>
+    <circle cx="114" cy="62" r="2" fill="#A78BFA"/>
+    
+    <!-- Feux arrière LED signature -->
+    <rect x="19" y="56" width="6" height="12" rx="2" fill="#EF4444" opacity="0.95"/>
+    <rect x="20" y="57" width="4" height="10" rx="1.5" fill="#FFFFFF" opacity="0.35"/>
+    <rect x="21" y="59" width="2" height="2" rx="0.5" fill="#FFFFFF"/>
+    
+    <!-- Ligne chrome premium -->
+    <path d="M 33 60 L 107 60" stroke="url(#premiumChrome)" stroke-width="2" opacity="0.8"/>
+    
+    <!-- Rétroviseur 3D chromé -->
+    <ellipse cx="102" cy="40" rx="5" ry="3" fill="#8B5CF6" stroke="#6D28D9" stroke-width="1.5"/>
+    <ellipse cx="102" cy="40" rx="3.5" ry="2" fill="#A78BFA" opacity="0.6"/>
+    <ellipse cx="101" cy="39" rx="1.5" ry="1" fill="#FFFFFF" opacity="0.7"/>
+    
+    <!-- Badge Premium -->
+    <circle cx="70" cy="56" r="8" fill="#A78BFA" stroke="#6D28D9" stroke-width="2"/>
+    <circle cx="70" cy="56" r="6" fill="#8B5CF6"/>
+    <text x="70" y="60" text-anchor="middle" font-size="8" font-weight="bold" fill="#FFFFFF">P</text>
+  </g>
+</svg>
