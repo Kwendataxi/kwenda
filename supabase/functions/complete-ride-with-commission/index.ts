@@ -34,21 +34,80 @@ serve(async (req) => {
   }
 
   try {
+    // ✅ Validation du JSON en entrée
+    let body: CompleteRideRequest;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid JSON body' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    const { rideId, rideType, driverId, finalAmount, paymentMethod } = body;
+
+    // ✅ Validation stricte des paramètres
+    if (!rideId || typeof rideId !== 'string') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'rideId invalide ou manquant' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    if (!['transport', 'delivery'].includes(rideType)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'rideType doit être transport ou delivery' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    if (!driverId || typeof driverId !== 'string') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'driverId invalide ou manquant' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    if (typeof finalAmount !== 'number' || finalAmount < 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'finalAmount doit être un nombre positif' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { 
-      rideId, 
-      rideType, 
-      driverId, 
-      finalAmount,
-      paymentMethod 
-    }: CompleteRideRequest = await req.json();
-
     console.log(`🏁 Completing ${rideType} ride ${rideId} for driver ${driverId}`);
     console.log(`💰 Final amount: ${finalAmount}, Payment: ${paymentMethod}`);
+
+    // ✅ Vérifier que la course existe
+    const tableName = rideType === 'transport' ? 'transport_bookings' : 'delivery_orders';
+    const { data: rideData, error: rideError } = await supabase
+      .from(tableName)
+      .select('id, status, driver_id')
+      .eq('id', rideId)
+      .maybeSingle();
+
+    if (rideError || !rideData) {
+      console.error('❌ Course non trouvée:', rideError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Course non trouvée' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+      );
+    }
+
+    if (rideData.driver_id !== driverId) {
+      console.error('❌ Driver mismatch:', rideData.driver_id, '!=', driverId);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Vous n\'êtes pas le chauffeur assigné à cette course' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
 
     // 1. Récupérer les paramètres de commission (colonnes correctes)
     const { data: commissionSettings } = await supabase
@@ -76,7 +135,10 @@ serve(async (req) => {
     let driverNetAmount = finalAmount;
     let totalCommissionRate = 0;
     let kwendaCommission = 0;
+    let kwendaRate = 0;
     let partnerCommission = 0;
+    let partnerRate = 0;
+    let partnerId: string | null = null;
 
     if (billingMode === 'subscription') {
       // Mode abonnement: 0% commission, utiliser les courses incluses
@@ -95,7 +157,7 @@ serve(async (req) => {
 
     } else {
       // Mode commission: prélever les frais Kwenda + partenaire
-      const platformRate = commissionSettings?.platform_rate || 12.0;
+      kwendaRate = commissionSettings?.platform_rate || 12.0;
       
       // Récupérer le taux du partenaire si le chauffeur est affilié (max 3%)
       const { data: partnerDriver } = await supabase
@@ -105,14 +167,15 @@ serve(async (req) => {
         .eq('status', 'active')
         .maybeSingle();
 
-      const partnerRate = Math.min(partnerDriver?.commission_rate || 0, 3.0);
-      totalCommissionRate = platformRate + partnerRate;
+      partnerRate = Math.min(partnerDriver?.commission_rate || 0, 3.0);
+      partnerId = partnerDriver?.partner_id || null;
+      totalCommissionRate = kwendaRate + partnerRate;
       commissionAmount = Math.round((finalAmount * totalCommissionRate) / 100);
       driverNetAmount = finalAmount - commissionAmount;
-      kwendaCommission = Math.round((finalAmount * platformRate) / 100);
+      kwendaCommission = Math.round((finalAmount * kwendaRate) / 100);
       partnerCommission = commissionAmount - kwendaCommission;
 
-      console.log(`💰 Mode commission: ${totalCommissionRate}% (Kwenda ${platformRate}% + Partenaire ${partnerRate}%)`);
+      console.log(`💰 Mode commission: ${totalCommissionRate}% (Kwenda ${kwendaRate}% + Partenaire ${partnerRate}%)`);
       console.log(`📊 Commission: ${commissionAmount} sur ${finalAmount} → Net chauffeur: ${driverNetAmount}`);
     }
 
@@ -248,41 +311,51 @@ serve(async (req) => {
       console.log('📋 Mode abonnement - pas de prélèvement wallet');
     }
 
-    // 4. Enregistrer la commission dans ride_commissions
+    // 4. ✅ Enregistrer la commission dans ride_commissions avec les VRAIES colonnes
+    const commissionInsertData = {
+      ride_id: rideId,
+      ride_type: rideType,
+      driver_id: driverId,
+      partner_id: partnerId || null,
+      ride_amount: finalAmount || 0,
+      kwenda_commission: kwendaCommission || 0,
+      kwenda_rate: kwendaRate || 0,
+      partner_commission: partnerCommission || 0,
+      partner_rate: partnerRate || 0,
+      driver_net_amount: driverNetAmount || finalAmount,
+      payment_status: paymentStatus || 'pending',
+      paid_at: (paymentStatus === 'paid' || paymentStatus === 'subscription') ? new Date().toISOString() : null
+    };
+
+    console.log('📝 Inserting ride_commissions:', commissionInsertData);
+
     const { error: commissionError } = await supabase
       .from('ride_commissions')
-      .insert({
-        ride_id: rideId,
-        ride_type: rideType,
-        driver_id: driverId,
-        ride_amount: finalAmount,
-        commission_rate: totalCommissionRate,
-        commission_amount: commissionAmount,
-        driver_net_amount: driverNetAmount,
-        payment_status: paymentStatus,
-        payment_method: commissionPaymentMethod === 'none' ? 'wallet' : commissionPaymentMethod,
-        paid_at: paymentStatus === 'paid' || paymentStatus === 'subscription' ? new Date().toISOString() : null
-      });
+      .insert(commissionInsertData);
 
     if (commissionError) {
       console.error('❌ Commission record error:', commissionError);
       // Non bloquant - on continue
     }
 
-    // 5. Mettre à jour la course avec le statut de commission
-    const tableName = rideType === 'transport' ? 'transport_bookings' : 'delivery_orders';
-    
-    await supabase
+    // 5. ✅ Mettre à jour la course avec SEULEMENT les colonnes qui existent
+    const updateData = {
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    console.log(`📝 Updating ${tableName}:`, updateData);
+
+    const { error: updateError } = await supabase
       .from(tableName)
-      .update({
-        status: 'completed',
-        commission_status: paymentStatus,
-        commission_amount: commissionAmount,
-        commission_paid_at: paymentStatus === 'paid' || paymentStatus === 'subscription' ? new Date().toISOString() : null,
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', rideId);
+
+    if (updateError) {
+      console.error('❌ Ride update error:', updateError);
+      // Non bloquant - on continue
+    }
 
     // 6. En mode abonnement, déjà décrémenté plus haut. Pas besoin d'appeler consume-ride à nouveau
     let ridesRemaining = null;

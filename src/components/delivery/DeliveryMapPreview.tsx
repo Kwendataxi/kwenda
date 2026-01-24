@@ -1,5 +1,6 @@
 /**
  * Composant de preview de carte pour visualiser le trajet de livraison
+ * ✅ FIX: Utilise googleMapsLoader au lieu de VITE_GOOGLE_MAPS_API_KEY
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -7,6 +8,8 @@ import { X, Navigation, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { googleMapsLoader } from '@/services/googleMapsLoader';
+
 interface DeliveryMapPreviewProps {
   pickup: {
     lat: number;
@@ -36,34 +39,22 @@ export const DeliveryMapPreview: React.FC<DeliveryMapPreviewProps> = ({
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadGoogleMaps = async () => {
       try {
-        // Vérifier si Google Maps est déjà chargé
-        if (typeof window.google !== 'undefined' && window.google.maps) {
-          initMap();
-          return;
-        }
-
-        // Charger le script Google Maps
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places,geometry`;
-        script.async = true;
-        script.defer = true;
+        setIsLoading(true);
         
-        script.onload = () => {
-          initMap();
-        };
+        // ✅ Utiliser le loader unifié qui récupère la clé depuis Edge Function
+        await googleMapsLoader.load(['places', 'geometry']);
         
-        script.onerror = () => {
-          setMapError('Erreur de chargement de la carte');
-        };
-        
-        document.head.appendChild(script);
+        initMap();
       } catch (error) {
         console.error('Erreur chargement carte:', error);
         setMapError('Impossible de charger la carte');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -183,7 +174,11 @@ export const DeliveryMapPreview: React.FC<DeliveryMapPreviewProps> = ({
 
         {/* Map Container */}
         <div className="relative">
-          {mapError ? (
+          {isLoading ? (
+            <div className="h-96 flex items-center justify-center bg-muted/20">
+              <div className="animate-pulse text-muted-foreground">Chargement de la carte...</div>
+            </div>
+          ) : mapError ? (
             <div className="h-96 flex items-center justify-center bg-muted/20">
               <p className="text-muted-foreground">{mapError}</p>
             </div>

@@ -1,11 +1,14 @@
 /**
  * 🎯 HOOK DE GÉOLOCALISATION INTELLIGENT - UNIFIÉ ET PROFESSIONNEL
  * Système centralisé pour toute la géolocalisation dans Kwenda
+ * 
+ * ✅ FIX: Utilise nativeGeolocationService pour Android/iOS + retry + timeout progressif
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { universalGeolocation, CityConfig } from '@/services/universalGeolocation';
+import { nativeGeolocationService } from '@/services/nativeGeolocationService';
 
 // Types exportés pour compatibilité
 export interface LocationData {
@@ -41,9 +44,9 @@ export interface GeolocationOptions {
   fallbackToDefault?: boolean;
 }
 
-// Cache en mémoire pour la session
+// Cache en mémoire pour la session - réduit à 2 minutes pour fraîcheur
 const locationCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (réduit pour fraîcheur des données)
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
 export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
   const [loading, setLoading] = useState(false);
@@ -96,96 +99,126 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
   }, []);
 
   /**
-   * 📍 Obtenir la position GPS actuelle
+   * 📍 Obtenir la position GPS actuelle avec retry progressif
+   * ✅ Utilise nativeGeolocationService (Capacitor pour mobile, navigator pour web)
    */
   const getCurrentPosition = useCallback(async (opts?: GeolocationOptions): Promise<LocationData> => {
     const cacheKey = 'current-position';
     const cached = locationCache.get(cacheKey);
     
+    // Cache réduit à 2 minutes pour fraîcheur
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log('📍 Position depuis cache');
       return cached.data;
     }
 
     setLoading(true);
     setError(null);
 
-    try {
-      // Essayer GPS d'abord
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error('Géolocalisation non disponible'));
-          return;
-        }
+    // Timeouts progressifs pour retry
+    const timeouts = [15000, 20000, 25000]; // 15s, 20s, 25s
+    let lastError: Error | null = null;
 
-        navigator.geolocation.getCurrentPosition(
-          resolve,
-          reject,
-          {
-            enableHighAccuracy: opts?.enableHighAccuracy ?? true,
-            timeout: opts?.timeout ?? 5000,
-            maximumAge: opts?.maximumAge ?? 30000
-          }
-        );
-      });
+    for (let attempt = 0; attempt < timeouts.length; attempt++) {
+      try {
+        console.log(`📍 Tentative GPS ${attempt + 1}/${timeouts.length} (timeout: ${timeouts[attempt]/1000}s)...`);
+        
+        // ✅ Utiliser nativeGeolocationService (Capacitor + Browser)
+        const position = await nativeGeolocationService.getCurrentPosition({
+          enableHighAccuracy: opts?.enableHighAccuracy ?? true,
+          timeout: timeouts[attempt],
+          maximumAge: opts?.maximumAge ?? 30000
+        });
 
-      const coords = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
+        const coords = {
+          lat: position.lat,
+          lng: position.lng
+        };
 
-      // Détecter le pays correct via les coordonnées
-      const detectedCity = await universalGeolocation.detectUserCity(coords);
-      console.log(`🌍 Ville détectée: ${detectedCity.name} (${detectedCity.countryCode})`);
+        console.log(`✅ GPS réussi:`, coords, `Précision: ±${Math.round(position.accuracy)}m`);
 
-      // Géocodage inverse via Edge Function avec code pays correct
-      const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode-proxy', {
-        body: {
-          query: `${coords.lat},${coords.lng}`,
-          language: 'fr',
-          region: detectedCity.countryCode // CI pour Abidjan, CD pour RDC
-        }
-      });
+        // Détecter le pays correct via les coordonnées
+        const detectedCity = await universalGeolocation.detectUserCity(coords);
+        console.log(`🌍 Ville détectée: ${detectedCity.name} (${detectedCity.countryCode})`);
 
-      if (geocodeError) throw geocodeError;
+        // Géocodage inverse via Edge Function avec code pays correct
+        let formattedAddress = 'Position actuelle';
+        let placeName = 'Ma position';
 
-      const locationData: LocationData = {
-        address: geocodeData?.results?.[0]?.formatted_address || 'Position actuelle',
-        lat: coords.lat,
-        lng: coords.lng,
-        type: 'current',
-        accuracy: position.coords.accuracy,
-        name: geocodeData?.results?.[0]?.name || 'Ma position'
-      };
-
-      locationCache.set(cacheKey, { data: locationData, timestamp: Date.now() });
-      return locationData;
-
-    } catch (gpsError) {
-      console.warn('GPS échoué, fallback IP...', gpsError);
-
-      // Fallback IP si demandé
-      if (opts?.fallbackToIP !== false) {
         try {
-          const city = await universalGeolocation.detectUserCity();
-          const locationData: LocationData = {
-            address: `Centre de ${city.name}`,
-            lat: city.coordinates.lat,
-            lng: city.coordinates.lng,
-            type: 'ip',
-            name: city.name
-          };
-          
-          locationCache.set(cacheKey, { data: locationData, timestamp: Date.now() });
-          return locationData;
-        } catch (ipError) {
-          console.error('IP fallback échoué:', ipError);
+          const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode-proxy', {
+            body: {
+              query: `${coords.lat},${coords.lng}`,
+              language: 'fr',
+              region: detectedCity.countryCode // CI pour Abidjan, CD pour RDC
+            }
+          });
+
+          if (!geocodeError && geocodeData?.results?.[0]) {
+            formattedAddress = geocodeData.results[0].formatted_address || formattedAddress;
+            placeName = geocodeData.results[0].name || placeName;
+          }
+        } catch (geocodeErr) {
+          console.warn('⚠️ Géocodage inverse échoué, utilisation des coordonnées');
+        }
+
+        const locationData: LocationData = {
+          address: formattedAddress,
+          lat: coords.lat,
+          lng: coords.lng,
+          type: 'current',
+          accuracy: position.accuracy,
+          name: placeName
+        };
+
+        locationCache.set(cacheKey, { data: locationData, timestamp: Date.now() });
+        setLoading(false);
+        return locationData;
+
+      } catch (gpsError: any) {
+        console.warn(`❌ Tentative ${attempt + 1} échouée:`, gpsError.message);
+        lastError = gpsError;
+
+        // Si permission refusée, pas de retry
+        if (gpsError.message?.includes('Permission') || gpsError.message?.includes('denied') || gpsError.message?.includes('refusée')) {
+          console.error('🚫 Permission GPS refusée - arrêt des tentatives');
+          break;
+        }
+
+        // Attendre avant retry (sauf dernière tentative)
+        if (attempt < timeouts.length - 1) {
+          console.log(`⏳ Attente 1s avant prochaine tentative...`);
+          await new Promise(r => setTimeout(r, 1000));
         }
       }
-
-      throw new Error('Impossible de déterminer votre position');
-    } finally {
-      setLoading(false);
     }
+
+    // Toutes les tentatives GPS ont échoué - Fallback IP
+    console.warn('🌐 GPS échoué après toutes les tentatives, fallback IP...', lastError?.message);
+
+    if (opts?.fallbackToIP !== false) {
+      try {
+        const city = await universalGeolocation.detectUserCity();
+        const locationData: LocationData = {
+          address: `Centre de ${city.name}`,
+          lat: city.coordinates.lat,
+          lng: city.coordinates.lng,
+          type: 'ip',
+          name: city.name
+        };
+        
+        locationCache.set(cacheKey, { data: locationData, timestamp: Date.now() });
+        setLoading(false);
+        setError('Position approximative (IP)');
+        return locationData;
+      } catch (ipError) {
+        console.error('IP fallback échoué:', ipError);
+      }
+    }
+
+    setLoading(false);
+    setError(lastError?.message || 'Impossible de déterminer votre position');
+    throw new Error(lastError?.message || 'Impossible de déterminer votre position');
   }, []);
 
   /**

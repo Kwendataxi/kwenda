@@ -45,5 +45,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	
+	<!-- ✅ GPS Permissions pour géolocalisation iOS -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Kwenda nécessite votre position pour vous localiser et trouver des chauffeurs proches.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Kwenda nécessite votre position pour le suivi de course en arrière-plan.</string>
+	
+	<!-- ✅ Google Maps API Key pour iOS -->
+	<key>GMSApiKey</key>
+	<string>AIzaSyAvF9fFaNIwFQOvVxgtTiu6POK-Hr9wClk</string>
 </dict>
 </plist>
