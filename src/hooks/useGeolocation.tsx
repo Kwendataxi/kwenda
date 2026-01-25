@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Geolocation, Position } from '@capacitor/geolocation';
 import { useToast } from '@/hooks/use-toast';
 import { CountryService } from '@/services/countryConfig';
+import { nativeGeolocationService } from '@/services/nativeGeolocationService';
 
 interface LocationState {
   latitude: number | null;

@@ -20,6 +20,7 @@ export interface LocationData {
   accuracy?: number;
   name?: string;
   subtitle?: string;
+  confidence?: number;
   contact?: {
     name?: string;
     phone?: string;
@@ -33,6 +34,7 @@ export interface LocationSearchResult extends LocationData {
   isPopular?: boolean;
   relevanceScore?: number;
   distance?: number;
+  confidence?: number;
 }
 
 export interface GeolocationOptions {
@@ -50,7 +52,9 @@ const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
 export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
   const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
   const [currentCity, setCurrentCity] = useState<CityConfig | null>({
     name: 'Kinshasa',
     code: 'KIN',
@@ -168,10 +172,14 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
           lng: coords.lng,
           type: 'current',
           accuracy: position.accuracy,
-          name: placeName
+          name: placeName,
+          confidence: Math.min(100, Math.max(0, 100 - (position.accuracy || 0) / 10))
         };
 
         locationCache.set(cacheKey, { data: locationData, timestamp: Date.now() });
+        setCurrentLocation(locationData);
+        setLoading(false);
+        return locationData;
         setLoading(false);
         return locationData;
 
@@ -242,7 +250,7 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
     }
     abortControllerRef.current = new AbortController();
 
-    setLoading(true);
+    setSearchLoading(true);
     setError(null);
 
     try {
@@ -294,8 +302,8 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
           return {
             id: pred.place_id,
             address: pred.description,
-            lat: city.defaultCoordinates.lat,
-            lng: city.defaultCoordinates.lng,
+            lat: city.coordinates.lat,
+            lng: city.coordinates.lng,
             type: 'google' as const,
             placeId: pred.place_id,
             name: pred.structured_formatting?.main_text || pred.description,
@@ -310,8 +318,8 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
       const remainingResults = predictions.slice(3, 5).map((pred: any, idx: number) => ({
         id: pred.place_id,
         address: pred.description,
-        lat: city.defaultCoordinates.lat,
-        lng: city.defaultCoordinates.lng,
+        lat: city.coordinates.lat,
+        lng: city.coordinates.lng,
         type: 'google' as const,
         placeId: pred.place_id,
         name: pred.structured_formatting?.main_text || pred.description,
@@ -345,7 +353,7 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
         p.name?.toLowerCase().includes(query.toLowerCase())
       ).slice(0, 5);
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   }, [popularPlaces]);
 
@@ -383,16 +391,40 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
     return `${(meters / 1000).toFixed(1)}km`;
   }, []);
 
+  /**
+   * 🧹 Nettoyer les erreurs
+   */
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
     loading,
+    searchLoading,
+    searchResults: [] as LocationSearchResult[], // Pour compatibilité
     error,
     currentCity,
-    currentLocation: null, // Pas de currentLocation dans ce hook (utiliser getCurrentPosition)
+    currentLocation,
+    currentPosition: currentLocation, // Alias pour compatibilité
     source: 'smart_geolocation' as const,
+    lastUpdate: Date.now(), // Pour compatibilité
+    
+    // Propriétés de position pour compatibilité avec useGeolocation
+    latitude: currentLocation?.lat || currentCity?.coordinates?.lat || -4.3276,
+    longitude: currentLocation?.lng || currentCity?.coordinates?.lng || 15.3136,
+    accuracy: currentLocation?.accuracy || 0,
+    isRealGPS: currentLocation?.type === 'current' || currentLocation?.type === 'gps',
+    
+    // Actions
     getCurrentPosition,
     searchLocations,
     getPopularPlaces,
     calculateDistance,
-    formatDistance
+    formatDistance,
+    clearError,
+    
+    // Aliases pour compatibilité
+    requestLocation: getCurrentPosition,
+    forceRefreshPosition: getCurrentPosition
   };
 };

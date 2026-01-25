@@ -54,15 +54,27 @@ async function checkRateLimit(rateLimitId: string, isIpBased: boolean): Promise<
 
     // Reset if expired or first request
     if (!existingLimit || new Date(existingLimit.reset_at) < now) {
-      const { error: upsertError } = await supabase.from('api_rate_limits').upsert({
-        user_id: userId,
-        endpoint: RATE_LIMIT_ENDPOINT,
-        request_count: 1,
-        reset_at: resetTime.toISOString()
-      })
-      
-      if (upsertError) {
-        console.error('Rate limit upsert error:', upsertError);
+      try {
+        const { error: upsertError } = await supabase.from('api_rate_limits').upsert(
+          {
+            user_id: userId,
+            endpoint: RATE_LIMIT_ENDPOINT,
+            request_count: 1,
+            reset_at: resetTime.toISOString()
+          },
+          {
+            onConflict: 'user_id,endpoint',
+            ignoreDuplicates: false
+          }
+        );
+        
+        if (upsertError) {
+          console.error('Rate limit upsert error:', upsertError);
+          // Ne pas bloquer en cas d'erreur upsert
+        }
+      } catch (upsertCatchError) {
+        console.error('Rate limit upsert catch error:', upsertCatchError);
+        // Continuer malgré l'erreur
       }
       return { allowed: true, remaining: MAX_REQUESTS_PER_HOUR - 1 }
     }

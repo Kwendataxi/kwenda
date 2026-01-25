@@ -468,7 +468,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
                 : parseInt(source.match(/\d+/)?.[0] || '0') <= 150
                   ? 'bg-amber-500/15 text-amber-600 border-amber-200/50 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-700/30'
                   : 'bg-orange-500/15 text-orange-600 border-orange-200/50 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-700/30'
-              : source === 'IP' 
+              : String(source)?.includes('IP') || String(source)?.includes('ip') || String(source)?.includes('smart')
                 ? 'bg-slate-500/15 text-slate-500 border-slate-200/50 dark:bg-slate-500/20 dark:text-slate-400 dark:border-slate-700/30'
                 : 'bg-muted text-muted-foreground border-border/30'
             }

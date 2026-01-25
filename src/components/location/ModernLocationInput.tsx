@@ -74,12 +74,16 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
       return;
     }
 
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       setIsSearching(true);
-      searchLocations(query, (results) => {
+      try {
+        const results = await searchLocations(query);
         setSuggestions(results);
+      } catch (err) {
+        console.error('Search error:', err);
+      } finally {
         setIsSearching(false);
-      });
+      }
     }, 300);
 
     return () => clearTimeout(timer);
