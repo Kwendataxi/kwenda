@@ -84,7 +84,13 @@ class GoogleMapsLoaderService {
         return this.getApiKey();
       }
       
-      throw new Error('Unable to load Google Maps API key after multiple attempts');
+      // 🆘 FALLBACK: Utiliser la clé API en dur si Edge Function échoue
+      // Cette clé est restreinte par domaine dans Google Cloud Console
+      const FALLBACK_API_KEY = 'AIzaSyAOlkwFPy5ivwyW_FV6BusyUkz0zEp4Gkc';
+      console.warn('⚠️ Using fallback Google Maps API key');
+      this.apiKey = FALLBACK_API_KEY;
+      this.retryCount = 0;
+      return FALLBACK_API_KEY;
     }
   }
 

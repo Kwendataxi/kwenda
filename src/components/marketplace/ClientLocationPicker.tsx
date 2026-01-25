@@ -32,7 +32,7 @@ export const ClientLocationPicker: React.FC<ClientLocationPickerProps> = ({
   const { getCurrentPosition } = useSmartGeolocation();
   const { reverseGeocode, isLoading: geocodeLoading } = useOptimizedGeocoding();
 
-  // Charger la clé API Google Maps
+  // Charger la clé API Google Maps avec fallback
   useEffect(() => {
     const loadApiKey = async () => {
       try {
@@ -40,6 +40,8 @@ export const ClientLocationPicker: React.FC<ClientLocationPickerProps> = ({
         setApiKey(key);
       } catch (error) {
         console.error('Erreur chargement clé Google Maps:', error);
+        // Fallback avec clé web en dur
+        setApiKey('AIzaSyAOlkwFPy5ivwyW_FV6BusyUkz0zEp4Gkc');
       }
     };
     loadApiKey();
