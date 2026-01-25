@@ -1,373 +1,254 @@
 
-# Correction Erreur Interne + Geolocalisation Web/Mobile
+# Correction Complete du Systeme de Localisation et Dispatching
 
 ## Problemes Identifies
 
-### 1. Erreur Interne (complete-ride-with-commission)
+| Probleme | Cause | Impact |
+|----------|-------|--------|
+| **Carte grise / erreur Maps** | Edge Function `get-google-maps-key` echoue avec erreur "duplicate key constraint" sur `api_rate_limits` | La cle API ne retourne pas, Maps ne charge pas |
+| **GPS Mobile ne fonctionne pas** | Deux fichiers `useSmartGeolocation.ts` et `.tsx` en conflit, le bundler peut importer le mauvais | Comportement imprevisible du GPS |
+| **useGeolocation.tsx independant** | Ce fichier a sa propre logique Capacitor au lieu de deleguer a `nativeGeolocationService` | Incoherence entre composants |
+| **Crash ClientApp.tsx** | Echec import dynamique, probablement lie aux erreurs Maps en cascade | Application ne charge pas |
 
-**Cause**: L'Edge Function tente de mettre a jour des colonnes qui **n'existent pas** dans la table `transport_bookings`:
+---
 
-| Colonne Utilisee | Existe ? |
-|------------------|----------|
-| `commission_status` | **NON** |
-| `commission_amount` | **NON** |
-| `commission_paid_at` | **NON** |
+## Solution 1 : Corriger get-google-maps-key (Rate Limit)
 
-Les colonnes reelles de `transport_bookings` sont: `id`, `user_id`, `pickup_location`, `destination`, `status`, `driver_id`, `estimated_price`, `actual_price`, `completed_at`, etc.
+**Fichier** : `supabase/functions/get-google-maps-key/index.ts`
 
-**Code fautif** (lignes 273-285 de `complete-ride-with-commission/index.ts`):
+Le probleme est dans la fonction `checkRateLimit` qui utilise `.upsert()` sans gerer correctement le conflit.
+
 ```typescript
-await supabase
-  .from(tableName)
-  .update({
-    status: 'completed',
-    commission_status: paymentStatus,        // ❌ COLONNE INEXISTANTE
-    commission_amount: commissionAmount,     // ❌ COLONNE INEXISTANTE
-    commission_paid_at: ...,                 // ❌ COLONNE INEXISTANTE
-    completed_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  })
-  .eq('id', rideId);
+// AVANT (ligne 57)
+const { error: upsertError } = await supabase.from('api_rate_limits').upsert({
+  user_id: userId,
+  endpoint: RATE_LIMIT_ENDPOINT,
+  request_count: 1,
+  reset_at: resetTime.toISOString()
+})
+
+// APRES - Ajouter onConflict explicite
+const { error: upsertError } = await supabase.from('api_rate_limits').upsert({
+  user_id: userId,
+  endpoint: RATE_LIMIT_ENDPOINT,
+  request_count: 1,
+  reset_at: resetTime.toISOString()
+}, {
+  onConflict: 'user_id,endpoint',       // Specifier les colonnes de conflit
+  ignoreDuplicates: false               // Mettre a jour en cas de conflit
+})
 ```
 
-De plus, la table `ride_commissions` attend des colonnes specifiques:
-- `kwenda_commission` (pas `commission_amount`)
-- `kwenda_rate` (pas `commission_rate`)
-- `partner_commission`
-- `partner_rate`
-- `partner_id`
+De plus, envelopper l'upsert dans un try-catch pour ne pas bloquer si le rate limit echoue.
 
 ---
 
-### 2. Erreurs PostgreSQL Repetees
+## Solution 2 : Fusionner les fichiers useSmartGeolocation
 
-Les logs PostgreSQL montrent:
-```
-ERROR: invalid column for filter user_id
-```
+**Probleme** : Deux fichiers existent :
+- `src/hooks/useSmartGeolocation.ts` (1056 lignes)
+- `src/hooks/useSmartGeolocation.tsx` (398 lignes)
 
-Cela indique des requetes Realtime mal configurees quelque part.
+**Action** :
+1. Supprimer `src/hooks/useSmartGeolocation.ts` (ancienne version)
+2. Renommer `useSmartGeolocation.tsx` en `useSmartGeolocation.ts`
+3. S'assurer que tous les imports pointent vers le bon fichier
+
+Le fichier `.tsx` est la version correcte car elle :
+- Utilise `nativeGeolocationService` (ligne 11)
+- A le retry progressif avec timeouts de 15s/20s/25s
+- A le cache TTL de 2 minutes
 
 ---
 
-### 3. Geolocalisation Web Ne Fonctionne Plus
+## Solution 3 : Simplifier useGeolocation.tsx
 
-**Problemes identifies dans `useSmartGeolocation.tsx`**:
+**Fichier** : `src/hooks/useGeolocation.tsx` (490 lignes)
 
-1. **Timeout trop court** (5 secondes - ligne 125)
-2. **Pas d'utilisation de nativeGeolocationService** pour mobile
-3. **Cache trop long** (5 minutes - empeche la mise a jour de position)
-4. **Pas de systeme de retry** en cas d'echec GPS
+Ce fichier a sa propre implementation Capacitor au lieu d'utiliser le service centralise.
 
-**Code actuel** (ligne 114-129):
+**Modifier pour deleguer a nativeGeolocationService** :
+
 ```typescript
-const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-  if (!navigator.geolocation) {
-    reject(new Error('Géolocalisation non disponible'));
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(resolve, reject, {
-    enableHighAccuracy: opts?.enableHighAccuracy ?? true,
-    timeout: opts?.timeout ?? 5000,  // ❌ TROP COURT
-    maximumAge: opts?.maximumAge ?? 30000
-  });
-});
-```
+// AVANT (ligne 124-159) - Logique Capacitor dupliquee
+if (isCapacitorAvailable()) {
+  position = await Geolocation.getCurrentPosition({...});
+} else {
+  const browserPosition = await getBrowserLocation({...});
+  position = {...};
+}
 
----
-
-### 4. GPS Mobile (Android/iOS) Ne Fonctionne Pas
-
-**Cause**: Le hook `useSmartGeolocation` utilise directement `navigator.geolocation` au lieu de `nativeGeolocationService` qui gere automatiquement Capacitor.
-
-Le `nativeGeolocationService.ts` est deja bien configure avec:
-- Detection automatique Web vs Native via `Capacitor.isNativePlatform()`
-- Gestion des permissions Android/iOS
-- Fallback sur navigateur pour le web
-
-Mais **useSmartGeolocation ne l'utilise pas** !
-
----
-
-### 5. Cle API Web Manquante
-
-Le fichier `DeliveryMapPreview.tsx` utilise une variable d'environnement inexistante:
-```typescript
-script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}...`
-```
-
-`VITE_GOOGLE_MAPS_API_KEY` n'existe pas dans le projet. Le systeme devrait utiliser `googleMapsLoader.getApiKey()` qui recupere la cle depuis l'Edge Function.
-
----
-
-### 6. Configuration Android
-
-Le `AndroidManifest.xml` a deja la cle API Android:
-```xml
-<meta-data
-    android:name="com.google.android.geo.API_KEY"
-    android:value="AIzaSyBlyaBgTzhJZKZTT1xhqhiZy62lFrmyodw"/>
-```
-
-**Mais il manque les permissions GPS**! Il faut ajouter:
-```xml
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-```
-
----
-
-### 7. Configuration iOS
-
-Le `Info.plist` ne contient **aucune cle API Google Maps ni permission GPS**.
-
-Il faut ajouter:
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>Kwenda necessite votre position pour vous localiser et trouver des chauffeurs proches.</string>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>Kwenda necessite votre position pour le suivi de course en arriere-plan.</string>
-```
-
----
-
-## Plan de Correction
-
-### Etape 1: Corriger l'Edge Function complete-ride-with-commission
-
-**Fichier**: `supabase/functions/complete-ride-with-commission/index.ts`
-
-Retirer les colonnes inexistantes de l'update `transport_bookings`:
-```typescript
-// AVANT (colonnes inexistantes)
-await supabase.from(tableName).update({
-  status: 'completed',
-  commission_status: paymentStatus,     // ❌
-  commission_amount: commissionAmount,  // ❌
-  commission_paid_at: ...,              // ❌
-  completed_at: new Date().toISOString()
-}).eq('id', rideId);
-
-// APRES (colonnes valides seulement)
-await supabase.from(tableName).update({
-  status: 'completed',
-  completed_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-}).eq('id', rideId);
-```
-
-Corriger l'insertion dans `ride_commissions` avec les vraies colonnes:
-```typescript
-await supabase.from('ride_commissions').insert({
-  ride_id: rideId,
-  ride_type: rideType,
-  driver_id: driverId,
-  partner_id: partnerId || null,
-  ride_amount: finalAmount,
-  kwenda_commission: kwendaCommission,  // ✅ Colonne correcte
-  kwenda_rate: kwendaRate,              // ✅ Colonne correcte
-  partner_commission: partnerCommission,// ✅ Colonne correcte
-  partner_rate: partnerRate,            // ✅ Colonne correcte
-  driver_net_amount: driverNetAmount,
-  payment_status: paymentStatus,
-  paid_at: paymentStatus === 'paid' ? new Date().toISOString() : null
-});
-```
-
----
-
-### Etape 2: Corriger useSmartGeolocation pour Mobile + Web
-
-**Fichier**: `src/hooks/useSmartGeolocation.tsx`
-
-1. Importer et utiliser `nativeGeolocationService`:
-```typescript
+// APRES - Utiliser le service centralise
 import { nativeGeolocationService } from '@/services/nativeGeolocationService';
-```
 
-2. Remplacer le bloc GPS (lignes 112-129):
-```typescript
-const getCurrentPosition = useCallback(async (opts?: GeolocationOptions): Promise<LocationData> => {
-  const cacheKey = 'current-position';
-  const cached = locationCache.get(cacheKey);
+// Dans getCurrentPosition
+const hasPermission = await nativeGeolocationService.ensurePermissions();
+if (!hasPermission) throw new Error('PERMISSION_DENIED');
 
-  // Cache reduit a 2 minutes pour fraicheur
-  if (cached && Date.now() - cached.timestamp < 2 * 60 * 1000) {
-    console.log('📍 Position depuis cache');
-    return cached.data;
-  }
+const nativePos = await nativeGeolocationService.getCurrentPosition({
+  enableHighAccuracy: true,
+  timeout: 30000,
+  maximumAge: forceRefresh ? 0 : 60000
+});
 
-  setLoading(true);
-  setError(null);
-
-  // Retry avec timeouts progressifs
-  const timeouts = [15000, 20000, 25000];
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt < timeouts.length; attempt++) {
-    try {
-      console.log(`📍 Tentative GPS ${attempt + 1}/${timeouts.length}...`);
-
-      // ✅ Utiliser nativeGeolocationService (Capacitor + Browser)
-      const position = await nativeGeolocationService.getCurrentPosition({
-        enableHighAccuracy: opts?.enableHighAccuracy ?? true,
-        timeout: timeouts[attempt],
-        maximumAge: opts?.maximumAge ?? 30000
-      });
-
-      const coords = { lat: position.lat, lng: position.lng };
-      console.log(`✅ GPS reussi:`, coords, `Precision: ±${Math.round(position.accuracy)}m`);
-
-      // Detecter la ville
-      const detectedCity = await universalGeolocation.detectUserCity(coords);
-
-      // Geocodage inverse
-      const { data: geocodeData } = await supabase.functions.invoke('geocode-proxy', {
-        body: {
-          query: `${coords.lat},${coords.lng}`,
-          language: 'fr',
-          region: detectedCity.countryCode
-        }
-      });
-
-      const locationData: LocationData = {
-        address: geocodeData?.results?.[0]?.formatted_address || 'Position actuelle',
-        lat: coords.lat,
-        lng: coords.lng,
-        type: 'current',
-        accuracy: position.accuracy,
-        name: geocodeData?.results?.[0]?.name || 'Ma position'
-      };
-
-      locationCache.set(cacheKey, { data: locationData, timestamp: Date.now() });
-      setLoading(false);
-      return locationData;
-
-    } catch (gpsError: any) {
-      console.warn(`❌ Tentative ${attempt + 1} echouee:`, gpsError.message);
-      lastError = gpsError;
-
-      // Si permission refusee, pas de retry
-      if (gpsError.message?.includes('Permission') || gpsError.message?.includes('denied')) {
-        break;
-      }
-
-      // Attendre avant retry
-      if (attempt < timeouts.length - 1) {
-        await new Promise(r => setTimeout(r, 1000));
-      }
-    }
-  }
-
-  // Fallback IP si tout echoue
-  console.warn('GPS echoue, fallback IP...', lastError);
-  // ... code fallback existant
-}, []);
+const position = {
+  coords: {
+    latitude: nativePos.lat,
+    longitude: nativePos.lng,
+    accuracy: nativePos.accuracy
+  },
+  timestamp: nativePos.timestamp
+} as GeolocationPosition;
 ```
 
 ---
 
-### Etape 3: Corriger DeliveryMapPreview (cle API)
+## Solution 4 : Ajouter fallback cle API en dur (secours)
 
-**Fichier**: `src/components/delivery/DeliveryMapPreview.tsx`
-
-Remplacer l'utilisation de `VITE_GOOGLE_MAPS_API_KEY` par `googleMapsLoader`:
+Pour eviter que l'application soit completement bloquee si l'Edge Function echoue, ajouter un fallback dans `googleMapsLoader.ts`:
 
 ```typescript
-import { googleMapsLoader } from '@/services/googleMapsLoader';
+// Dans getApiKey() apres tous les retries
+async getApiKey(): Promise<string> {
+  if (this.apiKey) {
+    return this.apiKey;
+  }
 
+  try {
+    // Code existant pour fetch depuis Supabase...
+  } catch (error) {
+    console.error('Failed to fetch API key from Supabase');
+    
+    // FALLBACK de secours si Edge Function echoue
+    // Note: Cette cle est restreinte par domaine dans Google Cloud Console
+    const FALLBACK_API_KEY = 'AIzaSyAOlkwFPy5ivwyW_FV6BusyUkz0zEp4Gkc';
+    console.warn('Using fallback Google Maps API key');
+    this.apiKey = FALLBACK_API_KEY;
+    return FALLBACK_API_KEY;
+  }
+}
+```
+
+---
+
+## Solution 5 : Corriger ClientLocationPicker (Google Maps)
+
+**Fichier** : `src/components/marketplace/ClientLocationPicker.tsx`
+
+Ce composant attend que `apiKey` soit charge avant de rendre la carte. Mais si la fonction echoue, il reste bloque en loading.
+
+```typescript
+// APRES ligne 45 - Ajouter fallback si echec
 useEffect(() => {
-  const loadGoogleMaps = async () => {
+  const loadApiKey = async () => {
     try {
-      // Utiliser le loader unifie
-      await googleMapsLoader.load(['places', 'geometry']);
-      initMap();
+      const key = await googleMapsLoader.getApiKey();
+      setApiKey(key);
     } catch (error) {
-      console.error('Erreur chargement carte:', error);
-      setMapError('Impossible de charger la carte');
+      console.error('Erreur chargement cle Google Maps:', error);
+      // Fallback avec cle web
+      setApiKey('AIzaSyAOlkwFPy5ivwyW_FV6BusyUkz0zEp4Gkc');
     }
   };
-  // ...
+  loadApiKey();
 }, []);
 ```
 
 ---
 
-### Etape 4: Ajouter les permissions GPS Android
+## Solution 6 : Dispatcher - Verifier les permissions de la fonction RPC
 
-**Fichier**: `android/app/src/main/AndroidManifest.xml`
+Les Edge Functions `ride-dispatcher` et `delivery-dispatcher` utilisent `find_nearby_drivers` RPC.
 
-Ajouter avant `</manifest>`:
-```xml
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-```
+Verifier que cette fonction PostgreSQL existe et retourne les bons champs. Si elle retourne 0 chauffeurs, le dispatch echouera.
 
----
-
-### Etape 5: Ajouter les permissions GPS iOS
-
-**Fichier**: `ios/App/App/Info.plist`
-
-Ajouter dans `<dict>`:
-```xml
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>Kwenda necessite votre position pour vous localiser et trouver des chauffeurs proches.</string>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>Kwenda necessite votre position pour le suivi de course en arriere-plan.</string>
-<key>GMSApiKey</key>
-<string>AIzaSyAvF9fFaNIwFQOvVxgtTiu6POK-Hr9wClk</string>
-```
+Le dispatching lui-meme semble correct d'apres le code analyse. Le probleme est probablement que les chauffeurs n'ont pas de positions mises a jour dans `driver_locations` car le GPS ne fonctionne pas.
 
 ---
 
 ## Resume des Fichiers a Modifier
 
-| Fichier | Modification |
-|---------|--------------|
-| `supabase/functions/complete-ride-with-commission/index.ts` | Retirer colonnes inexistantes, corriger ride_commissions |
-| `src/hooks/useSmartGeolocation.tsx` | Utiliser nativeGeolocationService, retry, timeout |
-| `src/components/delivery/DeliveryMapPreview.tsx` | Utiliser googleMapsLoader au lieu de VITE_* |
-| `android/app/src/main/AndroidManifest.xml` | Ajouter permissions GPS |
-| `ios/App/App/Info.plist` | Ajouter permissions GPS + cle API iOS |
+| Fichier | Action |
+|---------|--------|
+| `supabase/functions/get-google-maps-key/index.ts` | Corriger upsert avec onConflict explicite |
+| `src/hooks/useSmartGeolocation.ts` | **SUPPRIMER** (ancien fichier) |
+| `src/hooks/useSmartGeolocation.tsx` | Renommer en `.ts` et conserver comme hook principal |
+| `src/hooks/useGeolocation.tsx` | Deleguer a nativeGeolocationService |
+| `src/services/googleMapsLoader.ts` | Ajouter fallback cle API |
+| `src/components/marketplace/ClientLocationPicker.tsx` | Ajouter fallback cle API |
 
 ---
 
-## Flux GPS Corrige
+## Flux Corrige
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  DEMANDE POSITION GPS                                                       │
+│  CHARGEMENT GOOGLE MAPS                                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  1. Verifier cache (< 2 min) → Si OK, retourner cache                       │
+│  1. googleMapsLoader.getApiKey()                                            │
+│     ├─ Appel Edge Function get-google-maps-key                              │
+│     ├─ Rate limit gere avec onConflict correct                              │
+│     ├─ ✅ Succes → Retourne cle API depuis Supabase secrets                 │
+│     └─ ❌ Echec → Utilise cle fallback hardcodee                            │
 │                                                                             │
-│  2. nativeGeolocationService detecte la plateforme:                         │
-│     ├─ Android/iOS → @capacitor/geolocation (GPS hardware)                  │
-│     └─ Web → navigator.geolocation (browser API)                            │
+│  2. Injection script Google Maps avec cle                                   │
 │                                                                             │
-│  3. Tentative GPS avec retry progressif                                     │
-│     ├─ Tentative 1: timeout 15s                                             │
-│     ├─ Tentative 2: timeout 20s                                             │
-│     └─ Tentative 3: timeout 25s                                             │
+│  3. Attente google.maps.Map soit un constructeur valide                     │
 │                                                                             │
-│  4. Si tout echoue → Fallback IP geolocation                                │
+│  4. ✅ Carte prete                                                          │
 │                                                                             │
-│  5. Geocodage inverse via geocode-proxy Edge Function                       │
-│     └─ Retourne adresse lisible + coordonnees                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  GEOLOCALISATION UNIFIEE                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. useSmartGeolocation (hook unique .ts)                                   │
+│     └─ Appelle nativeGeolocationService                                     │
+│                                                                             │
+│  2. nativeGeolocationService detecte la plateforme                          │
+│     ├─ Web → navigator.geolocation                                          │
+│     └─ Mobile → @capacitor/geolocation                                      │
+│                                                                             │
+│  3. Retry progressif: 15s → 20s → 25s                                       │
+│                                                                             │
+│  4. Fallback IP si tout echoue                                              │
+│                                                                             │
+│  5. Geocodage inverse via geocode-proxy                                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Cles API Configurees
+## Cles API Utilisees
 
-| Plateforme | Cle API | Usage |
-|------------|---------|-------|
-| **Web** | `AIzaSyAOlkwFPy5ivwyW_FV6BusyUkz0zEp4Gkc` | Edge Functions (GOOGLE_MAPS_API_KEY secret) |
-| **Android** | `AIzaSyBlyaBgTzhJZKZTT1xhqhiZy62lFrmyodw` | AndroidManifest.xml (deja configure) |
-| **iOS** | `AIzaSyAvF9fFaNIwFQOvVxgtTiu6POK-Hr9wClk` | Info.plist (a ajouter) |
+| Plateforme | Cle | Configuration |
+|------------|-----|---------------|
+| **Web (Supabase secret)** | `AIzaSyAOlkwFPy5ivwyW_FV6BusyUkz0zEp4Gkc` | GOOGLE_MAPS_API_KEY ✅ |
+| **Android (AndroidManifest.xml)** | `AIzaSyBlyaBgTzhJZKZTT1xhqhiZy62lFrmyodw` | ✅ |
+| **iOS (Info.plist)** | `AIzaSyAvF9fFaNIwFQOvVxgtTiu6POK-Hr9wClk` | A verifier |
 
-**Note**: Le secret Supabase `GOOGLE_MAPS_API_KEY` doit contenir la cle Web pour que les Edge Functions fonctionnent. Il faudra verifier que la valeur actuelle correspond a `AIzaSyAOlkwFPy5ivwyW_FV6BusyUkz0zEp4Gkc`.
+---
+
+## Checklist Dispatching
+
+Le dispatching (taxi et livraison) depend du GPS fonctionnel :
+
+1. **Chauffeurs** : Doivent avoir leur position mise a jour dans `driver_locations` via `useDriverLocation.ts`
+2. **RPC `find_nearby_drivers`** : Cherche les chauffeurs proches avec `is_online=true` et `is_available=true`
+3. **Si GPS KO** : Les chauffeurs n'ont pas de positions recentes → dispatch retourne 0 resultats
+
+Une fois le GPS corrige, le dispatching devrait fonctionner automatiquement.
+
+---
+
+## Ordre d'Execution
+
+1. **Corriger get-google-maps-key** (resolution erreur Maps immediate)
+2. **Supprimer useSmartGeolocation.ts duplique** (eviter conflits imports)
+3. **Mettre a jour useGeolocation.tsx** (coherence GPS)
+4. **Ajouter fallbacks cle API** (resilience)
+5. **Redeployer get-google-maps-key** (activation correction)
+6. **Tester sur mobile avec build fraiche** (`npx cap sync` + rebuild)
