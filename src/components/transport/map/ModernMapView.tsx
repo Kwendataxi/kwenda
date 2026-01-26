@@ -294,20 +294,18 @@ export default function ModernMapView({
         const { googleMapsLoader } = await import('@/services/googleMapsLoader');
         const mapId = googleMapsLoader.getMapId();
         
-        if (!mapId) {
-          console.error('❌ Map ID not available');
-          toast({
-            title: "Configuration manquante",
-            description: "Map ID non configuré. Veuillez ajouter GOOGLE_MAPS_MAP_ID dans les secrets.",
-            variant: "destructive"
-          });
-          return;
+        // ✅ Map ID est OPTIONNEL - valider le format
+        const validMapId = (mapId && !mapId.startsWith('AIza')) ? mapId : undefined;
+        
+        if (!validMapId) {
+          console.warn('⚠️ Map ID absent ou invalide - utilisation des marqueurs classiques');
+        } else {
+          console.log('✅ Using valid Map ID:', validMapId);
         }
 
-        console.log('✅ Using Map ID:', mapId);
-
         const map = new google.maps.Map(mapRef.current!, {
-          mapId: mapId, // ✅ CRITIQUE pour AdvancedMarkerElement
+          // ✅ Map ID conditionnel - fonctionne sans
+          ...(validMapId && { mapId: validMapId }),
           center: defaultCenter,
           zoom: userLocation ? 15 : pickup ? 14 : 13,
           mapTypeControl: false,

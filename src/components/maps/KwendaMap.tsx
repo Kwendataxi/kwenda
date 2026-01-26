@@ -66,13 +66,11 @@ export default function KwendaMap({
         const { googleMapsLoader } = await import('@/services/googleMapsLoader');
         const mapId = googleMapsLoader.getMapId();
         
-        if (!mapId) {
-          toast({
-            title: "Configuration manquante",
-            description: "Map ID non configuré",
-            variant: "destructive"
-          });
-          return;
+        // ✅ Map ID est OPTIONNEL - valider le format
+        const validMapId = (mapId && !mapId.startsWith('AIza')) ? mapId : undefined;
+        
+        if (!validMapId) {
+          console.warn('⚠️ Map ID absent ou invalide - utilisation des marqueurs classiques');
         }
 
         const defaultCenter = userLocation 
@@ -82,7 +80,8 @@ export default function KwendaMap({
           : { lat: -4.3217, lng: 15.3069 };
 
         const map = new google.maps.Map(mapRef.current!, {
-          mapId: mapId,
+          // ✅ Map ID conditionnel - fonctionne sans
+          ...(validMapId && { mapId: validMapId }),
           center: defaultCenter,
           zoom: userLocation ? 15 : pickup ? 14 : 13,
           mapTypeControl: false,

@@ -170,18 +170,30 @@ serve(async (req) => {
       throw new Error('Google Maps API key not configured')
     }
 
-    if (!googleMapsMapId) {
-      console.error('❌ GOOGLE_MAPS_MAP_ID not found in environment variables')
-      throw new Error('Google Maps Map ID not configured')
+    // ✅ Map ID est OPTIONNEL - valider le format (ne doit pas être une clé API)
+    let validMapId: string | null = null;
+    if (googleMapsMapId) {
+      // Un Map ID valide ne commence PAS par "AIza" (c'est une clé API)
+      if (googleMapsMapId.startsWith('AIza')) {
+        console.warn('⚠️ GOOGLE_MAPS_MAP_ID contient une clé API au lieu d\'un Map ID valide');
+        console.warn('⚠️ Un Map ID ressemble à "8e0a97af9386fef" ou "DEMO_MAP_ID"');
+        validMapId = null;
+      } else {
+        validMapId = googleMapsMapId;
+      }
+    } else {
+      console.warn('⚠️ GOOGLE_MAPS_MAP_ID non configuré - fonctionnement sans Map ID');
     }
 
     console.log('✅ Google Maps API key found:', googleMapsApiKey.substring(0, 10) + '...')
-    console.log('✅ Google Maps Map ID found:', googleMapsMapId)
+    console.log(validMapId 
+      ? `✅ Google Maps Map ID valide: ${validMapId}` 
+      : '⚠️ Pas de Map ID valide - utilisation des marqueurs classiques');
     
     return new Response(
       JSON.stringify({ 
         apiKey: googleMapsApiKey,
-        mapId: googleMapsMapId,
+        mapId: validMapId,  // Peut être null
         requestsRemaining: rateLimitCheck.remaining,
         authenticated: isAuthenticated
       }),
