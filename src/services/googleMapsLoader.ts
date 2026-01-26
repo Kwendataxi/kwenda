@@ -62,15 +62,26 @@ class GoogleMapsLoaderService {
         throw new Error('No API key returned');
       }
 
-      // MapId est optionnel - utiliser une valeur par défaut si absent
-      const mapId = data?.mapId || 'DEMO_MAP_ID';
+      // ✅ Map ID est OPTIONNEL - valider le format
+      let validMapId: string | null = null;
+      if (data?.mapId) {
+        // Un Map ID valide ne commence PAS par "AIza" (c'est une clé API)
+        if (data.mapId.startsWith('AIza')) {
+          console.warn('⚠️ mapId reçu est une clé API, ignoré');
+          validMapId = null;
+        } else {
+          validMapId = data.mapId;
+        }
+      }
       
       console.log('✅ Google Maps API key received:', data.apiKey.substring(0, 15) + '...');
-      console.log('✅ Google Maps Map ID received:', mapId);
+      console.log(validMapId 
+        ? `✅ Google Maps Map ID valide: ${validMapId}` 
+        : '⚠️ Pas de Map ID valide - marqueurs classiques');
       console.log('✅ Auth mode:', data.authenticated ? 'authenticated' : 'ip-based');
       
       this.apiKey = data.apiKey;
-      this.mapId = mapId;
+      this.mapId = validMapId;  // Peut être null
       return this.apiKey;
     } catch (error) {
       console.error('❌ Failed to fetch Google Maps API key:', error);
