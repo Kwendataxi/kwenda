@@ -1,12 +1,11 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * 📱 CAPACITOR CONFIGURATION - KWENDA SUPER APP
+ * Configuration Capacitor - Kwenda Super App
  * 
- * Application unique multi-rôles : Client, Chauffeur, Partenaire
+ * Application multi-rôles : Client, Chauffeur, Partenaire
  * L'utilisateur bascule entre les espaces depuis l'app
  * 
- * Pour le développement avec hot-reload, décommentez server.url
  * En production, le bundle local (dist/) est utilisé
  */
 const config: CapacitorConfig = {
@@ -14,9 +13,9 @@ const config: CapacitorConfig = {
   appName: 'Kwenda',
   webDir: 'dist',
   
-  // 🔧 DEVELOPMENT: Décommenter pour hot-reload
+  // Pour le développement avec hot-reload, configurer l'IP locale
   // server: {
-  //   url: "https://e825ab56-72bd-4bca-b104-8ec14fdf48d8.lovableproject.com?forceHideBadge=true",
+  //   url: "http://192.168.x.x:8080",
   //   cleartext: true
   // },
   

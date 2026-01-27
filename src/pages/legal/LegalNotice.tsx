@@ -32,7 +32,7 @@ const LegalNotice = () => {
       content: [
         { label: "Propulsé par", value: "ITEC SARLU", link: "https://itec-sarlu.com" },
         { label: "Hébergement base de données", value: "Supabase (États-Unis)" },
-        { label: "Hébergement frontend", value: "Lovable (Edge Network)" },
+        { label: "Hébergement frontend", value: "Infrastructure Cloud Kwenda (CDN Global)" },
         { label: "Services cartographiques", value: "Google Maps API, Mapbox" }
       ]
     }
