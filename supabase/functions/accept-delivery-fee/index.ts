@@ -16,9 +16,39 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Validate JWT from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Non authentifié - Veuillez vous reconnecter' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !authUser) {
+      console.error('Auth validation failed:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Session expirée - Veuillez vous reconnecter' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { orderId, buyerId, deliveryFeePaymentMethod = 'wallet' } = await req.json();
 
-    console.log('💰 Buyer accepting delivery fees:', { orderId, buyerId });
+    // Verify that the authenticated user matches the buyerId
+    if (authUser.id !== buyerId) {
+      console.error('User mismatch:', { authUserId: authUser.id, buyerId });
+      return new Response(
+        JSON.stringify({ error: 'Vous ne pouvez accepter que vos propres commandes' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Buyer accepting delivery fees:', { orderId, buyerId, authUserId: authUser.id });
 
     // Récupérer la commande
     const { data: order, error: orderError } = await supabase
@@ -28,15 +58,28 @@ serve(async (req) => {
       .single();
 
     if (orderError || !order) {
-      throw new Error('Commande introuvable');
+      console.error('Order not found:', orderError);
+      return new Response(
+        JSON.stringify({ error: 'Commande introuvable' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
+    // Double-check buyer ownership
     if (order.buyer_id !== buyerId) {
-      throw new Error('Accès non autorisé');
+      console.error('Order ownership mismatch:', { orderBuyerId: order.buyer_id, requestBuyerId: buyerId });
+      return new Response(
+        JSON.stringify({ error: 'Cette commande appartient à un autre utilisateur' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (order.status !== 'pending_buyer_approval') {
-      throw new Error(`Impossible d'accepter: commande en statut ${order.status}`);
+      console.error('Invalid order status:', order.status);
+      return new Response(
+        JSON.stringify({ error: `Impossible d'accepter: la commande est en statut "${order.status}"` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // 1. Créer escrow PRODUIT (montant HT livraison)
@@ -84,52 +127,55 @@ serve(async (req) => {
         .eq('user_id', buyerId)
         .single();
 
-      if (walletError || !wallet) throw new Error('Portefeuille introuvable');
-
-      const bonusBalance = Number(wallet.bonus_balance || 0);
-      const mainBalance = Number(wallet.balance || 0);
-      const totalBalance = bonusBalance + mainBalance;
-
-      // Si solde insuffisant, basculer automatiquement en cash
-      if (totalBalance < deliveryFee) {
-        console.log('💵 Solde insuffisant, bascule automatique vers cash:', { totalBalance, deliveryFee });
+      if (walletError || !wallet) {
+        console.warn('Wallet not found, switching to cash:', walletError);
         actualPaymentMethod = 'cash_on_delivery';
       } else {
-        // Priorité : bonus si couvre 100%, sinon balance principal
-        if (bonusBalance >= deliveryFee) {
-          const { error: updateError } = await supabase
-            .from('user_wallets')
-            .update({
-              bonus_balance: bonusBalance - deliveryFee,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', buyerId);
+        const bonusBalance = Number(wallet.bonus_balance || 0);
+        const mainBalance = Number(wallet.balance || 0);
+        const totalBalance = bonusBalance + mainBalance;
 
-          if (updateError) throw updateError;
+        // Si solde insuffisant, basculer automatiquement en cash
+        if (totalBalance < deliveryFee) {
+          console.log('Insufficient balance, switching to cash:', { totalBalance, deliveryFee });
+          actualPaymentMethod = 'cash_on_delivery';
         } else {
-          const { error: updateError } = await supabase
-            .from('user_wallets')
-            .update({
-              balance: mainBalance - deliveryFee,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', buyerId);
+          // Priorité : bonus si couvre 100%, sinon balance principal
+          if (bonusBalance >= deliveryFee) {
+            const { error: updateError } = await supabase
+              .from('user_wallets')
+              .update({
+                bonus_balance: bonusBalance - deliveryFee,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', buyerId);
 
-          if (updateError) throw updateError;
+            if (updateError) throw updateError;
+          } else {
+            const { error: updateError } = await supabase
+              .from('user_wallets')
+              .update({
+                balance: mainBalance - deliveryFee,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', buyerId);
+
+            if (updateError) throw updateError;
+          }
+
+          // Créer escrow livraison (status: held)
+          const { error: deliveryEscrowError } = await supabase
+            .from('delivery_escrow_payments')
+            .insert({
+              order_id: orderId,
+              buyer_id: buyerId,
+              amount: deliveryFee,
+              payment_method: 'wallet',
+              status: 'held'
+            });
+
+          if (deliveryEscrowError) throw deliveryEscrowError;
         }
-
-        // Créer escrow livraison (status: held)
-        const { error: deliveryEscrowError } = await supabase
-          .from('delivery_escrow_payments')
-          .insert({
-            order_id: orderId,
-            buyer_id: buyerId,
-            amount: deliveryFee,
-            payment_method: 'wallet',
-            status: 'held'
-          });
-
-        if (deliveryEscrowError) throw deliveryEscrowError;
       }
     }
 
@@ -166,7 +212,7 @@ serve(async (req) => {
 
     // Si livreur Kwenda demandé, lancer dispatch
     if (order.vendor_delivery_method === 'kwenda' && !order.marketplace_delivery_assignments?.length) {
-      console.log('🚚 Triggering Kwenda delivery dispatch');
+      console.log('Triggering Kwenda delivery dispatch');
       
       try {
         await supabase.functions.invoke('delivery-dispatcher', {
@@ -178,7 +224,7 @@ serve(async (req) => {
           }
         });
       } catch (dispatchError) {
-        console.error('⚠️ Error dispatching delivery:', dispatchError);
+        console.error('Error dispatching delivery:', dispatchError);
         // Ne pas bloquer la validation si le dispatch échoue
       }
     }
@@ -198,24 +244,25 @@ serve(async (req) => {
       });
 
     if (notifError) {
-      console.error('⚠️ Error sending notification:', notifError);
+      console.error('Error sending notification:', notifError);
     }
 
-    console.log('✅ Delivery fee accepted successfully');
+    console.log('Delivery fee accepted successfully', { orderId, actualPaymentMethod });
 
     return new Response(
       JSON.stringify({ 
         success: true,
         orderId,
-        status: 'confirmed'
+        status: 'confirmed',
+        paymentMethod: actualPaymentMethod
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('Error in accept-delivery-fee:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Erreur lors du traitement' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

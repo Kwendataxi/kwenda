@@ -289,3 +289,6 @@ verify_jwt = true
 
 [functions.restaurant-withdrawal]
 verify_jwt = true
+
+[functions.accept-food-delivery-fee]
+verify_jwt = true

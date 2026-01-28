@@ -162,16 +162,21 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   // Hooks supprimés - duplication nettoyée
 
-  // Check for pending fee approval orders
+  // Check for pending fee approval orders - STRICT BUYER_ID FILTER
   useEffect(() => {
-    if (orders && orders.length > 0) {
-      const pendingApproval = orders.find(o => o.status === 'pending_buyer_approval' && !o.delivery_fee_approved_by_buyer);
+    if (orders && orders.length > 0 && user?.id) {
+      // Only show orders where the current user is the buyer
+      const pendingApproval = orders.find(o => 
+        o.status === 'pending_buyer_approval' && 
+        !o.delivery_fee_approved_by_buyer &&
+        o.buyer_id === user.id // Critical: filter by buyer_id
+      );
       if (pendingApproval && pendingApproval.id !== pendingFeeOrder?.id) {
         setPendingFeeOrder(pendingApproval);
         setIsFeeDialogOpen(true);
       }
     }
-  }, [orders]);
+  }, [orders, user?.id]);
 
   // ✅ Détection de connexion en ligne/hors ligne
   useEffect(() => {
