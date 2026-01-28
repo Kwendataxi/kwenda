@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Phone, MapPin, Clock, ChevronRight, ExternalLink, User, Lock, CheckCircle } from 'lucide-react';
+import { Phone, MapPin, Clock, ChevronRight, ExternalLink, User, Lock, CheckCircle, Truck, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
 interface OrderItem {
   name: string;
   quantity: number;
@@ -27,6 +31,8 @@ interface OrderCardProps {
       phone_number?: string | null;
     } | null;
     payment_status?: string;
+    driver_id?: string | null;
+    delivery_fee?: number;
   };
   elapsedMinutes: number;
   onConfirm?: (prepTime: number) => void;
@@ -34,6 +40,7 @@ interface OrderCardProps {
   nextStatus?: string;
   showDeliveryPanel?: React.ReactNode;
   index?: number;
+  onRefresh?: () => void;
 }
 
 const STATUS_CONFIG = {
@@ -53,8 +60,10 @@ export const OrderCard = ({
   onStatusChange,
   nextStatus,
   showDeliveryPanel,
-  index = 0
+  index = 0,
+  onRefresh
 }: OrderCardProps) => {
+  const [requestingDriver, setRequestingDriver] = useState(false);
   const statusConfig = STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
   
   const getTimerColor = () => {
@@ -83,6 +92,42 @@ export const OrderCard = ({
       : encodeURIComponent(order.delivery_address);
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
   };
+
+  // Demander un livreur Kwenda
+  const handleRequestKwendaDriver = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRequestingDriver(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('assign-food-delivery', {
+        body: {
+          orderId: order.id,
+          deliveryCoordinates: order.delivery_coordinates,
+          deliveryAddress: order.delivery_address
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success('Demande de livreur envoyée !', {
+        description: 'Un livreur Kwenda sera assigné sous peu.'
+      });
+      
+      onRefresh?.();
+    } catch (error: any) {
+      console.error('Error requesting driver:', error);
+      toast.error('Erreur lors de la demande', {
+        description: error.message || 'Veuillez réessayer'
+      });
+    } finally {
+      setRequestingDriver(false);
+    }
+  };
+
+  // Afficher le bouton livreur si confirmé/preparing et pas de driver
+  const showRequestDriverButton = 
+    ['confirmed', 'preparing', 'ready'].includes(order.status) && 
+    !order.driver_id;
 
   return (
     <motion.div
@@ -184,6 +229,24 @@ export const OrderCard = ({
             <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
             <span className="line-clamp-2">{order.delivery_address}</span>
           </div>
+
+          {/* Bouton Demander livreur Kwenda */}
+          {showRequestDriverButton && (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
+              onClick={handleRequestKwendaDriver}
+              disabled={requestingDriver}
+            >
+              {requestingDriver ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Truck className="h-4 w-4 mr-2" />
+              )}
+              {requestingDriver ? 'Recherche...' : 'Demander livreur Kwenda'}
+            </Button>
+          )}
 
           {/* Actions */}
           {order.status === 'pending' && onConfirm ? (

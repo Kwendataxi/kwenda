@@ -48,15 +48,19 @@ export const PurchaseManagement: React.FC = () => {
   // Filter orders where current user is the buyer
   const purchaseOrders = orders.filter(order => order.buyer_id === user?.id);
 
-  // Check for orders awaiting approval
+  // Check for orders awaiting approval - STRICT BUYER_ID FILTER
   useEffect(() => {
+    if (!user?.id) return;
+    
     const orderAwaitingApproval = purchaseOrders.find(
-      o => o.status === 'pending_buyer_approval' && o.delivery_fee > 0
+      o => o.status === 'pending_buyer_approval' && 
+           o.delivery_fee > 0 &&
+           o.buyer_id === user.id // Critical: ensure buyer owns this order
     );
     if (orderAwaitingApproval && !approvalDialog) {
       setApprovalDialog({ order: orderAwaitingApproval });
     }
-  }, [purchaseOrders]);
+  }, [purchaseOrders, user?.id]);
 
   // Apply search and status filters
   const filteredOrders = purchaseOrders.filter(order => {

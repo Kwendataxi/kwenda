@@ -110,6 +110,20 @@ export const VendorOrderManagementInterface: React.FC<VendorOrderManagementInter
 
   const getStatusInfo = () => {
     switch (order.status) {
+      case 'pending':
+        return {
+          icon: Clock,
+          label: 'Nouvelle commande',
+          color: 'text-blue-500',
+          bgColor: 'bg-blue-500/10'
+        };
+      case 'pending_buyer_approval':
+        return {
+          icon: Clock,
+          label: 'En attente approbation client',
+          color: 'text-amber-500',
+          bgColor: 'bg-amber-500/10'
+        };
       case 'confirmed':
         return {
           icon: Clock,
