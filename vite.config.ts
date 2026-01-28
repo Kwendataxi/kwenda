@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from 'vite-plugin-pwa';
+import { componentTagger } from "lovable-tagger";
 import { asyncCSSPlugin } from './plugins/vite-plugin-async-css';
 import fs from 'fs';
 
@@ -31,6 +32,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
+      mode === 'development' && componentTagger(),
       asyncCSSPlugin(),
       VitePWA({
         registerType: 'prompt',
