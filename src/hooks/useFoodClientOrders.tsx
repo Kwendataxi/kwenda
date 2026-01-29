@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type FoodOrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled';
+export type FoodOrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled' | 'pending_delivery_approval' | 'driver_assigned' | 'picked_up';
 
 export interface FoodOrder {
   id: string;
@@ -20,6 +20,7 @@ export interface FoodOrder {
   status: FoodOrderStatus;
   total_amount: number;
   delivery_fee: number;
+  delivery_payment_status?: string;
   items: Array<{
     id: string;
     name: string;
@@ -118,12 +119,14 @@ export const useFoodClientOrders = () => {
           status: order.status,
           total_amount: order.total_amount,
           delivery_fee: order.delivery_fee || 0,
+          delivery_payment_status: order.delivery_payment_status,
           items: order.items || [],
           delivery_address: order.delivery_address,
           delivery_phone: order.delivery_phone,
           notes: order.delivery_instructions,
           created_at: order.created_at,
           updated_at: order.updated_at,
+          estimated_delivery_time: order.estimated_delivery_time,
         };
       }) as FoodOrder[];
     },
@@ -160,6 +163,9 @@ export const useFoodClientOrders = () => {
               delivering: `🚚 Livraison en cours de ${orderNumber}`,
               delivered: `🎉 Commande ${orderNumber} livrée !`,
               cancelled: `❌ Commande ${orderNumber} annulée`,
+              pending_delivery_approval: `📋 Approbation des frais de livraison requise`,
+              driver_assigned: `🚴 Un livreur a été assigné à votre commande ${orderNumber}`,
+              picked_up: `📦 Votre commande ${orderNumber} a été récupérée`,
             };
 
             if (statusMessages[newStatus as FoodOrderStatus]) {

@@ -21,6 +21,14 @@ interface OrderDetails {
   total_amount: number;
   created_at: string;
   estimated_delivery_time?: number;
+  delivery_fee?: number;
+  delivery_address?: string;
+  driver_id?: string;
+  driver?: {
+    display_name: string;
+    phone_number: string;
+    profile_photo_url?: string;
+  };
   restaurant_profiles: {
     restaurant_name: string;
     phone_number: string;
@@ -32,7 +40,10 @@ const STATUS_CONFIG = {
   confirmed: { label: 'Confirmée', icon: CheckCircle2, color: 'bg-blue-500' },
   preparing: { label: 'En préparation', icon: Package, color: 'bg-orange-500' },
   ready: { label: 'Prêt', icon: CheckCircle2, color: 'bg-green-500' },
+  pending_delivery_approval: { label: 'Approbation livraison', icon: Clock, color: 'bg-amber-500' },
+  driver_assigned: { label: 'Livreur assigné', icon: Truck, color: 'bg-indigo-500' },
   picked_up: { label: 'En livraison', icon: Truck, color: 'bg-purple-500' },
+  delivering: { label: 'En livraison', icon: Truck, color: 'bg-purple-500' },
   delivered: { label: 'Livré', icon: CheckCircle2, color: 'bg-green-600' },
   cancelled: { label: 'Annulée', icon: XCircle, color: 'bg-red-500' },
 };
@@ -52,6 +63,9 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
         total_amount,
         created_at,
         estimated_delivery_time,
+        delivery_fee,
+        delivery_address,
+        driver_id,
         restaurant_profiles (
           restaurant_name,
           phone_number
@@ -61,7 +75,20 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
       .single();
 
     if (!error && data) {
-      setOrder(data as any);
+      // Si il y a un driver, charger ses infos
+      let orderWithDriver = data as any;
+      if (data.driver_id) {
+        const { data: driverData } = await supabase
+          .from('chauffeurs')
+          .select('display_name, phone_number, profile_photo_url')
+          .eq('user_id', data.driver_id)
+          .single();
+        
+        if (driverData) {
+          orderWithDriver.driver = driverData;
+        }
+      }
+      setOrder(orderWithDriver);
     }
   };
 
@@ -76,6 +103,9 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
           total_amount,
           created_at,
           estimated_delivery_time,
+          delivery_fee,
+          delivery_address,
+          driver_id,
           restaurant_profiles (
             restaurant_name,
             phone_number
@@ -85,7 +115,20 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
         .single();
 
       if (!error && data) {
-        setOrder(data as any);
+        // Si il y a un driver, charger ses infos
+        let orderWithDriver = data as any;
+        if (data.driver_id) {
+          const { data: driverData } = await supabase
+            .from('chauffeurs')
+            .select('display_name, phone_number, profile_photo_url')
+            .eq('user_id', data.driver_id)
+            .single();
+          
+          if (driverData) {
+            orderWithDriver.driver = driverData;
+          }
+        }
+        setOrder(orderWithDriver);
       }
       setLoading(false);
     };
@@ -188,6 +231,42 @@ export const FoodOrderTracking = ({ orderId, onBack }: FoodOrderTrackingProps) =
             <p className="text-sm text-muted-foreground">{order.restaurant_profiles.phone_number}</p>
           </CardContent>
         </Card>
+
+        {/* Driver Info - affiché quand un livreur est assigné */}
+        {order.driver && (
+          <Card className="border-indigo-200 bg-indigo-50 dark:bg-indigo-950/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
+                <Truck className="h-5 w-5" />
+                Votre livreur
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center gap-4">
+              {order.driver.profile_photo_url ? (
+                <img 
+                  src={order.driver.profile_photo_url} 
+                  alt={order.driver.display_name}
+                  className="w-14 h-14 rounded-full object-cover border-2 border-indigo-200"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-indigo-200 dark:bg-indigo-800 flex items-center justify-center">
+                  <Truck className="h-6 w-6 text-indigo-600 dark:text-indigo-300" />
+                </div>
+              )}
+              <div className="flex-1">
+                <p className="font-semibold text-foreground">{order.driver.display_name}</p>
+                <p className="text-sm text-muted-foreground">{order.driver.phone_number}</p>
+              </div>
+              <Button 
+                size="sm" 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                onClick={() => window.location.href = `tel:${order.driver?.phone_number}`}
+              >
+                Appeler
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Order Info */}
         <Card>

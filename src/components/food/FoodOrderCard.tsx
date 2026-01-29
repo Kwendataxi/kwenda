@@ -31,6 +31,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string
   confirmed: { label: 'Confirmée', color: 'bg-blue-500', icon: '✅' },
   preparing: { label: 'En préparation', color: 'bg-orange-500', icon: '👨‍🍳' },
   ready: { label: 'Prête', color: 'bg-green-400', icon: '✨' },
+  pending_delivery_approval: { label: 'Approbation livraison', color: 'bg-amber-500', icon: '📋' },
+  driver_assigned: { label: 'Livreur assigné', color: 'bg-indigo-500', icon: '🚴' },
+  picked_up: { label: 'Récupérée', color: 'bg-purple-500', icon: '📦' },
   delivering: { label: 'En livraison', color: 'bg-purple-500', icon: '🚚' },
   delivered: { label: 'Livrée', color: 'bg-green-600', icon: '🎉' },
   cancelled: { label: 'Annulée', color: 'bg-red-500', icon: '❌' },
@@ -43,7 +46,7 @@ export const FoodOrderCard = ({ order, onCancel, isCancelling }: FoodOrderCardPr
   const navigate = useNavigate();
   const statusConfig = STATUS_CONFIG[order.status] || DEFAULT_STATUS;
   const canCancel = ['pending', 'confirmed'].includes(order.status);
-  const isActiveOrder = ['confirmed', 'preparing', 'ready', 'delivering'].includes(order.status);
+  const isActiveOrder = ['confirmed', 'preparing', 'ready', 'delivering', 'pending_delivery_approval', 'driver_assigned', 'picked_up'].includes(order.status);
 
   const formatPrice = (price: number) => formatCurrency(price, 'CDF');
 

@@ -54,7 +54,11 @@ const MobileSplash: React.FC = () => {
         logger.info('🚀 [MobileSplash] Redirecting via get_user_roles', { primaryRole, redirectPath });
         navigate(redirectPath, { replace: true });
       } else {
-        const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+        // Vérifier les deux clés (contextuelle ET générique)
+        const onboardingSeenContextual = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+        const onboardingSeenGeneric = localStorage.getItem("onboarding_seen") === "1";
+        const onboardingSeen = onboardingSeenContextual || onboardingSeenGeneric;
+        
         if (!onboardingSeen) {
           logger.info('🎓 Not logged in - redirecting to onboarding');
           navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });

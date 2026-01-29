@@ -18,7 +18,11 @@ export const MobileAppEntry = () => {
   
   // Non connecté → Vérifier onboarding puis auth
   if (!user) {
-    const onboardingSeen = localStorage.getItem("onboarding_seen") === "1";
+    // Vérifier la clé avec contexte ET la clé générique (fallback)
+    const ctx = localStorage.getItem("last_context") || "client";
+    const onboardingSeenContextual = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+    const onboardingSeenGeneric = localStorage.getItem("onboarding_seen") === "1";
+    const onboardingSeen = onboardingSeenContextual || onboardingSeenGeneric;
     
     if (!onboardingSeen) {
       return <Navigate to="/onboarding" replace />;

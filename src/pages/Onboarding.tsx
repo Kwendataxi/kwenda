@@ -64,7 +64,9 @@ const Onboarding: React.FC = () => {
   const finish = () => {
     triggerSuccess();
     try { 
+      // Sauvegarder avec contexte ET clé générique (fallback pour MobileAppEntry)
       localStorage.setItem(`onboarding_seen::${ctx}`, "1"); 
+      localStorage.setItem("onboarding_seen", "1"); // Fallback générique
       localStorage.setItem(`onboarding_completed_at::${ctx}`, new Date().toISOString());
       localStorage.setItem('onboarding_just_completed', 'true');
     } catch (e) {
