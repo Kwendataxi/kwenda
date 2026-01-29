@@ -33,6 +33,7 @@ const RestaurantEscrowPage = lazy(() => import('@/pages/restaurant/RestaurantEsc
 const TestSoundsPage = lazy(() => import('@/pages/TestSoundsPage').then(m => ({ default: m.TestSoundsPage })));
 const TestLotteryPage = lazy(() => import('@/pages/TestLotteryPage').then(m => ({ default: m.TestLotteryPage })));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
+const FoodTracking = lazy(() => import('@/pages/food/FoodTracking'));
 
 export const SharedRoutes = () => {
   return (
@@ -103,6 +104,18 @@ export const SharedRoutes = () => {
       
       {/* Notifications page */}
       <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+      
+      {/* Food tracking route */}
+      <Route 
+        path="/unified-tracking/food/:orderId" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <FoodTracking />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
       
       <Route path="/admin/marketplace" element={<Navigate to="/operatorx/admin?tab=marketplace-management" replace />} />
     </>

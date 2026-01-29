@@ -108,7 +108,7 @@ export const useDriverAllDeliveries = (): UseDriverAllDeliveriesResult => {
     source: 'food',
     sourceId: order.id,
     status: order.status || 'pending',
-    pickupLocation: order.restaurant?.address || order.restaurant?.name || 'Restaurant',
+    pickupLocation: order.restaurant?.address || order.restaurant?.restaurant_name || 'Restaurant',
     deliveryLocation: order.delivery_address || '',
     pickupCoordinates: order.restaurant?.coordinates,
     deliveryCoordinates: order.delivery_coordinates,
@@ -122,7 +122,7 @@ export const useDriverAllDeliveries = (): UseDriverAllDeliveriesResult => {
     createdAt: order.created_at,
     deliveryType: 'food',
     orderDetails: {
-      restaurantName: order.restaurant?.name,
+      restaurantName: order.restaurant?.restaurant_name,
       quantity: order.items?.length || 1,
       totalAmount: order.total_amount
     }
@@ -176,7 +176,7 @@ export const useDriverAllDeliveries = (): UseDriverAllDeliveriesResult => {
             id, status, total_amount, delivery_fee, delivery_address, delivery_phone,
             delivery_coordinates, customer_id, items, created_at,
             customer:profiles(display_name, phone_number),
-            restaurant:restaurants(name, address, coordinates)
+            restaurant:restaurant_profiles(restaurant_name, address, coordinates)
           `)
           .eq('driver_id', user.id)
           .not('status', 'in', '("completed","cancelled","delivered")')

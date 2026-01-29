@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useFoodClientOrders } from '@/hooks/useFoodClientOrders';
+import { useState, useEffect } from 'react';
+import { useFoodClientOrders, FoodOrder } from '@/hooks/useFoodClientOrders';
 import { FoodOrderCard } from '@/components/food/FoodOrderCard';
+import { FoodDeliveryFeeApprovalDialog } from '@/components/food/FoodDeliveryFeeApprovalDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -9,11 +10,28 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FoodFooterNav } from '@/components/food/FoodFooterNav';
 import { FoodBackToTop } from '@/components/food/FoodBackToTop';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function FoodOrders() {
   const navigate = useNavigate();
-  const { activeOrders, completedOrders, cancelledOrders, isLoading, cancelOrder, isCancelling } = useFoodClientOrders();
+  const { user } = useAuth();
+  const { activeOrders, completedOrders, cancelledOrders, isLoading, cancelOrder, isCancelling, refetch } = useFoodClientOrders();
   const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'cancelled'>('active');
+  const [pendingApprovalOrder, setPendingApprovalOrder] = useState<FoodOrder | null>(null);
+
+  // Détecter les commandes en attente d'approbation de frais de livraison
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const pending = activeOrders.find(o => 
+      (o.status === 'pending_delivery_approval' || o.delivery_payment_status === 'pending_approval') &&
+      o.client_id === user.id
+    );
+    
+    if (pending && (!pendingApprovalOrder || pending.id !== pendingApprovalOrder.id)) {
+      setPendingApprovalOrder(pending);
+    }
+  }, [activeOrders, user?.id, pendingApprovalOrder]);
 
   if (isLoading) {
     return (
@@ -139,6 +157,30 @@ export default function FoodOrders() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Dialog d'approbation des frais de livraison */}
+      {pendingApprovalOrder && (
+        <FoodDeliveryFeeApprovalDialog
+          order={{
+            id: pendingApprovalOrder.id,
+            status: 'pending_delivery_approval',
+            customer_id: pendingApprovalOrder.client_id,
+            total_amount: pendingApprovalOrder.total_amount,
+            delivery_fee: pendingApprovalOrder.delivery_fee,
+            restaurant: { name: pendingApprovalOrder.restaurant_name || 'Restaurant' },
+            items: pendingApprovalOrder.items
+          }}
+          open={!!pendingApprovalOrder}
+          onOpenChange={(open) => {
+            if (!open) setPendingApprovalOrder(null);
+          }}
+          onApproved={() => {
+            setPendingApprovalOrder(null);
+            refetch();
+          }}
+        />
+      )}
+      
       <FoodBackToTop />
       <FoodFooterNav />
     </div>
