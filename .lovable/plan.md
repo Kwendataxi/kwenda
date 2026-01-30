@@ -1,340 +1,535 @@
 
-# Plan de Correction - Onboarding et Livraison Kwenda Food
+# Plan de Conception - Carte Interactive Temps Reel et Notifications Job
 
-## Diagnostic des Problemes Identifies
+## Resume Executif
 
-### Probleme 1 : Onboarding qui recommence au retour dans l'app
-
-**Cause racine identifiee** : Incoherence dans les cles localStorage pour verifier si l'onboarding a ete vu
-
-| Fichier | Cle utilisee | Probleme |
-|---------|--------------|----------|
-| `MobileAppEntry.tsx` ligne 21 | `onboarding_seen` (sans contexte) | Cle generique incorrecte |
-| `MobileSplash.tsx` ligne 57 | `onboarding_seen::${ctx}` (avec contexte) | Cle correcte |
-| `OnboardingRedirect.tsx` ligne 33 | `onboarding_seen::${lastCtx}` (avec contexte) | Cle correcte |
-| `Onboarding.tsx` ligne 67 | `onboarding_seen::${ctx}` (avec contexte) | Cle correcte (sauvegarde) |
-
-**Resultat** : `MobileAppEntry.tsx` verifie une cle qui n'existe jamais car elle est sauvegardee avec un suffixe de contexte. L'onboarding semble donc toujours "non vu".
-
-### Probleme 2 : Livraison Kwenda Food incomplete
-
-| Element | Statut | Probleme |
-|---------|--------|----------|
-| **Commande client** | OK | Edge function `food-order-processor` fonctionne |
-| **Dialog frais livraison** | NON INTEGRE | `FoodDeliveryFeeApprovalDialog.tsx` existe mais n'est importe nulle part |
-| **Suivi temps reel** | PARTIEL | Hook `useFoodClientOrders` n'inclut pas les commandes `pending_delivery_approval` |
-| **Bouton livreur restaurant** | OK | Implemente dans `OrderCard.tsx` |
-| **Dashboard chauffeur** | PARTIEL | `useDriverAllDeliveries` interroge `restaurants` au lieu de `restaurant_profiles` |
-| **Route tracking** | MANQUANTE | `/unified-tracking/food/:orderId` non definie |
+Implementation d'une carte interactive professionnelle affichant en temps reel les taxis et livreurs (moto, van, camion) avec icones differenciees, animations fluides, et mode jour/nuit. Ajout d'un systeme de notifications pour les nouvelles offres d'emploi Kwenda Job.
 
 ---
 
-## Phase 1 : Correction du Bug Onboarding (CRITIQUE)
+## Phase 1 : Systeme de Tracking Multi-Vehicules Unifie
 
-### 1.1 - Corriger MobileAppEntry.tsx
+### 1.1 - Extension du Schema driver_locations
 
-**Fichier** : `src/components/navigation/MobileAppEntry.tsx`
+La table `driver_locations` contient deja:
+- `vehicle_class` (text) - pour differencier les types de vehicules
+- `heading`, `speed` - pour l'orientation et l'animation
 
-**Modification** : Aligner la verification sur le meme format que les autres composants
+**Action**: Utiliser `vehicle_class` avec valeurs standardisees:
+| vehicle_class | Type | Icone |
+|--------------|------|-------|
+| `taxi` | Taxi VTC | Voiture bleue |
+| `moto_flash` | Moto livraison Flash | Moto orange |
+| `van_flex` | Van livraison Flex | Van orange |
+| `truck_maxicharge` | Camion MaxiCharge | Camion orange |
 
-```typescript
-// AVANT (ligne 21)
-const onboardingSeen = localStorage.getItem("onboarding_seen") === "1";
+### 1.2 - Hook useUnifiedVehicleTracking
 
-// APRES
-const ctx = localStorage.getItem("last_context") || "client";
-const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
-```
-
-### 1.2 - Ajouter persistance supplementaire dans Onboarding.tsx
-
-**Fichier** : `src/pages/Onboarding.tsx`
-
-**Modification** : Sauvegarder egalement la cle generique comme fallback
+**Nouveau fichier**: `src/hooks/useUnifiedVehicleTracking.ts`
 
 ```typescript
-// Ajouter apres ligne 67
-localStorage.setItem("onboarding_seen", "1"); // Fallback generique
-```
-
-### 1.3 - Proteger le contexte dans MobileSplash.tsx
-
-**Fichier** : `src/pages/MobileSplash.tsx`
-
-**Modification** : Verifier les deux cles (specifique et generique)
-
-```typescript
-// Ligne 57 - APRES
-const onboardingSeenGeneric = localStorage.getItem("onboarding_seen") === "1";
-const onboardingSeenContextual = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
-const onboardingSeen = onboardingSeenGeneric || onboardingSeenContextual;
-```
-
----
-
-## Phase 2 : Integration du Dialog d'Approbation des Frais Food
-
-### 2.1 - Integrer le dialog dans FoodOrders.tsx
-
-**Fichier** : `src/pages/food/FoodOrders.tsx`
-
-**Modifications** :
-1. Importer `FoodDeliveryFeeApprovalDialog`
-2. Ajouter l'etat pour suivre les commandes en attente d'approbation
-3. Afficher le dialog automatiquement
-
-```typescript
-import { FoodDeliveryFeeApprovalDialog } from '@/components/food/FoodDeliveryFeeApprovalDialog';
-import { useEffect, useState } from 'react';
-
-// Dans le composant
-const [pendingApprovalOrder, setPendingApprovalOrder] = useState<any>(null);
-
-useEffect(() => {
-  const pending = activeOrders.find(o => 
-    o.status === 'pending_delivery_approval' || 
-    o.delivery_payment_status === 'pending_approval'
-  );
-  if (pending) {
-    setPendingApprovalOrder(pending);
-  }
-}, [activeOrders]);
-
-// Dans le JSX, avant le closing </div>
-{pendingApprovalOrder && (
-  <FoodDeliveryFeeApprovalDialog
-    order={{
-      id: pendingApprovalOrder.id,
-      status: 'pending_delivery_approval',
-      customer_id: pendingApprovalOrder.client_id,
-      total_amount: pendingApprovalOrder.total_amount,
-      delivery_fee: pendingApprovalOrder.delivery_fee,
-      restaurant: { name: pendingApprovalOrder.restaurant_name },
-      items: pendingApprovalOrder.items
-    }}
-    open={!!pendingApprovalOrder}
-    onOpenChange={() => setPendingApprovalOrder(null)}
-    onApproved={() => {
-      setPendingApprovalOrder(null);
-      refetch();
-    }}
-  />
-)}
-```
-
-### 2.2 - Modifier useFoodClientOrders.tsx pour inclure delivery_payment_status
-
-**Fichier** : `src/hooks/useFoodClientOrders.tsx`
-
-**Modifications** :
-1. Ajouter `delivery_payment_status` dans le type `FoodOrder`
-2. Mapper le champ depuis la requete
-
-```typescript
-// Dans l'interface FoodOrder (ajouter)
-delivery_payment_status?: string;
-
-// Dans le mapping (ligne 120)
-delivery_payment_status: order.delivery_payment_status,
-```
-
----
-
-## Phase 3 : Correction du Hook useDriverAllDeliveries
-
-### 3.1 - Corriger la requete food_orders
-
-**Fichier** : `src/hooks/useDriverAllDeliveries.ts`
-
-**Probleme** : La requete utilise `restaurants` mais la table s'appelle `restaurant_profiles`
-
-```typescript
-// AVANT (ligne 178)
-restaurant:restaurants(name, address, coordinates)
-
-// APRES
-restaurant:restaurant_profiles(restaurant_name, address, coordinates)
-```
-
-### 3.2 - Adapter le normalizer
-
-```typescript
-// Ligne 111
-pickupLocation: order.restaurant?.address || order.restaurant?.restaurant_name || 'Restaurant',
-
-// Ligne 125
-restaurantName: order.restaurant?.restaurant_name,
-```
-
----
-
-## Phase 4 : Ajout de la Route de Tracking Unifiee
-
-### 4.1 - Creer la page de tracking food
-
-**Nouveau fichier** : `src/pages/food/FoodTracking.tsx`
-
-```typescript
-import { useParams, useNavigate } from 'react-router-dom';
-import { FoodOrderTracking } from '@/components/food/FoodOrderTracking';
-
-export default function FoodTracking() {
-  const { orderId } = useParams<{ orderId: string }>();
-  const navigate = useNavigate();
-
-  if (!orderId) {
-    navigate('/food/orders');
-    return null;
-  }
-
-  return (
-    <FoodOrderTracking 
-      orderId={orderId} 
-      onBack={() => navigate('/food/orders')} 
-    />
-  );
+interface TrackedVehicle {
+  id: string;
+  driver_id: string;
+  lat: number;
+  lng: number;
+  heading: number;
+  speed: number;
+  vehicle_class: 'taxi' | 'moto_flash' | 'van_flex' | 'truck_maxicharge';
+  status: 'available' | 'busy' | 'offline';
+  driver_name?: string;
+  is_delivering?: boolean; // Pour afficher l'icone colis
+  delivery_status?: 'pickup' | 'in_transit' | 'delivered';
 }
+
+// Fonctionnalites:
+// - Subscription Supabase Realtime temps reel (2-3s)
+// - Filtrage par type (taxi, livraison, tous)
+// - Filtrage par rayon (basé sur userLocation)
+// - Clustering automatique selon le zoom
 ```
 
-### 4.2 - Ajouter la route dans SharedRoutes.tsx
+---
 
-**Fichier** : `src/routes/SharedRoutes.tsx`
+## Phase 2 : Composants Markers Multi-Types
+
+### 2.1 - Icones SVG Personnalisees Kwenda
+
+**Nouveau fichier**: `src/components/maps/VehicleMarkerIcons.tsx`
+
+Icones SVG vectorielles 40x40px avec:
+- **Taxi**: Cercle bleu (#3B82F6) + silhouette voiture blanche + pulse disponible
+- **Moto Flash**: Cercle orange (#F59E0B) + silhouette moto blanche + badge "FLASH"
+- **Van Flex**: Cercle orange (#F97316) + silhouette van blanche + badge "FLEX"
+- **Camion MaxiCharge**: Cercle violet (#8B5CF6) + silhouette camion blanche + badge "MAX"
+- **Client**: Point bleu pulsant (#3B82F6) avec cercle d'onde
+- **Vehicule en course**: Halo anime autour du vehicule
+
+### 2.2 - Marqueur Vehicule Unifie
+
+**Nouveau fichier**: `src/components/maps/UnifiedVehicleMarker.tsx`
 
 ```typescript
-// Ajouter import
-const FoodTracking = lazy(() => import('@/pages/food/FoodTracking'));
+interface UnifiedVehicleMarkerProps {
+  map: google.maps.Map;
+  vehicle: TrackedVehicle;
+  showPackageIcon?: boolean; // Afficher l'icone colis si livraison en cours
+  smoothTransition?: boolean;
+  onClick?: (vehicle: TrackedVehicle) => void;
+}
 
-// Ajouter route (apres les routes Food existantes)
-<Route 
-  path="/unified-tracking/food/:orderId" 
-  element={
-    <ProtectedRoute>
-      <Suspense fallback={<RouteLoadingFallback />}>
-        <FoodTracking />
-      </Suspense>
-    </ProtectedRoute>
-  } 
+// Fonctionnalites:
+// - Animation fluide de deplacement (interpolation position)
+// - Rotation selon heading
+// - Icone dynamique selon vehicle_class
+// - Badge statut (disponible, en course, livraison)
+// - InfoWindow au clic avec details chauffeur
+```
+
+---
+
+## Phase 3 : Carte Interactive Principale
+
+### 3.1 - Composant KwendaLiveMap
+
+**Nouveau fichier**: `src/components/maps/KwendaLiveMap.tsx`
+
+```typescript
+interface KwendaLiveMapProps {
+  userLocation: { lat: number; lng: number } | null;
+  mode: 'transport' | 'delivery' | 'all';
+  showRoute?: boolean;
+  pickup?: Location;
+  destination?: Location;
+  onVehicleClick?: (vehicle: TrackedVehicle) => void;
+  className?: string;
+}
+
+// Fonctionnalites principales:
+// - Mode jour/nuit automatique (basé sur l'heure locale)
+// - Geolocalisation temps reel utilisateur
+// - Affichage vehicules filtres par mode
+// - Clustering automatique au dezoom
+// - Controles zoom/localisation
+// - Boutons filtre (Taxi | Livraison | Tous)
+```
+
+### 3.2 - Controles de Filtrage
+
+**Modification**: `src/components/maps/KwendaMapControls.tsx`
+
+Ajout de boutons de filtre style Yango:
+```tsx
+<div className="absolute top-4 left-4 z-10 flex gap-2">
+  <FilterButton 
+    active={filter === 'all'} 
+    icon={<Layers />} 
+    label="Tous" 
+    onClick={() => setFilter('all')} 
+  />
+  <FilterButton 
+    active={filter === 'taxi'} 
+    icon={<Car />} 
+    label="Taxi" 
+    onClick={() => setFilter('taxi')} 
+  />
+  <FilterButton 
+    active={filter === 'delivery'} 
+    icon={<Package />} 
+    label="Livraison" 
+    onClick={() => setFilter('delivery')} 
+  />
+</div>
+```
+
+---
+
+## Phase 4 : Animations et Performance
+
+### 4.1 - Animation Fluide de Deplacement
+
+**Nouveau fichier**: `src/utils/vehicleAnimationUtils.ts`
+
+```typescript
+// Interpolation de position pour mouvement fluide
+export const animateVehicleMove = (
+  marker: google.maps.Marker,
+  from: LatLng,
+  to: LatLng,
+  duration: number = 1000
+) => {
+  const startTime = Date.now();
+  const animate = () => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = easeOutCubic(progress);
+    
+    const lat = from.lat + (to.lat - from.lat) * eased;
+    const lng = from.lng + (to.lng - from.lng) * eased;
+    
+    marker.setPosition({ lat, lng });
+    
+    if (progress < 1) requestAnimationFrame(animate);
+  };
+  animate();
+};
+
+// Interpolation de rotation fluide
+export const animateHeadingChange = (
+  currentHeading: number,
+  targetHeading: number
+): number => {
+  // Choisir le chemin le plus court (ex: 350 -> 10 = +20, pas -340)
+  let diff = targetHeading - currentHeading;
+  if (diff > 180) diff -= 360;
+  if (diff < -180) diff += 360;
+  return currentHeading + diff;
+};
+```
+
+### 4.2 - Clustering Intelligent
+
+**Utilisation**: Google Maps MarkerClusterer ou implementation custom
+
+```typescript
+// Clustering basé sur le niveau de zoom
+useEffect(() => {
+  if (map && vehicles.length > 20) {
+    const zoom = map.getZoom();
+    if (zoom && zoom < 14) {
+      // Activer clustering
+      enableClustering(vehicles);
+    } else {
+      // Afficher tous les markers individuels
+      disableClustering();
+    }
+  }
+}, [map, vehicles, zoom]);
+```
+
+### 4.3 - Optimisation Performance
+
+- **Chargement progressif**: Charger uniquement les vehicules visibles dans le viewport
+- **Throttling**: Limiter les updates visuelles a 10fps
+- **Debounce**: Regrouper les updates Supabase realtime
+- **Recycler les markers**: Reutiliser les objets Marker au lieu de les recreer
+
+---
+
+## Phase 5 : Route avec Indicateur de Trafic
+
+### 5.1 - Modification ProfessionalRoutePolyline
+
+**Fichier existant**: `src/components/transport/map/ProfessionalRoutePolyline.tsx`
+
+Ajout des couleurs de trafic:
+```typescript
+const TRAFFIC_COLORS = {
+  smooth: '#22C55E',    // Vert - fluide
+  moderate: '#F59E0B',  // Orange - moyen
+  heavy: '#EF4444',     // Rouge - dense
+};
+
+// Utiliser TrafficLayer de Google Maps
+useEffect(() => {
+  if (map && showTraffic) {
+    const trafficLayer = new google.maps.TrafficLayer();
+    trafficLayer.setMap(map);
+    return () => trafficLayer.setMap(null);
+  }
+}, [map, showTraffic]);
+```
+
+---
+
+## Phase 6 : Mode Jour/Nuit Automatique
+
+### 6.1 - Hook useMapTheme Ameliore
+
+**Fichier existant**: `src/hooks/useMapTheme.ts`
+
+Ajout de la detection automatique:
+```typescript
+const getAutoTheme = (): 'light' | 'dark' => {
+  const hour = new Date().getHours();
+  // Nuit: 19h - 6h
+  return (hour >= 19 || hour < 6) ? 'dark' : 'light';
+};
+
+const mapStyles = useMemo(() => {
+  const theme = autoTheme ? getAutoTheme() : manualTheme;
+  return theme === 'dark' ? DARK_MAP_STYLES : LIGHT_MAP_STYLES;
+}, [autoTheme, manualTheme]);
+```
+
+---
+
+## Phase 7 : Notifications Kwenda Job
+
+### 7.1 - Extension des Preferences de Notification
+
+**Modification**: `src/hooks/useNotificationPreferences.tsx`
+
+Ajout de la categorie "job":
+```typescript
+interface NotificationPreferences {
+  // ... existants ...
+  job_updates: boolean;  // NOUVEAU
+}
+
+const defaultPreferences: NotificationPreferences = {
+  // ... existants ...
+  job_updates: true,  // Active par defaut
+};
+```
+
+### 7.2 - Modification NotificationPreferencesPanel
+
+**Fichier existant**: `src/components/notifications/NotificationPreferencesPanel.tsx`
+
+Ajout de la categorie Job dans CATEGORY_CONFIG:
+```typescript
+const CATEGORY_CONFIG = [
+  // ... existants ...
+  { 
+    key: 'job', 
+    icon: Briefcase, 
+    label: 'Kwenda Job', 
+    description: 'Nouvelles offres d\'emploi' 
+  },
+];
+```
+
+### 7.3 - Hook useJobNotifications
+
+**Nouveau fichier**: `src/hooks/useJobNotifications.ts`
+
+```typescript
+export const useJobNotifications = () => {
+  const { user } = useAuth();
+  const { preferences, shouldShowNotification } = useNotificationPreferences();
+  
+  useEffect(() => {
+    if (!user || !preferences.job_updates) return;
+    
+    // Ecouter les nouvelles offres d'emploi
+    const channel = supabase
+      .channel('job-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'jobs',
+          filter: 'status=eq.active'
+        },
+        (payload) => {
+          const job = payload.new;
+          
+          if (shouldShowNotification('job', 'normal')) {
+            // Afficher notification toast
+            toast.custom((t) => (
+              <JobNotificationToast
+                job={job}
+                onView={() => navigateTo(`/job/${job.id}`)}
+                onDismiss={() => toast.dismiss(t)}
+              />
+            ));
+            
+            // Notification push native si disponible
+            sendPushNotification({
+              title: 'Nouvelle offre Kwenda Job',
+              body: `${job.title} - ${job.location_city}`,
+              data: { type: 'job', jobId: job.id }
+            });
+          }
+        }
+      )
+      .subscribe();
+      
+    return () => supabase.removeChannel(channel);
+  }, [user, preferences.job_updates]);
+};
+```
+
+### 7.4 - Composant JobNotificationToast
+
+**Nouveau fichier**: `src/components/job/JobNotificationToast.tsx`
+
+```typescript
+export const JobNotificationToast = ({ job, onView, onDismiss }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-4 border border-primary/20"
+  >
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-primary/10 rounded-xl">
+        <Briefcase className="h-5 w-5 text-primary" />
+      </div>
+      <div className="flex-1">
+        <p className="font-semibold text-sm">{job.title}</p>
+        <p className="text-xs text-muted-foreground">
+          {job.location_city} - {job.employment_type}
+        </p>
+      </div>
+    </div>
+    <div className="flex gap-2 mt-3">
+      <Button size="sm" onClick={onView}>Voir l'offre</Button>
+      <Button size="sm" variant="ghost" onClick={onDismiss}>Plus tard</Button>
+    </div>
+  </motion.div>
+);
+```
+
+### 7.5 - Integration dans App
+
+**Modification**: Integration du hook dans le layout principal
+
+```typescript
+// Dans src/App.tsx ou layout principal
+const JobNotificationListener = () => {
+  useJobNotifications();
+  return null;
+};
+
+// Ajouter dans le composant App
+<JobNotificationListener />
+```
+
+---
+
+## Phase 8 : Integration dans l'Interface
+
+### 8.1 - Modification ModernHomeScreen
+
+Remplacer la carte actuelle par `KwendaLiveMap`:
+```typescript
+<KwendaLiveMap
+  userLocation={currentLocation}
+  mode="all"
+  showRoute={false}
+  className="h-[300px] rounded-2xl overflow-hidden"
+/>
+```
+
+### 8.2 - Modification ModernTaxiInterface
+
+Utiliser `KwendaLiveMap` en mode transport:
+```typescript
+<KwendaLiveMap
+  userLocation={userLocation}
+  mode="transport"
+  showRoute={!!pickup && !!destination}
+  pickup={pickup}
+  destination={destination}
+  onVehicleClick={handleDriverSelect}
+/>
+```
+
+### 8.3 - Modification SlideDeliveryInterface
+
+Utiliser `KwendaLiveMap` en mode livraison:
+```typescript
+<KwendaLiveMap
+  userLocation={userLocation}
+  mode="delivery"
+  showRoute={!!pickupAddress && !!deliveryAddress}
+  pickup={pickupLocation}
+  destination={deliveryLocation}
 />
 ```
 
 ---
 
-## Phase 5 : Amelioration du Flux de Livraison
+## Resume des Fichiers
 
-### 5.1 - Mettre a jour FoodOrderTracking.tsx pour inclure les infos livreur
+### Nouveaux Fichiers
 
-**Fichier** : `src/components/food/FoodOrderTracking.tsx`
+| Fichier | Description |
+|---------|-------------|
+| `src/hooks/useUnifiedVehicleTracking.ts` | Hook tracking multi-vehicules temps reel |
+| `src/components/maps/VehicleMarkerIcons.tsx` | Icones SVG vehicules Kwenda |
+| `src/components/maps/UnifiedVehicleMarker.tsx` | Marqueur vehicule unifie anime |
+| `src/components/maps/KwendaLiveMap.tsx` | Carte interactive principale |
+| `src/utils/vehicleAnimationUtils.ts` | Utilitaires animation fluide |
+| `src/hooks/useJobNotifications.ts` | Hook notifications emploi |
+| `src/components/job/JobNotificationToast.tsx` | Toast notification emploi |
 
-**Modifications** :
-1. Ajouter les champs driver dans la requete
-2. Afficher une carte avec le livreur quand il est assigne
+### Fichiers Modifies
 
-```typescript
-// Modifier la requete (ligne 48 et 72)
-.select(`
-  id, order_number, status, total_amount, created_at,
-  estimated_delivery_time, delivery_fee, delivery_address,
-  driver_id,
-  driver:chauffeurs!driver_id(
-    display_name,
-    phone_number,
-    profile_photo_url,
-    current_location
-  ),
-  restaurant_profiles (
-    restaurant_name,
-    phone_number
-  )
-`)
+| Fichier | Modification |
+|---------|--------------|
+| `src/hooks/useNotificationPreferences.tsx` | Ajout categorie job_updates |
+| `src/components/notifications/NotificationPreferencesPanel.tsx` | Ajout UI Kwenda Job |
+| `src/hooks/useMapTheme.ts` | Mode jour/nuit automatique |
+| `src/components/transport/map/ModernMapView.tsx` | Integration KwendaLiveMap |
+| `src/components/maps/KwendaMapControls.tsx` | Boutons filtre vehicules |
+
+---
+
+## Architecture Technique
+
 ```
-
-### 5.2 - Ajouter section livreur dans le tracking
-
-```typescript
-// Apres la section Restaurant (ligne 190)
-{order.driver && (
-  <Card>
-    <CardHeader>
-      <CardTitle>Votre livreur</CardTitle>
-    </CardHeader>
-    <CardContent className="flex items-center gap-4">
-      {order.driver.profile_photo_url && (
-        <img 
-          src={order.driver.profile_photo_url} 
-          alt={order.driver.display_name}
-          className="w-12 h-12 rounded-full object-cover"
-        />
-      )}
-      <div className="flex-1">
-        <p className="font-semibold">{order.driver.display_name}</p>
-        <p className="text-sm text-muted-foreground">{order.driver.phone_number}</p>
-      </div>
-      <Button 
-        size="sm" 
-        onClick={() => window.location.href = `tel:${order.driver.phone_number}`}
-      >
-        <Phone className="h-4 w-4" />
-      </Button>
-    </CardContent>
-  </Card>
-)}
++-------------------+       +------------------------+
+|   User Device     |       |    Supabase Backend    |
++-------------------+       +------------------------+
+        |                            |
+        | GPS Position               | driver_locations
+        v                            | (realtime updates)
++-------------------+       +------------------------+
+| useSmartGeolocation|<---->| Supabase Realtime      |
++-------------------+       | Channel: live-tracking |
+        |                   +------------------------+
+        v                            |
++-------------------+                |
+| useUnifiedVehicle |<---------------+
+| Tracking          |  (2-3s updates)
++-------------------+
+        |
+        v
++-------------------+
+| KwendaLiveMap     |
+| - Filter UI       |
+| - Vehicle Markers |
+| - Route Overlay   |
+| - Traffic Layer   |
++-------------------+
+        |
+        v
++-------------------+
+| UnifiedVehicle    |
+| Marker (animated) |
++-------------------+
 ```
 
 ---
 
-## Phase 6 : Gestion des Statuts Manquants
+## Estimation Temps
 
-### 6.1 - Ajouter les statuts manquants dans FoodOrderTracking.tsx
-
-```typescript
-const STATUS_CONFIG = {
-  pending: { label: 'En attente', icon: Clock, color: 'bg-yellow-500' },
-  confirmed: { label: 'Confirmee', icon: CheckCircle2, color: 'bg-blue-500' },
-  preparing: { label: 'En preparation', icon: Package, color: 'bg-orange-500' },
-  ready: { label: 'Pret', icon: CheckCircle2, color: 'bg-green-500' },
-  driver_assigned: { label: 'Livreur assigne', icon: Truck, color: 'bg-indigo-500' },
-  picked_up: { label: 'En livraison', icon: Truck, color: 'bg-purple-500' },
-  delivered: { label: 'Livre', icon: CheckCircle2, color: 'bg-green-600' },
-  cancelled: { label: 'Annulee', icon: XCircle, color: 'bg-red-500' },
-  pending_delivery_approval: { label: 'Approbation livraison', icon: Clock, color: 'bg-amber-500' },
-};
-```
-
-### 6.2 - Ajouter les memes statuts dans FoodOrderCard.tsx
+| Phase | Description | Duree |
+|-------|-------------|-------|
+| Phase 1 | Hook tracking unifie | 2h |
+| Phase 2 | Marqueurs multi-types | 3h |
+| Phase 3 | Carte interactive | 3h |
+| Phase 4 | Animations performance | 2h |
+| Phase 5 | Route avec trafic | 1h |
+| Phase 6 | Mode jour/nuit | 1h |
+| Phase 7 | Notifications Job | 2h |
+| Phase 8 | Integration | 2h |
+| **Total** | | **16h** |
 
 ---
 
-## Resume des Fichiers a Modifier
+## Points de Validation
 
-| Fichier | Type | Priorite |
-|---------|------|----------|
-| `src/components/navigation/MobileAppEntry.tsx` | Correction | CRITIQUE |
-| `src/pages/Onboarding.tsx` | Correction | CRITIQUE |
-| `src/pages/MobileSplash.tsx` | Correction | HAUTE |
-| `src/pages/food/FoodOrders.tsx` | Integration dialog | HAUTE |
-| `src/hooks/useFoodClientOrders.tsx` | Ajout champ | HAUTE |
-| `src/hooks/useDriverAllDeliveries.ts` | Correction table | HAUTE |
-| `src/routes/SharedRoutes.tsx` | Ajout route | MOYENNE |
-| `src/pages/food/FoodTracking.tsx` | Creation | MOYENNE |
-| `src/components/food/FoodOrderTracking.tsx` | Amelioration | MOYENNE |
-| `src/components/food/FoodOrderCard.tsx` | Ajout statuts | BASSE |
-
----
-
-## Tests de Validation
-
-### Onboarding
-- [ ] Ouvrir l'app pour la premiere fois -> Onboarding s'affiche
-- [ ] Terminer l'onboarding -> Redirection vers /auth
-- [ ] Fermer et rouvrir l'app -> Pas d'onboarding, directement auth ou dashboard
-- [ ] Se connecter puis fermer/rouvrir -> Directement dashboard (pas d'onboarding)
-
-### Kwenda Food
-- [ ] Commander un repas -> Commande creee avec succes
-- [ ] Restaurant confirme -> Client recoit notification
-- [ ] Restaurant demande livreur -> Dialog d'approbation s'affiche cote client
-- [ ] Client accepte les frais -> Livreur assigne
-- [ ] Livreur confirme pickup -> Statut mis a jour temps reel
-- [ ] Livreur confirme livraison -> Commande terminee
-- [ ] Bouton "Suivre" dans FoodOrderCard -> Ouvre la page de tracking
-
+- [ ] Carte affiche les vehicules en temps reel (2-3s)
+- [ ] Icones differenciees par type (taxi, moto, van, camion)
+- [ ] Animation fluide du deplacement (pas de teleportation)
+- [ ] Rotation des vehicules selon la direction
+- [ ] Mode jour/nuit automatique fonctionne
+- [ ] Filtres (Taxi/Livraison/Tous) operationnels
+- [ ] Clustering actif au dezoom
+- [ ] Notifications Job arrivent pour les nouvelles offres
+- [ ] Toggle notifications Job dans les preferences
+- [ ] Performance optimisee (batterie, memoire)
