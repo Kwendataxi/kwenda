@@ -46,6 +46,7 @@ import { ThemeNotification } from "@/components/theme/ThemeNotification";
 import { useOrderCleanup } from "@/hooks/useOrderCleanup";
 import { DebugHelper } from "@/utils/debugHelper";
 import { useServiceRealtime } from "./hooks/useServiceRealtime";
+import { JobNotificationListener } from "@/hooks/useJobNotifications";
 import { autoUpdateService } from "@/services/AutoUpdateService";
 import { initVersionDebug } from "@/utils/versionDebug";
 import { migrateToDefaultLightTheme } from "@/utils/themeMigration";
@@ -153,6 +154,7 @@ const AppContent = () => {
                     <Toaster />
                     <Sonner />
                     <PushNotificationManager />
+                    <JobNotificationListener />
                     <InstallBanner />
                     <BrowserRouter>
                       <NativeBackHandler />
