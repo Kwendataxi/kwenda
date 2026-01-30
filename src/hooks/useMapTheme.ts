@@ -109,17 +109,58 @@ const darkMapStyles: google.maps.MapTypeStyle[] = [
   }
 ];
 
-export function useMapTheme() {
+/**
+ * Détecte automatiquement si c'est l'heure de nuit (19h - 6h)
+ */
+const getAutoThemeByTime = (): 'light' | 'dark' => {
+  const hour = new Date().getHours();
+  return (hour >= 19 || hour < 6) ? 'dark' : 'light';
+};
+
+interface UseMapThemeOptions {
+  autoByTime?: boolean; // Activer le mode auto basé sur l'heure
+}
+
+export function useMapTheme(options: UseMapThemeOptions = {}) {
+  const { autoByTime = false } = options;
   const { theme, resolvedTheme } = useTheme();
   const [mapStyles, setMapStyles] = useState<google.maps.MapTypeStyle[]>(lightMapStyles);
+  const [timeBasedTheme, setTimeBasedTheme] = useState<'light' | 'dark'>(getAutoThemeByTime());
+
+  // Mettre à jour le thème basé sur l'heure toutes les 5 minutes
+  useEffect(() => {
+    if (!autoByTime) return;
+    
+    const updateTimeTheme = () => {
+      setTimeBasedTheme(getAutoThemeByTime());
+    };
+    
+    const interval = setInterval(updateTimeTheme, 5 * 60 * 1000); // 5 min
+    return () => clearInterval(interval);
+  }, [autoByTime]);
 
   useEffect(() => {
-    const currentTheme = theme === 'system' ? resolvedTheme : theme;
+    let currentTheme: string | undefined;
+    
+    if (autoByTime) {
+      // Mode automatique basé sur l'heure locale
+      currentTheme = timeBasedTheme;
+    } else {
+      // Mode basé sur le thème système/utilisateur
+      currentTheme = theme === 'system' ? resolvedTheme : theme;
+    }
+    
     setMapStyles(currentTheme === 'dark' ? darkMapStyles : lightMapStyles);
-  }, [theme, resolvedTheme]);
+  }, [theme, resolvedTheme, autoByTime, timeBasedTheme]);
+
+  const isDark = autoByTime 
+    ? timeBasedTheme === 'dark'
+    : (theme === 'system' ? resolvedTheme : theme) === 'dark';
 
   return {
     mapStyles,
-    isDark: (theme === 'system' ? resolvedTheme : theme) === 'dark'
+    isDark,
+    isAutoByTime: autoByTime,
+    currentTimeTheme: timeBasedTheme
   };
 }

@@ -4,7 +4,7 @@ import {
   Bell, BellOff, Volume2, VolumeX, Vibrate, 
   Clock, Car, Package, ShoppingBag, Utensils, 
   Gift, MessageCircle, CreditCard, Settings,
-  Moon, ChevronDown, ChevronUp, Check
+  Moon, ChevronDown, ChevronUp, Check, Briefcase
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -39,6 +39,7 @@ export interface NotificationPreferences {
     delivery: CategoryPreference;
     marketplace: CategoryPreference;
     food: CategoryPreference;
+    job: CategoryPreference;
     lottery: CategoryPreference;
     chat: CategoryPreference;
     payment: CategoryPreference;
@@ -62,6 +63,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
     delivery: { enabled: true, sound: true, vibration: true },
     marketplace: { enabled: true, sound: true, vibration: true },
     food: { enabled: true, sound: true, vibration: true },
+    job: { enabled: true, sound: true, vibration: true },
     lottery: { enabled: true, sound: true, vibration: true },
     chat: { enabled: true, sound: true, vibration: true },
     payment: { enabled: true, sound: true, vibration: true },
@@ -74,6 +76,7 @@ const CATEGORY_CONFIG = [
   { key: 'delivery', icon: Package, label: 'Livraison', description: 'Statut des colis' },
   { key: 'marketplace', icon: ShoppingBag, label: 'Marketplace', description: 'Commandes et messages' },
   { key: 'food', icon: Utensils, label: 'Food', description: 'Commandes repas' },
+  { key: 'job', icon: Briefcase, label: 'Kwenda Job', description: 'Nouvelles offres d\'emploi' },
   { key: 'lottery', icon: Gift, label: 'Loterie', description: 'Tirages et gains' },
   { key: 'chat', icon: MessageCircle, label: 'Chat', description: 'Messages directs' },
   { key: 'payment', icon: CreditCard, label: 'Paiements', description: 'Transactions' },
