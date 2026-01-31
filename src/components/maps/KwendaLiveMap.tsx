@@ -7,6 +7,8 @@ import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
 import { Loader2, Car, Package, Layers, RefreshCw } from 'lucide-react';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { useMapTheme } from '@/hooks/useMapTheme';
+import { useSmartMapCamera } from '@/hooks/useSmartMapCamera';
+import { PRESET_PADDINGS } from '@/utils/mapPaddingUtils';
 import { useUnifiedVehicleTracking, VehicleFilter, TrackedVehicle } from '@/hooks/useUnifiedVehicleTracking';
 import UnifiedVehicleMarker from './UnifiedVehicleMarker';
 import KwendaMapControls from './KwendaMapControls';
@@ -129,7 +131,9 @@ export const KwendaLiveMap = memo(({
 
         const map = new google.maps.Map(mapRef.current!, {
           center: defaultCenter,
-          zoom: userLocation ? 15 : 13,
+          zoom: 13, // Zoom initial bas - sera ajusté par smartCamera
+          minZoom: 10,
+          maxZoom: 18,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
@@ -149,6 +153,9 @@ export const KwendaLiveMap = memo(({
 
     initMap();
   }, [isLoaded, userLocation, mapStyles]);
+
+  // Hook de caméra intelligente
+  const smartCamera = useSmartMapCamera(mapInstanceRef.current);
 
   // Mettre à jour les styles quand le thème change
   useEffect(() => {
@@ -200,7 +207,7 @@ export const KwendaLiveMap = memo(({
     }
   }, [isMapReady, showTraffic]);
 
-  // Route entre pickup et destination
+  // Route entre pickup et destination avec smart camera
   useEffect(() => {
     if (!isMapReady || !mapInstanceRef.current || !showRoute || !pickup || !destination) {
       if (polylineRef.current) {
@@ -226,12 +233,12 @@ export const KwendaLiveMap = memo(({
       });
     }
 
-    // Ajuster la vue
-    const bounds = new google.maps.LatLngBounds();
-    bounds.extend(pickup);
-    bounds.extend(destination);
-    mapInstanceRef.current.fitBounds(bounds, 80);
-  }, [isMapReady, showRoute, pickup, destination, isDark]);
+    // Ajuster la vue avec smart camera
+    smartCamera.fitToRoute(pickup, destination, {
+      bottomSheetHeight: 200,
+      maxZoom: 16
+    });
+  }, [isMapReady, showRoute, pickup, destination, isDark, smartCamera]);
 
   // Handlers
   const handleFilterChange = useCallback((filter: VehicleFilter) => {
@@ -249,14 +256,14 @@ export const KwendaLiveMap = memo(({
           lat: position.coords.latitude,
           lng: position.coords.longitude
         };
-        mapInstanceRef.current?.panTo(pos);
-        mapInstanceRef.current?.setZoom(16);
+        // Utiliser smart camera au lieu de zoom fixe
+        smartCamera.zoomToSinglePoint(pos, { baseZoom: 16, animationDuration: 600 });
         setIsLocating(false);
       },
       () => setIsLocating(false),
       { enableHighAccuracy: true, timeout: 10000 }
     );
-  }, []);
+  }, [smartCamera]);
 
   // Loading state
   if (isLoading) {

@@ -6,6 +6,7 @@ import ProfessionalRoutePolyline from './ProfessionalRoutePolyline';
 import LiveDriversLayer from '../LiveDriversLayer';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { useMapTheme } from '@/hooks/useMapTheme';
+import { useSmartMapCamera } from '@/hooks/useSmartMapCamera';
 import { throttle } from '@/utils/performanceUtils';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
@@ -307,7 +308,9 @@ export default function ModernMapView({
           // ✅ Map ID conditionnel - fonctionne sans
           ...(validMapId && { mapId: validMapId }),
           center: defaultCenter,
-          zoom: userLocation ? 15 : pickup ? 14 : 13,
+          zoom: 13, // Zoom initial bas - sera ajusté par useSmartMapCamera
+          minZoom: 10,
+          maxZoom: 18,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
@@ -394,69 +397,53 @@ export default function ModernMapView({
     animate();
   };
 
-  // 🎯 Ajustement automatique du zoom/bounds premium
+  // 🎯 Hook de caméra intelligente style Uber/Yango
+  const smartCamera = useSmartMapCamera(mapInstanceRef.current);
+
+  // 🎯 Ajustement automatique du zoom/bounds premium avec useSmartMapCamera
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapReady) return;
 
-    console.log('📹 [ModernMapView] Ajustement automatique caméra:', { 
+    console.log('📹 [ModernMapView] Smart camera adjustment:', { 
       hasPickup: !!pickup, 
       hasDestination: !!destination,
       hasUserLocation: !!userLocation
     });
 
     if (pickup && destination) {
-      // ✅ Mode Route: Afficher pickup + destination avec padding premium
-      console.log('🗺️ Ajustement bounds: Pickup + Destination');
-      const bounds = new google.maps.LatLngBounds();
-      bounds.extend({ lat: pickup.lat, lng: pickup.lng });
-      bounds.extend({ lat: destination.lat, lng: destination.lng });
-      
-      mapInstanceRef.current.fitBounds(bounds, { 
-        top: 80, 
-        right: 80, 
-        bottom: 80, 
-        left: 80 
-      });
-
-      // Limiter le zoom max pour éviter trop de zoom
-      const listener = google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
-        const currentZoom = mapInstanceRef.current?.getZoom();
-        if (currentZoom && currentZoom > 16) {
-          mapInstanceRef.current?.setZoom(16);
+      // ✅ Mode Route: fitBounds dynamique avec padding adaptatif
+      console.log('🗺️ Smart fitToRoute: Pickup + Destination');
+      smartCamera.fitToRoute(
+        { lat: pickup.lat, lng: pickup.lng },
+        { lat: destination.lat, lng: destination.lng },
+        { 
+          bottomSheetHeight: 420, 
+          maxZoom: 17,
+          minZoom: 10
         }
-      });
-
-      return () => {
-        google.maps.event.removeListener(listener);
-      };
+      );
     } else if (userLocation) {
-      // ✅ Position utilisateur détectée: Centrer avec zoom 15
-      console.log('📍 Centrage sur position utilisateur détectée');
-      animateCameraTransition({
-        center: { lat: userLocation.lat, lng: userLocation.lng },
-        zoom: 15,
-        tilt: 45,
-        heading: 0
-      }, 1000);
+      // ✅ Position utilisateur: zoom contextuel (pas de zoom fixe)
+      console.log('📍 Smart zoom sur position utilisateur');
+      smartCamera.zoomToSinglePoint(
+        { lat: userLocation.lat, lng: userLocation.lng },
+        { contextualZoom: true, baseZoom: 16 }
+      );
     } else if (pickup) {
-      // Pickup uniquement: Zoom 14
-      console.log('📍 Centrage sur pickup uniquement');
-      animateCameraTransition({
-        center: { lat: pickup.lat, lng: pickup.lng },
-        zoom: 14,
-        tilt: 45,
-        heading: 0
-      }, 1000);
+      // Pickup uniquement: zoom contextuel
+      console.log('📍 Smart zoom sur pickup uniquement');
+      smartCamera.zoomToSinglePoint(
+        { lat: pickup.lat, lng: pickup.lng },
+        { contextualZoom: true, baseZoom: 15 }
+      );
     } else if (destination) {
       // Destination uniquement
-      animateCameraTransition({
-        center: { lat: destination.lat, lng: destination.lng },
-        zoom: 14,
-        tilt: 45,
-        heading: 0
-      }, 1000);
+      smartCamera.zoomToSinglePoint(
+        { lat: destination.lat, lng: destination.lng },
+        { contextualZoom: true, baseZoom: 15 }
+      );
     }
-  }, [pickup, destination, userLocation, isMapReady]);
+  }, [pickup, destination, userLocation, isMapReady, smartCamera]);
 
   // Fonction d'animation de caméra fluide
   const animateCameraTransition = (
@@ -622,10 +609,11 @@ export default function ModernMapView({
 
   const handleLocateUser = () => {
     if (userLocation && mapInstanceRef.current) {
-      animateCameraTransition({
-        center: { lat: userLocation.lat, lng: userLocation.lng },
-        zoom: 15
-      }, 1000);
+      // Utiliser le smart camera pour recenter
+      smartCamera.zoomToSinglePoint(
+        { lat: userLocation.lat, lng: userLocation.lng },
+        { baseZoom: 16, animationDuration: 600 }
+      );
     }
   };
 

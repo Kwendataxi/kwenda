@@ -1,6 +1,7 @@
 /**
  * Composant de preview de carte pour visualiser le trajet de livraison
  * ✅ FIX: Utilise googleMapsLoader au lieu de VITE_GOOGLE_MAPS_API_KEY
+ * ✅ FIX: Padding dynamique pour éviter éléments masqués
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { googleMapsLoader } from '@/services/googleMapsLoader';
+import { PRESET_PADDINGS } from '@/utils/mapPaddingUtils';
 
 interface DeliveryMapPreviewProps {
   pickup: {
@@ -69,13 +71,22 @@ export const DeliveryMapPreview: React.FC<DeliveryMapPreviewProps> = ({
         const map = new google.maps.Map(mapRef.current, {
           center: bounds.getCenter(),
           zoom: 12,
+          minZoom: 10,
+          maxZoom: 18,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false
         });
 
-        // Ajuster la vue pour contenir les deux markers
-        map.fitBounds(bounds);
+        // Ajuster la vue avec padding adaptatif pour le bottom overlay
+        const padding = PRESET_PADDINGS.simple_preview();
+        map.fitBounds(bounds, padding);
+        
+        // Limiter le zoom max
+        google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
+          const currentZoom = map.getZoom();
+          if (currentZoom && currentZoom > 17) map.setZoom(17);
+        });
 
         // Marker de pickup (vert)
         new google.maps.Marker({

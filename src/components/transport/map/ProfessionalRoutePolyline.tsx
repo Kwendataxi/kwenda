@@ -4,10 +4,12 @@
  * - Effet d'ombre pour profondeur
  * - Coloration trafic optionnelle
  * - Animation d'apparition progressive
+ * - Padding dynamique adaptatif
  */
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { professionalRouteService, ProfessionalRouteResult } from '@/services/professionalRouteService';
+import { calculateDynamicPadding, MapPaddingConfig, MapPadding } from '@/utils/mapPaddingUtils';
 import { toast } from 'sonner';
 
 interface Location {
@@ -25,6 +27,8 @@ interface ProfessionalRoutePolylineProps {
   onRouteCalculated?: (result: ProfessionalRouteResult) => void;
   primaryColor?: string;
   strokeWeight?: number;
+  bottomSheetHeight?: number;
+  paddingConfig?: MapPaddingConfig | MapPadding;
 }
 
 // Couleurs Kwenda
@@ -39,7 +43,9 @@ export default function ProfessionalRoutePolyline({
   animate = true,
   onRouteCalculated,
   primaryColor = KWENDA_PRIMARY,
-  strokeWeight = 6
+  strokeWeight = 6,
+  bottomSheetHeight = 420,
+  paddingConfig
 }: ProfessionalRoutePolylineProps) {
   const mainPolylineRef = useRef<google.maps.Polyline | null>(null);
   const shadowPolylineRef = useRef<google.maps.Polyline | null>(null);
@@ -158,14 +164,28 @@ export default function ProfessionalRoutePolyline({
           animatePolyline(mainPolylineRef.current, path, 600);
         }
 
-        // 5. 🔧 FIX: Ajuster les bounds UNE SEULE FOIS (pas à chaque recalcul)
+        // 5. 🔧 FIX: Ajuster les bounds UNE SEULE FOIS avec padding DYNAMIQUE
         if (!hasFittedBoundsRef.current) {
-          map.fitBounds(result.bounds, {
-            top: 100,
-            right: 60,
-            bottom: 300,
-            left: 60
+          // Calculer le padding dynamique basé sur la config ou les defaults
+          const padding = paddingConfig 
+            ? (typeof paddingConfig === 'object' && 'top' in paddingConfig)
+              ? paddingConfig as MapPadding
+              : calculateDynamicPadding(paddingConfig as MapPaddingConfig)
+            : calculateDynamicPadding({ 
+                bottomSheetHeight, 
+                isMobile: window.innerWidth < 768 
+              });
+          
+          map.fitBounds(result.bounds, padding);
+          
+          // Limiter le zoom max après fitBounds
+          google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
+            const currentZoom = map.getZoom();
+            if (currentZoom && currentZoom > 17) {
+              map.setZoom(17);
+            }
           });
+          
           hasFittedBoundsRef.current = true;
         }
 
