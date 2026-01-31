@@ -16,6 +16,8 @@ import {
   Radio
 } from 'lucide-react';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+import { useSmartMapCamera } from '@/hooks/useSmartMapCamera';
+import { PRESET_PADDINGS } from '@/utils/mapPaddingUtils';
 import { toast } from 'sonner';
 
 interface Location {
@@ -97,8 +99,10 @@ export default function ModernTrackingMap({
     if (!isLoaded || !mapRef.current || mapInitialized) return;
 
     const map = new google.maps.Map(mapRef.current, {
-      zoom: 14,
+      zoom: 13, // Zoom initial bas - sera ajusté par smartCamera
       center: pickup,
+      minZoom: 10,
+      maxZoom: 18,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: false,
@@ -169,12 +173,20 @@ export default function ModernTrackingMap({
             map
           });
 
-          // Ajuster les bounds pour voir toute la route
+          // Ajuster les bounds pour voir toute la route avec padding intelligent
           const bounds = new google.maps.LatLngBounds();
           bounds.extend(pickup);
           bounds.extend(destination);
           if (driverLocation) bounds.extend(driverLocation);
-          map.fitBounds(bounds, { top: 80, bottom: 80, left: 80, right: 80 });
+          
+          const padding = PRESET_PADDINGS.tracking_with_driver();
+          map.fitBounds(bounds, padding);
+          
+          // Limiter le zoom max
+          google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
+            const currentZoom = map.getZoom();
+            if (currentZoom && currentZoom > 17) map.setZoom(17);
+          });
         }
       }
     );
@@ -253,19 +265,28 @@ export default function ModernTrackingMap({
     }
   }, [driverLocation, driverHeading, isFollowing, mapInitialized]);
 
-  // Fonctions de contrôle
+  // Hook de caméra intelligente
+  const smartCamera = useSmartMapCamera(googleMapRef.current);
+
+  // Fonctions de contrôle avec smartCamera
   const handleRecenter = () => {
     if (!googleMapRef.current) return;
 
-    if (driverLocation) {
-      googleMapRef.current.panTo(driverLocation);
-      googleMapRef.current.setZoom(16);
+    if (driverLocation && pickup && destination) {
+      // Utiliser fitToTrip pour afficher les 3 points
+      smartCamera.fitToTrip(
+        pickup,
+        destination,
+        driverLocation,
+        { bottomSheetHeight: 350, maxZoom: 16 }
+      );
+      setIsFollowing(true);
+    } else if (driverLocation) {
+      smartCamera.zoomToSinglePoint(driverLocation, { baseZoom: 16 });
       setIsFollowing(true);
     } else {
-      const bounds = new google.maps.LatLngBounds();
-      bounds.extend(pickup);
-      bounds.extend(destination);
-      googleMapRef.current.fitBounds(bounds, { top: 80, bottom: 80, left: 80, right: 80 });
+      // Fallback: fitBounds sur pickup + destination
+      smartCamera.fitToRoute(pickup, destination, { bottomSheetHeight: 300 });
     }
   };
 
