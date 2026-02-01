@@ -1,259 +1,137 @@
 
+## Diagnostic (cause racine)
 
-# Plan d'Optimisation du Zoom Carte Kwenda - Style Uber/Yango
+L’écran “Problème détecté / Tentative de récupération automatique” vient du composant global **`SafetyNet`** (error boundary + auto-recovery).
 
-## Diagnostic Actuel
+En inspectant les logs du navigateur, l’erreur qui fait crasher l’app en boucle est :
 
-### Problemes identifies dans le code existant
+- **`useNavigate() may be used only in the context of a <Router> component.`**
+- Call stack : `useJobNotifications.tsx` → `JobNotificationListener` → rendu dans `App.tsx`
 
-| Fichier | Probleme | Impact |
-|---------|----------|--------|
-| `ModernMapView.tsx` ligne 435-447 | `zoom: 15` fixe pour position utilisateur | Zoom trop serre ou trop large selon contexte |
-| `ModernMapView.tsx` ligne 444-449 | `zoom: 14` fixe pour pickup seul | Pas de contexte autour |
-| `ModernTrackingMap.tsx` ligne 262 | `setZoom(16)` fixe sur le chauffeur | Perd la vue globale du trajet |
-| `KwendaLiveMap.tsx` ligne 253 | `setZoom(16)` apres localisation | Manque d'adaptation au contexte |
-| `DeliveryMapPreview.tsx` ligne 78 | `fitBounds()` sans padding adaptatif | Elements caches sous les bottom sheets |
-| `ProfessionalRoutePolyline.tsx` ligne 163-168 | Padding statique `{top:100, bottom:300}` | Pas adapte a la hauteur reelle des panels |
+### Pourquoi ça bloque tout
+Dans `src/App.tsx`, on rend actuellement :
+- `<JobNotificationListener />` **avant** `<BrowserRouter>`
 
----
-
-## Architecture de la Solution
-
-### Nouveau Hook Centralise : `useSmartMapCamera`
-
-Un hook unique pour gerer tous les scenarios de zoom avec logique Uber/Yango :
-
-```
-Scenarios supportes:
-1. Position seule       -> Zoom contextuel (15-16)
-2. Pickup seul          -> Zoom contextuel (15-16) 
-3. Pickup + Destination -> fitBounds avec padding dynamique
-4. Pickup + Dest + Driver -> fitBounds 3 points
-5. Suivi chauffeur      -> Mode "follow" avec auto-recadrage
-```
+Or `useJobNotifications()` appelle `useNavigate()` dès l’exécution du hook, et **React Router n’existe pas encore** (pas de contexte `<Router>`), donc ça jette une exception au render → `SafetyNet` prend le relais → re-try → re-crash → boucle.
 
 ---
 
-## Phase 1 : Creation du Hook `useSmartMapCamera`
+## Objectif de la correction
 
-### Fichier : `src/hooks/useSmartMapCamera.ts`
-
-**Fonctionnalites principales :**
-
-1. **Padding Dynamique**
-   - Calcul automatique selon hauteur du bottom sheet
-   - Detection de l'ecran (mobile/tablette/desktop)
-   - Marges intelligentes pour eviter masquage
-
-2. **Scenarios de Zoom**
-   - `zoomToSinglePoint()` - Zoom contextuel 15-16
-   - `fitToRoute()` - Affiche pickup + destination
-   - `fitToTrip()` - Affiche pickup + destination + chauffeur
-   - `followDriver()` - Mode suivi avec zoom adaptatif
-
-3. **Limiteurs de Zoom**
-   - `minZoom: 10` (vue ville)
-   - `maxZoom: 18` (vue rue)
-   - Prevention du zoom excessif apres fitBounds
-
-4. **Animation Fluide**
-   - Transition camera `duration: 600ms`
-   - Easing `ease-out-cubic`
-   - Interpolation position + zoom
+1) **Supprimer le crash au démarrage** (bloquant)  
+2) **Empêcher les boucles de recovery** déclenchées par `SafetyNet`/`HealthOrchestrator`  
+3) (Optionnel mais recommandé) **Corriger le faux “réseau instable”** (HealthMonitor) qui ping Supabase sans headers et reçoit 401 en permanence
 
 ---
 
-## Phase 2 : Utilitaire de Padding Dynamique
+## Changements à faire (plan d’implémentation)
 
-### Fichier : `src/utils/mapPaddingUtils.ts`
+### Étape 1 — Fix critique : remettre JobNotificationListener dans le Router
+**Fichier : `src/App.tsx`**
 
-```
-Configuration par contexte:
+- Déplacer `<JobNotificationListener />` **à l’intérieur** de `<BrowserRouter>`.
+- Emplacement conseillé (simple et sûr) :
+  - Juste après `<BrowserRouter>` et avant les autres composants de navigation (`NativeBackHandler`, `NavigationGuard`, etc.)
 
-| Contexte          | Top   | Bottom | Left  | Right |
-|-------------------|-------|--------|-------|-------|
-| Bottom sheet 420px| 80px  | 450px  | 60px  | 60px  |
-| Bottom sheet 300px| 80px  | 330px  | 60px  | 60px  |
-| Mode fullscreen   | 120px | 120px  | 80px  | 80px  |
-| Mode tracking     | 200px | 350px  | 80px  | 80px  |
-```
+**Avant (actuel)**
+- `<JobNotificationListener />` est rendu avant `<BrowserRouter>`
 
----
+**Après (cible)**
+- `<BrowserRouter>`
+  - `<JobNotificationListener />`
+  - `<NativeBackHandler />`
+  - `<HistoryBarrierManager />`
+  - `<NavigationGuard> ... </NavigationGuard>`
+- `</BrowserRouter>`
 
-## Phase 3 : Modification de `ModernMapView.tsx`
-
-### Changements cles
-
-**Avant (ligne 407-459):**
-```typescript
-// Zoom fixes
-if (userLocation) {
-  animateCameraTransition({
-    center: userLocation,
-    zoom: 15, // ❌ FIXE
-  });
-} else if (pickup) {
-  animateCameraTransition({
-    center: pickup,
-    zoom: 14, // ❌ FIXE
-  });
-}
-```
-
-**Apres:**
-```typescript
-// Logique intelligente
-if (pickup && destination) {
-  smartCamera.fitToRoute(pickup, destination, {
-    bottomSheetHeight: 420,
-    maxZoom: 16
-  });
-} else if (pickup || userLocation) {
-  smartCamera.zoomToPoint(pickup || userLocation, {
-    contextualZoom: true
-  });
-}
-```
+✅ Résultat attendu : `useNavigate()` a un Router disponible, plus d’exception, donc plus de blocage.
 
 ---
 
-## Phase 4 : Modification de `ModernTrackingMap.tsx`
+### Étape 2 — Hardening (pour éviter qu’un déplacement futur recasse tout)
+**Fichier : `src/hooks/useJobNotifications.tsx`**
 
-### Ameliorations
+Objectif : rendre le code “anti-crash” même si quelqu’un remet le listener hors Router.
 
-1. **Initialisation**
-   - Utiliser `fitBounds` au lieu de `zoom: 14` fixe
-   - Inclure chauffeur dans les bounds si disponible
+Deux options (choisir 1) :
 
-2. **Mode Suivi Chauffeur**
-   - Remplacer `setZoom(16)` par zoom adaptatif
-   - Recadrage automatique si chauffeur sort des bounds visibles
+#### Option A (recommandée) — Séparer “core hook” et “navigation”
+- Garder `useJobNotificationsCore()` sans dépendance à React Router.
+- Dans `JobNotificationListener`, qui est rendu dans le Router, utiliser `useNavigate()` puis passer un callback `onOpenJob(url)` au core hook.
+- Le core hook ne connaît plus `useNavigate`.
 
-3. **Bouton Recentrer**
-   - `fitToTrip()` au lieu de `panTo` simple
-   - Affiche tout le contexte (chauffeur + pickup + destination)
+✅ Avantage : navigation SPA conservée sans risque de crash global.
 
----
+#### Option B (simple) — Remplacer `useNavigate()` par `window.location.assign`
+- Supprimer `useNavigate()` dans le hook.
+- Sur clic “Voir l’offre” : `window.location.assign(`/job/${job.id}`)`
 
-## Phase 5 : Modification de `KwendaLiveMap.tsx`
-
-### Ajouts
-
-1. **Zoom initial adaptatif**
-   - Si vehicules visibles : zoom pour tous les voir
-   - Si route affichee : fitBounds sur la route
-
-2. **Bouton Localisation**
-   - Zoom 16 avec animation fluide
-   - Re-afficher vehicules proches dans le viewport
+✅ Avantage : impossible de crasher hors Router.
+⚠️ Inconvénient : navigation full reload (moins “app-like”).
 
 ---
 
-## Phase 6 : Modification de `ProfessionalRoutePolyline.tsx`
+### Étape 3 — Bonus stabilité : corriger le ping réseau HealthMonitor (éviter le 401 permanent)
+**Fichier : `src/services/HealthMonitor.ts`**
 
-### Correction du padding
+Constat :
+- `checkNetwork()` fait un `HEAD` sur `https://...supabase.co/rest/v1/` **sans apikey/authorization**
+- Supabase répond **401**, ce qui fausse la métrique “network unstable”.
 
-**Avant:**
-```typescript
-map.fitBounds(result.bounds, {
-  top: 100,
-  right: 60,
-  bottom: 300, // ❌ Statique
-  left: 60
-});
-```
+Correction recommandée :
+- Remplacer le ping par un endpoint “public” ou un appel qui inclut les headers.
+  - Option sûre : `GET https://...supabase.co/auth/v1/health` (si disponible)
+  - Ou ping via Supabase client (qui porte déjà les headers) :
+    - `await supabase.auth.getSession()` (ne teste pas la DB mais teste la connectivité)
+    - ou un `select` très léger sur une table publique réellement accessible
+  - Ou un Edge Function “health_check” (vous avez déjà le pattern `body.health_check === true` sur certaines functions) : ping 1 requête rapide, réponse “ok”.
 
-**Apres:**
-```typescript
-const dynamicPadding = calculateDynamicPadding({
-  bottomSheetHeight,
-  screenHeight: window.innerHeight,
-  hasDriverInfo: !!driverLocation
-});
-
-map.fitBounds(result.bounds, dynamicPadding);
-```
+✅ Résultat attendu : Health Score plus fidèle, moins de “degraded”, moins d’auto-actions inutiles.
 
 ---
 
-## Phase 7 : Ajout du Limiteur de Zoom
+## Vérifications / tests à faire après correction
 
-### Dans chaque `fitBounds`
+1) Ouvrir `/` (web preview + mobile) :
+   - Plus d’écran “Problème détecté”
+   - Plus d’erreur `useNavigate() may be used only...` dans la console
 
-```typescript
-// Apres fitBounds, limiter le zoom max
-const listener = google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
-  const currentZoom = map.getZoom();
-  if (currentZoom && currentZoom > 17) {
-    map.setZoom(17);
-  }
-});
-```
+2) Vérifier les notifications Job :
+   - Activer le toggle (si présent)
+   - Créer un job “active” (ou simuler insert en test)
+   - Toast apparaît
+   - Clic “Voir l’offre” ouvre `/job/:id` correctement
 
----
-
-## Phase 8 : Mode "Auto-Recadrage Intelligent"
-
-### Nouvelle fonctionnalite
-
-Quand le chauffeur sort des bounds visibles:
-1. Detecter si le marker chauffeur est hors viewport
-2. Recalculer fitBounds avec les 3 points
-3. Animer la transition sans brusquer l'utilisateur
-
-```typescript
-const isOutOfBounds = (position, mapBounds) => {
-  return !mapBounds.contains(position);
-};
-
-if (isOutOfBounds(driverLocation, map.getBounds()) && !userIsZooming) {
-  smartCamera.fitToTrip(pickup, destination, driverLocation);
-}
-```
+3) Vérifier les métriques Health (si étape 3 appliquée) :
+   - Les requêtes HEAD vers `/rest/v1/` ne doivent plus échouer
+   - Health status ne doit pas passer “degraded” juste à cause du ping
 
 ---
 
-## Resume des Fichiers
+## Fichiers impactés
 
-### Nouveaux fichiers
+- **À modifier (critique)** :
+  - `src/App.tsx`
 
-| Fichier | Description |
-|---------|-------------|
-| `src/hooks/useSmartMapCamera.ts` | Hook centralise de gestion camera |
-| `src/utils/mapPaddingUtils.ts` | Calcul padding dynamique |
+- **À modifier (hardening recommandé)** :
+  - `src/hooks/useJobNotifications.tsx`
 
-### Fichiers modifies
-
-| Fichier | Modifications |
-|---------|---------------|
-| `src/components/transport/map/ModernMapView.tsx` | Remplacer zooms fixes par `useSmartMapCamera` |
-| `src/components/tracking/ModernTrackingMap.tsx` | Ajouter `fitToTrip` et limiteur zoom |
-| `src/components/maps/KwendaLiveMap.tsx` | Zoom adaptatif sur vehicules |
-| `src/components/transport/map/ProfessionalRoutePolyline.tsx` | Padding dynamique |
-| `src/components/delivery/DeliveryMapPreview.tsx` | Padding pour bottom overlay |
-| `src/hooks/useMapCamera.ts` | Etendre avec nouvelles fonctions |
+- **À modifier (stabilité recommandée)** :
+  - `src/services/HealthMonitor.ts`
 
 ---
 
-## Regles UX Implementees
+## Risques & contournements
 
-1. **Jamais de zoom fixe** - Toujours `fitBounds()` ou zoom contextuel
-2. **Padding bottom = hauteur sheet + 30px** - Rien n'est cache
-3. **Zoom max = 17** - Vue rue lisible sans exces
-4. **Zoom min = 10** - Vue ville complete
-5. **Animation 600ms** - Transition fluide perceptible
-6. **Auto-recadrage si chauffeur sort** - Contexte toujours visible
-7. **Prevention du zoom pendant interaction** - `userIsManuallyZooming`
+- Si l’utilisateur est bloqué en boucle même après fix (cache PWA/service worker) :
+  - vider cache PWA / forcer “hard reload”
+  - vérifier `UpdateNotification / AutoUpdateService` (mais la cause principale actuelle est bien `useNavigate` hors Router)
 
 ---
 
-## Tests de Validation
+## Résultat attendu
 
-- [ ] Recherche adresse -> Zoom contextuel autour du point
-- [ ] Pickup + Destination -> Tout le trajet visible
-- [ ] Chauffeur assigne -> 3 points visibles (pickup, dest, chauffeur)
-- [ ] Suivi chauffeur -> Recadrage auto si sort des bounds
-- [ ] Bottom sheet ouvert -> Destination pas cachee
-- [ ] Zoom manuel -> Pas de recadrage intempestif
-- [ ] Animation fluide sur tous les changements
-
+- App qui démarre normalement (plus de crash loop)
+- SafetyNet ne s’active plus sur `/`
+- Notifications “Kwenda Job” fonctionnelles sans casser l’app
+- Health monitor plus fiable (moins de fausses alertes réseau)
