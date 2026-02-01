@@ -452,38 +452,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
         bottomSheetHeight={bottomSheetHeight}
       />
 
-      {/* 📍 Indicateur de précision GPS */}
-      {locationReady && source && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-20 right-4 z-50"
-        >
-          <div className={`
-            px-2.5 py-1.5 rounded-full backdrop-blur-md shadow-sm border
-            flex items-center gap-1.5 text-[11px] font-medium
-            ${source.includes('GPS') 
-              ? parseInt(source.match(/\d+/)?.[0] || '0') <= 50 
-                ? 'bg-emerald-500/15 text-emerald-600 border-emerald-200/50 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-700/30'
-                : parseInt(source.match(/\d+/)?.[0] || '0') <= 150
-                  ? 'bg-amber-500/15 text-amber-600 border-amber-200/50 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-700/30'
-                  : 'bg-orange-500/15 text-orange-600 border-orange-200/50 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-700/30'
-              : String(source)?.includes('IP') || String(source)?.includes('ip') || String(source)?.includes('smart')
-                ? 'bg-slate-500/15 text-slate-500 border-slate-200/50 dark:bg-slate-500/20 dark:text-slate-400 dark:border-slate-700/30'
-                : 'bg-muted text-muted-foreground border-border/30'
-            }
-          `}>
-            <span className={`w-1.5 h-1.5 rounded-full ${
-              source.includes('GPS') && parseInt(source.match(/\d+/)?.[0] || '0') <= 50
-                ? 'bg-emerald-500 animate-pulse'
-                : source.includes('GPS')
-                  ? 'bg-amber-500'
-                  : 'bg-slate-400'
-            }`} />
-            {source}
-          </div>
-        </motion.div>
-      )}
       
       {/* Indicateur chauffeurs à proximité - vrai compteur temps réel */}
       <NearbyDriversIndicator 

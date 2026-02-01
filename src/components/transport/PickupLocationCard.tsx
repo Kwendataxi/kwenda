@@ -61,12 +61,12 @@ export default function PickupLocationCard({ pickupAddress, onEdit }: PickupLoca
       animate={{ 
         y: 0, 
         opacity: 1,
-        top: isCollapsed ? '5rem' : '1rem',
         left: '1rem',
         right: isCollapsed ? 'auto' : '1rem'
       }}
       transition={{ type: 'spring', damping: 20, stiffness: 300 }}
       className="absolute z-10"
+      style={{ top: '5.5rem' }}
     >
       <Card 
         onClick={handleToggle}
