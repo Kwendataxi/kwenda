@@ -142,21 +142,27 @@ export class HealthMonitor {
       return;
     }
 
-    // Mesurer latency avec un ping vers Supabase
+    // Mesurer latency avec un ping vers un endpoint public Supabase (health check auth)
+    // Utilise l'endpoint auth/v1/ qui n'exige pas de clé API et retourne 200
     const start = performance.now();
     try {
-      await fetch('https://wddlktajnhwhyquwcdgf.supabase.co/rest/v1/', {
-        method: 'HEAD',
-        signal: AbortSignal.timeout(3000)
+      const response = await fetch('https://wddlktajnhwhyquwcdgf.supabase.co/auth/v1/', {
+        method: 'GET',
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZGxrdGFqbmh3aHlxdXdjZGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNDA1NjUsImV4cCI6MjA2OTcxNjU2NX0.rViBegpawtg1sFwafH_fczlB0oeA8E6V3MtDELcSIiU'
+        },
+        signal: AbortSignal.timeout(5000)
       });
       const latency = performance.now() - start;
 
+      // 200, 404 ou même 401 avec apikey = réseau OK, on mesure juste la latence
       this.metrics.network = {
-        status: latency > 2000 ? 'unstable' : 'stable',
+        status: latency > 3000 ? 'unstable' : 'stable',
         latency,
         lastCheck: Date.now()
       };
     } catch (error) {
+      // Timeout ou erreur réseau réelle
       this.metrics.network = {
         status: 'unstable',
         latency: -1,
