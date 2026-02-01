@@ -1,9 +1,12 @@
 /**
  * 🔔 Hook pour les notifications d'offres d'emploi Kwenda Job
  * Écoute les nouveaux jobs via Supabase Realtime
+ * 
+ * IMPORTANT: Ce composant doit être rendu DANS un <Router> pour que la navigation SPA fonctionne.
+ * Il est protégé contre les crashes si utilisé hors Router (fallback: window.location).
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,11 +70,34 @@ const formatSalary = (job: Job): string => {
 };
 
 /**
+ * Navigation sécurisée - utilise useNavigate si disponible, sinon fallback window.location
+ */
+const useSafeNavigate = () => {
+  let navigate: ReturnType<typeof useNavigate> | null = null;
+  
+  try {
+    // Ceci ne crash plus car on est maintenant dans un Router
+    navigate = useNavigate();
+  } catch {
+    // Si jamais appelé hors Router, on utilise le fallback
+    console.warn('⚠️ useJobNotifications: useNavigate indisponible, fallback window.location');
+  }
+  
+  return useCallback((path: string) => {
+    if (navigate) {
+      navigate(path);
+    } else {
+      window.location.assign(path);
+    }
+  }, [navigate]);
+};
+
+/**
  * Hook principal pour les notifications job
  */
 export const useJobNotifications = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const navigateTo = useSafeNavigate();
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
@@ -129,7 +155,7 @@ export const useJobNotifications = () => {
                   <button
                     onClick={() => {
                       toast.dismiss(t);
-                      navigate(`/job/${job.id}`);
+                      navigateTo(`/job/${job.id}`);
                     }}
                     className="flex-1 px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                   >
@@ -177,13 +203,14 @@ export const useJobNotifications = () => {
         channelRef.current = null;
       }
     };
-  }, [user, navigate]);
+  }, [user, navigateTo]);
 
   return null;
 };
 
 /**
  * Composant invisible qui active les notifications job
+ * ⚠️ DOIT être rendu à l'intérieur d'un <BrowserRouter>
  */
 export const JobNotificationListener = () => {
   useJobNotifications();

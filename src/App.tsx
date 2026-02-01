@@ -154,9 +154,9 @@ const AppContent = () => {
                     <Toaster />
                     <Sonner />
                     <PushNotificationManager />
-                    <JobNotificationListener />
                     <InstallBanner />
                     <BrowserRouter>
+                      <JobNotificationListener />
                       <NativeBackHandler />
                       <HistoryBarrierManager />
                       <NavigationGuard>
