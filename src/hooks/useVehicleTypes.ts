@@ -95,7 +95,8 @@ export const useVehicleTypes = ({ distance = 0, city = 'Kinshasa' }: UseVehicleT
       return sortedVehicles;
     },
     enabled: true,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    // ✅ PHASE 3: Pas de cache quand distance calculée pour forcer le recalcul des prix
+    staleTime: distance > 0 ? 0 : 5 * 60 * 1000,
   });
 
   // Synchronisation temps réel avec pricing_rules
