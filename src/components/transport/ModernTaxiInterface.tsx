@@ -175,25 +175,33 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
     debouncedCalculate();
   }, [pickupLocation, destinationLocation, debouncedCalculate]);
 
-  // Charger les types de véhicules avec prix réels depuis la DB
-  const { vehicles } = useVehicleTypes({ 
+  // ✅ PHASE 1: Charger les véhicules avec prix réels depuis la DB (source unique)
+  const { vehicles, isLoading: vehiclesLoading } = useVehicleTypes({ 
     distance, 
     city: currentCity?.name || 'Kinshasa' 
   });
 
+  // ✅ PHASE 3: Calcul dynamique des prix basé sur la distance RÉELLE
+  const vehiclesWithPrices = useMemo(() => {
+    return vehicles.map(v => ({
+      ...v,
+      calculatedPrice: Math.round(v.basePrice + (distance * v.pricePerKm))
+    }));
+  }, [vehicles, distance]);
+
   // Calculer le prix basé sur le véhicule sélectionné
   const calculatedPrice = useMemo(() => {
-    if (!selectedVehicle || vehicles.length === 0) return 0;
-    const vehicle = vehicles.find(v => v.id === selectedVehicle);
+    if (!selectedVehicle || vehiclesWithPrices.length === 0) return 0;
+    const vehicle = vehiclesWithPrices.find(v => v.id === selectedVehicle);
     return vehicle?.calculatedPrice || 0;
-  }, [selectedVehicle, vehicles]);
+  }, [selectedVehicle, vehiclesWithPrices]);
 
   // Auto-sélectionner le véhicule le moins cher au chargement
   useEffect(() => {
-    if (vehicles.length > 0 && !selectedVehicle) {
-      setSelectedVehicle(vehicles[0].id);
+    if (vehiclesWithPrices.length > 0 && !selectedVehicle) {
+      setSelectedVehicle(vehiclesWithPrices[0].id);
     }
-  }, [vehicles, selectedVehicle]);
+  }, [vehiclesWithPrices, selectedVehicle]);
 
   const handleVehicleSelect = useCallback((vehicleId: string) => {
     setSelectedVehicle(vehicleId);
@@ -466,7 +474,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
       />
       
       
-      {/* Sheet unifié moderne - SIMPLIFIÉ */}
+      {/* ✅ PHASE 1: Sheet unifié avec véhicules passés en props */}
       <UnifiedTaxiSheet
         pickup={pickupLocation}
         destination={destinationLocation}
@@ -487,6 +495,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
         onBiddingModeChange={setBiddingMode}
         clientProposedPrice={clientProposedPrice}
         onClientProposedPriceChange={setClientProposedPrice}
+        vehicles={vehiclesWithPrices}
+        vehiclesLoading={vehiclesLoading || calculatingRoute}
       />
 
       {/* Modal de confirmation avec prix */}

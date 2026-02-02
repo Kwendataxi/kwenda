@@ -7,8 +7,9 @@ import CompactDestinationSearch from './CompactDestinationSearch';
 import PremiumVehicleCarousel from './PremiumVehicleCarousel';
 import ModernBiddingInterface from './ModernBiddingInterface';
 import { LocationData } from '@/types/location';
-import { useVehicleTypes } from '@/hooks/useVehicleTypes';
+import { VehicleType } from '@/types/vehicle';
 
+// ✅ PHASE 1: Interface avec véhicules passés en props (plus de double appel)
 interface UnifiedTaxiSheetProps {
   pickup: LocationData | null;
   destination: LocationData | null;
@@ -25,6 +26,9 @@ interface UnifiedTaxiSheetProps {
   clientProposedPrice?: number | null;
   onClientProposedPriceChange?: (price: number | null) => void;
   onMinimize?: () => void;
+  // ✅ PHASE 1: Recevoir véhicules depuis le parent
+  vehicles: VehicleType[];
+  vehiclesLoading: boolean;
 }
 
 export default function UnifiedTaxiSheet({
@@ -42,9 +46,11 @@ export default function UnifiedTaxiSheet({
   onBiddingModeChange,
   clientProposedPrice,
   onClientProposedPriceChange,
-  onMinimize
+  onMinimize,
+  vehicles,
+  vehiclesLoading
 }: UnifiedTaxiSheetProps) {
-  const { vehicles, isLoading: vehiclesLoading } = useVehicleTypes({ distance, city });
+  // ✅ PHASE 1: Plus d'appel useVehicleTypes ici (supprimé)
   const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
@@ -54,6 +60,7 @@ export default function UnifiedTaxiSheet({
     };
   }, []);
 
+  // ✅ PHASE 3: Utiliser les prix déjà calculés par le parent
   const vehicleOptions = vehicles.map(v => ({
     id: v.id,
     name: v.name,
