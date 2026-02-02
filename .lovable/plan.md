@@ -1,78 +1,151 @@
 
+# Plan de Correction : Tarification Cohérente avec Distance
 
-# Plan d'amelioration de l'affichage GPS et position sur la carte Taxi
+## Diagnostic du Problème
 
-## Problemes identifies
+L'interface affiche les prix de base (1500, 2500, 3200 CDF) au lieu des prix calcules avec la distance.
 
-### 1. Badge "smart_geolocation" a supprimer
-- **Fichier**: `src/components/transport/ModernTaxiInterface.tsx` (lignes 455-486)
-- **Probleme**: Affiche `{source}` qui vaut toujours `'smart_geolocation'` (valeur en dur dans le hook)
-- **Resultat**: Badge non professionnel qui n'apporte pas d'information utile
+**Cause racine identifiee** : Desynchronisation entre le calcul de route et le chargement des vehicules.
 
-### 2. PickupLocationCard trop proche du header
-- **Fichier**: `src/components/transport/PickupLocationCard.tsx` (lignes 64-69)
-- **Probleme**: Position `top: '1rem'` en mode expanded chevauche le header fixe
-- **Resultat**: Le texte "Point de prise en charge" apparait sous le header "Taxi"
+### Flux actuel problematique
 
----
+```text
+1. Destination selectionnee ("Bingerville")
+2. calculateRouteAndPrice() appele (debounce 500ms)
+3. PENDANT CE TEMPS: useVehicleTypes({ distance: 0 }) charge les vehicules
+4. Vehicules affiches avec prix de base (distance = 0)
+5. Route calculee → setDistance(15km)
+6. useVehicleTypes({ distance: 15 }) devrait recalculer...
+7. MAIS le cache React Query peut etre desynchronise
+```
 
-## Corrections a appliquer
+### Donnees DB confirmees (Abidjan)
 
-### Etape 1 - Supprimer le badge "smart_geolocation"
-**Fichier**: `src/components/transport/ModernTaxiInterface.tsx`
-
-Supprimer completement le bloc lignes 455-486 qui affiche le badge GPS non pertinent:
-- Ce badge affichait `source` = `'smart_geolocation'` en permanence
-- Information inutile pour l'utilisateur
-- Encombre visuellement la carte
-
-### Etape 2 - Repositionner PickupLocationCard sous le header
-**Fichier**: `src/components/transport/PickupLocationCard.tsx`
-
-Ajuster le positionnement pour eviter le chevauchement avec le header fixe:
-
-| Etat | Avant | Apres |
-|------|-------|-------|
-| Collapsed (icone seule) | `top: '5rem'` | `top: '5.5rem'` |
-| Expanded (carte complete) | `top: '1rem'` | `top: '5.5rem'` |
-
-- Le header fixe fait environ 80px (~5rem avec padding)
-- Ajouter un gap de 0.5rem pour separation visuelle propre
-- Supprimer le comportement de remonter a `1rem` qui causait le chevauchement
+| Vehicule | Base | Par km | Prix 15km attendu |
+|----------|------|--------|-------------------|
+| Moto     | 1500 | 500    | 9000 XOF          |
+| Eco      | 2500 | 1500   | 25000 XOF         |
+| Standard | 3200 | 1800   | 30200 XOF         |
+| Premium  | 4300 | 2300   | 38800 XOF         |
 
 ---
 
-## Alternative: Ameliorer le badge GPS (si souhaite)
+## Solution en 3 Phases
 
-Si a l'avenir vous voulez un indicateur GPS professionnel:
+### Phase 1 - Supprimer le double appel au hook
 
-1. **Modifier le hook** `useSmartGeolocation.tsx` pour retourner une source dynamique:
-   - `'GPS (12m)'` si haute precision
-   - `'GPS (85m)'` si precision moyenne
-   - `'Position approx.'` si fallback IP
+**Fichier : `src/components/transport/UnifiedTaxiSheet.tsx`**
 
-2. **Badge minimaliste** (option future):
-   - Point vert pulse si GPS precis
-   - Point orange si GPS moyen
-   - Pas de texte, juste visuel
+Actuellement `UnifiedTaxiSheet` appelle `useVehicleTypes` alors que `ModernTaxiInterface` le fait deja et passe les vehicules.
 
-Pour l'instant, la suppression complete est la meilleure approche pour un rendu professionnel.
+**Modification :**
+- Supprimer l'appel a `useVehicleTypes` dans `UnifiedTaxiSheet`
+- Recevoir les `vehicles` en prop depuis `ModernTaxiInterface`
+
+```typescript
+// AVANT (ligne 47)
+const { vehicles, isLoading: vehiclesLoading } = useVehicleTypes({ distance, city });
+
+// APRES
+// Recevoir vehicles via props
+interface UnifiedTaxiSheetProps {
+  // ... existing props
+  vehicles: VehicleType[];
+  vehiclesLoading: boolean;
+}
+```
+
+**Fichier : `src/components/transport/ModernTaxiInterface.tsx`**
+
+Passer les vehicules au composant enfant :
+
+```typescript
+<UnifiedTaxiSheet
+  // ... existing props
+  vehicles={vehicles}
+  vehiclesLoading={isLoading}
+/>
+```
 
 ---
 
-## Fichiers modifies
+### Phase 2 - Bloquer l'affichage des vehicules tant que la distance n'est pas calculee
+
+**Fichier : `src/components/transport/ModernTaxiInterface.tsx`**
+
+Ajouter un indicateur de calcul de route en cours :
+
+```typescript
+// Condition pour afficher les vehicules
+const canShowVehicles = !calculatingRoute && distance > 0;
+```
+
+**Fichier : `src/components/transport/UnifiedTaxiSheet.tsx`**
+
+Afficher un skeleton pendant le calcul :
+
+```typescript
+{vehiclesLoading || calculatingRoute ? (
+  <VehiclesSkeleton />
+) : (
+  <PremiumVehicleCarousel vehicles={vehicleOptions} ... />
+)}
+```
+
+---
+
+### Phase 3 - Forcer le recalcul des prix quand la distance change
+
+**Fichier : `src/hooks/useVehicleTypes.ts`**
+
+Probleme : les vehicules sont fetches depuis la DB mais le prix est calcule dans le hook. Si la distance change, le fetch ne se refait pas (memes donnees DB).
+
+**Solution : Calculer les prix dynamiquement dans le composant**
+
+Option A - Hook retourne les donnees brutes, calcul dans le composant :
+
+```typescript
+// Dans useVehicleTypes - retourner basePrice et pricePerKm seulement
+return {
+  id: config.service_type,
+  basePrice: pricing?.base_price || 2500,
+  pricePerKm: pricing?.price_per_km || 300,
+  // Supprimer calculatedPrice ici
+};
+
+// Dans ModernTaxiInterface - calculer dynamiquement
+const vehiclesWithPrice = vehicles.map(v => ({
+  ...v,
+  calculatedPrice: Math.round(v.basePrice + (distance * v.pricePerKm))
+}));
+```
+
+Option B (recommandee) - Desactiver staleTime pour les queryKeys avec distance > 0 :
+
+```typescript
+// useVehicleTypes.ts
+staleTime: distance > 0 ? 0 : 5 * 60 * 1000, // Pas de cache si distance calculee
+```
+
+---
+
+## Fichiers Modifies
 
 | Fichier | Modification |
 |---------|--------------|
-| `src/components/transport/ModernTaxiInterface.tsx` | Supprimer le bloc badge GPS (lignes 455-486) |
-| `src/components/transport/PickupLocationCard.tsx` | Ajuster top position a 5.5rem constant |
+| `src/hooks/useVehicleTypes.ts` | Supprimer staleTime quand distance > 0, ou retourner prix bruts |
+| `src/components/transport/ModernTaxiInterface.tsx` | Passer vehicules a UnifiedTaxiSheet, calculer prix dynamiquement |
+| `src/components/transport/UnifiedTaxiSheet.tsx` | Recevoir vehicules en prop au lieu d'appeler le hook |
 
 ---
 
-## Resultat attendu
+## Resultat Attendu
 
-- Carte propre sans badge "smart_geolocation"
-- Carte de prise en charge positionnee sous le header
-- Interface professionnelle style Uber/Yango
-- Pas de chevauchement visuel entre elements
-
+- Prix affiches = basePrice + (distance × pricePerKm)
+- Pour Abidjan-Bingerville (~15km) :
+  - Moto: 9000 XOF
+  - Eco: 25000 XOF
+  - Confort: 30200 XOF
+  - Premium: 38800 XOF
+- Mise a jour instantanee quand la route est calculee
+- Plus de desynchronisation entre distance et prix
