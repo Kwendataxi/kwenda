@@ -20,6 +20,7 @@ interface PriceConfirmationModalProps {
   distance: number;
   duration: number;
   calculatedPrice: number;
+  currency?: string; // ✅ ÉTAPE C: Devise dynamique
   onConfirm: () => void;
   onBack: () => void;
   bookingId?: string;
@@ -42,6 +43,7 @@ export default function PriceConfirmationModal({
   distance,
   duration,
   calculatedPrice,
+  currency = 'CDF', // ✅ ÉTAPE C: Devise dynamique
   onConfirm,
   onBack,
   bookingId,
@@ -193,7 +195,7 @@ export default function PriceConfirmationModal({
               {calculatedPrice.toLocaleString()}
             </p>
             <p className="text-lg text-center text-muted-foreground font-medium">
-              CDF
+              {currency}
             </p>
             
             {/* Badge dynamique */}
@@ -252,7 +254,7 @@ export default function PriceConfirmationModal({
             {!biddingEnabled && (
               <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-lg">
                 <Zap className="h-3 w-3" />
-                <span className="font-medium">Économisez jusqu'à {Math.round(calculatedPrice * 0.3).toLocaleString()} CDF avec ce mode</span>
+                <span className="font-medium">Économisez jusqu'à {Math.round(calculatedPrice * 0.3).toLocaleString()} {currency} avec ce mode</span>
               </div>
             )}
           </motion.div>
@@ -320,7 +322,7 @@ export default function PriceConfirmationModal({
                     max={maxPrice}
                   />
                   <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs text-muted-foreground font-medium">
-                    CDF
+                    {currency}
                   </span>
                 </div>
 
@@ -341,7 +343,7 @@ export default function PriceConfirmationModal({
                   className="text-center mt-6 p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl"
                 >
                   <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
-                    💰 Économie: {(calculatedPrice - clientPrice).toLocaleString()} CDF
+                    💰 Économie: {(calculatedPrice - clientPrice).toLocaleString()} {currency}
                     <span className="ml-2 text-xs opacity-80">
                       ({Math.round(((calculatedPrice - clientPrice) / calculatedPrice) * 100)}%)
                     </span>

@@ -14,14 +14,15 @@ import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { useRideDispatch } from '@/hooks/useRideDispatch';
 import { useLiveDrivers } from '@/hooks/useLiveDrivers';
 import { LocationData } from '@/types/location';
-import { secureNavigationService } from '@/services/secureNavigationService';
 import { routeCache } from '@/services/routeCacheService';
 import { predictiveRouteCache } from '@/services/predictiveRouteCacheService';
 import { taxiMetrics } from '@/services/taxiMetricsService';
+import { ProfessionalRouteResult } from '@/services/professionalRouteService';
 import { toast } from 'sonner';
 import { debounce } from '@/utils/performanceUtils';
 import { useVehicleTypes } from '@/hooks/useVehicleTypes';
 import { Button } from '@/components/ui/button';
+import { getCurrencyByCity } from '@/utils/formatCurrency';
 
 interface ModernTaxiInterfaceProps {
   onSubmit?: (data: any) => void;
@@ -132,48 +133,47 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
     initLocation();
   }, [getCurrentPosition, currentCity]);
 
-  // 🔧 PERF FIX: Calcul de route avec debounce
-  const calculateRouteAndPrice = useCallback(async () => {
-    if (!pickupLocation || !destinationLocation) {
+  // ✅ ÉTAPE A: Callback pour recevoir la distance/durée depuis le tracé de route sur la carte
+  const handleRouteCalculated = useCallback((result: ProfessionalRouteResult) => {
+    console.log('🛣️ [ModernTaxiInterface] Route calculée depuis la carte:', {
+      distance: result.distance,
+      distanceText: result.distanceText,
+      duration: result.duration,
+      durationText: result.durationText,
+      provider: result.provider
+    });
+    
+    const distanceKm = result.distance / 1000;
+    setDistance(distanceKm);
+    setRouteData({
+      distance: result.distance,
+      duration: result.duration,
+      distanceText: result.distanceText,
+      durationText: result.durationText,
+      provider: result.provider
+    });
+    setCalculatingRoute(false);
+  }, []);
+
+  // ✅ Marquer le calcul comme "en cours" quand les locations changent
+  useEffect(() => {
+    if (pickupLocation && destinationLocation) {
+      setCalculatingRoute(true);
+      // Le callback handleRouteCalculated mettra calculatingRoute à false
+    } else {
       setDistance(0);
       setRouteData(null);
-      return;
-    }
-
-    setCalculatingRoute(true);
-
-    try {
-      const route = await routeCache.getOrCalculate(
-        { lat: pickupLocation.lat, lng: pickupLocation.lng },
-        { lat: destinationLocation.lat, lng: destinationLocation.lng },
-        () => secureNavigationService.calculateRoute({
-          origin: { lat: pickupLocation.lat, lng: pickupLocation.lng },
-          destination: { lat: destinationLocation.lat, lng: destinationLocation.lng },
-          mode: 'driving'
-        })
-      );
-
-      if (route) {
-        const distanceKm = route.distance / 1000;
-        setDistance(distanceKm);
-        setRouteData(route);
-      }
-    } catch (error) {
-      toast.error('Impossible de calculer la route');
-    } finally {
       setCalculatingRoute(false);
     }
-  }, [pickupLocation, destinationLocation]);
+  }, [pickupLocation?.lat, pickupLocation?.lng, destinationLocation?.lat, destinationLocation?.lng]);
 
-  // 🔧 PERF FIX: Debounce 500ms
-  const debouncedCalculate = useMemo(
-    () => debounce(calculateRouteAndPrice, 500),
-    [calculateRouteAndPrice]
-  );
-
-  useEffect(() => {
-    debouncedCalculate();
-  }, [pickupLocation, destinationLocation, debouncedCalculate]);
+  // ✅ ÉTAPE C: Devise dynamique basée sur la ville
+  const currency = useMemo(() => {
+    if (currentCity?.name?.toLowerCase()?.includes('abidjan')) {
+      return 'XOF';
+    }
+    return 'CDF';
+  }, [currentCity?.name]);
 
   // ✅ PHASE 1: Charger les véhicules avec prix réels depuis la DB (source unique)
   const { vehicles, isLoading: vehiclesLoading } = useVehicleTypes({ 
@@ -458,6 +458,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
         onClickPosition={handleClickPosition}
         onDragMarker={handleMarkerDrag}
         bottomSheetHeight={bottomSheetHeight}
+        onRouteCalculated={handleRouteCalculated}
       />
 
       
@@ -491,6 +492,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
         isSearching={isSearching}
         distance={distance}
         city={currentCity?.name || 'Kinshasa'}
+        currency={currency}
         biddingMode={biddingMode}
         onBiddingModeChange={setBiddingMode}
         clientProposedPrice={clientProposedPrice}
@@ -510,6 +512,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel, initialDestina
           distance={distance}
           duration={routeData?.duration || distance * 120}
           calculatedPrice={calculatedPrice}
+          currency={currency}
           onConfirm={handleConfirmBooking}
           onBack={() => setShowPriceConfirm(false)}
           bookingId={tempBookingId || undefined}

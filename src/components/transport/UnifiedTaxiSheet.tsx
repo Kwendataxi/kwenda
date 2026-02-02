@@ -9,7 +9,7 @@ import ModernBiddingInterface from './ModernBiddingInterface';
 import { LocationData } from '@/types/location';
 import { VehicleType } from '@/types/vehicle';
 
-// ✅ PHASE 1: Interface avec véhicules passés en props (plus de double appel)
+// ✅ PHASE 1: Interface avec véhicules passés en props + devise dynamique
 interface UnifiedTaxiSheetProps {
   pickup: LocationData | null;
   destination: LocationData | null;
@@ -21,6 +21,7 @@ interface UnifiedTaxiSheetProps {
   isSearching: boolean;
   distance: number;
   city: string;
+  currency: string; // ✅ ÉTAPE C: Devise dynamique (XOF ou CDF)
   biddingMode?: boolean;
   onBiddingModeChange?: (enabled: boolean) => void;
   clientProposedPrice?: number | null;
@@ -42,6 +43,7 @@ export default function UnifiedTaxiSheet({
   isSearching,
   distance,
   city,
+  currency, // ✅ ÉTAPE C: Devise dynamique
   biddingMode = false,
   onBiddingModeChange,
   clientProposedPrice,
@@ -60,16 +62,17 @@ export default function UnifiedTaxiSheet({
     };
   }, []);
 
-  // ✅ PHASE 3: Utiliser les prix déjà calculés par le parent
+  // ✅ PHASE 3: Utiliser les prix déjà calculés par le parent + devise dynamique
   const vehicleOptions = vehicles.map(v => ({
     id: v.id,
     name: v.name,
     icon: v.icon,
     time: `${v.eta} min`,
     price: v.calculatedPrice,
-    pricePerKm: `${v.pricePerKm} CDF`,
+    pricePerKm: `${v.pricePerKm} ${currency}`,
     available: v.available,
-    recommended: v.isPopular
+    recommended: v.isPopular,
+    currency // ✅ Passer la devise au carousel
   }));
 
   const selectedVehiclePrice = vehicles.find(v => v.id === selectedVehicle)?.calculatedPrice || 0;
@@ -218,7 +221,7 @@ export default function UnifiedTaxiSheet({
                 <span>Continuer</span>
                 {displayPrice > 0 && (
                   <span className="ml-1 px-2.5 py-0.5 bg-white/20 rounded-full text-xs font-bold">
-                    {displayPrice.toLocaleString()} CDF
+                    {displayPrice.toLocaleString()} {currency}
                   </span>
                 )}
               </div>

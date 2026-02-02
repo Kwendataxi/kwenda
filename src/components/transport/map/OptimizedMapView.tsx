@@ -14,6 +14,9 @@ interface Location {
   name?: string;
 }
 
+// ✅ Type importé pour callback de route
+import { ProfessionalRouteResult } from '@/services/professionalRouteService';
+
 interface OptimizedMapViewProps {
   pickup?: Location | null;
   destination?: Location | null;
@@ -24,6 +27,8 @@ interface OptimizedMapViewProps {
   onDragMarker?: (newPosition: { lat: number; lng: number }) => void;
   bottomSheetHeight?: number;
   className?: string;
+  // ✅ ÉTAPE A: Callback pour remonter la distance/durée de la route
+  onRouteCalculated?: (result: ProfessionalRouteResult) => void;
 }
 
 const OptimizedMapView = React.memo(({ 
@@ -35,7 +40,8 @@ const OptimizedMapView = React.memo(({
   onClickPosition,
   onDragMarker,
   bottomSheetHeight = 450,
-  className = '' 
+  className = '',
+  onRouteCalculated // ✅ ÉTAPE A: Récupérer le callback
 }: OptimizedMapViewProps) => {
 
   const mapRef = useRef<HTMLDivElement>(null);
@@ -233,6 +239,8 @@ const OptimizedMapView = React.memo(({
           destination={destination}
           showTraffic={false}
           animate={true}
+          onRouteCalculated={onRouteCalculated}
+          bottomSheetHeight={bottomSheetHeight}
         />
       )}
       

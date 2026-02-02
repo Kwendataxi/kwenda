@@ -16,6 +16,7 @@ interface VehicleOption {
   pricePerKm: string;
   available: boolean;
   recommended?: boolean;
+  currency?: string; // ✅ ÉTAPE C: Devise dynamique
 }
 
 interface PremiumVehicleCarouselProps {
@@ -132,13 +133,13 @@ export default function PremiumVehicleCarousel({
                 {vehicle.time}
               </p>
 
-              {/* Prix */}
+              {/* Prix avec devise dynamique */}
               <p className={cn(
                 "text-sm font-bold leading-none transition-colors",
                 isSelected ? "text-primary" : "text-foreground"
               )}>
                 {vehicle.price.toLocaleString()}
-                <span className="text-[8px] font-normal ml-0.5">CDF</span>
+                <span className="text-[8px] font-normal ml-0.5">{vehicle.currency || 'CDF'}</span>
               </p>
 
               {/* Badge chauffeurs - Minimaliste */}
