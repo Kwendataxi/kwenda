@@ -112,40 +112,10 @@ const DeliveryPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header soft et épuré */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/5">
-        <div className="max-w-6xl mx-auto px-4 py-2.5">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBackToHome}
-              className="h-8 w-8 -ml-1 text-muted-foreground hover:text-foreground hover:bg-transparent"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-
-            <div className="h-9 w-9 rounded-xl bg-muted/50 flex items-center justify-center">
-              <Package className="h-[18px] w-[18px] text-foreground/60" />
-            </div>
-
-            <div className="flex flex-col">
-              <h1 className="text-base font-medium text-foreground tracking-tight">
-                Kwenda <span className="text-foreground/50">Delivery</span>
-              </h1>
-              <p className="text-[11px] text-muted-foreground/60">Livraison express</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content - Interface moderne stabilisée */}
-      <StepByStepDeliveryInterface
-        onSubmit={handleDataReady}
-        onCancel={handleBackToCreate}
-      />
-    </div>
+    <StepByStepDeliveryInterface
+      onSubmit={handleDataReady}
+      onCancel={handleBackToHome}
+    />
   );
 };
 

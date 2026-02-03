@@ -454,9 +454,10 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header minimaliste */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border/20 px-4 py-3 safe-area-top">
+      {/* Header unifié professionnel */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/10 px-4 py-3 safe-area-top">
         <div className="max-w-md mx-auto flex items-center gap-3">
+          {/* Bouton retour unique */}
           <button
             onClick={currentStep === 'addresses' ? onCancel : handleBack}
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors -ml-1"
@@ -464,21 +465,33 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             <ArrowLeft className="w-5 h-5" />
           </button>
           
-          <div className="flex-1 flex items-center gap-2">
-            <Truck className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Livraison</span>
+          {/* Logo stylé */}
+          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Package className="w-[18px] h-[18px] text-primary" />
+          </div>
+          
+          {/* Branding + sous-titre contextuel */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base font-medium tracking-tight">
+              Kwenda <span className="text-muted-foreground">Delivery</span>
+            </h1>
+            <p className="text-[11px] text-muted-foreground/60">
+              {currentStep === 'addresses' && 'Adresses'}
+              {currentStep === 'details' && 'Détails & contacts'}
+              {currentStep === 'confirm' && 'Confirmation'}
+            </p>
           </div>
 
-          {/* Progress dots compacts */}
-          <div className="flex gap-1">
+          {/* Progress dots */}
+          <div className="flex gap-1.5">
             {steps.map((_, index) => (
               <div
                 key={index}
                 className={cn(
-                  "h-1 rounded-full transition-all duration-300",
+                  "h-1.5 rounded-full transition-all duration-300",
                   index <= currentStepIndex 
                     ? "w-5 bg-primary" 
-                    : "w-1 bg-muted-foreground/20"
+                    : "w-1.5 bg-muted-foreground/20"
                 )}
               />
             ))}
