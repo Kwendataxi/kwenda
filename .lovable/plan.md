@@ -1,144 +1,127 @@
 
+Contexte et diagnostic (pas à pas)
+1) Ce qui casse exactement
+- Sur /delivery, les champs “Adresse de collecte / livraison” utilisent `AutocompleteLocationInput`.
+- `AutocompleteLocationInput` s’appuie sur le hook `useGooglePlacesAutocomplete`.
+- `useGooglePlacesAutocomplete` appelle les Edge Functions :
+  - `google-places-autocomplete` (pour les suggestions)
+  - `google-place-details` (pour récupérer les coordonnées d’un lieu sélectionné)
 
-# Plan d'Amélioration : Header Livraison Unifié et Professionnel
+2) Pourquoi Taxi “fonctionne” alors que Livraison “ne fonctionne pas”
+- Le Taxi affiche la carte et calcule la route via l’API JavaScript Google Maps chargée dans le navigateur (via `googleMapsLoader`). Cette API JS fonctionne avec une clé restreinte par domaine (HTTP referrer), car le navigateur envoie un referrer.
+- La Livraison, elle, fait l’autocomplete via Edge Function (côté serveur). Dans un Edge Runtime, il n’y a pas de referrer. Or vos logs Edge montrent clairement :
+  - `REQUEST_DENIED API keys with referer restrictions cannot be used with this API.`
+- Donc : la clé “Taxi” (clé web / referrer) ne peut pas marcher côté Edge Function. C’est normal.
 
-## Problème identifié
+3) Confirmation par les logs
+- Logs `google-places-autocomplete` : `REQUEST_DENIED … referer restrictions …` (confirmé).
+- Le secret `GOOGLE_MAPS_API_KEY` est bien présent, mais configuré comme une clé “web” (referrer restricted), ce qui est incompatible avec les appels Google Places Web Service depuis une Edge Function.
 
-L'interface de livraison affiche **deux boutons de retour** empilés verticalement :
+Objectif
+A) Rendre la recherche d’adresses Livraison 100% fonctionnelle immédiatement en réutilisant la même clé/l’approche que le Taxi (API JS navigateur).
+B) Garder une architecture pro : fallback robuste, pas de crash UI, et possibilité de réactiver les Edge Functions si vous configurez une vraie clé serveur plus tard.
+C) Préparer un suivi colis “pro” (fiable côté carte) en s’assurant que la brique “adresse → coordonnées” est stable.
 
-| Niveau | Composant | Header affiché | Bouton retour |
-|--------|-----------|----------------|---------------|
-| 1 | `Delivery.tsx` (lignes 117-140) | "Kwenda Delivery" + "Livraison express" | Oui |
-| 2 | `SlideDeliveryInterface.tsx` (lignes 458-487) | Icone camion + "Livraison" + dots de progression | Oui |
+Solution proposée (2 niveaux, optimal et robuste)
 
-Cette duplication crée une expérience utilisateur confuse et non professionnelle.
+Niveau 1 — Fix immédiat (recommandé) : fallback automatique vers Google Maps JS (même clé que Taxi)
+Idée : si l’Edge Function renvoie `REQUEST_DENIED` / 500, on bascule automatiquement sur l’API Places du navigateur :
+- `google.maps.places.AutocompleteService` pour les suggestions
+- `google.maps.places.PlacesService` pour les détails (coords, adresse formatée)
+Cette approche utilise la clé chargée via `googleMapsLoader` (donc “la clé du taxi”), et évite complètement le problème des restrictions serveur.
 
----
+Implémentation (fichiers et étapes)
+1) Modifier `src/hooks/useGooglePlacesAutocomplete.ts`
+   - Ajouter un mode “provider” : `edge` (par défaut) -> si échec “clé referrer” alors `client_js`.
+   - Détection d’échec :
+     - si `supabaseError` contient 500 + message “REQUEST_DENIED”
+     - ou si la réponse `data.error` contient “Google API: REQUEST_DENIED”
+     - ou si les logs/texte contiennent “referer restrictions”
+     => activer un flag `forceClientProvider = true` (stocké en `useRef` ou `useState`, mais stable sur la session).
+   - Ajouter une fonction interne `ensurePlacesJsReady()` :
+     - `await googleMapsLoader.load(['places'])`
+     - Vérifier `window.google?.maps?.places`
+   - Implémenter `searchWithClientJs(input)` :
+     - Créer/maintenir `AutocompleteService` (via `useRef`)
+     - Construire la requête avec :
+       - `input`
+       - `locationBias` (lat/lng existant déjà dans le hook)
+       - `radius`
+       - `types` (si compatibles)
+       - `componentRestrictions: { country: ['cd', 'ci'] }` (cohérent avec l’edge function)
+       - `language: 'fr'`
+       - `sessionToken` : utiliser `new google.maps.places.AutocompleteSessionToken()`
+     - Mapper les résultats vers votre format `AutocompletePrediction` (placeId, description, structuredFormatting, etc.)
+   - Implémenter `getPlaceDetailsWithClientJs(placeId)` :
+     - Créer une `PlacesService` avec un div “dummy” (pas besoin d’une map affichée)
+     - `getDetails({ placeId, fields: ['geometry','formatted_address','name','types','place_id'], sessionToken })`
+     - Retourner votre `PlaceDetails` interne (id, placeId, name, address, coordinates, types)
+   - Maintenir le debounce + abort logic :
+     - Le debounce reste identique.
+     - L’“abort” côté JS n’existe pas de la même façon : on gère en ignorant les retours si un `requestId` local a changé (pattern “latest request wins”), pour éviter des “résultats fantômes”.
 
-## Solution : Header Unique Moderne et Professionnel
+2) (Optionnel mais conseillé) Ajuster `src/components/location/AutocompleteLocationInput.tsx`
+   - Améliorer l’expérience quand on bascule en fallback :
+     - Si on détecte la bascule vers JS, afficher un micro-indicateur discret (sans alerter l’utilisateur) ou juste continuer silencieusement.
+   - S’assurer que les messages d’erreur ne bloquent pas l’UI :
+     - éviter les erreurs “brutes” venant de Google, garder : “Recherche indisponible, utilisez le GPS ou un lieu populaire”.
 
-### Approche
+Résultat attendu du Niveau 1
+- Sur /delivery, la saisie d’adresse affiche immédiatement des suggestions (même clé et même comportement que Taxi).
+- Le choix d’une suggestion renvoie des coordonnées valides, donc la commande peut continuer.
+- Plus de 500 bloquants côté UX, même si l’Edge Function reste en erreur.
 
-Fusionner les deux headers en un seul header unifié dans `SlideDeliveryInterface.tsx` qui combine :
-- Le branding "Kwenda Delivery" 
-- Le bouton retour unique
-- Les indicateurs de progression (dots)
+Niveau 2 — Fix “infrastructure” (recommandé pour le long terme) : une vraie clé serveur pour Edge Functions
+Même si le fallback JS règle le problème utilisateur, il est préférable d’avoir une clé serveur pour :
+- Edge Functions Places (autocomplete + details)
+- éventuellement d’autres appels Google Web Service (directions/distancematrix/geocode côté serveur) si vous en avez besoin ailleurs
 
-Et supprimer le header redondant de `Delivery.tsx`.
+Ce qu’il faudra faire côté Google Cloud Console (action user)
+1) Créer une nouvelle clé “Server” (ou “Unrestricted application restrictions”)
+2) Application restrictions : None (pas de HTTP referrer)
+3) API restrictions : limiter strictement à (minimum) :
+   - Places API
+   - Geocoding API (si nécessaire)
+   - Directions API / Distance Matrix API (si nécessaire)
+4) Activer la facturation Google (Places nécessite souvent billing)
+5) Mettre cette clé dans Supabase Secrets en remplacement de `GOOGLE_MAPS_API_KEY` ou dans un nouveau secret dédié (ex: `GOOGLE_MAPS_SERVER_API_KEY`)
 
----
+Amélioration code (si on choisit un nouveau secret dédié)
+- Mettre à jour :
+  - `supabase/functions/google-places-autocomplete/index.ts`
+  - `supabase/functions/google-place-details/index.ts`
+  pour lire d’abord `GOOGLE_MAPS_SERVER_API_KEY`, sinon fallback `GOOGLE_MAPS_API_KEY`.
+Ainsi, vous pourrez garder une clé “web” pour le front (si besoin) et une clé “server” pour les edge functions.
 
-## Modifications Techniques
+Tests de validation (end-to-end)
+1) /delivery
+- Taper “Ici” / “Gombe” / “Cocody” selon la ville : les suggestions doivent apparaître.
+- Sélectionner une suggestion : vérifier que `lat/lng` sont définis (pas 0,0).
+- Continuer vers “Détails” puis “Confirmation” sans crash.
 
-### Fichier 1 : `src/pages/Delivery.tsx`
+2) /transport (taxi)
+- Vérifier qu’il n’y a aucune régression sur la carte + calcul de route + sélection adresses.
 
-**Supprimer le header parent** (lignes 117-140) et garder uniquement le conteneur minimal :
+3) Mode dégradé
+- Couper internet : l’input doit afficher “lieux populaires” / “recherches récentes” et le bouton GPS doit rester utilisable.
 
-Changements :
-- Supprimer le bloc `<header>` de la vue "create"
-- Le composant `StepByStepDeliveryInterface` gère tout seul son header
-- Garder uniquement la structure minimale du conteneur
+Livraison “suivi colis pro” (ce que ce fix débloque)
+- Une fois l’autocomplete fiable, vos écrans de tracking (ex: `DeliveryLiveTracker`, `DeliveryTrackingPage`, `DeliveryMapPreview`) deviennent stables car les commandes auront des coordonnées correctes dès la création.
+- Après ce correctif, on pourra optimiser le tracking “pro” (realtime, états, carte, ETA) sans être bloqué par “adresse introuvable”.
 
-### Fichier 2 : `src/components/delivery/SlideDeliveryInterface.tsx`
+Fichiers concernés (résumé)
+- Principal (fix immédiat) :
+  - `src/hooks/useGooglePlacesAutocomplete.ts`
+  - (optionnel UX) `src/components/location/AutocompleteLocationInput.tsx`
+- Optionnel (fix infra long terme) :
+  - `supabase/functions/google-places-autocomplete/index.ts`
+  - `supabase/functions/google-place-details/index.ts`
 
-**Améliorer le header existant** (lignes 458-487) pour un design professionnel unifié :
+Risques / points d’attention
+- L’API JS Places nécessite que la librairie `places` soit chargée : on la charge via `googleMapsLoader.load(['places'])` dans le hook fallback.
+- Les “types” ne sont pas tous supportés de la même manière entre Web Service et JS SDK : on gardera une stratégie conservative (types vides ou “establishment/geocode”) si besoin.
+- Sur mobile Capacitor, l’approche JS fonctionne tant que la clé est autorisée pour votre domaine/app (comme pour Taxi).
 
-Améliorations du header :
-- Ajouter le logo/icone Package (colis) stylé
-- Afficher "Kwenda Delivery" avec le style de marque
-- Sous-titre contextuel selon l'étape ("Adresses", "Détails", "Confirmation")
-- Bouton retour professionnel avec hover effect
-- Progress dots alignés à droite
-
-Design proposé :
-```
-[←]  [📦]  Kwenda Delivery       [•——•——○]
-           Étape 1/3 · Adresses
-```
-
-Structure technique :
-- Bouton retour : `w-9 h-9`, fond transparent, hover `bg-muted/50`
-- Icone Package : fond `bg-primary/10`, `rounded-xl`
-- Titre : "Kwenda" bold + "Delivery" en gris
-- Sous-titre dynamique selon l'étape courante
-- Dots de progression : alignés à droite
-
----
-
-## Code attendu pour le nouveau header
-
-Le header unifié dans `SlideDeliveryInterface.tsx` :
-
-```tsx
-<header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/10 px-4 py-3 safe-area-top">
-  <div className="max-w-md mx-auto flex items-center gap-3">
-    {/* Bouton retour unique */}
-    <button
-      onClick={currentStep === 'addresses' ? onCancel : handleBack}
-      className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors -ml-1"
-    >
-      <ArrowLeft className="w-5 h-5" />
-    </button>
-    
-    {/* Logo et titre */}
-    <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-      <Package className="w-4.5 h-4.5 text-primary" />
-    </div>
-    
-    <div className="flex-1 min-w-0">
-      <h1 className="text-base font-medium tracking-tight">
-        Kwenda <span className="text-muted-foreground">Delivery</span>
-      </h1>
-      <p className="text-[11px] text-muted-foreground/60">
-        {currentStep === 'addresses' && 'Adresses'}
-        {currentStep === 'details' && 'Détails & contacts'}
-        {currentStep === 'confirm' && 'Confirmation'}
-      </p>
-    </div>
-
-    {/* Progress dots */}
-    <div className="flex gap-1.5">
-      {steps.map((_, index) => (
-        <div
-          key={index}
-          className={cn(
-            "h-1.5 rounded-full transition-all duration-300",
-            index <= currentStepIndex 
-              ? "w-5 bg-primary" 
-              : "w-1.5 bg-muted-foreground/20"
-          )}
-        />
-      ))}
-    </div>
-  </div>
-</header>
-```
-
----
-
-## Fichiers à modifier
-
-| Fichier | Modification |
-|---------|--------------|
-| `src/pages/Delivery.tsx` | Supprimer le header redondant (lignes 117-140) |
-| `src/components/delivery/SlideDeliveryInterface.tsx` | Améliorer le header existant avec branding unifié |
-
----
-
-## Résultat attendu
-
-- **Un seul bouton de retour** professionnel
-- **Branding cohérent** : "Kwenda Delivery" visible
-- **Sous-titre contextuel** : change selon l'étape (Adresses / Détails / Confirmation)
-- **Design soft-modern** : backdrop blur, bordure subtile, espacement harmonieux
-- **Dots de progression** : indication visuelle de l'avancement
-
----
-
-## Cohérence avec les autres services
-
-Ce design s'aligne avec les headers existants de :
-- **KwendaFoodHeader** : logo + titre + sous-titre contextuel
-- **KwendaShopHeader** : icone + "Kwenda Shop" + badge panier
-- **ModernTaxiInterface** : header minimaliste avec back + titre
-
+Livrable final attendu
+- Livraison : champ adresse totalement fonctionnel, moderne, sans crash.
+- Un comportement “pro” : fallback automatique, stable, silencieux, avec alternative GPS et lieux populaires.
