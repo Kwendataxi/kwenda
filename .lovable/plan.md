@@ -1,155 +1,144 @@
 
-## Diagnostic (cause racine confirmée)
 
-### 1) La distance reste à 0, donc les prix restent au “prix de base”
-Sur la capture, “Continuer 4300” correspond exactement au **base_price** du véhicule Premium à Abidjan (4300 XOF en DB).  
-Cela veut dire que l’app n’applique **pas** la distance (distance = 0 ou non mise à jour).
+# Plan d'Amélioration : Header Livraison Unifié et Professionnel
 
-### 2) Pourquoi la distance ne se met pas à jour (log console)
-Les logs montrent :
-- `API keys with referer restrictions cannot be used with this API.`
+## Problème identifié
 
-Cela vient de `secureNavigationService.calculateRoute()` → Edge Function `google-maps-proxy` → appel HTTP Google Directions API.
+L'interface de livraison affiche **deux boutons de retour** empilés verticalement :
 
-Conclusion :
-- Le calcul de route côté Edge Function échoue (clé Google mal configurée pour l’API HTTP).
-- Donc `ModernTaxiInterface` ne reçoit pas la distance et reste sur les prix de base.
-- Par contre, la carte affiche une route car le tracé pro utilise un autre chemin (JS API via `DirectionsService`), ce qui crée une incohérence : **route visible, distance/prix non mis à jour**.
+| Niveau | Composant | Header affiché | Bouton retour |
+|--------|-----------|----------------|---------------|
+| 1 | `Delivery.tsx` (lignes 117-140) | "Kwenda Delivery" + "Livraison express" | Oui |
+| 2 | `SlideDeliveryInterface.tsx` (lignes 458-487) | Icone camion + "Livraison" + dots de progression | Oui |
+
+Cette duplication crée une expérience utilisateur confuse et non professionnelle.
 
 ---
 
-## Objectif
-1) **Distance fiable** (même si `google-maps-proxy` échoue)  
-2) **Prix calculés cohérents et précis** = `base_price + distance_km * price_per_km`, avec `minimum_fare` respecté  
-3) **Devise correcte** (Abidjan = XOF, RDC = CDF) partout (cartes véhicules, bouton Continuer, modal confirmation)
+## Solution : Header Unique Moderne et Professionnel
+
+### Approche
+
+Fusionner les deux headers en un seul header unifié dans `SlideDeliveryInterface.tsx` qui combine :
+- Le branding "Kwenda Delivery" 
+- Le bouton retour unique
+- Les indicateurs de progression (dots)
+
+Et supprimer le header redondant de `Delivery.tsx`.
 
 ---
 
-## Solution (approche optimale)
-### Principe : Une seule source de vérité pour la distance = la route réellement affichée sur la carte
-Le composant carte `ProfessionalRoutePolyline` calcule déjà une route avec `professionalRouteService` (JS Directions API) et obtient `distanceText/distance` fiables.  
-On va donc **remonter ce résultat au parent** (`ModernTaxiInterface`) et utiliser cette distance pour la tarification.
+## Modifications Techniques
 
-Cela élimine la dépendance à `secureNavigationService` pour le pricing taxi (et donc élimine l’erreur de clé referer).
+### Fichier 1 : `src/pages/Delivery.tsx`
 
----
+**Supprimer le header parent** (lignes 117-140) et garder uniquement le conteneur minimal :
 
-## Étapes d’implémentation
+Changements :
+- Supprimer le bloc `<header>` de la vue "create"
+- Le composant `StepByStepDeliveryInterface` gère tout seul son header
+- Garder uniquement la structure minimale du conteneur
 
-### Étape A — Remonter la distance/durée depuis la carte (source route pro)
-**Fichiers :**
-- `src/components/transport/map/OptimizedMapView.tsx`
-- `src/components/transport/ModernTaxiInterface.tsx`
+### Fichier 2 : `src/components/delivery/SlideDeliveryInterface.tsx`
 
-1. Dans `OptimizedMapView`, ajouter une prop optionnelle :
-   - `onRouteCalculated?: (result: ProfessionalRouteResult) => void`
-2. Passer cette prop à `<ProfessionalRoutePolyline onRouteCalculated={...} />`
-3. Dans `ModernTaxiInterface`, fournir un handler :
-   - `setDistance(result.distance / 1000)`
-   - `setRouteData({ distance: result.distance, duration: result.duration, distanceText: result.distanceText, durationText: result.durationText, provider: result.provider })`
-4. Mettre `calculatingRoute` à `true` dès qu’on change pickup/destination, et à `false` quand `onRouteCalculated` arrive.
+**Améliorer le header existant** (lignes 458-487) pour un design professionnel unifié :
 
-Résultat : dès que la route est tracée, la distance est mise à jour → les prix se recalculent correctement.
+Améliorations du header :
+- Ajouter le logo/icone Package (colis) stylé
+- Afficher "Kwenda Delivery" avec le style de marque
+- Sous-titre contextuel selon l'étape ("Adresses", "Détails", "Confirmation")
+- Bouton retour professionnel avec hover effect
+- Progress dots alignés à droite
 
----
+Design proposé :
+```
+[←]  [📦]  Kwenda Delivery       [•——•——○]
+           Étape 1/3 · Adresses
+```
 
-### Étape B — Fallback robuste si Google JS Directions échoue (précision minimale)
-**Fichiers :**
-- `src/components/transport/map/ProfessionalRoutePolyline.tsx` (ou `ModernTaxiInterface.tsx` selon pattern choisi)
-
-Si `professionalRouteService` échoue (offline / Maps pas chargé), calculer une distance “secours” :
-- soit via `google.maps.geometry.spherical.computeDistanceBetween` (lib geometry déjà chargée)
-- soit via un utilitaire Haversine existant (si présent dans vos services)
-
-Puis :
-- `distanceKm = fallbackMeters / 1000`
-- `duration` approximative (ex: 30 km/h urbain)
-
-But : éviter tout “prix figé” même en mode dégradé.
+Structure technique :
+- Bouton retour : `w-9 h-9`, fond transparent, hover `bg-muted/50`
+- Icone Package : fond `bg-primary/10`, `rounded-xl`
+- Titre : "Kwenda" bold + "Delivery" en gris
+- Sous-titre dynamique selon l'étape courante
+- Dots de progression : alignés à droite
 
 ---
 
-### Étape C — Corriger la devise (XOF vs CDF) partout dans l’UI taxi
-Actuellement, plusieurs composants affichent “CDF” en dur.
+## Code attendu pour le nouveau header
 
-**Fichiers :**
-- `src/components/transport/UnifiedTaxiSheet.tsx` (CTA + `pricePerKm`)
-- `src/components/transport/PremiumVehicleCarousel.tsx` (badge devise)
-- `src/components/transport/PriceConfirmationModal.tsx` (prix total + économies + labels)
-- `src/components/transport/ModernTaxiInterface.tsx` (passe la devise aux enfants)
+Le header unifié dans `SlideDeliveryInterface.tsx` :
 
-Plan :
-1. Déterminer `currency` depuis `currentCity.currency` (déjà dans `CityConfig`), fallback `'CDF'`.
-2. Passer `currency` en props aux composants (sheet, carousel, modal).
-3. Remplacer tous les “CDF” hardcodés par `{currency}`.
+```tsx
+<header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/10 px-4 py-3 safe-area-top">
+  <div className="max-w-md mx-auto flex items-center gap-3">
+    {/* Bouton retour unique */}
+    <button
+      onClick={currentStep === 'addresses' ? onCancel : handleBack}
+      className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors -ml-1"
+    >
+      <ArrowLeft className="w-5 h-5" />
+    </button>
+    
+    {/* Logo et titre */}
+    <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+      <Package className="w-4.5 h-4.5 text-primary" />
+    </div>
+    
+    <div className="flex-1 min-w-0">
+      <h1 className="text-base font-medium tracking-tight">
+        Kwenda <span className="text-muted-foreground">Delivery</span>
+      </h1>
+      <p className="text-[11px] text-muted-foreground/60">
+        {currentStep === 'addresses' && 'Adresses'}
+        {currentStep === 'details' && 'Détails & contacts'}
+        {currentStep === 'confirm' && 'Confirmation'}
+      </p>
+    </div>
 
-Résultat : à Abidjan on voit XOF partout, et en RDC CDF partout.
-
----
-
-### Étape D — Tarification “pro” : respecter minimum_fare + rendre le calcul unique
-**Fichiers :**
-- `src/hooks/useVehicleTypes.ts`
-- `src/types/vehicle.ts` (si on ajoute de nouveaux champs)
-
-1. Dans `useVehicleTypes`, récupérer `minimum_fare` et `currency` depuis `pricing_rules` et les mapper dans les objets véhicule (si on choisit d’exposer ces champs).
-2. Calculer le prix final avec :
-   - `raw = basePrice + distanceKm * pricePerKm`
-   - `final = Math.max(raw, minimumFare ?? 0)`
-3. Garder le calcul dynamique dans `ModernTaxiInterface` (ou déplacer la logique dans le hook, mais toujours avec `minimum_fare` appliqué).
-
-Note : même si à Abidjan `minimum_fare == base_price`, cette étape rend le système correct pour toutes les villes.
-
----
-
-### Étape E — Nettoyage : ne plus dépendre de `secureNavigationService` pour le pricing taxi
-**Fichier :**
-- `src/components/transport/ModernTaxiInterface.tsx`
-
-- Supprimer/neutraliser `calculateRouteAndPrice()` basé sur `secureNavigationService` (ou le garder uniquement comme fallback secondaire).
-- But : éliminer la cause “distance bloquée” (clé HTTP referer).
-
----
-
-## Correctif de fond (optionnel mais recommandé) : réparer `google-maps-proxy` (clé Google)
-Même si on rend le taxi autonome, vos autres modules qui utilisent `google-maps-proxy` (directions/distancematrix) peuvent être impactés.
-
-Action côté Google Cloud Console :
-- Créer une **clé serveur** (Directions API / Distance Matrix API) sans “HTTP referrer restriction”
-- Restreindre par APIs + quotas, idéalement IP restriction (si possible) ou autre mécanisme adapté à Edge Functions
-- Mettre cette clé dans le secret `GOOGLE_MAPS_API_KEY` (ou créer `GOOGLE_MAPS_SERVER_API_KEY` et adapter l’edge function)
-
----
-
-## Tests de validation (end-to-end)
-1) Aller sur `/transport`, ville = Abidjan, destination = Bingerville  
-2) Vérifier qu’après le tracé de la route :
-   - la distance n’est pas 0 (ex: ~10–25 km selon le point de départ)
-   - les cartes véhicules n’affichent plus les prix de base mais des prix dépendants de la distance
-   - le bouton “Continuer” reflète le même prix que la carte sélectionnée
-3) Vérifier la devise :
-   - Abidjan : XOF
-   - Kinshasa/Lubumbashi/Kolwezi : CDF
-4) Ouvrir le modal de confirmation :
-   - distance/km cohérente
-   - prix cohérent et même devise
+    {/* Progress dots */}
+    <div className="flex gap-1.5">
+      {steps.map((_, index) => (
+        <div
+          key={index}
+          className={cn(
+            "h-1.5 rounded-full transition-all duration-300",
+            index <= currentStepIndex 
+              ? "w-5 bg-primary" 
+              : "w-1.5 bg-muted-foreground/20"
+          )}
+        />
+      ))}
+    </div>
+  </div>
+</header>
+```
 
 ---
 
-## Fichiers impactés (résumé)
-- `src/components/transport/ModernTaxiInterface.tsx`
-- `src/components/transport/map/OptimizedMapView.tsx`
-- `src/components/transport/map/ProfessionalRoutePolyline.tsx` (si fallback / events)
-- `src/components/transport/UnifiedTaxiSheet.tsx`
-- `src/components/transport/PremiumVehicleCarousel.tsx`
-- `src/components/transport/PriceConfirmationModal.tsx`
-- `src/hooks/useVehicleTypes.ts`
-- `src/types/vehicle.ts` (si on ajoute currency/minimumFare)
+## Fichiers à modifier
+
+| Fichier | Modification |
+|---------|--------------|
+| `src/pages/Delivery.tsx` | Supprimer le header redondant (lignes 117-140) |
+| `src/components/delivery/SlideDeliveryInterface.tsx` | Améliorer le header existant avec branding unifié |
 
 ---
 
 ## Résultat attendu
-- Prix taxi “pro”, cohérents et précis, basés sur la distance réelle de la route affichée
-- Plus de prix figés (4300/2500/1500) quand la route est visible
-- Devise correcte (XOF à Abidjan)
-- Expérience stable même si l’API HTTP proxy échoue
+
+- **Un seul bouton de retour** professionnel
+- **Branding cohérent** : "Kwenda Delivery" visible
+- **Sous-titre contextuel** : change selon l'étape (Adresses / Détails / Confirmation)
+- **Design soft-modern** : backdrop blur, bordure subtile, espacement harmonieux
+- **Dots de progression** : indication visuelle de l'avancement
+
+---
+
+## Cohérence avec les autres services
+
+Ce design s'aligne avec les headers existants de :
+- **KwendaFoodHeader** : logo + titre + sous-titre contextuel
+- **KwendaShopHeader** : icone + "Kwenda Shop" + badge panier
+- **ModernTaxiInterface** : header minimaliste avec back + titre
+
