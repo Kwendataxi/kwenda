@@ -1,127 +1,400 @@
 
-Contexte et diagnostic (pas à pas)
-1) Ce qui casse exactement
-- Sur /delivery, les champs “Adresse de collecte / livraison” utilisent `AutocompleteLocationInput`.
-- `AutocompleteLocationInput` s’appuie sur le hook `useGooglePlacesAutocomplete`.
-- `useGooglePlacesAutocomplete` appelle les Edge Functions :
-  - `google-places-autocomplete` (pour les suggestions)
-  - `google-place-details` (pour récupérer les coordonnées d’un lieu sélectionné)
+# Plan de Correction : Commission Livraison
 
-2) Pourquoi Taxi “fonctionne” alors que Livraison “ne fonctionne pas”
-- Le Taxi affiche la carte et calcule la route via l’API JavaScript Google Maps chargée dans le navigateur (via `googleMapsLoader`). Cette API JS fonctionne avec une clé restreinte par domaine (HTTP referrer), car le navigateur envoie un referrer.
-- La Livraison, elle, fait l’autocomplete via Edge Function (côté serveur). Dans un Edge Runtime, il n’y a pas de referrer. Or vos logs Edge montrent clairement :
-  - `REQUEST_DENIED API keys with referer restrictions cannot be used with this API.`
-- Donc : la clé “Taxi” (clé web / referrer) ne peut pas marcher côté Edge Function. C’est normal.
+## Diagnostic du Probleme
 
-3) Confirmation par les logs
-- Logs `google-places-autocomplete` : `REQUEST_DENIED … referer restrictions …` (confirmé).
-- Le secret `GOOGLE_MAPS_API_KEY` est bien présent, mais configuré comme une clé “web” (referrer restricted), ce qui est incompatible avec les appels Google Places Web Service depuis une Edge Function.
+### Analyse Comparative des Flux
 
-Objectif
-A) Rendre la recherche d’adresses Livraison 100% fonctionnelle immédiatement en réutilisant la même clé/l’approche que le Taxi (API JS navigateur).
-B) Garder une architecture pro : fallback robuste, pas de crash UI, et possibilité de réactiver les Edge Functions si vous configurez une vraie clé serveur plus tard.
-C) Préparer un suivi colis “pro” (fiable côté carte) en s’assurant que la brique “adresse → coordonnées” est stable.
+**TAXI (fonctionne correctement)** :
+```
+Chauffeur termine course 
+  → RideActionPanel.handleCompleteRide()
+  → Edge Function: complete-ride-with-commission
+  → Calcul commission (12% Kwenda + 0-3% Partenaire)
+  → Debit wallet chauffeur
+  → Insert ride_commissions
+  → Notification chauffeur
+```
 
-Solution proposée (2 niveaux, optimal et robuste)
+**LIVRAISON (probleme critique)** :
+```
+Livreur termine livraison
+  → useDriverDeliveryActions.completeDelivery()
+  → Edge Function: delivery-status-manager
+  → Appel consume-ride (abonnement uniquement)
+  → AUCUNE commission prelevee
+  → AUCUN enregistrement ride_commissions
+  → Livreur garde 100% du montant
+```
 
-Niveau 1 — Fix immédiat (recommandé) : fallback automatique vers Google Maps JS (même clé que Taxi)
-Idée : si l’Edge Function renvoie `REQUEST_DENIED` / 500, on bascule automatiquement sur l’API Places du navigateur :
-- `google.maps.places.AutocompleteService` pour les suggestions
-- `google.maps.places.PlacesService` pour les détails (coords, adresse formatée)
-Cette approche utilise la clé chargée via `googleMapsLoader` (donc “la clé du taxi”), et évite complètement le problème des restrictions serveur.
+### Evidence du Probleme
+- La table `ride_commissions` est vide (0 enregistrements tous types confondus)
+- Le hook `useDriverDispatch.completeOrder()` appelle uniquement `consume-ride` pour les livraisons
+- L'Edge Function `delivery-status-manager` ne contient aucune logique de commission
+- L'Edge Function `complete-delivery-with-payment` (marketplace) ne preleve pas de commission non plus
 
-Implémentation (fichiers et étapes)
-1) Modifier `src/hooks/useGooglePlacesAutocomplete.ts`
-   - Ajouter un mode “provider” : `edge` (par défaut) -> si échec “clé referrer” alors `client_js`.
-   - Détection d’échec :
-     - si `supabaseError` contient 500 + message “REQUEST_DENIED”
-     - ou si la réponse `data.error` contient “Google API: REQUEST_DENIED”
-     - ou si les logs/texte contiennent “referer restrictions”
-     => activer un flag `forceClientProvider = true` (stocké en `useRef` ou `useState`, mais stable sur la session).
-   - Ajouter une fonction interne `ensurePlacesJsReady()` :
-     - `await googleMapsLoader.load(['places'])`
-     - Vérifier `window.google?.maps?.places`
-   - Implémenter `searchWithClientJs(input)` :
-     - Créer/maintenir `AutocompleteService` (via `useRef`)
-     - Construire la requête avec :
-       - `input`
-       - `locationBias` (lat/lng existant déjà dans le hook)
-       - `radius`
-       - `types` (si compatibles)
-       - `componentRestrictions: { country: ['cd', 'ci'] }` (cohérent avec l’edge function)
-       - `language: 'fr'`
-       - `sessionToken` : utiliser `new google.maps.places.AutocompleteSessionToken()`
-     - Mapper les résultats vers votre format `AutocompletePrediction` (placeId, description, structuredFormatting, etc.)
-   - Implémenter `getPlaceDetailsWithClientJs(placeId)` :
-     - Créer une `PlacesService` avec un div “dummy” (pas besoin d’une map affichée)
-     - `getDetails({ placeId, fields: ['geometry','formatted_address','name','types','place_id'], sessionToken })`
-     - Retourner votre `PlaceDetails` interne (id, placeId, name, address, coordinates, types)
-   - Maintenir le debounce + abort logic :
-     - Le debounce reste identique.
-     - L’“abort” côté JS n’existe pas de la même façon : on gère en ignorant les retours si un `requestId` local a changé (pattern “latest request wins”), pour éviter des “résultats fantômes”.
+---
 
-2) (Optionnel mais conseillé) Ajuster `src/components/location/AutocompleteLocationInput.tsx`
-   - Améliorer l’expérience quand on bascule en fallback :
-     - Si on détecte la bascule vers JS, afficher un micro-indicateur discret (sans alerter l’utilisateur) ou juste continuer silencieusement.
-   - S’assurer que les messages d’erreur ne bloquent pas l’UI :
-     - éviter les erreurs “brutes” venant de Google, garder : “Recherche indisponible, utilisez le GPS ou un lieu populaire”.
+## Solution Proposee
 
-Résultat attendu du Niveau 1
-- Sur /delivery, la saisie d’adresse affiche immédiatement des suggestions (même clé et même comportement que Taxi).
-- Le choix d’une suggestion renvoie des coordonnées valides, donc la commande peut continuer.
-- Plus de 500 bloquants côté UX, même si l’Edge Function reste en erreur.
+### Niveau 1 : Unification du Flux de Completion
 
-Niveau 2 — Fix “infrastructure” (recommandé pour le long terme) : une vraie clé serveur pour Edge Functions
-Même si le fallback JS règle le problème utilisateur, il est préférable d’avoir une clé serveur pour :
-- Edge Functions Places (autocomplete + details)
-- éventuellement d’autres appels Google Web Service (directions/distancematrix/geocode côté serveur) si vous en avez besoin ailleurs
+Modifier le flux livraison pour utiliser la meme Edge Function `complete-ride-with-commission` que le taxi.
 
-Ce qu’il faudra faire côté Google Cloud Console (action user)
-1) Créer une nouvelle clé “Server” (ou “Unrestricted application restrictions”)
-2) Application restrictions : None (pas de HTTP referrer)
-3) API restrictions : limiter strictement à (minimum) :
-   - Places API
-   - Geocoding API (si nécessaire)
-   - Directions API / Distance Matrix API (si nécessaire)
-4) Activer la facturation Google (Places nécessite souvent billing)
-5) Mettre cette clé dans Supabase Secrets en remplacement de `GOOGLE_MAPS_API_KEY` ou dans un nouveau secret dédié (ex: `GOOGLE_MAPS_SERVER_API_KEY`)
+### Fichiers a Modifier
 
-Amélioration code (si on choisit un nouveau secret dédié)
-- Mettre à jour :
-  - `supabase/functions/google-places-autocomplete/index.ts`
-  - `supabase/functions/google-place-details/index.ts`
-  pour lire d’abord `GOOGLE_MAPS_SERVER_API_KEY`, sinon fallback `GOOGLE_MAPS_API_KEY`.
-Ainsi, vous pourrez garder une clé “web” pour le front (si besoin) et une clé “server” pour les edge functions.
+#### 1. `src/hooks/useDriverDeliveryActions.tsx`
+**Modifications :**
+- Remplacer l'appel a `delivery-status-manager` par `complete-ride-with-commission` lors du statut `delivered`
+- Ajouter la logique de calcul du montant final
+- Afficher le detail de la commission au livreur
 
-Tests de validation (end-to-end)
-1) /delivery
-- Taper “Ici” / “Gombe” / “Cocody” selon la ville : les suggestions doivent apparaître.
-- Sélectionner une suggestion : vérifier que `lat/lng` sont définis (pas 0,0).
-- Continuer vers “Détails” puis “Confirmation” sans crash.
+```typescript
+// AVANT (ligne 96-113)
+const completeDelivery = async (...) => {
+  return updateDeliveryStatus(orderId, 'delivered', {...});
+};
 
-2) /transport (taxi)
-- Vérifier qu’il n’y a aucune régression sur la carte + calcul de route + sélection adresses.
+// APRES
+const completeDelivery = async (
+  orderId: string, 
+  recipientName: string, 
+  deliveryPhoto?: File, 
+  notes?: string
+) => {
+  // 1. Recuperer les details de la commande
+  const { data: order } = await supabase
+    .from('delivery_orders')
+    .select('estimated_price, actual_price, driver_id')
+    .eq('id', orderId)
+    .single();
 
-3) Mode dégradé
-- Couper internet : l’input doit afficher “lieux populaires” / “recherches récentes” et le bouton GPS doit rester utilisable.
+  // 2. Appeler complete-ride-with-commission
+  const { data, error } = await supabase.functions.invoke(
+    'complete-ride-with-commission',
+    {
+      body: {
+        rideId: orderId,
+        rideType: 'delivery',
+        driverId: user.id,
+        finalAmount: order?.actual_price || order?.estimated_price || 0,
+        paymentMethod: 'cash'
+      }
+    }
+  );
 
-Livraison “suivi colis pro” (ce que ce fix débloque)
-- Une fois l’autocomplete fiable, vos écrans de tracking (ex: `DeliveryLiveTracker`, `DeliveryTrackingPage`, `DeliveryMapPreview`) deviennent stables car les commandes auront des coordonnées correctes dès la création.
-- Après ce correctif, on pourra optimiser le tracking “pro” (realtime, états, carte, ETA) sans être bloqué par “adresse introuvable”.
+  if (error) {
+    toast.error('Erreur lors du prelevement de la commission');
+    return false;
+  }
 
-Fichiers concernés (résumé)
-- Principal (fix immédiat) :
-  - `src/hooks/useGooglePlacesAutocomplete.ts`
-  - (optionnel UX) `src/components/location/AutocompleteLocationInput.tsx`
-- Optionnel (fix infra long terme) :
-  - `supabase/functions/google-places-autocomplete/index.ts`
-  - `supabase/functions/google-place-details/index.ts`
+  // 3. Afficher le resultat
+  if (data?.billing_mode === 'subscription') {
+    toast.success('Livraison terminee (Abonnement)', {
+      description: `Courses restantes: ${data.rides_remaining}`
+    });
+  } else {
+    toast.success('Livraison terminee !', {
+      description: `Net: ${data.driver_net_amount?.toLocaleString()} CDF | Commission: ${data.commission?.amount?.toLocaleString()} CDF`
+    });
+  }
 
-Risques / points d’attention
-- L’API JS Places nécessite que la librairie `places` soit chargée : on la charge via `googleMapsLoader.load(['places'])` dans le hook fallback.
-- Les “types” ne sont pas tous supportés de la même manière entre Web Service et JS SDK : on gardera une stratégie conservative (types vides ou “establishment/geocode”) si besoin.
-- Sur mobile Capacitor, l’approche JS fonctionne tant que la clé est autorisée pour votre domaine/app (comme pour Taxi).
+  return true;
+};
+```
 
-Livrable final attendu
-- Livraison : champ adresse totalement fonctionnel, moderne, sans crash.
-- Un comportement “pro” : fallback automatique, stable, silencieux, avec alternative GPS et lieux populaires.
+#### 2. `src/hooks/useDriverDispatch.tsx`
+**Modifications (lignes 304-325) :**
+- Remplacer la logique de completion delivery par un appel a `complete-ride-with-commission`
+
+```typescript
+// AVANT
+case 'delivery':
+  const { error: deliveryError } = await supabase
+    .from('delivery_orders')
+    .update({
+      status: 'delivered',
+      delivered_at: new Date().toISOString()
+    })
+    .eq('id', orderId);
+  
+  if (!deliveryError && user) {
+    await supabase.functions.invoke('consume-ride', {...});
+  }
+  success = !deliveryError;
+  break;
+
+// APRES
+case 'delivery':
+  const { data: deliveryOrder } = await supabase
+    .from('delivery_orders')
+    .select('estimated_price, actual_price')
+    .eq('id', orderId)
+    .single();
+
+  const { data: deliveryResult, error: deliveryError } = await supabase.functions.invoke(
+    'complete-ride-with-commission',
+    {
+      body: {
+        rideId: orderId,
+        rideType: 'delivery',
+        driverId: user!.id,
+        finalAmount: deliveryOrder?.actual_price || deliveryOrder?.estimated_price || 0,
+        paymentMethod: 'cash'
+      }
+    }
+  );
+
+  if (!deliveryError && deliveryResult?.success) {
+    toast.success('Livraison terminee !', {
+      description: deliveryResult.billing_mode === 'subscription'
+        ? `Courses restantes: ${deliveryResult.rides_remaining}`
+        : `Commission: ${deliveryResult.commission?.amount?.toLocaleString()} CDF`
+    });
+    success = true;
+  }
+  break;
+```
+
+#### 3. `src/hooks/useUnifiedDeliveryQueue.tsx`
+**Modifications (lignes 165-209) :**
+- Ajouter l'appel a `complete-ride-with-commission` dans `updateDeliveryStatus`
+
+```typescript
+const updateDeliveryStatus = async (status: string) => {
+  if (!activeDelivery) return false;
+
+  setLoading(true);
+  try {
+    // Si statut = delivered, utiliser complete-ride-with-commission
+    if (status === 'delivered' || status === 'completed') {
+      const { data, error } = await supabase.functions.invoke(
+        'complete-ride-with-commission',
+        {
+          body: {
+            rideId: activeDelivery.id,
+            rideType: activeDelivery.type === 'marketplace' ? 'delivery' : 'delivery',
+            driverId: user!.id,
+            finalAmount: activeDelivery.estimated_fee || 0,
+            paymentMethod: 'cash'
+          }
+        }
+      );
+
+      if (error) throw error;
+
+      setActiveDelivery(null);
+      toast.success('Livraison terminee avec commission prelevee !');
+      return true;
+    }
+
+    // Sinon, mise a jour normale du statut
+    // ... code existant pour autres statuts ...
+  } catch (error) {
+    // ...
+  }
+};
+```
+
+#### 4. `supabase/functions/delivery-status-manager/index.ts`
+**Modifications (lignes 131-163) :**
+- Remplacer l'appel a `consume-ride` par `complete-ride-with-commission`
+
+```typescript
+// AVANT
+if (newStatus === 'delivered' && driverId) {
+  console.log(`Livraison terminee - Consommation ride pour ${driverId}`);
+  
+  const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
+    body: {
+      driver_id: driverId,
+      booking_id: orderId,
+      service_type: 'delivery'
+    }
+  });
+  // ...
+}
+
+// APRES
+if (newStatus === 'delivered' && driverId) {
+  console.log(`Livraison terminee - Prelevement commission pour ${driverId}`);
+  
+  const { data: commissionResult, error: commissionError } = await supabase.functions.invoke(
+    'complete-ride-with-commission', 
+    {
+      body: {
+        rideId: orderId,
+        rideType: 'delivery',
+        driverId: driverId,
+        finalAmount: currentOrder.estimated_price || currentOrder.actual_price || 0,
+        paymentMethod: 'cash'
+      }
+    }
+  );
+
+  if (commissionError) {
+    console.error('Erreur commission:', commissionError);
+  } else {
+    console.log(`Commission prelevee: ${commissionResult?.commission?.amount} CDF`);
+    console.log(`Mode: ${commissionResult?.billing_mode}`);
+  }
+}
+```
+
+### Niveau 2 : Ajout Composant Affichage Commission Livraison
+
+#### 5. Nouveau composant `src/components/driver/DeliveryCommissionDetails.tsx`
+Creer un composant similaire a `RideCommissionDetails.tsx` pour afficher le detail des commissions livraison.
+
+```typescript
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Package, TrendingDown, Building, Wallet } from 'lucide-react';
+
+interface DeliveryCommissionDetailsProps {
+  deliveryAmount: number;
+  kwendaCommission: number;
+  kwendaRate: number;
+  partnerCommission: number;
+  partnerRate: number;
+  driverNetAmount: number;
+  billingMode: 'subscription' | 'commission';
+  ridesRemaining?: number;
+}
+
+export const DeliveryCommissionDetails: React.FC<DeliveryCommissionDetailsProps> = ({
+  deliveryAmount,
+  kwendaCommission,
+  kwendaRate,
+  partnerCommission,
+  partnerRate,
+  driverNetAmount,
+  billingMode,
+  ridesRemaining
+}) => {
+  if (billingMode === 'subscription') {
+    return (
+      <Card className="border-green-200 bg-green-50/50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Package className="h-4 w-4 text-green-600" />
+            Mode Abonnement
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-green-700">
+            {deliveryAmount.toLocaleString()} CDF
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Aucune commission - Courses restantes: {ridesRemaining}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-primary/20">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <TrendingDown className="h-4 w-4" />
+          Detail Commission Livraison
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex justify-between">
+          <span>Montant livraison</span>
+          <span className="font-bold">{deliveryAmount.toLocaleString()} CDF</span>
+        </div>
+        
+        <div className="flex justify-between text-orange-600">
+          <span>Frais Kwenda ({kwendaRate}%)</span>
+          <span>-{kwendaCommission.toLocaleString()} CDF</span>
+        </div>
+        
+        {partnerCommission > 0 && (
+          <div className="flex justify-between text-purple-600">
+            <span>Frais Partenaire ({partnerRate}%)</span>
+            <span>-{partnerCommission.toLocaleString()} CDF</span>
+          </div>
+        )}
+        
+        <div className="border-t pt-2 flex justify-between">
+          <span className="font-bold">Votre gain net</span>
+          <span className="text-xl font-bold text-green-600">
+            {driverNetAmount.toLocaleString()} CDF
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+### Niveau 3 : Tests et Validation
+
+#### 6. Script de test SQL
+```sql
+-- Verifier les commissions livraison apres implementation
+SELECT 
+  ride_type,
+  COUNT(*) as total,
+  SUM(kwenda_commission) as total_kwenda,
+  SUM(partner_commission) as total_partner,
+  SUM(driver_net_amount) as total_drivers
+FROM ride_commissions
+WHERE created_at > NOW() - INTERVAL '24 hours'
+GROUP BY ride_type;
+```
+
+---
+
+## Resume des Modifications
+
+| Fichier | Action | Impact |
+|---------|--------|--------|
+| `useDriverDeliveryActions.tsx` | Modifier `completeDelivery` | Fix principal |
+| `useDriverDispatch.tsx` | Modifier case `delivery` | Coherence dispatch |
+| `useUnifiedDeliveryQueue.tsx` | Ajouter commission | Queue unifiee |
+| `delivery-status-manager/index.ts` | Remplacer consume-ride | Edge Function |
+| `DeliveryCommissionDetails.tsx` | Creer composant | UX transparence |
+
+---
+
+## Flux Apres Correction
+
+```
+Livreur termine livraison
+  → Hook/Component appelle completeDelivery()
+  → Edge Function: complete-ride-with-commission
+  → Verification abonnement actif ?
+    → OUI: Decrementer rides_remaining, billing_mode = 'subscription'
+    → NON: Calculer 12% Kwenda + 0-3% Partenaire
+  → Debiter wallet livreur (si mode commission)
+  → Insert ride_commissions (ride_type = 'delivery')
+  → Crediter wallet partenaire (si applicable)
+  → Notification livreur avec details
+  → Mettre a jour statut commande
+```
+
+---
+
+## Risques et Mitigations
+
+| Risque | Mitigation |
+|--------|------------|
+| Wallet insuffisant | Systeme overdue + suspension apres 2 impasses (deja implemente) |
+| Double prelevement | Verification ride_commissions avant insert |
+| Regression taxi | Aucun changement sur le flux taxi |
+| Livreur sans partenaire | partner_rate = 0 par defaut |
+
+---
+
+## Estimation
+
+- **Complexite** : Moyenne
+- **Fichiers impactes** : 5
+- **Temps estime** : 30-45 minutes
+- **Tests requis** : Completion livraison E2E avec verification wallet
+
