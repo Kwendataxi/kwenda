@@ -163,40 +163,81 @@ export const useUnifiedDeliveryQueue = () => {
   };
 
   const updateDeliveryStatus = async (status: string) => {
-    if (!activeDelivery) return false;
+    if (!activeDelivery || !user) return false;
 
     setLoading(true);
     try {
+      // Si statut = delivered/completed, utiliser complete-ride-with-commission
+      if (status === 'delivered' || status === 'completed') {
+        const { data, error } = await supabase.functions.invoke(
+          'complete-ride-with-commission',
+          {
+            body: {
+              rideId: activeDelivery.id,
+              rideType: 'delivery',
+              driverId: user.id,
+              finalAmount: activeDelivery.estimated_fee || 0,
+              paymentMethod: 'cash'
+            }
+          }
+        );
+
+        if (error) throw error;
+
+        // Mettre à jour le statut dans la table appropriée
+        if (activeDelivery.type === 'marketplace') {
+          await supabase
+            .from('marketplace_delivery_assignments')
+            .update({
+              assignment_status: 'delivered',
+              actual_delivery_time: new Date().toISOString()
+            })
+            .eq('id', activeDelivery.id);
+        } else {
+          await supabase
+            .from('delivery_orders')
+            .update({
+              status: 'delivered',
+              delivery_time: new Date().toISOString()
+            })
+            .eq('id', activeDelivery.id);
+        }
+
+        setActiveDelivery(null);
+        
+        // Afficher le résultat selon le mode de facturation
+        if (data?.billing_mode === 'subscription') {
+          toast.success('🎉 Livraison terminée (Abonnement)', {
+            description: `Courses restantes: ${data.rides_remaining}`
+          });
+        } else {
+          toast.success('🎉 Livraison terminée avec commission !', {
+            description: `Net: ${data?.driver_net_amount?.toLocaleString() || 0} CDF`
+          });
+        }
+        
+        return true;
+      }
+
+      // Sinon, mise à jour normale du statut
       if (activeDelivery.type === 'marketplace') {
         const { error } = await supabase
           .from('marketplace_delivery_assignments')
-          .update({
-            assignment_status: status,
-            ...(status === 'delivered' && { actual_delivery_time: new Date().toISOString() })
-          })
+          .update({ assignment_status: status })
           .eq('id', activeDelivery.id);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('delivery_orders')
-          .update({
-            status,
-            ...(status === 'delivered' && { delivery_time: new Date().toISOString() })
-          })
+          .update({ status })
           .eq('id', activeDelivery.id);
 
         if (error) throw error;
       }
 
-      if (status === 'delivered' || status === 'completed') {
-        setActiveDelivery(null);
-        toast.success('Livraison terminée avec succès');
-      } else {
-        setActiveDelivery(prev => prev ? { ...prev, status } : null);
-        toast.success('Statut mis à jour');
-      }
-
+      setActiveDelivery(prev => prev ? { ...prev, status } : null);
+      toast.success('Statut mis à jour');
       return true;
 
     } catch (error: any) {

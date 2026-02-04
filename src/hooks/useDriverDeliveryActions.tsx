@@ -99,18 +99,74 @@ export const useDriverDeliveryActions = () => {
     deliveryPhoto?: File, 
     notes?: string
   ) => {
-    const deliveryProof = {
-      recipient_name: recipientName,
-      delivery_time: new Date().toISOString(),
-      photo_taken: !!deliveryPhoto,
-      driver_notes: notes
-    };
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return false;
+    }
 
-    return updateDeliveryStatus(orderId, 'delivered', {
-      deliveryProof,
-      recipientSignature: recipientName, // Simplified signature
-      driverNotes: notes
-    });
+    setLoading(true);
+    try {
+      // 1. Récupérer les détails de la commande
+      const { data: order, error: orderError } = await supabase
+        .from('delivery_orders')
+        .select('estimated_price, actual_price, driver_id')
+        .eq('id', orderId)
+        .single();
+
+      if (orderError) {
+        console.error('Erreur récupération commande:', orderError);
+        throw new Error('Commande introuvable');
+      }
+
+      const finalAmount = order?.actual_price || order?.estimated_price || 0;
+
+      // 2. Appeler complete-ride-with-commission (unifié taxi/livraison)
+      const { data, error } = await supabase.functions.invoke(
+        'complete-ride-with-commission',
+        {
+          body: {
+            rideId: orderId,
+            rideType: 'delivery',
+            driverId: user.id,
+            finalAmount,
+            paymentMethod: 'cash',
+            deliveryProof: {
+              recipient_name: recipientName,
+              delivery_time: new Date().toISOString(),
+              photo_taken: !!deliveryPhoto,
+              driver_notes: notes
+            }
+          }
+        }
+      );
+
+      if (error) {
+        console.error('Erreur commission livraison:', error);
+        throw new Error('Erreur lors du prélèvement de la commission');
+      }
+
+      // 3. Afficher le résultat selon le mode de facturation
+      if (data?.billing_mode === 'subscription') {
+        toast.success('🎉 Livraison terminée (Abonnement)', {
+          description: `Courses restantes: ${data.rides_remaining}`
+        });
+      } else {
+        const netAmount = data?.driver_net_amount?.toLocaleString() || '0';
+        const commission = data?.commission?.amount?.toLocaleString() || '0';
+        toast.success('🎉 Livraison terminée !', {
+          description: `Gain net: ${netAmount} CDF | Commission: ${commission} CDF`
+        });
+      }
+
+      return true;
+
+    } catch (error: any) {
+      console.error('Erreur completion livraison:', error);
+      toast.error(error.message || 'Erreur lors de la finalisation');
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusLabel = (status: string) => {
