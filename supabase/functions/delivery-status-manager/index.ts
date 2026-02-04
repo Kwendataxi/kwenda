@@ -128,38 +128,52 @@ serve(async (req) => {
       }
     }
 
-    // If delivered, consume ride and mark driver as available
+    // If delivered, process commission via complete-ride-with-commission
     if (newStatus === 'delivered' && driverId) {
-      console.log(`📦 Livraison terminée - Consommation ride pour ${driverId}`)
+      console.log(`📦 Livraison terminée - Prélèvement commission pour ${driverId}`)
       
-      // ✅ Appel explicite à consume-ride
+      const finalAmount = currentOrder.actual_price || currentOrder.estimated_price || 0
+      
+      // ✅ Appel à complete-ride-with-commission (unifié taxi/livraison)
       try {
-        const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
-          body: {
-            driver_id: driverId,
-            booking_id: orderId,
-            service_type: 'delivery'
+        const { data: commissionResult, error: commissionError } = await supabase.functions.invoke(
+          'complete-ride-with-commission', 
+          {
+            body: {
+              rideId: orderId,
+              rideType: 'delivery',
+              driverId: driverId,
+              finalAmount: finalAmount,
+              paymentMethod: 'cash'
+            }
           }
-        })
+        )
 
-        if (consumeError) {
-          console.error('❌ Erreur consommation ride:', consumeError)
+        if (commissionError) {
+          console.error('❌ Erreur commission livraison:', commissionError)
         } else {
-          console.log(`✅ Ride consommée. Remaining: ${consumeResult?.rides_remaining || 0}`)
+          console.log(`✅ Commission prélevée: ${commissionResult?.commission?.amount || 0} CDF`)
+          console.log(`✅ Mode facturation: ${commissionResult?.billing_mode}`)
           
-          // Notifier le chauffeur si rides faibles
-          if (consumeResult?.rides_remaining <= 2 && consumeResult?.rides_remaining > 0) {
-            await supabase.from('system_notifications').insert({
-              user_id: driverId,
-              notification_type: 'subscription_low_rides',
-              title: '⚡ Courses Bientôt Épuisées',
-              message: `Plus que ${consumeResult.rides_remaining} course(s) restante(s). Rechargez votre abonnement.`,
-              priority: 'medium'
-            })
+          if (commissionResult?.billing_mode === 'subscription') {
+            console.log(`✅ Courses restantes: ${commissionResult?.rides_remaining}`)
+            
+            // Notifier le chauffeur si rides faibles
+            if (commissionResult?.rides_remaining <= 2 && commissionResult?.rides_remaining > 0) {
+              await supabase.from('system_notifications').insert({
+                user_id: driverId,
+                notification_type: 'subscription_low_rides',
+                title: '⚡ Courses Bientôt Épuisées',
+                message: `Plus que ${commissionResult.rides_remaining} course(s) restante(s). Rechargez votre abonnement.`,
+                priority: 'medium'
+              })
+            }
+          } else {
+            console.log(`✅ Gain net chauffeur: ${commissionResult?.driver_net_amount} CDF`)
           }
         }
-      } catch (consumeErr) {
-        console.error('❌ Erreur critique consume-ride:', consumeErr)
+      } catch (commissionErr) {
+        console.error('❌ Erreur critique commission:', commissionErr)
       }
 
       // Marquer chauffeur disponible

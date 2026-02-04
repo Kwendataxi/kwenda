@@ -302,49 +302,94 @@ export const useDriverDispatch = () => {
           break;
 
         case 'delivery':
-          const { error: deliveryError } = await supabase
+          // Récupérer le montant de la livraison
+          const { data: deliveryOrder } = await supabase
             .from('delivery_orders')
-            .update({
-              status: 'delivered',
-              delivered_at: new Date().toISOString()
-            })
-            .eq('id', orderId);
-          
-          if (!deliveryError && user) {
-            // Consommer la course de l'abonnement
-            await supabase.functions.invoke('consume-ride', {
+            .select('estimated_price, actual_price')
+            .eq('id', orderId)
+            .single();
+
+          const deliveryAmount = deliveryOrder?.actual_price || deliveryOrder?.estimated_price || 0;
+
+          // Appeler complete-ride-with-commission (unifié taxi/livraison)
+          const { data: deliveryResult, error: deliveryError } = await supabase.functions.invoke(
+            'complete-ride-with-commission',
+            {
               body: {
-                driver_id: user.id,
-                booking_id: orderId,
-                service_type: 'delivery'
+                rideId: orderId,
+                rideType: 'delivery',
+                driverId: user!.id,
+                finalAmount: deliveryAmount,
+                paymentMethod: 'cash'
               }
-            });
+            }
+          );
+
+          if (!deliveryError && deliveryResult?.success) {
+            if (deliveryResult.billing_mode === 'subscription') {
+              toast.success('🎉 Livraison terminée (Abonnement)', {
+                description: `Courses restantes: ${deliveryResult.rides_remaining}`
+              });
+            } else {
+              toast.success('🎉 Livraison terminée !', {
+                description: `Commission: ${deliveryResult.commission?.amount?.toLocaleString() || 0} CDF`
+              });
+            }
+            success = true;
+          } else {
+            console.error('Erreur completion livraison:', deliveryError);
+            toast.error('Erreur lors de la finalisation');
           }
-          
-          success = !deliveryError;
           break;
 
         case 'marketplace':
-          const { error: marketplaceError } = await supabase
+          // Récupérer le montant de la livraison marketplace
+          const { data: marketplaceOrder } = await supabase
             .from('marketplace_delivery_assignments')
-            .update({
-              assignment_status: 'delivered',
-              actual_delivery_time: new Date().toISOString()
-            })
-            .eq('id', orderId);
-          
-          if (!marketplaceError && user) {
-            // Consommer la course de l'abonnement
-            await supabase.functions.invoke('consume-ride', {
+            .select('delivery_fee')
+            .eq('id', orderId)
+            .single();
+
+          const marketplaceAmount = marketplaceOrder?.delivery_fee || 0;
+
+          // Appeler complete-ride-with-commission (unifié taxi/livraison/marketplace)
+          const { data: marketplaceResult, error: marketplaceError } = await supabase.functions.invoke(
+            'complete-ride-with-commission',
+            {
               body: {
-                driver_id: user.id,
-                booking_id: orderId,
-                service_type: 'marketplace'
+                rideId: orderId,
+                rideType: 'delivery', // Marketplace = delivery type
+                driverId: user!.id,
+                finalAmount: marketplaceAmount,
+                paymentMethod: 'cash'
               }
-            });
+            }
+          );
+
+          if (!marketplaceError && marketplaceResult?.success) {
+            // Mettre à jour le statut marketplace
+            await supabase
+              .from('marketplace_delivery_assignments')
+              .update({
+                assignment_status: 'delivered',
+                actual_delivery_time: new Date().toISOString()
+              })
+              .eq('id', orderId);
+
+            if (marketplaceResult.billing_mode === 'subscription') {
+              toast.success('🎉 Livraison marketplace terminée (Abonnement)', {
+                description: `Courses restantes: ${marketplaceResult.rides_remaining}`
+              });
+            } else {
+              toast.success('🎉 Livraison marketplace terminée !', {
+                description: `Commission: ${marketplaceResult.commission?.amount?.toLocaleString() || 0} CDF`
+              });
+            }
+            success = true;
+          } else {
+            console.error('Erreur completion marketplace:', marketplaceError);
+            toast.error('Erreur lors de la finalisation');
           }
-          
-          success = !marketplaceError;
           break;
       }
 
