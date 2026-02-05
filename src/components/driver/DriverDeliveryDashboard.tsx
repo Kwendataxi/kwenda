@@ -35,6 +35,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealTimeDeliveryTracking } from '@/hooks/useRealTimeDeliveryTracking';
+import { useUnifiedDeliveryQueue } from '@/hooks/useUnifiedDeliveryQueue';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useBookingChat } from '@/hooks/useBookingChat';
@@ -61,6 +62,7 @@ interface DriverDeliveryDashboardProps {
 
 export default function DriverDeliveryDashboard({ onSelectDelivery }: DriverDeliveryDashboardProps) {
   const { user } = useAuth();
+  const { updateDeliveryStatus: updateUnifiedStatus } = useUnifiedDeliveryQueue();
   const [activeDeliveries, setActiveDeliveries] = useState<ActiveDelivery[]>([]);
   const [selectedDelivery, setSelectedDelivery] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -219,30 +221,18 @@ export default function DriverDeliveryDashboard({ onSelectDelivery }: DriverDeli
           photoUrl = uploadData.path;
         }
       }
-      
-      const { error } = await supabase
-        .from('delivery_orders')
-        .update({
-          status: 'delivered',
-          delivered_at: new Date().toISOString(),
-          recipient_name: recipientName,
-          delivery_photo_url: photoUrl,
-          driver_notes: notes,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedDelivery);
 
-      if (error) throw error;
-      
-      await supabase
-        .from('delivery_status_history')
-        .insert({
-          delivery_order_id: selectedDelivery,
-          status: 'delivered',
-          changed_by: user?.id,
-          notes: `Livré à ${recipientName}${notes ? ` - ${notes}` : ''}`,
-          changed_at: new Date().toISOString()
-        });
+      // ✅ Utiliser le hook unifié pour garantir la commission
+      // Appel UNIQUE à complete-ride-with-commission via updateUnifiedStatus
+      const success = await updateUnifiedStatus('delivered', {
+        recipientName,
+        notes,
+        photoUrl
+      });
+
+      if (!success) {
+        throw new Error('Échec de la finalisation');
+      }
 
       // Reset des états
       setNotes('');

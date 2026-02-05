@@ -99,6 +99,10 @@ export const useDriverDeliveryActions = () => {
     deliveryPhoto?: File, 
     notes?: string
   ) => {
+    // ⚠️ DEPRECATED: Cette fonction est dépréciée.
+    // Utiliser useUnifiedDeliveryQueue.updateDeliveryStatus('delivered', { recipientName, notes }) à la place
+    console.warn('⚠️ completeDelivery() est DEPRECIE. Utiliser updateDeliveryStatus() du hook useUnifiedDeliveryQueue');
+    
     if (!user) {
       toast.error('Vous devez être connecté');
       return false;
@@ -106,59 +110,16 @@ export const useDriverDeliveryActions = () => {
 
     setLoading(true);
     try {
-      // 1. Récupérer les détails de la commande
-      const { data: order, error: orderError } = await supabase
-        .from('delivery_orders')
-        .select('estimated_price, actual_price, driver_id')
-        .eq('id', orderId)
-        .single();
-
-      if (orderError) {
-        console.error('Erreur récupération commande:', orderError);
-        throw new Error('Commande introuvable');
-      }
-
-      const finalAmount = order?.actual_price || order?.estimated_price || 0;
-
-      // 2. Appeler complete-ride-with-commission (unifié taxi/livraison)
-      const { data, error } = await supabase.functions.invoke(
-        'complete-ride-with-commission',
-        {
-          body: {
-            rideId: orderId,
-            rideType: 'delivery',
-            driverId: user.id,
-            finalAmount,
-            paymentMethod: 'cash',
-            deliveryProof: {
-              recipient_name: recipientName,
-              delivery_time: new Date().toISOString(),
-              photo_taken: !!deliveryPhoto,
-              driver_notes: notes
-            }
-          }
+      // Simplement mettre à jour le statut via delivery-status-manager
+      // La commission sera gérée par le hook unifié useUnifiedDeliveryQueue
+      return await updateDeliveryStatus(orderId, 'delivered', {
+        deliveryProof: {
+          recipient_name: recipientName,
+          delivery_time: new Date().toISOString(),
+          photo_taken: !!deliveryPhoto,
+          driver_notes: notes
         }
-      );
-
-      if (error) {
-        console.error('Erreur commission livraison:', error);
-        throw new Error('Erreur lors du prélèvement de la commission');
-      }
-
-      // 3. Afficher le résultat selon le mode de facturation
-      if (data?.billing_mode === 'subscription') {
-        toast.success('🎉 Livraison terminée (Abonnement)', {
-          description: `Courses restantes: ${data.rides_remaining}`
-        });
-      } else {
-        const netAmount = data?.driver_net_amount?.toLocaleString() || '0';
-        const commission = data?.commission?.amount?.toLocaleString() || '0';
-        toast.success('🎉 Livraison terminée !', {
-          description: `Gain net: ${netAmount} CDF | Commission: ${commission} CDF`
-        });
-      }
-
-      return true;
+      });
 
     } catch (error: any) {
       console.error('Erreur completion livraison:', error);

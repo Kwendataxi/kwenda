@@ -26,6 +26,12 @@ export interface UnifiedDeliveryItem {
   };
 }
 
+export interface DeliveryCompletionData {
+  recipientName?: string;
+  notes?: string;
+  photoUrl?: string;
+}
+
 export const useUnifiedDeliveryQueue = () => {
   const [loading, setLoading] = useState(false);
   const [deliveries, setDeliveries] = useState<UnifiedDeliveryItem[]>([]);
@@ -162,13 +168,15 @@ export const useUnifiedDeliveryQueue = () => {
     }
   };
 
-  const updateDeliveryStatus = async (status: string) => {
+  const updateDeliveryStatus = async (status: string, completionData?: DeliveryCompletionData) => {
     if (!activeDelivery || !user) return false;
 
     setLoading(true);
     try {
       // Si statut = delivered/completed, utiliser complete-ride-with-commission
       if (status === 'delivered' || status === 'completed') {
+        console.log('📦 Completion livraison via complete-ride-with-commission (APPEL UNIQUE)');
+        
         const { data, error } = await supabase.functions.invoke(
           'complete-ride-with-commission',
           {
@@ -177,30 +185,27 @@ export const useUnifiedDeliveryQueue = () => {
               rideType: 'delivery',
               driverId: user.id,
               finalAmount: activeDelivery.estimated_fee || 0,
-              paymentMethod: 'cash'
+              paymentMethod: 'cash',
+              // Ajouter les données de preuve de livraison si fournies
+              deliveryProof: completionData ? {
+                recipient_name: completionData.recipientName,
+                notes: completionData.notes,
+                photo_url: completionData.photoUrl,
+                delivery_time: new Date().toISOString()
+              } : undefined
             }
           }
         );
 
         if (error) throw error;
 
-        // Mettre à jour le statut dans la table appropriée
+        // NE PAS refaire de mise à jour séparée
+        // complete-ride-with-commission gère déjà la mise à jour du statut
+        // On met juste à jour localement pour l'UI
         if (activeDelivery.type === 'marketplace') {
-          await supabase
-            .from('marketplace_delivery_assignments')
-            .update({
-              assignment_status: 'delivered',
-              actual_delivery_time: new Date().toISOString()
-            })
-            .eq('id', activeDelivery.id);
+          console.log('📦 Marketplace delivery completed via commission function');
         } else {
-          await supabase
-            .from('delivery_orders')
-            .update({
-              status: 'delivered',
-              delivery_time: new Date().toISOString()
-            })
-            .eq('id', activeDelivery.id);
+          console.log('📦 Direct delivery completed via commission function');
         }
 
         setActiveDelivery(null);

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useUnifiedDeliveryQueue } from '@/hooks/useUnifiedDeliveryQueue';
-import { useDriverDeliveryActions } from '@/hooks/useDriverDeliveryActions';
+import { useDriverDeliveryActions } from '@/hooks/useDriverDeliveryActions'; 
 import { DeliveryCompletionDialog } from '@/components/marketplace/DeliveryCompletionDialog';
 import { MapPin, Package, Clock, Phone, Navigation, CheckCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 const DeliveryDriverInterface = () => {
   const { user } = useAuth();
   const { deliveries, activeDelivery, acceptDelivery, updateDeliveryStatus, loading } = useUnifiedDeliveryQueue();
-  const { confirmPickup, startDelivery, completeDelivery, cancelDelivery, getStatusLabel } = useDriverDeliveryActions();
+  const { cancelDelivery, getStatusLabel } = useDriverDeliveryActions();
   const [notes, setNotes] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -40,33 +40,20 @@ const DeliveryDriverInterface = () => {
   const handleConfirmPickup = async () => {
     if (!activeDelivery) return;
     
-    const success = await confirmPickup(activeDelivery.id, notes);
+    // Utiliser uniquement updateDeliveryStatus - un seul point d'entrée
+    const success = await updateDeliveryStatus('picked_up');
     if (success) {
       setNotes('');
-      await updateDeliveryStatus('picked_up');
     }
   };
 
   const handleStartDelivery = async () => {
     if (!activeDelivery) return;
     
-    const success = await startDelivery(activeDelivery.id);
+    // Utiliser uniquement updateDeliveryStatus - un seul point d'entrée
+    const success = await updateDeliveryStatus('in_transit');
     if (success) {
-      await updateDeliveryStatus('in_transit');
-    }
-  };
-
-  const handleCompleteDelivery = async () => {
-    if (!activeDelivery || !recipientName) {
-      toast.error('Veuillez saisir le nom du destinataire');
-      return;
-    }
-    
-    const success = await completeDelivery(activeDelivery.id, recipientName, undefined, notes);
-    if (success) {
-      setNotes('');
-      setRecipientName('');
-      await updateDeliveryStatus('delivered');
+      // Success handled by updateDeliveryStatus
     }
   };
 
