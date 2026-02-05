@@ -128,53 +128,12 @@ serve(async (req) => {
       }
     }
 
-    // If delivered, process commission via complete-ride-with-commission
+    // If delivered, DO NOT call complete-ride-with-commission here
+    // The commission is now handled client-side by useUnifiedDeliveryQueue
+    // This avoids duplicate/triple calls that cause ThrottlerException
     if (newStatus === 'delivered' && driverId) {
-      console.log(`📦 Livraison terminée - Prélèvement commission pour ${driverId}`)
-      
-      const finalAmount = currentOrder.actual_price || currentOrder.estimated_price || 0
-      
-      // ✅ Appel à complete-ride-with-commission (unifié taxi/livraison)
-      try {
-        const { data: commissionResult, error: commissionError } = await supabase.functions.invoke(
-          'complete-ride-with-commission', 
-          {
-            body: {
-              rideId: orderId,
-              rideType: 'delivery',
-              driverId: driverId,
-              finalAmount: finalAmount,
-              paymentMethod: 'cash'
-            }
-          }
-        )
-
-        if (commissionError) {
-          console.error('❌ Erreur commission livraison:', commissionError)
-        } else {
-          console.log(`✅ Commission prélevée: ${commissionResult?.commission?.amount || 0} CDF`)
-          console.log(`✅ Mode facturation: ${commissionResult?.billing_mode}`)
-          
-          if (commissionResult?.billing_mode === 'subscription') {
-            console.log(`✅ Courses restantes: ${commissionResult?.rides_remaining}`)
-            
-            // Notifier le chauffeur si rides faibles
-            if (commissionResult?.rides_remaining <= 2 && commissionResult?.rides_remaining > 0) {
-              await supabase.from('system_notifications').insert({
-                user_id: driverId,
-                notification_type: 'subscription_low_rides',
-                title: '⚡ Courses Bientôt Épuisées',
-                message: `Plus que ${commissionResult.rides_remaining} course(s) restante(s). Rechargez votre abonnement.`,
-                priority: 'medium'
-              })
-            }
-          } else {
-            console.log(`✅ Gain net chauffeur: ${commissionResult?.driver_net_amount} CDF`)
-          }
-        }
-      } catch (commissionErr) {
-        console.error('❌ Erreur critique commission:', commissionErr)
-      }
+      console.log(`📦 Livraison terminée - Commission gérée côté client (useUnifiedDeliveryQueue)`)
+      console.log(`⚠️ NE PAS appeler complete-ride-with-commission ici pour éviter duplication`)
 
       // Marquer chauffeur disponible
       const { error: availabilityError } = await supabase
