@@ -1,352 +1,229 @@
 
-# Plan de Correction : Commission Livraison
+# Plan de Correction : Erreur Rate Limiting et Flux Livraison
 
 ## Diagnostic du Probleme
 
-### Analyse Comparative des Flux
+### Cause Racine Identifiee
+L'erreur **"ThrottlerException: Too Many Requests"** est causee par des **appels multiples dupliques** a `complete-ride-with-commission` lors de la completion d'une livraison.
 
-**TAXI (fonctionne correctement)** :
-```
-Chauffeur termine course 
-  → RideActionPanel.handleCompleteRide()
-  → Edge Function: complete-ride-with-commission
-  → Calcul commission (12% Kwenda + 0-3% Partenaire)
-  → Debit wallet chauffeur
-  → Insert ride_commissions
-  → Notification chauffeur
-```
+### Flux Actuel (Problematique)
 
-**LIVRAISON (probleme critique)** :
-```
-Livreur termine livraison
-  → useDriverDeliveryActions.completeDelivery()
-  → Edge Function: delivery-status-manager
-  → Appel consume-ride (abonnement uniquement)
-  → AUCUNE commission prelevee
-  → AUCUN enregistrement ride_commissions
-  → Livreur garde 100% du montant
+```text
+Driver termine livraison
+  ├─> completeDelivery() → complete-ride-with-commission (APPEL #1)
+  └─> updateDeliveryStatus('delivered')
+        ├─> complete-ride-with-commission (APPEL #2)
+        └─> delivery-status-manager Edge Function
+              └─> complete-ride-with-commission (APPEL #3)
 ```
 
-### Evidence du Probleme
-- La table `ride_commissions` est vide (0 enregistrements tous types confondus)
-- Le hook `useDriverDispatch.completeOrder()` appelle uniquement `consume-ride` pour les livraisons
-- L'Edge Function `delivery-status-manager` ne contient aucune logique de commission
-- L'Edge Function `complete-delivery-with-payment` (marketplace) ne preleve pas de commission non plus
+**3 appels simultanes** declenchent le rate limiter Supabase!
+
+### Fichiers Concernes
+| Fichier | Probleme |
+|---------|----------|
+| `src/components/delivery/DeliveryDriverInterface.tsx` | Appelle `completeDelivery()` PUIS `updateDeliveryStatus('delivered')` |
+| `src/hooks/useDriverDeliveryActions.tsx` | `completeDelivery()` appelle `complete-ride-with-commission` |
+| `src/hooks/useUnifiedDeliveryQueue.tsx` | `updateDeliveryStatus('delivered')` appelle aussi `complete-ride-with-commission` |
+| `supabase/functions/delivery-status-manager/index.ts` | Statut 'delivered' appelle aussi `complete-ride-with-commission` |
+| `src/components/driver/DriverDeliveryDashboard.tsx` | Mise a jour directe DB sans commission (incoherent) |
 
 ---
 
 ## Solution Proposee
 
-### Niveau 1 : Unification du Flux de Completion
+### Principe : Un Seul Point d'Entree pour la Commission
 
-Modifier le flux livraison pour utiliser la meme Edge Function `complete-ride-with-commission` que le taxi.
+Le flux doit etre :
+1. **Client-side** : Appelle `complete-ride-with-commission` UNE SEULE FOIS
+2. **Server-side** : `delivery-status-manager` ne doit PAS appeler la commission (elle est deja faite cote client)
+3. **Coherence** : Tous les composants utilisent le meme hook unifie
 
-### Fichiers a Modifier
+### Modifications Requises
 
-#### 1. `src/hooks/useDriverDeliveryActions.tsx`
-**Modifications :**
-- Remplacer l'appel a `delivery-status-manager` par `complete-ride-with-commission` lors du statut `delivered`
-- Ajouter la logique de calcul du montant final
-- Afficher le detail de la commission au livreur
+#### 1. `src/components/delivery/DeliveryDriverInterface.tsx`
+**Probleme** : Double appel (completeDelivery + updateDeliveryStatus)
+**Solution** : Utiliser UNIQUEMENT `updateDeliveryStatus('delivered')` qui gere tout
 
 ```typescript
-// AVANT (ligne 96-113)
-const completeDelivery = async (...) => {
-  return updateDeliveryStatus(orderId, 'delivered', {...});
+// AVANT (double appel)
+const handleCompleteDelivery = async () => {
+  const success = await completeDelivery(activeDelivery.id, recipientName, undefined, notes);
+  if (success) {
+    await updateDeliveryStatus('delivered'); // 2EME APPEL
+  }
 };
 
-// APRES
-const completeDelivery = async (
-  orderId: string, 
-  recipientName: string, 
-  deliveryPhoto?: File, 
-  notes?: string
+// APRES (appel unique)
+const handleCompleteDelivery = async () => {
+  // updateDeliveryStatus gere deja tout (commission + update status)
+  const success = await updateDeliveryStatus('delivered');
+  if (success) {
+    setNotes('');
+    setRecipientName('');
+  }
+};
+```
+
+#### 2. `src/hooks/useUnifiedDeliveryQueue.tsx`
+**Probleme** : Appelle complete-ride-with-commission mais aussi met a jour la table
+**Solution** : Ajouter les donnees de preuve de livraison (recipient, notes)
+
+```typescript
+// Ajouter un parametre optionnel pour les donnees de completion
+const updateDeliveryStatus = async (
+  status: string, 
+  completionData?: { recipientName?: string; notes?: string }
 ) => {
-  // 1. Recuperer les details de la commande
-  const { data: order } = await supabase
-    .from('delivery_orders')
-    .select('estimated_price, actual_price, driver_id')
-    .eq('id', orderId)
-    .single();
-
-  // 2. Appeler complete-ride-with-commission
-  const { data, error } = await supabase.functions.invoke(
-    'complete-ride-with-commission',
-    {
-      body: {
-        rideId: orderId,
-        rideType: 'delivery',
-        driverId: user.id,
-        finalAmount: order?.actual_price || order?.estimated_price || 0,
-        paymentMethod: 'cash'
-      }
-    }
-  );
-
-  if (error) {
-    toast.error('Erreur lors du prelevement de la commission');
-    return false;
-  }
-
-  // 3. Afficher le resultat
-  if (data?.billing_mode === 'subscription') {
-    toast.success('Livraison terminee (Abonnement)', {
-      description: `Courses restantes: ${data.rides_remaining}`
-    });
-  } else {
-    toast.success('Livraison terminee !', {
-      description: `Net: ${data.driver_net_amount?.toLocaleString()} CDF | Commission: ${data.commission?.amount?.toLocaleString()} CDF`
-    });
-  }
-
-  return true;
-};
-```
-
-#### 2. `src/hooks/useDriverDispatch.tsx`
-**Modifications (lignes 304-325) :**
-- Remplacer la logique de completion delivery par un appel a `complete-ride-with-commission`
-
-```typescript
-// AVANT
-case 'delivery':
-  const { error: deliveryError } = await supabase
-    .from('delivery_orders')
-    .update({
-      status: 'delivered',
-      delivered_at: new Date().toISOString()
-    })
-    .eq('id', orderId);
-  
-  if (!deliveryError && user) {
-    await supabase.functions.invoke('consume-ride', {...});
-  }
-  success = !deliveryError;
-  break;
-
-// APRES
-case 'delivery':
-  const { data: deliveryOrder } = await supabase
-    .from('delivery_orders')
-    .select('estimated_price, actual_price')
-    .eq('id', orderId)
-    .single();
-
-  const { data: deliveryResult, error: deliveryError } = await supabase.functions.invoke(
-    'complete-ride-with-commission',
-    {
-      body: {
-        rideId: orderId,
-        rideType: 'delivery',
-        driverId: user!.id,
-        finalAmount: deliveryOrder?.actual_price || deliveryOrder?.estimated_price || 0,
-        paymentMethod: 'cash'
-      }
-    }
-  );
-
-  if (!deliveryError && deliveryResult?.success) {
-    toast.success('Livraison terminee !', {
-      description: deliveryResult.billing_mode === 'subscription'
-        ? `Courses restantes: ${deliveryResult.rides_remaining}`
-        : `Commission: ${deliveryResult.commission?.amount?.toLocaleString()} CDF`
-    });
-    success = true;
-  }
-  break;
-```
-
-#### 3. `src/hooks/useUnifiedDeliveryQueue.tsx`
-**Modifications (lignes 165-209) :**
-- Ajouter l'appel a `complete-ride-with-commission` dans `updateDeliveryStatus`
-
-```typescript
-const updateDeliveryStatus = async (status: string) => {
-  if (!activeDelivery) return false;
+  if (!activeDelivery || !user) return false;
 
   setLoading(true);
   try {
-    // Si statut = delivered, utiliser complete-ride-with-commission
     if (status === 'delivered' || status === 'completed') {
       const { data, error } = await supabase.functions.invoke(
         'complete-ride-with-commission',
         {
           body: {
             rideId: activeDelivery.id,
-            rideType: activeDelivery.type === 'marketplace' ? 'delivery' : 'delivery',
-            driverId: user!.id,
+            rideType: 'delivery',
+            driverId: user.id,
             finalAmount: activeDelivery.estimated_fee || 0,
-            paymentMethod: 'cash'
+            paymentMethod: 'cash',
+            // Ajouter les donnees de completion
+            deliveryProof: completionData ? {
+              recipient_name: completionData.recipientName,
+              notes: completionData.notes,
+              delivery_time: new Date().toISOString()
+            } : undefined
           }
         }
       );
 
       if (error) throw error;
 
+      // NE PAS FAIRE de mise a jour supplementaire ici
+      // complete-ride-with-commission met deja a jour le statut
+      
       setActiveDelivery(null);
-      toast.success('Livraison terminee avec commission prelevee !');
+      // Afficher resultat...
       return true;
     }
-
-    // Sinon, mise a jour normale du statut
-    // ... code existant pour autres statuts ...
-  } catch (error) {
-    // ...
+    // ... reste du code
   }
 };
 ```
 
-#### 4. `supabase/functions/delivery-status-manager/index.ts`
-**Modifications (lignes 131-163) :**
-- Remplacer l'appel a `consume-ride` par `complete-ride-with-commission`
+#### 3. `supabase/functions/delivery-status-manager/index.ts`
+**Probleme** : Appelle `complete-ride-with-commission` quand statut = 'delivered'
+**Solution** : SUPPRIMER cet appel car la commission est geree cote client
 
 ```typescript
-// AVANT
+// AVANT (lignes 132-178)
 if (newStatus === 'delivered' && driverId) {
-  console.log(`Livraison terminee - Consommation ride pour ${driverId}`);
-  
-  const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
-    body: {
-      driver_id: driverId,
-      booking_id: orderId,
-      service_type: 'delivery'
-    }
-  });
+  const { data: commissionResult } = await supabase.functions.invoke(
+    'complete-ride-with-commission', 
+    { body: {...} }
+  );
   // ...
 }
 
-// APRES
-if (newStatus === 'delivered' && driverId) {
-  console.log(`Livraison terminee - Prelevement commission pour ${driverId}`);
-  
-  const { data: commissionResult, error: commissionError } = await supabase.functions.invoke(
-    'complete-ride-with-commission', 
-    {
-      body: {
-        rideId: orderId,
-        rideType: 'delivery',
-        driverId: driverId,
-        finalAmount: currentOrder.estimated_price || currentOrder.actual_price || 0,
-        paymentMethod: 'cash'
-      }
-    }
-  );
-
-  if (commissionError) {
-    console.error('Erreur commission:', commissionError);
-  } else {
-    console.log(`Commission prelevee: ${commissionResult?.commission?.amount} CDF`);
-    console.log(`Mode: ${commissionResult?.billing_mode}`);
-  }
-}
+// APRES - SUPPRIMER ce bloc entier
+// La commission est geree par le client (useUnifiedDeliveryQueue)
+// delivery-status-manager ne doit que:
+// - Mettre a jour le statut
+// - Creer l'historique
+// - Envoyer les notifications
+// - Rendre le chauffeur disponible
 ```
 
-### Niveau 2 : Ajout Composant Affichage Commission Livraison
-
-#### 5. Nouveau composant `src/components/driver/DeliveryCommissionDetails.tsx`
-Creer un composant similaire a `RideCommissionDetails.tsx` pour afficher le detail des commissions livraison.
+#### 4. `src/hooks/useDriverDeliveryActions.tsx`
+**Probleme** : `completeDelivery()` fait un appel separe a la commission
+**Solution** : Deprecier cette fonction, utiliser `useUnifiedDeliveryQueue.updateDeliveryStatus`
 
 ```typescript
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Package, TrendingDown, Building, Wallet } from 'lucide-react';
-
-interface DeliveryCommissionDetailsProps {
-  deliveryAmount: number;
-  kwendaCommission: number;
-  kwendaRate: number;
-  partnerCommission: number;
-  partnerRate: number;
-  driverNetAmount: number;
-  billingMode: 'subscription' | 'commission';
-  ridesRemaining?: number;
-}
-
-export const DeliveryCommissionDetails: React.FC<DeliveryCommissionDetailsProps> = ({
-  deliveryAmount,
-  kwendaCommission,
-  kwendaRate,
-  partnerCommission,
-  partnerRate,
-  driverNetAmount,
-  billingMode,
-  ridesRemaining
-}) => {
-  if (billingMode === 'subscription') {
-    return (
-      <Card className="border-green-200 bg-green-50/50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Package className="h-4 w-4 text-green-600" />
-            Mode Abonnement
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-700">
-            {deliveryAmount.toLocaleString()} CDF
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Aucune commission - Courses restantes: {ridesRemaining}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="border-primary/20">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <TrendingDown className="h-4 w-4" />
-          Detail Commission Livraison
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex justify-between">
-          <span>Montant livraison</span>
-          <span className="font-bold">{deliveryAmount.toLocaleString()} CDF</span>
-        </div>
-        
-        <div className="flex justify-between text-orange-600">
-          <span>Frais Kwenda ({kwendaRate}%)</span>
-          <span>-{kwendaCommission.toLocaleString()} CDF</span>
-        </div>
-        
-        {partnerCommission > 0 && (
-          <div className="flex justify-between text-purple-600">
-            <span>Frais Partenaire ({partnerRate}%)</span>
-            <span>-{partnerCommission.toLocaleString()} CDF</span>
-          </div>
-        )}
-        
-        <div className="border-t pt-2 flex justify-between">
-          <span className="font-bold">Votre gain net</span>
-          <span className="text-xl font-bold text-green-600">
-            {driverNetAmount.toLocaleString()} CDF
-          </span>
-        </div>
-      </CardContent>
-    </Card>
-  );
+// Marquer comme deprecated et rediriger vers le flux unifie
+const completeDelivery = async (
+  orderId: string, 
+  recipientName: string, 
+  deliveryPhoto?: File, 
+  notes?: string
+) => {
+  console.warn('⚠️ completeDelivery() est deprecie. Utiliser updateDeliveryStatus()');
+  
+  // Simplement mettre a jour le statut via delivery-status-manager
+  // La commission sera geree par le hook unifie
+  return updateDeliveryStatus(orderId, 'delivered', {
+    deliveryProof: {
+      recipient_name: recipientName,
+      delivery_time: new Date().toISOString(),
+      photo_taken: !!deliveryPhoto,
+      driver_notes: notes
+    }
+  });
 };
 ```
 
-### Niveau 3 : Tests et Validation
+#### 5. `src/components/driver/DriverDeliveryDashboard.tsx`
+**Probleme** : Mise a jour directe sans commission
+**Solution** : Utiliser le hook unifie pour garantir la commission
 
-#### 6. Script de test SQL
-```sql
--- Verifier les commissions livraison apres implementation
-SELECT 
-  ride_type,
-  COUNT(*) as total,
-  SUM(kwenda_commission) as total_kwenda,
-  SUM(partner_commission) as total_partner,
-  SUM(driver_net_amount) as total_drivers
-FROM ride_commissions
-WHERE created_at > NOW() - INTERVAL '24 hours'
-GROUP BY ride_type;
+```typescript
+// AVANT (lignes 201-260) - mise a jour directe
+const completeDelivery = async () => {
+  await supabase
+    .from('delivery_orders')
+    .update({ status: 'delivered', ... })
+    .eq('id', selectedDelivery);
+};
+
+// APRES - utiliser le hook unifie
+import { useUnifiedDeliveryQueue } from '@/hooks/useUnifiedDeliveryQueue';
+
+const { updateDeliveryStatus } = useUnifiedDeliveryQueue();
+
+const completeDelivery = async () => {
+  const success = await updateDeliveryStatus('delivered');
+  if (success) {
+    // Reset UI...
+  }
+};
 ```
+
+---
+
+## Flux Corrige
+
+```text
+Driver termine livraison
+  └─> updateDeliveryStatus('delivered') 
+        └─> complete-ride-with-commission (APPEL UNIQUE)
+              ├─> Verifie abonnement ou calcule commission
+              ├─> Debite wallet si mode commission
+              ├─> Insert ride_commissions
+              └─> Met a jour statut 'completed'
+```
+
+---
+
+## Tests de Validation
+
+### Test 1 : Completion Livraison Directe
+1. Accepter une livraison directe sur `/driver/delivery`
+2. Passer par tous les statuts (picked_up -> in_transit -> delivered)
+3. Verifier : UN SEUL appel a `complete-ride-with-commission` dans les logs
+4. Verifier : Commission enregistree dans `ride_commissions`
+
+### Test 2 : Completion Livraison Marketplace
+1. Accepter une livraison marketplace
+2. Terminer la livraison
+3. Verifier : Pas d'erreur "Too Many Requests"
+4. Verifier : Wallet debite correctement
+
+### Test 3 : Mode Abonnement
+1. Chauffeur avec abonnement actif
+2. Terminer une livraison
+3. Verifier : `rides_remaining` decremente de 1
+4. Verifier : Pas de debit wallet
 
 ---
 
@@ -354,29 +231,11 @@ GROUP BY ride_type;
 
 | Fichier | Action | Impact |
 |---------|--------|--------|
-| `useDriverDeliveryActions.tsx` | Modifier `completeDelivery` | Fix principal |
-| `useDriverDispatch.tsx` | Modifier case `delivery` | Coherence dispatch |
-| `useUnifiedDeliveryQueue.tsx` | Ajouter commission | Queue unifiee |
-| `delivery-status-manager/index.ts` | Remplacer consume-ride | Edge Function |
-| `DeliveryCommissionDetails.tsx` | Creer composant | UX transparence |
-
----
-
-## Flux Apres Correction
-
-```
-Livreur termine livraison
-  → Hook/Component appelle completeDelivery()
-  → Edge Function: complete-ride-with-commission
-  → Verification abonnement actif ?
-    → OUI: Decrementer rides_remaining, billing_mode = 'subscription'
-    → NON: Calculer 12% Kwenda + 0-3% Partenaire
-  → Debiter wallet livreur (si mode commission)
-  → Insert ride_commissions (ride_type = 'delivery')
-  → Crediter wallet partenaire (si applicable)
-  → Notification livreur avec details
-  → Mettre a jour statut commande
-```
+| `DeliveryDriverInterface.tsx` | Supprimer double appel | Fix rate limiting |
+| `useUnifiedDeliveryQueue.tsx` | Ajouter completionData | Point d'entree unique |
+| `delivery-status-manager/index.ts` | Supprimer appel commission | Eviter duplication |
+| `useDriverDeliveryActions.tsx` | Deprecier completeDelivery | Coherence |
+| `DriverDeliveryDashboard.tsx` | Utiliser hook unifie | Garantir commission |
 
 ---
 
@@ -384,10 +243,9 @@ Livreur termine livraison
 
 | Risque | Mitigation |
 |--------|------------|
-| Wallet insuffisant | Systeme overdue + suspension apres 2 impasses (deja implemente) |
-| Double prelevement | Verification ride_commissions avant insert |
-| Regression taxi | Aucun changement sur le flux taxi |
-| Livreur sans partenaire | partner_rate = 0 par defaut |
+| Commission deja prelevee avant fix | Verifier `ride_commissions` avant insert (idempotence) |
+| Composants non migres | Logs warning pour detecter appels deprecies |
+| Edge Function timeout | complete-ride-with-commission optimise (<5s) |
 
 ---
 
@@ -395,6 +253,5 @@ Livreur termine livraison
 
 - **Complexite** : Moyenne
 - **Fichiers impactes** : 5
-- **Temps estime** : 30-45 minutes
-- **Tests requis** : Completion livraison E2E avec verification wallet
-
+- **Temps estime** : 25-35 minutes
+- **Tests requis** : Completion livraison E2E sans rate limiting
