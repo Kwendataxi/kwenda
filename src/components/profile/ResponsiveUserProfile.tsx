@@ -14,14 +14,10 @@ export const ResponsiveUserProfile = ({
   onClose 
 }: ResponsiveUserProfileProps) => {
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <div className="space-y-6">
-        <UserProfile 
-          onWalletAccess={onWalletAccess}
-          onViewChange={onViewChange}
-          onClose={onClose}
-        />
-      </div>
-    </div>
+    <UserProfile 
+      onWalletAccess={onWalletAccess}
+      onViewChange={onViewChange}
+      onClose={onClose}
+    />
   );
 };
