@@ -95,16 +95,55 @@ const DeliveryDriverInterface = () => {
           </Button>
         );
       case 'in_transit':
-        return (
-          <Button 
-            onClick={() => setShowCompletionDialog(true)} 
-            className="w-full" 
-            disabled={loading}
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Terminer la livraison
-          </Button>
-        );
+        // Pour les livraisons marketplace: utiliser le dialog de completion
+        // Pour les livraisons directes: compléter directement via le hook unifié
+        if (activeDelivery.type === 'marketplace') {
+          return (
+            <Button 
+              onClick={() => setShowCompletionDialog(true)} 
+              className="w-full" 
+              disabled={loading}
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Terminer la livraison
+            </Button>
+          );
+        } else {
+          // Livraison directe - formulaire intégré
+          return (
+            <div className="space-y-3">
+              <Input
+                placeholder="Nom du destinataire"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+              />
+              <Textarea
+                placeholder="Notes de livraison (optionnel)"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="min-h-16"
+              />
+              <Button 
+                onClick={async () => {
+                  const success = await updateDeliveryStatus('delivered', {
+                    recipientName,
+                    notes
+                  });
+                  if (success) {
+                    setRecipientName('');
+                    setNotes('');
+                    toast.success('Livraison terminée avec succès !');
+                  }
+                }}
+                className="w-full" 
+                disabled={loading}
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Confirmer la livraison
+              </Button>
+            </div>
+          );
+        }
       default:
         return null;
     }
@@ -214,7 +253,8 @@ const DeliveryDriverInterface = () => {
           bookingType="delivery"
         />
 
-        {user && (
+        {/* Dialog uniquement pour livraisons marketplace */}
+        {user && activeDelivery.type === 'marketplace' && (
           <DeliveryCompletionDialog
             open={showCompletionDialog}
             onOpenChange={setShowCompletionDialog}
@@ -224,7 +264,9 @@ const DeliveryDriverInterface = () => {
             paymentMethod={getPaymentMethod()}
             onComplete={() => {
               setShowCompletionDialog(false);
-              updateDeliveryStatus('delivered');
+              // Pour marketplace: complete-delivery-with-payment gère déjà le statut
+              // Ne pas appeler updateDeliveryStatus pour éviter doublons
+              toast.success('Livraison marketplace terminée !');
             }}
           />
         )}
