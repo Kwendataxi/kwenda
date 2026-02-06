@@ -1,156 +1,190 @@
 
-# Plan de Correction : Scroll Page "Mon Profil"
+# Plan : Bouton Retour Profil + Vérification Complète Livraison
 
-## Diagnostic du Probleme
+## Partie 1 : Bouton Retour Profil (Style Professionnel)
 
-### Structure Actuelle (Imbrication Problematique)
+### Diagnostic
+Le `ModernProfileHeader` actuel est un header de carte (profil info) et non un header de navigation. Il manque un bouton retour pour revenir à l'écran précédent.
 
-```
-ClientApp.tsx → renderProfile()
-  └─ div.min-h-screen.content-with-bottom-nav-scrollable  ← PARENT avec scroll
-       └─ ResponsiveUserProfile.tsx
-            └─ div.container.mx-auto.px-4.py-6
-                 └─ UserProfile.tsx
-                      └─ div.max-w-md.min-h-screen.content-with-bottom-nav  ← ENFANT avec scroll aussi
-```
+### Solution
+Ajouter un header de navigation professionnel **au-dessus** du `ModernProfileHeader` avec un bouton retour discret.
 
-### Causes du Bug
-1. **Double `min-h-screen`** : Le parent ET l'enfant ont `min-h-screen`, ce qui force l'enfant a occuper 100% de l'ecran au lieu de s'adapter au contenu
-2. **Double classes de scroll** : `content-with-bottom-nav-scrollable` sur le parent ET `content-with-bottom-nav` sur l'enfant creent un conflit
-3. **Overflow cache** : Le conteneur enfant avec `min-h-screen` empeche le contenu de depasser et donc de defiler
+#### Fichier : `src/components/profile/UserProfile.tsx`
 
-### Comportement Observe
-- Le contenu sous le statut VIP (section "ACTIF") est coupe
-- Impossible de faire defiler pour voir les elements en dessous
-- Le bouton de deconnexion et d'autres options sont inaccessibles
+**Modifications requises :**
 
----
+1. **Importer les icônes nécessaires** (ligne 12) :
+   - Ajouter `ArrowLeft` aux imports de lucide-react
 
-## Solution Proposee
+2. **Ajouter le header de navigation** (avant ligne 385) :
+   - Créer un header sticky avec backdrop-blur
+   - Bouton retour à gauche avec icône ArrowLeft
+   - Titre "Mon Profil" centré
+   - Appel de `onClose` ou navigation vers home au clic
 
-### Principe : Un Seul Conteneur Scrollable
-
-Le parent dans `ClientApp.tsx` gere deja le scroll avec `content-with-bottom-nav-scrollable`. 
-Le composant `UserProfile.tsx` ne doit donc PAS avoir de proprietes de scroll ou de hauteur fixe.
-
-### Fichiers a Modifier
-
-#### 1. `src/components/profile/UserProfile.tsx`
-
-**Ligne 385 - Modification du conteneur principal :**
+**Code du nouveau header :**
 
 ```typescript
-// AVANT
-return (
-  <div className="max-w-md mx-auto bg-background min-h-screen content-with-bottom-nav">
-
-// APRES
-return (
-  <div className="max-w-md mx-auto bg-background pb-8">
-```
-
-**Justification :**
-- Suppression de `min-h-screen` : laisse le contenu definir sa propre hauteur
-- Suppression de `content-with-bottom-nav` : evite le conflit de scroll avec le parent
-- Ajout de `pb-8` : petit padding en bas pour l'espace visuel
-
-#### 2. `src/components/profile/ResponsiveUserProfile.tsx`
-
-**Simplification du wrapper :**
-
-```typescript
-// AVANT
-return (
-  <div className="container mx-auto px-4 py-6 max-w-7xl">
-    <div className="space-y-6">
-      <UserProfile ... />
-    </div>
+{/* Navigation Header - Style soft moderne */}
+<header className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border/10">
+  <div className="flex items-center gap-3 px-4 py-3">
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onClose}
+      className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50"
+    >
+      <ArrowLeft className="h-5 w-5" />
+    </Button>
+    <h1 className="text-lg font-semibold text-foreground">Mon Profil</h1>
   </div>
-);
-
-// APRES
-return (
-  <UserProfile 
-    onWalletAccess={onWalletAccess}
-    onViewChange={onViewChange}
-    onClose={onClose}
-  />
-);
+</header>
 ```
 
-**Justification :**
-- Le wrapper ajoute du padding horizontal (px-4) qui entre en conflit avec le padding interne de UserProfile
-- UserProfile gere deja sa propre largeur avec `max-w-md mx-auto`
-- Simplification = moins de couches = moins de bugs
+**Structure finale :**
+```
+UserProfile
+  └─ div.max-w-md.mx-auto.pb-8
+       └─ header (sticky, navigation) ← NOUVEAU
+            └─ Button ArrowLeft + Titre
+       └─ ModernProfileHeader (card profil existante)
+       └─ ProfileActionButtons
+       └─ ... autres sections
+```
 
-#### 3. `src/pages/ClientApp.tsx`
+---
 
-**Ligne 770 - Simplification du conteneur profile :**
+## Partie 2 : Vérification Complète du Flux Livraison
+
+### Diagnostic du Flux Actuel
+
+#### Flux pour Livraisons Directes (delivery_orders)
+```
+DeliveryDriverInterface
+  └─ handleStartDelivery() → updateDeliveryStatus('in_transit') ✅
+  └─ "Terminer" → showCompletionDialog = true
+       └─ DeliveryCompletionDialog
+            └─ handleComplete() → complete-delivery-with-payment ⚠️
+            └─ onComplete() → updateDeliveryStatus('delivered') 
+                 └─ complete-ride-with-commission ✅
+```
+
+**Problème identifié** : `DeliveryCompletionDialog` appelle `complete-delivery-with-payment` qui est conçu pour les commandes **marketplace** (table `marketplace_orders`). Pour les livraisons directes (`delivery_orders`), cette fonction va échouer avec "Commande introuvable".
+
+#### Analyse des Edge Functions
+
+| Function | Table ciblée | Usage prévu |
+|----------|--------------|-------------|
+| `complete-delivery-with-payment` | `marketplace_orders` | Livraisons marketplace uniquement |
+| `complete-ride-with-commission` | `delivery_orders` / `transport_bookings` | Commission chauffeur (tous types) |
+| `delivery-status-manager` | `delivery_orders` | Mise à jour statuts livraisons directes |
+
+### Solution : Correction du Flux Livraison
+
+#### 1. Modifier `DeliveryDriverInterface.tsx` pour distinguer les types
+
+Le dialog `DeliveryCompletionDialog` ne doit être utilisé que pour les livraisons **marketplace**. Pour les livraisons **directes**, utiliser directement `updateDeliveryStatus('delivered', completionData)`.
+
+```typescript
+// Dans DeliveryDriverInterface.tsx
+
+// Pour livraisons DIRECTES - pas de dialog, appel direct
+const handleCompleteDirectDelivery = async () => {
+  if (!activeDelivery || activeDelivery.type !== 'direct') return;
+  
+  // Utiliser le hook unifié avec les données de completion
+  const success = await updateDeliveryStatus('delivered', {
+    recipientName,
+    notes
+  });
+  
+  if (success) {
+    setRecipientName('');
+    setNotes('');
+  }
+};
+
+// Pour livraisons MARKETPLACE - utiliser le dialog
+const handleCompleteMarketplaceDelivery = () => {
+  if (!activeDelivery || activeDelivery.type !== 'marketplace') return;
+  setShowCompletionDialog(true);
+};
+
+// Modifier getNextAction() pour différencier
+case 'in_transit':
+  return activeDelivery.type === 'marketplace' ? (
+    <Button onClick={handleCompleteMarketplaceDelivery}>
+      Terminer la livraison
+    </Button>
+  ) : (
+    <div className="space-y-3">
+      <Input
+        placeholder="Nom du destinataire"
+        value={recipientName}
+        onChange={(e) => setRecipientName(e.target.value)}
+      />
+      <Button onClick={handleCompleteDirectDelivery}>
+        Terminer la livraison
+      </Button>
+    </div>
+  );
+```
+
+#### 2. Modifier le callback `onComplete` du DeliveryCompletionDialog
+
+Pour les livraisons marketplace, NE PAS appeler `updateDeliveryStatus('delivered')` après `complete-delivery-with-payment` car cela appelle `complete-ride-with-commission` avec un `rideId` qui n'existe pas dans `delivery_orders`.
 
 ```typescript
 // AVANT
-const renderProfile = () => (
-  <div className="min-h-screen bg-background content-with-bottom-nav-scrollable safe-area-inset">
-    <div className="flex items-center gap-4 p-4 mb-4">
-      ...header...
-    </div>
-    <div className="px-4 space-y-4">
-      <ResponsiveUserProfile ... />
+onComplete={() => {
+  setShowCompletionDialog(false);
+  updateDeliveryStatus('delivered'); // ⚠️ Erreur potentielle
+}}
 
-// APRES
-const renderProfile = () => (
-  <div className="bg-background content-with-bottom-nav-scrollable safe-area-inset">
-    <ResponsiveUserProfile ... />
-```
-
-**Justification :**
-- Suppression de `min-h-screen` : laisse le scroll fonctionner naturellement
-- Suppression du header redondant : UserProfile a deja son propre header moderne (ModernProfileHeader)
-- Suppression du padding `px-4` : UserProfile gere son propre padding
-
----
-
-## Flux Apres Correction
-
-```
-ClientApp.tsx → renderProfile()
-  └─ div.content-with-bottom-nav-scrollable  ← SEUL scroll ici
-       └─ ResponsiveUserProfile (passthrough)
-            └─ UserProfile
-                 └─ div.max-w-md.mx-auto.pb-8  ← Contenu normal, pas de scroll
-                      └─ ModernProfileHeader
-                      └─ ProfileActionButtons
-                      └─ Section Vendeur
-                      └─ Profile Options
-                      └─ Bouton Deconnexion  ← Maintenant accessible !
+// APRÈS
+onComplete={() => {
+  setShowCompletionDialog(false);
+  // La commission pour marketplace est gérée différemment
+  // complete-delivery-with-payment a déjà mis à jour le statut
+  setActiveDelivery(null); // Reset local state
+  toast.success('Livraison marketplace terminée !');
+}}
 ```
 
 ---
 
-## Resume des Modifications
+## Résumé des Modifications
 
-| Fichier | Ligne | Modification | Impact |
-|---------|-------|--------------|--------|
-| `UserProfile.tsx` | 385 | Supprimer `min-h-screen content-with-bottom-nav`, ajouter `pb-8` | Fix principal |
-| `ResponsiveUserProfile.tsx` | 17-25 | Supprimer wrapper div, passer directement UserProfile | Simplification |
-| `ClientApp.tsx` | 769-784 | Supprimer `min-h-screen`, header redondant et `px-4` | Eviter conflit scroll |
+| Fichier | Modification | Impact |
+|---------|--------------|--------|
+| `UserProfile.tsx` | Ajouter header navigation avec bouton retour | UX améliorée |
+| `DeliveryDriverInterface.tsx` | Différencier flux direct vs marketplace | Évite erreurs |
+| `DeliveryDriverInterface.tsx` | Simplifier completion livraisons directes | Cohérence |
 
 ---
 
 ## Tests de Validation
 
-1. **Test scroll basique** : Ouvrir "Mon Profil" et defiler jusqu'en bas
-2. **Test deconnexion** : Verifier que le bouton "Se deconnecter" est visible et cliquable
-3. **Test sur mobile** : Verifier le comportement sur ecran 360px de large
-4. **Test dark mode** : Verifier que le scroll fonctionne aussi en mode sombre
-5. **Test retour** : Verifier que le bouton retour fonctionne toujours
+### Test 1 : Bouton Retour Profil
+1. Aller sur le profil client
+2. Vérifier le bouton retour en haut à gauche
+3. Cliquer et vérifier le retour à l'écran précédent
+
+### Test 2 : Completion Livraison Directe
+1. Créer une livraison directe (via `/delivery`)
+2. Simuler un chauffeur qui accepte et complète
+3. Vérifier : UN SEUL appel à `complete-ride-with-commission`
+4. Vérifier : Commission enregistrée dans `ride_commissions`
+
+### Test 3 : Completion Livraison Marketplace
+1. Commander un produit marketplace
+2. Chauffeur accepte et complète via `DeliveryCompletionDialog`
+3. Vérifier : Appel à `complete-delivery-with-payment` seulement
+4. Vérifier : Escrow mis à jour correctement
 
 ---
 
 ## Estimation
-
-- **Complexite** : Faible
-- **Fichiers impactes** : 3
-- **Lignes modifiees** : ~15
-- **Temps estime** : 5-10 minutes
-- **Risque de regression** : Faible (changements CSS uniquement)
+- **Complexité** : Moyenne
+- **Fichiers impactés** : 2
+- **Temps estimé** : 15-20 minutes
