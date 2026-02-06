@@ -382,7 +382,7 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
   };
 
   return (
-    <div className="max-w-md mx-auto bg-background min-h-screen content-with-bottom-nav">
+    <div className="max-w-md mx-auto bg-background pb-8">
       {/* Modern Profile Header */}
       <ModernProfileHeader
         profile={profile}

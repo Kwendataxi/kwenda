@@ -767,25 +767,10 @@ const ClientApp = () => {
   const [profileError, setProfileError] = useState<string | null>(null);
 
   const renderProfile = () => (
-    <div className="min-h-screen bg-background content-with-bottom-nav-scrollable safe-area-inset">
-      <div className="flex items-center gap-4 p-4 mb-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setCurrentView('home');
-            setProfileError(null);
-          }}
-          className="rounded-xl"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
-      </div>
-      
+    <div className="bg-background content-with-bottom-nav-scrollable safe-area-inset">
       {/* ✅ Message erreur si échec chargement profil */}
       {profileError && (
-        <div className="px-4 mb-4">
+        <div className="px-4 mb-4 pt-4">
           <div className={`p-4 rounded-lg border ${
             profileError.includes('permission') || profileError.includes('Accès refusé')
               ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800'
@@ -830,29 +815,22 @@ const ClientApp = () => {
         </div>
       )}
       
-      <div className="px-4 space-y-4">
-        <ResponsiveUserProfile 
-          userType="client" 
-          onWalletAccess={() => {
-            console.log('🚀 [ClientApp] onWalletAccess déclenché, changement vers wallet...');
-            setCurrentView('wallet');
-            console.log('✅ [ClientApp] setCurrentView("wallet") exécuté');
-          }}
-          onViewChange={(view) => {
-            console.log('🔄 [ClientApp] onViewChange vers:', view);
-            setCurrentView(view);
-          }}
-          onClose={() => {
-            console.log('🚪 [ClientApp] onClose - retour à home');
-            setCurrentView('home');
-          }}
-        />
-        
-        {/* Section Vérification d'Identité */}
-        <div className="pb-safe-area-inset">
-          <VerificationDocumentUpload />
-        </div>
-      </div>
+      <ResponsiveUserProfile 
+        userType="client" 
+        onWalletAccess={() => {
+          console.log('🚀 [ClientApp] onWalletAccess déclenché, changement vers wallet...');
+          setCurrentView('wallet');
+          console.log('✅ [ClientApp] setCurrentView("wallet") exécuté');
+        }}
+        onViewChange={(view) => {
+          console.log('🔄 [ClientApp] onViewChange vers:', view);
+          setCurrentView(view);
+        }}
+        onClose={() => {
+          console.log('🚪 [ClientApp] onClose - retour à home');
+          setCurrentView('home');
+        }}
+      />
     </div>
   );
 
