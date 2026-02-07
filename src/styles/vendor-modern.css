@@ -2,12 +2,15 @@
    VENDOR MODERN GLASSMORPHISM DESIGN SYSTEM
    ========================================================================== */
 
-/* Layout Container */
+/* Layout Container - Fixed height for proper scroll */
 .vendor-layout-container {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
+  overflow: hidden;
 }
 
 /* Content Scrollable Zone */

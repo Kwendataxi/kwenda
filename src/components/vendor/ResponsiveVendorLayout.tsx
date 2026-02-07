@@ -72,7 +72,7 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
       </header>
 
       {/* Container principal avec sidebar et contenu */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Sidebar Desktop uniquement */}
         {!isMobile && (
           <div className="vendor-card-glass border-r border-border/20">
@@ -88,8 +88,8 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
         <main 
           {...(isMobile ? handlers : {})}
           className={cn(
-            'vendor-scrollbar',
-            isMobile ? 'content-with-bottom-nav pt-4' : 'content-scrollable pt-4'
+            'vendor-scrollbar flex-1 overflow-y-auto overflow-x-hidden',
+            isMobile ? 'pb-24' : ''
           )}
         >
           <div className="container max-w-6xl mx-auto p-4 space-y-4">
