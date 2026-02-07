@@ -218,7 +218,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack, onCartStateChange 
 
   return (
     <motion.div 
-      className="min-h-screen flex flex-col bg-background pb-24"
+      className="flex flex-col flex-1 bg-background pb-24"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}

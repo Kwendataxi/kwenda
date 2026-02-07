@@ -30,7 +30,7 @@ export default function Food() {
   }, [openCartCallback]);
 
   return (
-    <>
+    <div className="h-screen h-dvh flex flex-col overflow-hidden bg-background">
       <FoodServiceTransition>
         <FoodOrderInterface 
           onBack={handleBack}
@@ -45,6 +45,6 @@ export default function Food() {
         cartItemsCount={cartItemsCount}
         onCartClick={handleCartClick}
       />
-    </>
+    </div>
   );
 }
