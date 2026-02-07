@@ -19,7 +19,7 @@ export const FoodServiceTransition = ({ children }: FoodServiceTransitionProps) 
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-      className="min-h-screen"
+      className="flex-1 overflow-y-auto"
     >
       {children}
     </motion.div>

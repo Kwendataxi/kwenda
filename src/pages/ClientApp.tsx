@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ModernJobInterface } from '@/components/job/modern/ModernJobInterface';
 import { supabase } from '@/integrations/supabase/client';
@@ -910,9 +911,12 @@ const ClientApp = () => {
   return (
     <>
       <ChatProvider>
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="h-screen h-dvh flex flex-col bg-background overflow-hidden">
           {/* Contenu scrollable */}
-          <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-[var(--bottom-nav-height-safe)]">
+          <main className={cn(
+            "flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide",
+            currentView === 'home' && "pb-24"
+          )}>
         {/* Connection Indicator - Hidden */}
         {/* <ConnectionIndicator /> */}
         
